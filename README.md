@@ -1,3 +1,2 @@
-# cs52 simple blog express api #
+# simple es6 node with express and linting
 
-uses es6 with babel for prettiness
