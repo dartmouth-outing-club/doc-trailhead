@@ -1,0 +1,27 @@
+{
+  extends: "airbnb",
+  parser: "babel-eslint",
+  env: {
+    browser: false,
+    node: true,
+    es6: true
+  },
+  rules: {
+    strict: 0,
+    quotes: [2, "single"],
+    no-else-return: 0,
+    new-cap: ["error", {"capIsNewExceptions": ["Router"]}],
+    no-console: 0,
+    import/no-unresolved: [2, { commonjs: true}],
+    no-unused-vars: ["error", { "vars": "all", "args": "none" }],
+    no-underscore-dangle: 0,
+    arrow-body-style: ["error", "always"]
+  },
+  plugins: [
+    'import'
+  ],
+  ecmaFeatures: {
+    jsx: true,
+    modules: true
+  }
+}
