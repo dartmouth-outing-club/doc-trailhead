@@ -1,5 +1,9 @@
-# simple es6 node with express and linting
+# starter express app template
 
-also easy to run on [heroku](https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app)
+* node with babel
+* expressjs
+* airbnb eslint rules
+
+Procfile set up to run on [heroku](https://devcenter.heroku.com/articles/getting-started-with-nodejs#deploy-the-app)
 
 
