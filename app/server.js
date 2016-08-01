@@ -2,12 +2,14 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 
-// configure app to use bodyParser()
-// this will let us get the data from a POST
+// initialize
 const app = express();
 
+// enable/disable cross origin resource sharing if necessary
+app.use(cors());
+
+// enable json message body for posting data to API
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors()); // allows all
 app.use(bodyParser.json());
 
 
