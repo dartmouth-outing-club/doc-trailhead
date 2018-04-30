@@ -8,8 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon app/server.js --exec babel-node",
     "start": "babel-node app/server.js",
-    "build": "babel app -d build",
-    "prod": "yarn build; node build/server.js"
+    "build": "babel app -d dist",
+    "prod": "yarn build; node dist/server.js"
   },
   "license": "ISC",
 	"engines": {
