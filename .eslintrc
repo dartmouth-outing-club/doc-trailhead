@@ -23,9 +23,6 @@
   },
   plugins: [
     'import'
-  ],
-  ecmaFeatures: {
-    jsx: true,
-    modules: true
-  }
+  ]
 }
+
