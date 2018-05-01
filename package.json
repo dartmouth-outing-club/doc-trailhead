@@ -3,12 +3,12 @@
   "version": "2.0.0",
   "description": "",
   "author": "",
-  "main": "app/server.js",
+  "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon app/server.js --exec babel-node",
-    "start": "babel-node app/server.js",
-    "build": "babel app -d dist",
+    "dev": "nodemon src/server.js --exec babel-node",
+    "start": "babel-node src/server.js",
+    "build": "babel src -d dist",
     "prod": "yarn build; node dist/server.js"
   },
   "license": "ISC",
