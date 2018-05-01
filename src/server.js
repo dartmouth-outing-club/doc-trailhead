@@ -20,7 +20,7 @@ app.set('view engine', 'ejs');
 app.use(express.static('static'));
 
 // this just allows us to render ejs from the ../app/views directory
-app.set('views', path.join(__dirname, '../app/views'));
+app.set('views', path.join(__dirname, '../src/views'));
 
 // enable json message body for posting data to API
 app.use(bodyParser.urlencoded({ extended: true }));
