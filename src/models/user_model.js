@@ -8,6 +8,7 @@ const UserSchema = new Schema({
   name: { type: String },
   is_leader: Boolean, // are you a leader for any club (opens up trip making option)
   leader_for: [String], // the names/ids of clubs you are a leader for
+  dash_number: String,
 });
 
 UserSchema.set('toJSON', {
