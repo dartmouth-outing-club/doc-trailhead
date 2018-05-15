@@ -3,6 +3,14 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import path from 'path';
 import morgan from 'morgan';
+import mongoose from 'mongoose';
+import apiRouter from './router';
+
+const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
+mongoose.connect(mongoURI);
+// set mongoose promises to es6 default
+mongoose.Promise = global.Promise;
+
 
 // initialize
 const app = express();
@@ -27,10 +35,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 
-// default index route
-app.get('/', (req, res) => {
-  res.send('hi');
-});
+app.use('/api', apiRouter);
 
 // START THE SERVER
 // =============================================================================
