@@ -26,6 +26,6 @@ router.route('/trip/:id')
 
 router.put('/joinTrip/:id', requireAuth, Users.joinTrip);
 
-router.get('myTrips', requireAuth, Trips.myTrip);
+router.get('myTrips', requireAuth, Users.myTrips);
 router.get('isOnTrip/:id', Users.isOnTrip);
 export default router;
