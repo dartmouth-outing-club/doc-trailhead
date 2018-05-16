@@ -9,6 +9,7 @@ const router = Router();
 router.get('/', (req, res) => {
   res.json({ message: 'welcome to our doc app!' });
 });
+
 router.post('/signin', requireSignin, Users.signin);
 router.post('/signup', Users.signup);
 
