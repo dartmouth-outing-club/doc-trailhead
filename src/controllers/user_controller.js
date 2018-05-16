@@ -78,12 +78,11 @@ export const updateUser = (req, res) => {
   User.findById(id, (err, user) => { // this should see if name is in members
     user.email = req.body.email;
     user.name = req.body.name;
-    if(req.body.club{
+    if (req.body.club) {
       user.leader_for.push(req.body.club);
-      user.is_leader = false;
+      user.is_leader = true;
     }
     user.dash_number = req.body.dash_number;
-
   });
 };
 
