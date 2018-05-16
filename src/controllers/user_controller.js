@@ -5,10 +5,6 @@ import Trip from '../models/trip_model';
 
 dotenv.config({ silent: true });
 
-// and then the secret is usable this way:
-// process.env.AUTH_SECRET;
-
-
 export const signin = (req, res, next) => {
   res.send({ token: tokenForUser(req.user) });
 };
@@ -17,9 +13,8 @@ export const signup = (req, res, next) => {
   const { email } = req.body;
   const { password } = req.body;
   const { name } = req.body;
-  console.log(email);
-  if (!email || !password) {
-    res.status(422).send('You must provide email and password');
+  if (!email || !password || !name) {
+    res.status(422).send('You must provide a name, email and password');
   }
   User.findOne({ email }, (err, user) => {
     if (user) {
@@ -34,7 +29,8 @@ export const signup = (req, res, next) => {
       newUser.save()
         .then((result) => {
           res.send({ token: tokenForUser(newUser) });
-        }).catch((error) => {
+        })
+        .catch((error) => {
           res.status(500).json({ error });
         });
     }
