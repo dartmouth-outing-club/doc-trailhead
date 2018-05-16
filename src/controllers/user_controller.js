@@ -58,6 +58,25 @@ export const joinTrip = (req, res) => {
 };
 
 
+export const myTrips = (req, res) => {
+  const { name } = req.user;
+  Trip.find({ members: name }, (err, trips) => { // this should see if name is in members
+    res.json(trips);
+  });
+};
+
+export const isOnTrip = (req, res) => {
+  const { id } = req.params;
+  Trip.findById(id, (err, trip) => { // this should see if name is in members
+    if (trip.members.includes(req.user.name)) {
+      res.json({ isOnTrip: true });
+    } else {
+      res.json({ isOnTrip: false });
+    }
+  });
+};
+
+
 function tokenForUser(user) {
   const timestamp = new Date().getTime();
   return jwt.encode({ sub: user.id, iat: timestamp }, process.env.AUTH_SECRET);

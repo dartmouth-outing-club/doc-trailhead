@@ -22,6 +22,13 @@ path : /trip/:id
 description : gets a trip and returns it as a json object
 parameters : id (id of the trip)
 
+path : /myTrips
+description : gets all the trips of the logged in user and returns them as json
+parameters : none
+
+path : /isOnTrip/:id
+description : checks if the signed in user is on the trip of :id
+parameters : id (id of trip)
 
 ## POST
 path : /signin
