@@ -46,12 +46,16 @@ data : club, date, title, leaders (array of leader names that does not include t
 
 ## PUT
 path : /trip/:id  
-description : Update a trip  
+description : Update a trip
 data : club, date, title, leaders (array of leader names that does not include the current user)  
 
 path : /joinTrip  
 description : Join a trip  
 parameter : id of trip  
+
+path : /updateUser  
+description : updates the user  
+parameters : email, name, club (club that the user is now a leader for), dash_number  
 
 ## DELETE
 path : /trip/:id  

@@ -73,6 +73,21 @@ export const isOnTrip = (req, res) => {
 };
 
 
+export const updateUser = (req, res) => {
+  const { id } = req.user;
+  User.findById(id, (err, user) => { // this should see if name is in members
+    user.email = req.body.email;
+    user.name = req.body.name;
+    if(req.body.club{
+      user.leader_for.push(req.body.club);
+      user.is_leader = false;
+    }
+    user.dash_number = req.body.dash_number;
+
+  });
+};
+
+
 function tokenForUser(user) {
   const timestamp = new Date().getTime();
   return jwt.encode({ sub: user.id, iat: timestamp }, process.env.AUTH_SECRET);

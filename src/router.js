@@ -25,7 +25,8 @@ router.route('/trip/:id')
   .delete(requireAuth, Trips.deleteTrip);
 
 router.put('/joinTrip/:id', requireAuth, Users.joinTrip);
+router.put('/updateUser', requireAuth, Users.updateUser);
 
-router.get('myTrips', requireAuth, Users.myTrips);
-router.get('isOnTrip/:id', Users.isOnTrip);
+router.get('/myTrips', requireAuth, Users.myTrips);
+router.get('/isOnTrip/:id', requireAuth, Users.isOnTrip);
 export default router;
