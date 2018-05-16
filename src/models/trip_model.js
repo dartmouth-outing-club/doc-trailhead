@@ -2,10 +2,12 @@ import mongoose, { Schema } from 'mongoose';
 
 
 const TripSchema = new Schema({
-  leader: String,
+  title: String,
+  leaders: [String], // leader emails
   club: String,
-  members: [String],
+  members: [String], // user emails
   date: String,
+  cost: Number,
 });
 
 TripSchema.set('toJSON', {

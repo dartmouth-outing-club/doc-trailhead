@@ -16,10 +16,14 @@ router.route('/trips')
   .post(requireAuth, Trips.createTrip)
   .get(Trips.getTrips);
 
+router.get('/trips/:club', Trips.getTripsByClub);
+
 router.route('/trip/:id')
   .get(Trips.getTrip)
   .put(requireAuth, Trips.updateTrip)
   .delete(requireAuth, Trips.deleteTrip);
-// /your routes will go here
+
+router.put('/joinTrip/:id', requireAuth, Users.joinTrip);
+
 
 export default router;
