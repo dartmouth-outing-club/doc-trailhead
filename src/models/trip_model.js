@@ -7,7 +7,7 @@ const TripSchema = new Schema({
   club: String,
   members: [String], // user emails
   date: String, // change to date time
-  cost: Number,
+  cost: String,
   description: String,
 });
 
