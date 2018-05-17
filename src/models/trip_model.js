@@ -6,8 +6,9 @@ const TripSchema = new Schema({
   leaders: [String], // leader emails
   club: String,
   members: [String], // user emails
-  date: String,
+  date: String, // change to date time
   cost: Number,
+  description: String,
 });
 
 TripSchema.set('toJSON', {

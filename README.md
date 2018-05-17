@@ -2,9 +2,7 @@
 
 
 ## Todo
-Add all routes and controller methods for user.
-  -Become a leader
-  -Join a trip
+change leader and member references to ids of models
 
 
 Everything is /api/[route]
@@ -18,7 +16,7 @@ path : /trips/:club
 description : gets all trips of a certain club and returns them as a json object  
 parameters : club (name of the club that you want to search by)  
 
-path : /trip/:id  
+path : /trip/:id
 description : gets a trip and returns it as a json object  
 parameters : id (id of the trip)  
 
@@ -41,15 +39,15 @@ data : email, password, name
 
 path : /trips  
 description : Create a trip  
-data : club, date, title, leaders (array of leader names that does not include the current user)  
+data : club, date, title, cost, description, leaders (array of leader names that does not include the current user)  
 
 
 ## PUT
 path : /trip/:id  
 description : Update a trip
-data : club, date, title, leaders (array of leader names that does not include the current user)  
+data : club, date, title, cost, description, leaders (array of leader names that does not include the current user)  
 
-path : /joinTrip  
+path : /joinTrip/:id
 description : Join a trip  
 parameter : id of trip  
 
