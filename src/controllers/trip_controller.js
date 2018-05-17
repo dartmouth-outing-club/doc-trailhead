@@ -5,6 +5,8 @@ export const createTrip = (req, res) => {
   trip.club = req.body.club;
   trip.date = req.body.date;
   trip.title = req.body.title;
+  trip.description = req.body.description;
+  trip.cost = req.body.cost;
   trip.members = [];
   trip.leaders = req.body.leaders;
   trip.leaders.push(req.user.name);
@@ -63,6 +65,8 @@ export const updateTrip = (req, res) => {
       trip.date = req.body.date;
       trip.title = req.body.title;
       trip.leaders = req.body.leaders;
+      trip.description = req.body.description;
+      trip.cost = req.body.cost;
       trip.save()
         .then((result) => {
           res.json({ message: 'Trip updated!' });
