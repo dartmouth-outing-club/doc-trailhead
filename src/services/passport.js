@@ -10,11 +10,11 @@ const jwtOptions = {
 };
 
 const localLogin = new LocalStrategy(localOptions, (email, password, done) => {
-  User.findOne({ email }, ['password'], (err, user) => {
+  User.findOne({ email }, ['username', 'password'], (err, user) => {
     if (err) {
-      done(err);
+      return done(err);
     } else if (!user) {
-      done(null, false);
+      return done(null, false);
     }
 
     user.comparePassword(password, (err, isMatch) => {
