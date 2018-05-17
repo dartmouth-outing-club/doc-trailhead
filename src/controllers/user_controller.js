@@ -40,6 +40,9 @@ export const signup = (req, res, next) => {
 export const joinTrip = (req, res) => {
   const { id } = req.body;
   Trip.findById(id, (err, trip) => {
+    if (!trip) {
+      res.status(422).send('Can\'t find trip');
+    }
     if (req.user) {
       trip.members.push(req.user.email);
       trip.save().then((result) => {
