@@ -38,8 +38,8 @@ export const signup = (req, res, next) => {
 };
 
 export const joinTrip = (req, res) => {
-  const { id } = req.body;
-  Trip.findById(id, (err, trip) => {
+  const { tripID } = req.body;
+  Trip.findById(tripID, (err, trip) => {
     if (!trip) {
       res.status(422).send('Can\'t find trip');
     }

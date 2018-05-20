@@ -24,7 +24,7 @@ router.route('/trip/:id')
   .put(requireAuth, Trips.updateTrip)
   .delete(requireAuth, Trips.deleteTrip);
 
-router.put('/joinTrip/:id', requireAuth, Users.joinTrip);
+router.put('/jointrip', requireAuth, Users.joinTrip);
 router.put('/updateUser', requireAuth, Users.updateUser);
 
 router.get('/myTrips', requireAuth, Users.myTrips);
