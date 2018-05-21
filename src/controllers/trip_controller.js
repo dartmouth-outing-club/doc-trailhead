@@ -10,7 +10,7 @@ export const createTrip = (req, res) => {
   trip.cost = req.body.cost;
   trip.members = [];
   trip.leaders = [];
-  User.find({ email: req.body.leaders }, (err, users) => {
+  User.find({ email: { $in: req.body.leaders } }, (err, users) => {
     console.log(users);
     users.forEach((user) => {
       trip.leaders.push(user._id);
@@ -73,7 +73,7 @@ export const updateTrip = (req, res) => {
       trip.title = req.body.title;
       trip.description = req.body.description;
       trip.cost = req.body.cost;
-      User.find({ email: req.body.leaders }, (err, users) => {
+      User.find({ email: { $in: req.body.leaders } }, (err, users) => {
         console.log(users);
         users.forEach((user) => {
           trip.leaders.push(user._id);
