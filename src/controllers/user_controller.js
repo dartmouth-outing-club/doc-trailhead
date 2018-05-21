@@ -41,20 +41,21 @@ export const joinTrip = (req, res) => {
   const { tripID } = req.body;
   Trip.findById(tripID, (err, trip) => {
     if (!trip) {
-      res.status(422).send('Can\'t find trip');
-    }
-    if (req.user) {
+      res.json({ trip: false, added: false });
+    } else if (!req.user) {
+      res.status(422).send('You must be logged in');
+    } else if (trip.members.length >= trip.limit) {
+      res.json({ trip, added: false });
+    } else {
       trip.members.push(req.user._id);
       trip.save().then((result) => {
-        res.json(result);
+        res.json(res.json({ trip: result, added: true }));
       }).catch((error) => {
         res.status(500).json({ error });
       });
-    } else {
-      res.status(422).send('You must be logged in');
     }
   });
-}; // TODO change to deal with limit
+};
 
 
 export const myTrips = (req, res) => {

@@ -8,6 +8,7 @@ export const createTrip = (req, res) => {
   trip.title = req.body.title;
   trip.description = req.body.description;
   trip.cost = req.body.cost;
+  trip.limit = req.body.limit;
   trip.members = [];
   trip.leaders = [];
   User.find({ email: { $in: req.body.leaders } }, (err, users) => {
@@ -15,7 +16,6 @@ export const createTrip = (req, res) => {
     users.forEach((user) => {
       trip.leaders.push(user._id);
     });
-
     trip.save()
       .then((result) => {
         res.json({ message: 'Trip created!' });
@@ -40,7 +40,10 @@ export const getTrip = (req, res) => {
     if (err) {
       res.json({ error: err });
     } else {
-      res.json(trip);
+      User.find({ _id: { $in: trip.members } }, (err, users) => {
+        console.log(users);
+        res.json({ trip, members: users });
+      });
     }
   });
 };
@@ -73,6 +76,7 @@ export const updateTrip = (req, res) => {
       trip.title = req.body.title;
       trip.description = req.body.description;
       trip.cost = req.body.cost;
+      trip.limit = req.body.limit;
       User.find({ email: { $in: req.body.leaders } }, (err, users) => {
         console.log(users);
         users.forEach((user) => {

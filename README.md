@@ -2,7 +2,7 @@
 
 
 ## Todo
-change leader and member references to ids of models
+return trip with user data  
 
 
 Everything is /api/[route]
@@ -19,6 +19,7 @@ parameters : club (name of the club that you want to search by)
 path : /trip/:id
 description : gets a trip and returns it as a json object  
 parameters : id (id of the trip)  
+response : json object with trip and members as values
 
 path : /myTrips  
 description : gets all the trips of the logged in user and returns them as json  
@@ -39,7 +40,7 @@ data : email, password, name
 
 path : /trips  
 description : Create a trip  
-data : club, date, title, cost, description, leaders (array of leader names that does not include the current user)  
+data : club, date, title, cost, description, limit, leaders (array of leader emails that does not include the current user)  
 
 
 ## PUT
@@ -50,6 +51,7 @@ data : club, date, title, cost, description, leaders (array of leader names that
 path : /joinTrip
 description : Join a trip  
 parameter : id of trip  
+response : json object with values for trip and added
 
 path : /updateUser  
 description : updates the user  
