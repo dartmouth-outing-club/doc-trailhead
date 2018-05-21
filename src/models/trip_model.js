@@ -3,12 +3,13 @@ import mongoose, { Schema } from 'mongoose';
 
 const TripSchema = new Schema({
   title: String,
-  leaders: [String], // leader emails
+  leaders: [{ type: Schema.Types.ObjectId, ref: 'User' }], // leaders
   club: String,
-  members: [String], // user emails
+  members: [{ type: Schema.Types.ObjectId, ref: 'User' }], // users
   date: String, // change to date time
   cost: String,
   description: String,
+  limit: Number,
 });
 
 TripSchema.set('toJSON', {

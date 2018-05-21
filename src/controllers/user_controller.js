@@ -44,7 +44,7 @@ export const joinTrip = (req, res) => {
       res.status(422).send('Can\'t find trip');
     }
     if (req.user) {
-      trip.members.push(req.user.email);
+      trip.members.push(req.user._id);
       trip.save().then((result) => {
         res.json(result);
       }).catch((error) => {
@@ -54,12 +54,12 @@ export const joinTrip = (req, res) => {
       res.status(422).send('You must be logged in');
     }
   });
-};
+}; // TODO change to deal with limit
 
 
 export const myTrips = (req, res) => {
-  const { name } = req.user;
-  Trip.find({ members: name }, (err, trips) => { // this should see if name is in members
+  const id = req.user._id;
+  Trip.find({ members: id }, (err, trips) => { // this should see if name is in members
     res.json(trips);
   });
 };
@@ -67,7 +67,7 @@ export const myTrips = (req, res) => {
 export const isOnTrip = (req, res) => {
   const { id } = req.params;
   Trip.findById(id, (err, trip) => { // this should see if name is in members
-    if (trip.members.includes(req.user.name)) {
+    if (trip.members.includes(req.user._id)) {
       res.json({ isOnTrip: true });
     } else {
       res.json({ isOnTrip: false });

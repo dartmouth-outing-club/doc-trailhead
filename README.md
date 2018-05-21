@@ -47,7 +47,7 @@ path : /trip/:id
 description : Update a trip
 data : club, date, title, cost, description, leaders (array of leader names that does not include the current user)  
 
-path : /joinTrip/:id
+path : /joinTrip
 description : Join a trip  
 parameter : id of trip  
 
@@ -55,7 +55,12 @@ path : /updateUser
 description : updates the user  
 parameters : email, name, club (club that the user is now a leader for), dash_number  
 
+
 ## DELETE
 path : /trip/:id  
 description : Remove a trip  
 data : id of trip  
+
+path : /leaveTrip  
+description : remove a user from a trip
+data : id of trip
