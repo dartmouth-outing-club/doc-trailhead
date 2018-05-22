@@ -6,7 +6,8 @@ const TripSchema = new Schema({
   leaders: [{ type: Schema.Types.ObjectId, ref: 'User' }], // leaders
   club: String,
   members: [{ type: Schema.Types.ObjectId, ref: 'User' }], // users
-  date: String, // change to date time
+  startDate: Date,
+  endDate: Date,
   cost: String,
   description: String,
   limit: Number,
