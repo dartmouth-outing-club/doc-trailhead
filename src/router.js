@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as Trips from './controllers/trip_controller';
 import * as Users from './controllers/user_controller';
+import * as Email from './controllers/email_controller';
 import { requireAuth, requireSignin } from './services/passport';
 
 
@@ -35,4 +36,5 @@ router.get('/isOnTrip/:id', requireAuth, Users.isOnTrip);
 router.delete('/leaveTrip', requireAuth, Users.leaveTrip);
 router.get('/userTrips', requireAuth, Users.userTrips);
 
+router.post('/sendEmail', Email.sendEmail);
 export default router;

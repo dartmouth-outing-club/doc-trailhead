@@ -51,6 +51,10 @@ path : /trips
 description : Create a trip  
 data : club, date, title, cost, description, limit, leaders (array of leader emails that does not include the current user)  
 
+path : /sendEmail  
+description : send an email to a group of emails  
+data : subject, text, emails  
+
 
 ## PUT
 path : /trip/:id  
