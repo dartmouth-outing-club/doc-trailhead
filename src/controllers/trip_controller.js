@@ -1,4 +1,5 @@
 import Trip from '../models/trip_model';
+import User from '../models/user_model';
 
 export const createTrip = (req, res) => {
   const trip = new Trip();
@@ -7,15 +8,21 @@ export const createTrip = (req, res) => {
   trip.title = req.body.title;
   trip.description = req.body.description;
   trip.cost = req.body.cost;
+  trip.limit = req.body.limit;
   trip.members = [];
-  trip.leaders = req.body.leaders;
-  trip.leaders.push(req.user.name);
-  trip.save()
-    .then((result) => {
-      res.json({ message: 'Trip created!' });
-    }).catch((error) => {
-      res.status(500).json({ error });
+  trip.leaders = [];
+  User.find({ email: { $in: req.body.leaders } }, (err, users) => {
+    console.log(users);
+    users.forEach((user) => {
+      trip.leaders.push(user._id);
     });
+    trip.save()
+      .then((result) => {
+        res.json({ message: 'Trip created!' });
+      }).catch((error) => {
+        res.status(500).json({ error });
+      });
+  });
 };
 
 export const getTrips = (req, res) => {
@@ -33,7 +40,10 @@ export const getTrip = (req, res) => {
     if (err) {
       res.json({ error: err });
     } else {
-      res.json(trip);
+      User.find({ _id: { $in: trip.members } }, (err, users) => {
+        console.log(users);
+        res.json({ trip, members: users });
+      });
     }
   });
 };
@@ -42,7 +52,7 @@ export const deleteTrip = (req, res) => {
   Trip.findById(req.params.id, (err, trip) => {
     if (err) {
       res.json({ error: err });
-    } else if (trip.leaders.includes(req.user.name)) {
+    } else if (trip.leaders.includes(req.user._id)) {
       Trip.remove({ _id: req.params.id }, (err) => {
         if (err) {
           res.json({ error: err });
@@ -60,19 +70,25 @@ export const updateTrip = (req, res) => {
   Trip.findById(req.params.id, (err, trip) => {
     if (err) {
       res.json({ error: err });
-    } else if (trip.leaders.includes(req.user.name)) {
+    } else if (trip.leaders.includes(req.user._id)) {
       trip.club = req.body.club;
       trip.date = req.body.date;
       trip.title = req.body.title;
-      trip.leaders = req.body.leaders;
       trip.description = req.body.description;
       trip.cost = req.body.cost;
-      trip.save()
-        .then((result) => {
-          res.json({ message: 'Trip updated!' });
-        }).catch((error) => {
-          res.status(500).json({ error });
+      trip.limit = req.body.limit;
+      User.find({ email: { $in: req.body.leaders } }, (err, users) => {
+        console.log(users);
+        users.forEach((user) => {
+          trip.leaders.push(user._id);
         });
+        trip.save()
+          .then((result) => {
+            res.json({ message: 'Trip updated!' });
+          }).catch((error) => {
+            res.status(500).json({ error });
+          });
+      });
     } else {
       res.status(422).send('You must be a leader on the trip');
     }

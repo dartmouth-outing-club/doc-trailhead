@@ -29,4 +29,7 @@ router.put('/updateUser', requireAuth, Users.updateUser);
 
 router.get('/myTrips', requireAuth, Users.myTrips);
 router.get('/isOnTrip/:id', requireAuth, Users.isOnTrip);
+router.delete('/leaveTrip', requireAuth, Users.leaveTrip);
+router.get('/userTrips', requireAuth, Users.userTrips);
+
 export default router;
