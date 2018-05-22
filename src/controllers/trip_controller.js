@@ -4,7 +4,8 @@ import User from '../models/user_model';
 export const createTrip = (req, res) => {
   const trip = new Trip();
   trip.club = req.body.club;
-  trip.date = req.body.date;
+  trip.startDate = req.body.startDate;
+  trip.endDate = req.body.endDate;
   trip.title = req.body.title;
   trip.description = req.body.description;
   trip.cost = req.body.cost;
