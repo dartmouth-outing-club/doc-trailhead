@@ -29,6 +29,11 @@ path : /isOnTrip/:id
 description : checks if the signed in user is on the trip of :id  
 parameters : id (id of trip)  
 
+path : /userTrips
+description : gets all the trips that a user is on and returns them as json  
+parameters : [none]  
+response : json with 2 keys: memberOf and leaderOf, both containing an array of trips
+
 ## POST
 path : /signin  
 description : signs in the user  

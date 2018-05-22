@@ -110,6 +110,21 @@ export const updateUser = (req, res) => {
   });
 };
 
+export const userTrips = (req, res) => {
+  Trip.find({}, (err, trips) => {
+    const leaderOf = [];
+    const memberOf = [];
+    trips.forEach((trip) => {
+      if (trip.leaders.includes(req.user._id)) {
+        leaderOf.push(trip);
+      } else if (trip.members.includes(req.user._id)) {
+        memberOf.push(trip);
+      }
+    });
+    res.json({ leaderOf, memberOf });
+  });
+};
+
 
 function tokenForUser(user) {
   const timestamp = new Date().getTime();
