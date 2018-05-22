@@ -76,6 +76,10 @@ export const isOnTrip = (req, res) => {
   });
 };
 
+export const getUser = (req, res) => {
+  res.json(cleanUser(req.user));
+};
+
 
 export const leaveTrip = (req, res) => {
   Trip.findById(req.body.id, (err, trip) => {
@@ -98,15 +102,17 @@ export const leaveTrip = (req, res) => {
 
 
 export const updateUser = (req, res) => {
-  const { id } = req.user;
-  User.findById(id, (err, user) => { // this should see if name is in members
+  User.findById(req.user.id, (err, user) => { // this should see if name is in members
     user.email = req.body.email;
     user.name = req.body.name;
-    if (req.body.club) {
-      user.leader_for.push(req.body.club);
+    if (req.body.leader_for) {
+      user.leader_for = user.leader_for.concat(req.body.leader_for);
       user.is_leader = true;
     }
     user.dash_number = req.body.dash_number;
+    user.save().then((updatedUser) => {
+      res.json(cleanUser(updatedUser));
+    });
   });
 };
 
@@ -129,4 +135,14 @@ export const userTrips = (req, res) => {
 function tokenForUser(user) {
   const timestamp = new Date().getTime();
   return jwt.encode({ sub: user.id, iat: timestamp }, process.env.AUTH_SECRET);
+}
+
+function cleanUser(user) {
+  return {
+    email: user.email,
+    name: user.name,
+    is_leader: user.is_leader,
+    leader_for: user.leader_for,
+    dash_number: user.dash_number,
+  };
 }

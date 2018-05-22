@@ -34,6 +34,10 @@ description : gets all the trips that a user is on and returns them as json
 parameters : [none]  
 response : json with 2 keys: memberOf and leaderOf, both containing an array of trips
 
+path : /user  
+description : gets the user's info 
+parameters : none
+
 ## POST
 path : /signin  
 description : signs in the user  
@@ -58,7 +62,7 @@ description : Join a trip
 parameter : id of trip  
 response : json object with values for trip and added
 
-path : /updateUser  
+path : /user  
 description : updates the user  
 parameters : email, name, club (club that the user is now a leader for), dash_number  
 
