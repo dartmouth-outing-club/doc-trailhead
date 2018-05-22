@@ -38,8 +38,8 @@ export const signup = (req, res, next) => {
 };
 
 export const joinTrip = (req, res) => {
-  const { tripID } = req.body;
-  Trip.findById(tripID, (err, trip) => {
+  const { id } = req.body;
+  Trip.findById(id, (err, trip) => {
     if (!trip) {
       res.json({ trip: false, added: false });
     } else if (!req.user) {
