@@ -77,6 +77,26 @@ export const isOnTrip = (req, res) => {
 };
 
 
+export const leaveTrip = (req, res) => {
+  Trip.findById(req.body.id, (err, trip) => {
+    if (!trip) {
+      res.status(422).send('Trip doesn\'t exist');
+    } else {
+      const index = trip.members.indexOf(req.user._id);
+      if (index > -1) {
+        trip.members = trip.members.splice(index, 1);
+        trip.save()
+          .then((result) => {
+            res.json({ message: 'Removed from trip' });
+          }).catch((error) => {
+            res.status(500).json({ error });
+          });
+      }
+    }
+  });
+};
+
+
 export const updateUser = (req, res) => {
   const { id } = req.user;
   User.findById(id, (err, user) => { // this should see if name is in members
