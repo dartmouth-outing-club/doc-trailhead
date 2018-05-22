@@ -11,6 +11,7 @@ export const createTrip = (req, res) => {
   trip.limit = req.body.limit;
   trip.members = [];
   trip.leaders = [];
+  trip.leaders.push(req.user._id);
   User.find({ email: { $in: req.body.leaders } }, (err, users) => {
     console.log(users);
     users.forEach((user) => {
