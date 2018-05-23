@@ -19,7 +19,9 @@ export const createTrip = (req, res) => {
       trip.leaders.push(user._id);
     });
     Club.findOne({ name: req.body.club }, (err, club) => {
-      trip.club = club._id;
+      if (club) {
+        trip.club = club._id;
+      }
       trip.save()
         .then((result) => {
           res.json({ message: 'Trip created!' });
@@ -88,7 +90,9 @@ export const updateTrip = (req, res) => {
           trip.leaders.push(user._id);
         });
         Club.findOne({ name: req.body.club }, (err, club) => {
-          trip.club = club._id;
+          if (club) {
+            trip.club = club._id;
+          }
           trip.save()
             .then((result) => {
               res.json({ message: 'Trip updated!' });
@@ -106,13 +110,17 @@ export const updateTrip = (req, res) => {
 export const getTripsByClub = (req, res) => {
   const { club } = req.params;
   Club.findOne({ name: club }, (err, theClub) => {
-    const id = theClub._id;
-    Trip.find({ club: id }, (err, trips) => {
-      if (err) {
-        res.json({ error: err });
-      } else {
-        res.json(trips);
-      }
-    });
+    if (!theClub) {
+      res.json({ error: 'no club' });
+    } else {
+      const id = theClub._id;
+      Trip.find({ club: id }, (err, trips) => {
+        if (err) {
+          res.json({ error: err });
+        } else {
+          res.json(trips);
+        }
+      });
+    }
   });
 };
