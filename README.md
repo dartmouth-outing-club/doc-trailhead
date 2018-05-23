@@ -2,7 +2,7 @@
 
 
 ## Todo
-return trip with user data  
+club schema
 
 
 Everything is /api/[route]
@@ -35,7 +35,7 @@ parameters : [none]
 response : json with 2 keys: memberOf and leaderOf, both containing an array of trips
 
 path : /user  
-description : gets the user's info 
+description : gets the user's info
 parameters : none
 
 ## POST
