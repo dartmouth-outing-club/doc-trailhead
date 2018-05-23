@@ -111,7 +111,7 @@ export const getTripsByClub = (req, res) => {
   const { club } = req.params;
   Club.findOne({ name: club }, (err, theClub) => {
     if (!theClub) {
-      res.json('error' : "no club");
+      res.json({ error: 'no club' });
     } else {
       const id = theClub._id;
       Trip.find({ club: id }, (err, trips) => {
