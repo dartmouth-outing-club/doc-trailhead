@@ -6,7 +6,9 @@ import Trip from '../models/trip_model';
 dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
-  res.send({ token: tokenForUser(req.user) });
+  User.findById(req.user.id, (err, user) => {
+    res.send({ token: tokenForUser(req.user), user: cleanUser(user) });
+  });
 };
 
 export const signup = (req, res, next) => {
@@ -28,7 +30,7 @@ export const signup = (req, res, next) => {
       newUser.leader_for = [];
       newUser.save()
         .then((result) => {
-          res.send({ token: tokenForUser(newUser) });
+          res.send({ token: tokenForUser(result), user: cleanUser(result) });
         })
         .catch((error) => {
           res.status(500).json({ error });
