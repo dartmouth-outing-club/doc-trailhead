@@ -34,7 +34,7 @@ router.route('/user')
 
 router.get('/myTrips', requireAuth, Users.myTrips);
 router.get('/isOnTrip/:id', requireAuth, Users.isOnTrip);
-router.delete('/leaveTrip', requireAuth, Users.leaveTrip);
+router.delete('/leaveTrip/:id', requireAuth, Users.leaveTrip);
 router.get('/userTrips', requireAuth, Users.userTrips);
 
 router.post('/sendEmail', Email.sendEmail);

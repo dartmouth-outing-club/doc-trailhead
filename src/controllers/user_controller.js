@@ -70,7 +70,10 @@ export const myTrips = (req, res) => {
 export const isOnTrip = (req, res) => {
   const { id } = req.params;
   Trip.findById(id, (err, trip) => { // this should see if name is in members
-    if (trip.members.includes(req.user._id)) {
+    const isInArray = trip.members.some((member) => {
+      return member.equals(req.user._id);
+    });
+    if (isInArray) {
       res.json({ isOnTrip: true });
     } else {
       res.json({ isOnTrip: false });
@@ -84,7 +87,7 @@ export const getUser = (req, res) => {
 
 
 export const leaveTrip = (req, res) => {
-  Trip.findById(req.body.id, (err, trip) => {
+  Trip.findById(req.params.id, (err, trip) => {
     if (!trip) {
       res.status(422).send('Trip doesn\'t exist');
     } else {
@@ -93,7 +96,7 @@ export const leaveTrip = (req, res) => {
         trip.members = trip.members.splice(index, 1);
         trip.save()
           .then((result) => {
-            res.json({ message: 'Removed from trip' });
+            res.json({ isUserOnTrip: false });
           }).catch((error) => {
             res.status(500).json({ error });
           });
