@@ -51,7 +51,7 @@ export const joinTrip = (req, res) => {
     } else {
       trip.members.push(req.user._id);
       trip.save().then((result) => {
-        res.json(res.json({ trip: result, added: true }));
+        res.json({ trip: result, added: true });
       }).catch((error) => {
         res.status(500).json({ error });
       });

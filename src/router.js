@@ -2,6 +2,7 @@ import { Router } from 'express';
 import * as Trips from './controllers/trip_controller';
 import * as Users from './controllers/user_controller';
 import * as Email from './controllers/email_controller';
+import * as Clubs from './controllers/club_controller';
 import { requireAuth, requireSignin } from './services/passport';
 
 
@@ -37,4 +38,9 @@ router.delete('/leaveTrip', requireAuth, Users.leaveTrip);
 router.get('/userTrips', requireAuth, Users.userTrips);
 
 router.post('/sendEmail', Email.sendEmail);
+
+router.route('/club')
+  .post(Clubs.createClub)
+  .get(Clubs.allClubs);
+
 export default router;
