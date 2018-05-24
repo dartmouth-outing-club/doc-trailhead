@@ -43,17 +43,15 @@ export const getTrips = (req, res) => {
 };
 
 export const getTrip = (req, res) => {
-  Trip.findById(req.params.id, (err, trip) => {
-    if (err) {
-      res.json({ error: err });
-    } else {
-      User.find({ _id: { $in: trip.members } }, (err, users) => {
-        Club.findOne({ name: req.body.club }, (err, club) => {
-          res.json({ trip, members: users, club });
-        });
+  Trip.findById(req.params.id).populate('leaders').populate('members')
+    .then((trip) => {
+      Club.findOne({ name: req.body.club }, (err, club) => {
+        res.json({ trip, members: trip.members, club });
       });
-    }
-  });
+    })
+    .catch((error) => {
+      res.status(500).send(error);
+    });
 };
 
 export const deleteTrip = (req, res) => {
