@@ -93,7 +93,7 @@ export const leaveTrip = (req, res) => {
     } else {
       const index = trip.members.indexOf(req.user._id);
       if (index > -1) {
-        trip.members = trip.members.splice(index, 1);
+        trip.members.splice(index, 1);
         trip.save()
           .then((result) => {
             res.json({ isUserOnTrip: false });
