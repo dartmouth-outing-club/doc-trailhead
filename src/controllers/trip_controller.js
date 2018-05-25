@@ -43,11 +43,14 @@ export const getTrips = (req, res) => {
 };
 
 export const getTrip = (req, res) => {
-  Trip.findById(req.params.id).populate('leaders').populate('members')
+  Trip.findById(req.params.id).populate('leaders').populate('members').populate('club')
     .then((trip) => {
-      Club.findOne({ name: req.body.club }, (err, club) => {
-        res.json({ trip, members: trip.members, club });
-      });
+      // Club.findOne({ name: req.body.club }, (err, club) => {
+      //   res.json({ trip, members: trip.members, club });
+      // });
+      Trip.aggregate([ {$project: {trip.members: {$size: '$members'}}}])
+
+      res.json({ trip });
     })
     .catch((error) => {
       res.status(500).send(error);
