@@ -6,7 +6,7 @@ import Trip from '../models/trip_model';
 dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
-  User.findById(req.user.id, (err, user) => {
+  User.findById(req.user.id).populate('leader_for').then((user) => {
     res.send({ token: tokenForUser(req.user), user: cleanUser(user) });
   });
 };
@@ -84,7 +84,9 @@ export const isOnTrip = (req, res) => {
 };
 
 export const getUser = (req, res) => {
-  res.json(cleanUser(req.user));
+  User.findById(req.user.id).populate('leader_for').then((user) => {
+    res.json(cleanUser(user));
+  });
 };
 
 
@@ -115,13 +117,15 @@ export const updateUser = (req, res) => {
   User.findById(req.user.id, (err, user) => { // this should see if name is in members
     user.email = req.body.email;
     user.name = req.body.name;
-    if (req.body.leader_for) {
-      user.leader_for = user.leader_for.concat(req.body.leader_for);
+    if (req.body.leader_for && req.body.leader_for.length > 0) {
+      user.leader_for = req.body.leader_for;
       user.is_leader = true;
     }
     user.dash_number = req.body.dash_number;
-    user.save().then((updatedUser) => {
-      res.json(cleanUser(updatedUser));
+    user.save().then(() => {
+      User.findById(req.user.id).populate('leader_for').then((updatedUser) => {
+        res.json(cleanUser(updatedUser));
+      });
     });
   });
 };
