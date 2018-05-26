@@ -4,7 +4,7 @@ import * as bcrypt from 'bcryptjs';
 
 const UserSchema = new Schema({
   email: { type: String, unique: true, lowercase: true },
-  password: { type: String },
+  password: { type: String, select: false },
   name: { type: String },
   is_leader: Boolean, // are you a leader for any club (opens up trip making option)
   leader_for: [String], // the names/ids of clubs you are a leader for

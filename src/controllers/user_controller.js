@@ -41,22 +41,24 @@ export const signup = (req, res, next) => {
 
 export const joinTrip = (req, res) => {
   const { id } = req.body;
-  Trip.findById(id, (err, trip) => {
-    if (!trip) {
-      res.json({ trip: false, added: false });
-    } else if (!req.user) {
-      res.status(422).send('You must be logged in');
-    } else if (trip.members.length >= trip.limit) {
-      res.json({ trip, added: false });
-    } else {
-      trip.members.push(req.user._id);
-      trip.save().then((result) => {
-        res.json({ trip: result, added: true });
-      }).catch((error) => {
-        res.status(500).json({ error });
-      });
-    }
-  });
+  Trip.findById(id)
+    .then((trip) => {
+      if (!trip) {
+        res.json({ trip: null, isUserOnTrip: false });
+      } else if (trip.members.length >= trip.limit) {
+        res.json({ trip, isUserOnTrip: false });
+      } else {
+        trip.members.push(req.user._id);
+        trip.save().then(() => {
+          Trip.findById(id).populate('leaders').populate('members').then((updatedTrip) => {
+            res.json({ trip: updatedTrip, isUserOnTrip: true });
+          });
+        });
+      }
+    })
+    .catch((error) => {
+      res.status(500).json({ error });
+    });
 };
 
 
@@ -87,22 +89,25 @@ export const getUser = (req, res) => {
 
 
 export const leaveTrip = (req, res) => {
-  Trip.findById(req.params.id, (err, trip) => {
-    if (!trip) {
-      res.status(422).send('Trip doesn\'t exist');
-    } else {
-      const index = trip.members.indexOf(req.user._id);
-      if (index > -1) {
-        trip.members.splice(index, 1);
-        trip.save()
-          .then((result) => {
-            res.json({ isUserOnTrip: false });
-          }).catch((error) => {
-            res.status(500).json({ error });
-          });
+  Trip.findById(req.params.id).populate('leaders').populate('members')
+    .then((trip) => {
+      if (!trip) {
+        res.status(422).send('Trip doesn\'t exist');
+      } else {
+        trip.members.forEach((member, index) => {
+          if (member.id === req.user.id) {
+            trip.members.splice(index, 1);
+          }
+        });
+        return trip.save();
       }
-    }
-  });
+    })
+    .then((trip) => {
+      res.json({ trip, isUserOnTrip: false });
+    })
+    .catch((error) => {
+      res.status(500).json({ error });
+    });
 };
 
 
