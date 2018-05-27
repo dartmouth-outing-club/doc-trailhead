@@ -8,6 +8,7 @@ export const createTrip = (req, res) => {
   trip.endDate = req.body.endDate;
   trip.title = req.body.title;
   trip.description = req.body.description;
+  trip.club = req.body.club;
   trip.cost = req.body.cost;
   trip.limit = req.body.limit;
   trip.members = [];
@@ -17,28 +18,18 @@ export const createTrip = (req, res) => {
     users.forEach((user) => {
       trip.leaders.push(user._id);
     });
-    Club.findOne({ name: req.body.club }, (err, club) => {
-      if (club) {
-        trip.club = club._id;
-      }
-      trip.save()
-        .then((result) => {
-          res.json({ message: 'Trip created!' });
-        }).catch((error) => {
-          res.status(500).json({ error });
-        });
-    });
+    trip.save().then((result) => { res.json({ message: 'Trip created' }); });
   });
 };
 
 export const getTrips = (req, res) => {
-  Trip.find({}, (err, trips) => {
-    if (err) {
-      res.json({ error: err });
-    } else {
+  Trip.find().populate('club')
+    .then((trips) => {
       res.json(trips);
-    }
-  });
+    })
+    .catch((error) => {
+      res.status(500).send(error);
+    });
 };
 
 export const getTrip = (req, res) => {
