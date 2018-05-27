@@ -64,9 +64,13 @@ export const joinTrip = (req, res) => {
 
 export const myTrips = (req, res) => {
   const id = req.user._id;
-  Trip.find({ members: id }, (err, trips) => { // this should see if name is in members
-    res.json(trips);
-  });
+  Trip.find({ members: id }).populate('club')
+    .then((trips) => { // this should see if name is in members
+      res.json(trips);
+    })
+    .catch((error) => {
+      res.status(500).json({ error });
+    });
 };
 
 export const isOnTrip = (req, res) => {
