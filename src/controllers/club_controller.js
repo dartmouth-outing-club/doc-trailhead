@@ -1,5 +1,3 @@
-/* import Trip from '../models/trip_model';
-import User from '../models/user_model'; */
 import Club from '../models/club_model';
 
 export const createClub = (req, res) => {
@@ -8,7 +6,8 @@ export const createClub = (req, res) => {
   club.save()
     .then((result) => {
       res.json({ message: 'Club Created' });
-    }).catch((error) => {
+    })
+    .catch((error) => {
       res.status(500).json({ error });
     });
 };
