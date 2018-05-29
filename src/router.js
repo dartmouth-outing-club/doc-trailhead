@@ -38,6 +38,7 @@ router.delete('/leaveTrip/:id', requireAuth, Users.leaveTrip);
 router.get('/userTrips', requireAuth, Users.userTrips);
 
 router.post('/sendEmail', Email.sendEmail);
+router.post('/sendEmailToTrip', Email.sendEmailToTrip);
 
 router.route('/club')
   .post(Clubs.createClub)
