@@ -33,7 +33,7 @@ export const signup = (req, res, next) => {
           res.send({ token: tokenForUser(result), user: cleanUser(result) });
         })
         .catch((error) => {
-          res.status(500).json({ error });
+          res.status(500).send(error.message);
         });
     }
   });
@@ -57,7 +57,7 @@ export const joinTrip = (req, res) => {
       }
     })
     .catch((error) => {
-      res.status(500).json({ error });
+      res.status(500).send(error.message);
     });
 };
 
@@ -69,7 +69,7 @@ export const myTrips = (req, res) => {
       res.json(trips);
     })
     .catch((error) => {
-      res.status(500).json({ error });
+      res.status(500).send(error.message);
     });
 };
 
@@ -112,7 +112,7 @@ export const leaveTrip = (req, res) => {
       res.json({ trip, isUserOnTrip: false });
     })
     .catch((error) => {
-      res.status(500).json({ error });
+      res.status(500).send(error.message);
     });
 };
 
