@@ -118,19 +118,44 @@ export const leaveTrip = (req, res) => {
 
 
 export const updateUser = (req, res) => {
-  User.findById(req.user.id, (err, user) => { // this should see if name is in members
-    user.email = req.body.email;
-    user.name = req.body.name;
-    if (req.body.leader_for && req.body.leader_for.length > 0) {
-      user.leader_for = req.body.leader_for;
-      user.is_leader = true;
-    }
-    user.dash_number = req.body.dash_number;
-    user.save().then(() => {
-      User.findById(req.user.id).populate('leader_for').then((updatedUser) => {
+  User.findById(req.user.id, (err, user) => { // this should see if name is in member
+    User.find({ email: req.body.email })
+      .then((existingUser) => {
+        if (existingUser[0] && existingUser[0].id !== req.user.id) {
+          throw new Error('This email already exists in the database.');
+        }
+
+        return existingUser;
+      })
+      .then(() => {
+        if (!req.body.name) {
+          throw new Error('You must have a name');
+        }
+        if (!req.body.email) {
+          throw new Error('You must have an email');
+        }
+        if (user.dash_number !== '' && req.body.dash_number === '') {
+          throw new Error('You must have a dash number');
+        }
+
+        user.email = req.body.email;
+        user.name = req.body.name;
+        if (req.body.leader_for && req.body.leader_for.length > 0) {
+          user.leader_for = req.body.leader_for;
+          user.is_leader = true;
+        }
+        user.dash_number = req.body.dash_number;
+        return user.save();
+      })
+      .then(() => {
+        return User.findById(req.user.id).populate('leader_for');
+      })
+      .then((updatedUser) => {
         res.json(cleanUser(updatedUser));
+      })
+      .catch((error) => {
+        res.status(406).send(error.message);
       });
-    });
   });
 };
 
