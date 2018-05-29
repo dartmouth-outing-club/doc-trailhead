@@ -164,9 +164,9 @@ export const userTrips = (req, res) => {
     const leaderOf = [];
     const memberOf = [];
     trips.forEach((trip) => {
-      if (trip.leaders.includes(req.user._id)) {
+      if (trip.leaders.indexOf(req.user._id) > -1) {
         leaderOf.push(trip);
-      } else if (trip.members.includes(req.user._id)) {
+      } else if (trip.members.indexOf(req.user._id) > -1) {
         memberOf.push(trip);
       }
     });
