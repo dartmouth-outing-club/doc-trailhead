@@ -28,7 +28,7 @@ export const sendEmail = (req, res) => {
 };
 
 export const sendEmailToTrip = (req, res) => {
-  Trip.findById(req.params.id).populate('leaders').populate('members')
+  Trip.findById(req.body.id).populate('leaders').populate('members')
     .then((trip) => {
       if (!trip) {
         res.status(422).send('Trip doesn\'t exist');
