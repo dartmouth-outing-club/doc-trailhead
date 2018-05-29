@@ -182,6 +182,7 @@ function tokenForUser(user) {
 
 function cleanUser(user) {
   return {
+    id: user.id,
     email: user.email,
     name: user.name,
     is_leader: user.is_leader,
