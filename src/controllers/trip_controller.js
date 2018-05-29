@@ -46,7 +46,7 @@ export const deleteTrip = (req, res) => {
   Trip.findById(req.params.id, (err, trip) => {
     if (err) {
       res.json({ error: err });
-    } else if (trip.leaders.includes(req.user._id)) {
+    } else if (trip.leaders.indexOf(req.user._id) > -1) {
       Trip.remove({ _id: req.params.id }, (err) => {
         if (err) {
           res.json({ error: err });
@@ -64,7 +64,7 @@ export const updateTrip = (req, res) => {
   Trip.findById(req.params.id, (err, trip) => {
     if (err) {
       res.json({ error: err });
-    } else if (trip.leaders.includes(req.user._id)) {
+    } else if (trip.leaders.indexOf(req.user._id) > -1) {
       trip.date = req.body.date;
       trip.title = req.body.title;
       trip.description = req.body.description;
