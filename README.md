@@ -1,8 +1,40 @@
-# doc-planner-server
+# doc-planner (server)
 
+This is the back-end repo of the DOC planner application. The front-end repo is 
+[here](https://github.com/dartmouth-cs52-18S/project-api-doc-planner).
 
-## Todo
-club schema
+## Architecture
+
+The server is built using Node.js, Babel, and Express.js, with a MongoDB database.
+
+## Setup
+
+To test locally, install npm and yarn and then clone the repo.
+
+Run the following command to install all dependencies:
+```
+yarn
+```
+
+Have MongoDB running in the background and create a `.env` file, which contains the following:
+```
+AUTH_SECRET="somerandomstringhere"
+EMAIL_PASSWORD="docplanner!18s"
+```
+
+You can then run the following command to start up the server:
+```
+yarn dev
+```
+
+## Deployment
+
+Add a new Git remote `heroku`, pointing to the repo `https://git.heroku.com/doc-planner-api.git`.
+
+To then deploy the master branch, run the following command:
+```
+git push heroku master
+```
 
 ## API DOC
 
@@ -88,3 +120,11 @@ data : id of trip
 path : /leaveTrip  
 description : remove a user from a trip
 data : id of trip
+
+## Authors
+
+Samuel Schiff, Katie Bernardez, Ben Hannam, Brian Keare, Shashwat Chaturvedi, Isabel Hurley
+
+## Acknowledgments
+
+Thanks to Tim Tregubov and the rest of the CS52 staff for all of their help this term.
