@@ -9,25 +9,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendEmail = (req, res) => {
-  const mailOptions = {
-    from: 'doc.planner.18s@gmail.com',
-    to: req.body.emails,
-    subject: req.body.subject,
-    text: req.body.text,
-  };
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-      res.send(error);
-    } else {
-      console.log(`Email sent: ${info.response}`);
-      res.send('success');
-    }
-  });
-};
-
-export const sendEmailToTrip = (req, res) => {
+const sendEmailToTrip = (req, res) => {
   Trip.findById(req.body.id).populate('leaders').populate('members')
     .then((trip) => {
       if (!trip) {
@@ -61,3 +43,5 @@ export const sendEmailToTrip = (req, res) => {
       res.status(500).send(error.message);
     });
 };
+
+export default sendEmailToTrip;
