@@ -4,10 +4,11 @@
 ## Todo
 club schema
 
+## API DOC
 
 Everything is /api/[route]
-## API DOC
-## GET
+
+### GET
 path : /trips  
 description : gets all trips and returns them as a json object  
 parameters : none  
@@ -31,14 +32,18 @@ parameters : id (id of trip)
 
 path : /userTrips
 description : gets all the trips that a user is on and returns them as json  
-parameters : [none]  
+parameters : none  
 response : json with 2 keys: memberOf and leaderOf, both containing an array of trips
 
 path : /user  
 description : gets the user's info
 parameters : none
 
-## POST
+path : /club
+description : gets all of the DOC clubs in the database
+parameters : none
+
+### POST
 path : /signin  
 description : signs in the user  
 data : email, password  
@@ -49,29 +54,33 @@ data : email, password, name
 
 path : /trips  
 description : Create a trip  
-data : club, date, title, cost, description, limit, leaders (array of leader emails that does not include the current user)  
+data : club, start date, end date, title, cost, description, limit, leaders (array of leader emails that does not include the current user)  
 
 path : /sendEmail  
 description : send an email to a group of emails  
 data : subject, text, emails  
 
+path : /club
+description : create a new club in the database
+data : name
 
-## PUT
+
+### PUT
 path : /trip/:id  
 description : Update a trip
-data : club, date, title, cost, description, leaders (array of leader names that does not include the current user)  
+data : club, start date, end date, title, cost, description, limit
 
 path : /joinTrip
 description : Join a trip  
 parameter : id of trip  
-response : json object with values for trip and added
+response : json object with values for trip and isUserOnTrip
 
 path : /user  
 description : updates the user  
-parameters : email, name, club (club that the user is now a leader for), dash_number  
+parameters : email, name, clubs (clubs that the user is now a leader for), dash_number  
 
 
-## DELETE
+### DELETE
 path : /trip/:id  
 description : Remove a trip  
 data : id of trip  
