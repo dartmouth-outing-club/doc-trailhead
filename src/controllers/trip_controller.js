@@ -64,29 +64,17 @@ export const updateTrip = (req, res) => {
   Trip.findById(req.params.id, (err, trip) => {
     if (err) {
       res.json({ error: err });
-    } else if (trip.leaders.indexOf(req.user._id) > -1) {
-      trip.date = req.body.date;
+    } else if (trip.leaders.indexOf(req.user._id) !== -1) {
+      trip.startDate = req.body.startDate;
+      trip.endDate = req.body.endDate;
       trip.title = req.body.title;
       trip.description = req.body.description;
       trip.cost = req.body.cost;
       trip.limit = req.body.limit;
-      User.find({ email: { $in: req.body.leaders } }, (err, users) => {
-        console.log(users);
-        users.forEach((user) => {
-          trip.leaders.push(user._id);
+      trip.save()
+        .then((result) => {
+          res.json({ message: 'Trip created' });
         });
-        Club.findOne({ name: req.body.club }, (err, club) => {
-          if (club) {
-            trip.club = club._id;
-          }
-          trip.save()
-            .then((result) => {
-              res.json({ message: 'Trip updated!' });
-            }).catch((error) => {
-              res.status(500).json({ error });
-            });
-        });
-      });
     } else {
       res.status(422).send('You must be a leader on the trip');
     }

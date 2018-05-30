@@ -64,7 +64,7 @@ export const joinTrip = (req, res) => {
 
 export const myTrips = (req, res) => {
   const id = req.user._id;
-  Trip.find({ members: id }).populate('club')
+  Trip.find({ $or: [{ members: id }, { leaders: id }] }).populate('club')
     .then((trips) => { // this should see if name is in members
       res.json(trips);
     })
