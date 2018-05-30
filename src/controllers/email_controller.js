@@ -19,6 +19,9 @@ const sendEmailToTrip = (req, res) => {
         trip.members.forEach((member, index) => {
           emails.push(member.email);
         });
+        trip.leaders.forEach((leader, index) => {
+          emails.push(leader.email);
+        });
         return emails;
       }
     })
