@@ -29,12 +29,7 @@ yarn dev
 
 ## Deployment
 
-Add a new Git remote `heroku`, pointing to the repo `https://git.heroku.com/doc-planner-api.git`.
-
-To then deploy the master branch, run the following command:
-```
-git push heroku master
-```
+TBD: use heroku
 
 ## Initial Setup of Clubs
 
