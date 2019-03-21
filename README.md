@@ -33,11 +33,14 @@ TBD: use heroku
 
 ## Initial Setup of Clubs
 
-There is no club admin interface yet. You must add at least 1 club to be able to use the site.
+There is no club admin interface yet. You must add at least 2 clubs to be able to use the site currently.
 
 To add a club: 
 ```bash
 curl -X POST -H "Content-Type: application/json" -d '{"name": "Mountaineering"}' "http://localhost:9090/api/club"
+curl -X POST -H "Content-Type: application/json" -d '{"name": "Ledyard"}' "http://localhost:9090/api/club"
+curl -X POST -H "Content-Type: application/json" -d '{"name": "Climbing"}' "http://localhost:9090/api/club"
+
 ```
 
 
