@@ -13,34 +13,34 @@
   },
   "license": "ISC",
   "engines": {
-    "node": ">=9 <=10",
+    "node": ">=9 <=11",
     "npm": "^5.6.0",
     "yarn": "^1.6.0"
   },
   "dependencies": {
     "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
+    "babel-preset-env": "^1.7.0",
     "bcryptjs": "^2.4.3",
-    "body-parser": "^1.18.2",
-    "cors": "^2.8.4",
-    "dotenv": "^5.0.1",
-    "ejs": "^2.5.9",
-    "express": "^4.16.3",
-    "jwt-simple": "^0.5.1",
-    "mongoose": "^5.1.1",
-    "morgan": "^1.9.0",
-    "nodemailer": "^4.6.4",
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.5",
+    "dotenv": "^7.0.0",
+    "ejs": "^2.6.1",
+    "express": "^4.16.4",
+    "jwt-simple": "^0.5.5",
+    "mongoose": "^5.4.19",
+    "morgan": "^1.9.1",
+    "nodemailer": "^5.1.1",
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0"
   },
   "devDependencies": {
-    "babel-eslint": "^8.2.3",
-    "eslint": "^4.19.1",
-    "eslint-config-airbnb": "^16.1.0",
-    "eslint-plugin-import": "^2.11.0",
-    "eslint-plugin-jsx-a11y": "^6.0.3",
-    "eslint-plugin-react": "^7.7.0",
-    "nodemon": "^1.17.3"
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.15.3",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-jsx-a11y": "^6.2.1",
+    "eslint-plugin-react": "^7.12.4",
+    "nodemon": "^1.18.10"
   }
 }
