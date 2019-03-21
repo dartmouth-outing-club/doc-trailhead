@@ -36,6 +36,17 @@ To then deploy the master branch, run the following command:
 git push heroku master
 ```
 
+## Initial Setup of Clubs
+
+There is no club admin interface yet. You must add at least 1 club to be able to use the site.
+
+To add a club: 
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"name": "Mountaineering"}' "http://localhost:9090/api/club"
+```
+
+
+
 ## API DOC
 
 Everything is /api/[route]
