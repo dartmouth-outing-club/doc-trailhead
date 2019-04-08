@@ -26,7 +26,7 @@ export const signup = (req, res, next) => {
       newUser.email = email;
       newUser.password = password;
       newUser.name = name;
-      newUser.is_leader = false;
+      newUser.role = 'trippee';
       newUser.leader_for = [];
       newUser.save()
         .then((result) => {
@@ -143,9 +143,10 @@ export const updateUser = (req, res) => {
 
         user.email = req.body.email;
         user.name = req.body.name;
+ // Currently this is how we make them a leader, but we should have a better idea of how secure this permission is
         if (req.body.leader_for && req.body.leader_for.length > 0) {
           user.leader_for = req.body.leader_for;
-          user.is_leader = true;
+          user.role = 'leader';
         }
         user.dash_number = req.body.dash_number;
         return user.save();
@@ -188,7 +189,7 @@ function cleanUser(user) {
     id: user.id,
     email: user.email,
     name: user.name,
-    is_leader: user.is_leader,
+    role: user.role,
     leader_for: user.leader_for,
     dash_number: user.dash_number,
   };
