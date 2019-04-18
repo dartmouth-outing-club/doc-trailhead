@@ -143,10 +143,12 @@ export const updateUser = (req, res) => {
 
         user.email = req.body.email;
         user.name = req.body.name;
- // Currently this is how we make them a leader, but we should have a better idea of how secure this permission is
+        // Currently this is how we make them a leader, but we should have a better idea of how secure this permission is
         if (req.body.leader_for && req.body.leader_for.length > 0) {
           user.leader_for = req.body.leader_for;
-          user.role = 'leader';
+        }
+        if (req.body.role) {
+          user.role = req.body.role;
         }
         user.dash_number = req.body.dash_number;
         return user.save();
