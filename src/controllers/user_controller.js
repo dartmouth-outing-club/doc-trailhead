@@ -39,6 +39,29 @@ export const signup = (req, res, next) => {
   });
 };
 
+export const roleAuthorization = (roles) => {
+
+  return function (req, res, next) {
+
+    var user = req.user;
+
+    User.findById(user._id, function (err, foundUser) {
+      if (err) {
+        res.status(422).send('No user found.');
+        return next(err);
+      }
+
+      if (roles.indexOf(foundUser.role) > -1) {
+        return next();
+      }
+
+      res.status(401).send('You are not authorized to view this content');
+      return next('Unauthorized');
+
+    });
+  }
+}
+
 export const joinTrip = (req, res) => {
   const { id } = req.body;
   Trip.findById(id)

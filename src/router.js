@@ -16,7 +16,7 @@ router.post('/signin', requireSignin, Users.signin);
 router.post('/signup', Users.signup);
 
 router.route('/trips')
-  .post(requireAuth, Trips.createTrip)
+  .post(requireAuth, Users.roleAuthorization(['leader']), Trips.createTrip)
   .get(Trips.getTrips);
 
 router.get('/trips/:club', Trips.getTripsByClub);
