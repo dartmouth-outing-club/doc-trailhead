@@ -15,7 +15,7 @@ router.get('/', (req, res) => {
 router.post('/signin', requireSignin, Users.signin);
 router.post('/signup', Users.signup);
 
-router.route('/trips')
+router.route('/alltrips')
   .post(requireAuth, Users.roleAuthorization(['leader']), Trips.createTrip)
   .get(Trips.getTrips);
 
@@ -27,6 +27,9 @@ router.route('/trip/:id')
   .delete(requireAuth, Trips.deleteTrip);
 
 router.put('/jointrip', requireAuth, Users.joinTrip);
+
+router.put('/addpending', requireAuth, Users.addToPending);
+
 
 router.route('/user')
   .get(requireAuth, Users.getUser)

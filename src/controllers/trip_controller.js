@@ -3,6 +3,7 @@ import User from '../models/user_model';
 import Club from '../models/club_model';
 
 export const createTrip = (req, res) => {
+  console.log('creating trip from api');
   const trip = new Trip();
   trip.startDate = req.body.startDate;
   trip.endDate = req.body.endDate;
@@ -13,17 +14,20 @@ export const createTrip = (req, res) => {
   trip.limit = req.body.limit;
   trip.members = [];
   trip.leaders = [];
+  trip.pending = [];
   trip.leaders.push(req.user._id);
   User.find({ email: { $in: req.body.leaders } }, (err, users) => {
     users.forEach((user) => {
       trip.leaders.push(user._id);
     });
+    console.log('about to respond');
     trip.save().then((result) => { res.json({ message: 'Trip created' }); });
   });
 };
 
 export const getTrips = (req, res) => {
-  Trip.find().populate('club')
+  console.log('TRYING TO get trips');
+  Trip.find()
     .then((trips) => {
       res.json(trips);
     })
@@ -33,7 +37,7 @@ export const getTrips = (req, res) => {
 };
 
 export const getTrip = (req, res) => {
-  Trip.findById(req.params.id).populate('leaders').populate('members').populate('club')
+  Trip.findById(req.params.id).populate('leaders').populate('members').populate('pending')
     .then((trip) => {
       res.json({ trip });
     })

@@ -26,7 +26,7 @@ export const signup = (req, res, next) => {
       newUser.email = email;
       newUser.password = password;
       newUser.name = name;
-      newUser.role = 'trippee';
+      newUser.role = 'Trippee';
       newUser.leader_for = [];
       newUser.save()
         .then((result) => {
@@ -40,27 +40,21 @@ export const signup = (req, res, next) => {
 };
 
 export const roleAuthorization = (roles) => {
-
-  return function (req, res, next) {
-
-    var user = req.user;
-
-    User.findById(user._id, function (err, foundUser) {
+  return function authorize(req, res, next) {
+    const { user } = req;
+    User.findById(user._id, (err, foundUser) => {
       if (err) {
         res.status(422).send('No user found.');
         return next(err);
       }
-
       if (roles.indexOf(foundUser.role) > -1) {
         return next();
       }
-
       res.status(401).send('You are not authorized to view this content');
       return next('Unauthorized');
-
     });
-  }
-}
+  };
+};
 
 export const joinTrip = (req, res) => {
   const { id } = req.body;
@@ -75,6 +69,26 @@ export const joinTrip = (req, res) => {
         trip.save().then(() => {
           Trip.findById(id).populate('leaders').populate('members').then((updatedTrip) => {
             res.json({ trip: updatedTrip, isUserOnTrip: true });
+          });
+        });
+      }
+    })
+    .catch((error) => {
+      res.status(500).send(error.message);
+    });
+};
+
+export const addToPending = (req, res) => {
+  const { id } = req.body;
+  Trip.findById(id)
+    .then((trip) => {
+      if (!trip) {
+        res.json({ trip: null, isUserOnTrip: false });
+      } else {
+        trip.pending.push(req.user._id);
+        trip.save().then(() => {
+          Trip.findById(id).populate('leaders').populate('pending').then((updatedTrip) => {
+            res.json({ trip: updatedTrip, isUserOnTrip: false });
           });
         });
       }
