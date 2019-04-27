@@ -154,8 +154,7 @@ export const leaveTrip = (req, res) => {
 };
 
 
-export const updateUser = (req, res) => {
-  console.log(req.body.leader_for);
+export const updateUser = (req, res, next) => {
   User.findById(req.user.id, (err, user) => { // this should see if name is in member
     User.find({ email: req.body.email })
       .then((existingUser) => {
@@ -181,8 +180,12 @@ export const updateUser = (req, res) => {
 
         user.email = req.body.email;
         user.name = req.body.name;
-        // Currently this is how we make them a leader, but we should have a better idea of how secure this permission is
-        user.leader_for = req.body.leader_for;
+        // Determine if approval is required
+        if (user.role === 'Trippee' && req.body.leader_for.length > 0) {
+          user.role = 'Pending_Leader'
+        } else if (user.role === 'Leader' && req.body.leader_for.length !== 0) {
+          user.leader_for = req.body.leader_for;
+        }
 
         if (req.body.role) {
           user.role = req.body.role;
@@ -195,6 +198,15 @@ export const updateUser = (req, res) => {
       })
       .then((updatedUser) => {
         res.json(cleanUser(updatedUser));
+        return [updatedUser, req.body];
+      })
+      //invoke middleware if approval if required
+      .then((userAndReq) => {
+        if ((userAndReq[0].role === 'Pending_Leader' && userAndReq[1].leader_for.length > 0)
+          || (userAndReq[0].role === 'Leader' && userAndReq[1].leader_for.length === 0)) {
+          res.locals.userAndReq = userAndReq;
+          next();
+        }
       })
       .catch((error) => {
         res.status(406).send(error.message);

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as Trips from './controllers/trip_controller';
 import * as Users from './controllers/user_controller';
+import * as OPO from './controllers/opo_controller';
 import sendEmailToTrip from './controllers/email_controller';
 import * as Clubs from './controllers/club_controller';
 import { requireAuth, requireSignin } from './services/passport';
@@ -33,7 +34,7 @@ router.put('/addpending', requireAuth, Users.addToPending);
 
 router.route('/user')
   .get(requireAuth, Users.getUser)
-  .put(requireAuth, Users.updateUser);
+  .put(requireAuth, Users.updateUser, OPO.reviewAccessRequest)
 
 router.get('/myTrips', requireAuth, Users.myTrips);
 router.get('/isOnTrip/:id', requireAuth, Users.isOnTrip);

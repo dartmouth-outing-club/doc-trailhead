@@ -6,7 +6,7 @@ const UserSchema = new Schema({
   email: { type: String, unique: true, lowercase: true },
   password: { type: String, select: false },
   name: { type: String },
-  role: { type: String, enum: ['Leader', 'Trippee', 'OPO'], default: 'Trippee' },
+  role: { type: String, enum: ['Leader', 'Trippee', 'OPO', 'Pending_Leader'], default: 'Trippee' },
   leader_for: [{ type: Schema.Types.ObjectId, ref: 'Club' }], // the names/ids of clubs you are a leader for
   dash_number: String,
 });
