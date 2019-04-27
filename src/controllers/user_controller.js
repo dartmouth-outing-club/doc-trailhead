@@ -155,6 +155,7 @@ export const leaveTrip = (req, res) => {
 
 
 export const updateUser = (req, res) => {
+  console.log(req.body.leader_for);
   User.findById(req.user.id, (err, user) => { // this should see if name is in member
     User.find({ email: req.body.email })
       .then((existingUser) => {
@@ -181,9 +182,8 @@ export const updateUser = (req, res) => {
         user.email = req.body.email;
         user.name = req.body.name;
         // Currently this is how we make them a leader, but we should have a better idea of how secure this permission is
-        if (req.body.leader_for && req.body.leader_for.length > 0) {
-          user.leader_for = req.body.leader_for;
-        }
+        user.leader_for = req.body.leader_for;
+
         if (req.body.role) {
           user.role = req.body.role;
         }
