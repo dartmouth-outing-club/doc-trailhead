@@ -182,9 +182,12 @@ export const updateUser = (req, res, next) => {
         user.name = req.body.name;
         // Determine if approval is required
         if (user.role === 'Trippee' && req.body.leader_for.length > 0) {
-          user.role = 'Pending_Leader'
-        } else if (user.role === 'Leader' && req.body.leader_for.length !== 0) {
+          user.has_pending_changes = true;
+        } else {
           user.leader_for = req.body.leader_for;
+        }
+        if (req.body.leader_for.length === 0) {
+          user.role = 'Trippee';
         }
 
         if (req.body.role) {
@@ -202,8 +205,7 @@ export const updateUser = (req, res, next) => {
       })
       //invoke middleware if approval if required
       .then((userAndReq) => {
-        if ((userAndReq[0].role === 'Pending_Leader' && userAndReq[1].leader_for.length > 0)
-          || (userAndReq[0].role === 'Leader' && userAndReq[1].leader_for.length === 0)) {
+        if (userAndReq[0].role === 'Trippee' && userAndReq[1].leader_for.length > 0) {
           res.locals.userAndReq = userAndReq;
           next();
         }
@@ -243,5 +245,6 @@ function cleanUser(user) {
     role: user.role,
     leader_for: user.leader_for,
     dash_number: user.dash_number,
+    has_pending_changes: user.has_pending_changes,
   };
 }
