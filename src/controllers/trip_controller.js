@@ -7,11 +7,15 @@ export const createTrip = (req, res) => {
   const trip = new Trip();
   trip.startDate = req.body.startDate;
   trip.endDate = req.body.endDate;
+  trip.startTime = req.body.startTime;
+  trip.endTime = req.body.endTime;
   trip.title = req.body.title;
   trip.description = req.body.description;
   trip.club = req.body.club;
   trip.cost = req.body.cost;
-  trip.limit = req.body.limit;
+  trip.experienceNeeded = req.body.experienceNeeded;
+  trip.location = req.body.location;
+  trip.mileage = req.body.mileage;
   trip.members = [];
   trip.leaders = [];
   trip.pending = [];
@@ -71,10 +75,14 @@ export const updateTrip = (req, res) => {
     } else if (trip.leaders.indexOf(req.user._id) !== -1) {
       trip.startDate = req.body.startDate;
       trip.endDate = req.body.endDate;
+      trip.startTime = req.body.startTime;
+      trip.endTime = req.body.endTime;
       trip.title = req.body.title;
       trip.description = req.body.description;
+      trip.mileage = req.body.mileage;
+      trip.location = req.body.location;
       trip.cost = req.body.cost;
-      trip.limit = req.body.limit;
+      trip.experienceNeeded = req.body.experienceNeeded;
       trip.save()
         .then((result) => {
           res.json({ message: 'Trip created' });

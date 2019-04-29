@@ -10,9 +10,13 @@ const TripSchema = new Schema({
   pending: [{ type: Schema.Types.ObjectId, ref: 'User' }], // pending members
   startDate: Date,
   endDate: Date,
-  cost: String,
+  startTime: String,
+  endTime: String,
+  location: String,
+  mileage: Number,
+  cost: Number,
   description: String,
-  limit: Number,
+  experienceNeeded: Boolean,
 });
 
 TripSchema.set('toJSON', {
