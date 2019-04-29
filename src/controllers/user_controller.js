@@ -154,7 +154,7 @@ export const leaveTrip = (req, res) => {
 };
 
 
-export const updateUser = (req, res) => {
+export const updateUser = (req, res, next) => {
   User.findById(req.user.id, (err, user) => { // this should see if name is in member
     User.find({ email: req.body.email })
       .then((existingUser) => {
@@ -180,10 +180,16 @@ export const updateUser = (req, res) => {
 
         user.email = req.body.email;
         user.name = req.body.name;
-        // Currently this is how we make them a leader, but we should have a better idea of how secure this permission is
-        if (req.body.leader_for && req.body.leader_for.length > 0) {
+        // Determine if approval is required
+        if (user.role === 'Trippee' && req.body.leader_for.length > 0) {
+          user.has_pending_changes = true;
+        } else {
           user.leader_for = req.body.leader_for;
         }
+        if (req.body.leader_for.length === 0) {
+          user.role = 'Trippee';
+        }
+
         if (req.body.role) {
           user.role = req.body.role;
         }
@@ -195,6 +201,14 @@ export const updateUser = (req, res) => {
       })
       .then((updatedUser) => {
         res.json(cleanUser(updatedUser));
+        return [updatedUser, req.body];
+      })
+      //invoke middleware if approval if required
+      .then((userAndReq) => {
+        if (userAndReq[0].role === 'Trippee' && userAndReq[1].leader_for.length > 0) {
+          res.locals.userAndReq = userAndReq;
+          next();
+        }
       })
       .catch((error) => {
         res.status(406).send(error.message);
@@ -231,5 +245,6 @@ function cleanUser(user) {
     role: user.role,
     leader_for: user.leader_for,
     dash_number: user.dash_number,
+    has_pending_changes: user.has_pending_changes,
   };
 }

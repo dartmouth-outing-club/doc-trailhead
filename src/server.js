@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import apiRouter from './router';
 
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
+mongoose.set('useCreateIndex', true);
 mongoose.connect(mongoURI, { useNewUrlParser: true });
 // set mongoose promises to es6 default
 mongoose.Promise = global.Promise;
