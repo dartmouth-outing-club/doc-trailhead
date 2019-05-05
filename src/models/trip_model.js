@@ -4,8 +4,7 @@ import mongoose, { Schema } from 'mongoose';
 const TripSchema = new Schema({
   title: String,
   leaders: [{ type: Schema.Types.ObjectId, ref: 'User' }], // leaders
-  // club: { type: Schema.Types.ObjectId, ref: 'Club' },
-  club: { type: String, enum: ['Ledyard', 'CNT', 'DMC'], default: 'Ledyard' },
+  club: { type: Schema.Types.ObjectId, ref: 'Club' },
   members: [{ type: Schema.Types.ObjectId, ref: 'User' }], // users
   pending: [{ type: Schema.Types.ObjectId, ref: 'User' }], // pending members
   startDate: Date,
