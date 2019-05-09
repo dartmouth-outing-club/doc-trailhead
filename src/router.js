@@ -51,4 +51,8 @@ router.route('/approvals')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Approvals.getApprovals)
   .put(requireAuth, Users.roleAuthorization(['OPO']), Approvals.respond);
 
+router.route('/gearrequests')
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getGearRequests)
+  .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToGearRequest);
+
 export default router;
