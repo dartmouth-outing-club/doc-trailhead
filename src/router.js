@@ -34,7 +34,7 @@ router.put('/addpending', requireAuth, Users.addToPending);
 
 router.route('/user')
   .get(requireAuth, Users.getUser)
-  .put(requireAuth, Users.updateUser, Approvals.reviewAccessRequest)
+  .put(requireAuth, Users.updateUser, Approvals.reviewAccessRequest);
 
 router.get('/myTrips', requireAuth, Users.myTrips);
 router.get('/isOnTrip/:id', requireAuth, Users.isOnTrip);

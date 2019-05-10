@@ -4,7 +4,7 @@ const ApprovalSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User' },
   clubs: [{ type: Schema.Types.ObjectId, ref: 'Club' }],
   status: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
-})
+});
 
 ApprovalSchema.set('toJSON', {
   virtuals: true,
