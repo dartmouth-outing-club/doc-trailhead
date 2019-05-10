@@ -28,14 +28,14 @@ export const createTrip = (req, res) => {
     .then((users) => {
       users.forEach((user) => {
         trip.leaders.push(user._id);
-      })
+      });
     })
     .then(() => {
       return trip.save()
         .then((savedTrip) => {
           res.json({ message: 'Trip created' });
           return savedTrip;
-        })
+        });
     })
     .catch((error) => {
       console.log(error);
@@ -98,7 +98,7 @@ export const updateTrip = (req, res) => {
       trip.experienceNeeded = req.body.experienceNeeded;
       trip.OPOGearRequests = req.body.gearRequests;
       if (req.body.newRequest) {
-        trip.gearStatus = 'pending'
+        trip.gearStatus = 'pending';
       }
 
       trip.save()
@@ -133,15 +133,15 @@ export const getGearRequests = (req, res) => {
   Trip.find({ gearStatus: { $not: { $in: ['N/A'] } } }).populate('leaders').populate('club')
     .then((gearRequests) => {
       res.json(gearRequests);
-    })
-}
+    });
+};
 
 export const respondToGearRequest = (req, res) => {
   Trip.findById(req.body.id)
     .then((trip) => {
-      trip.gearStatus = req.body.status
+      trip.gearStatus = req.body.status;
       trip.save().then(getGearRequests(req, res));
     }).catch((error) => {
       res.status(500).send(error);
-    })
-}
+    });
+};

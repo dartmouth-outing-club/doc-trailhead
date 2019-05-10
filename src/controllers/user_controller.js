@@ -203,7 +203,7 @@ export const updateUser = (req, res, next) => {
         res.json(cleanUser(updatedUser));
         return [updatedUser, req.body];
       })
-      //invoke middleware if approval if required
+      // invoke middleware if approval if required
       .then((userAndReq) => {
         if (userAndReq[0].role === 'Trippee' && userAndReq[1].leader_for.length > 0) {
           res.locals.userAndReq = userAndReq;
