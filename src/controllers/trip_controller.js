@@ -16,17 +16,30 @@ export const createTrip = (req, res) => {
   trip.experienceNeeded = req.body.experienceNeeded;
   trip.location = req.body.location;
   trip.mileage = req.body.mileage;
+  trip.OPOGearRequests = req.body.gearRequests;
+  if (req.body.gearRequests.length > 0) {
+    trip.gearStatus = 'pending';
+  }
   trip.members = [];
   trip.leaders = [];
   trip.pending = [];
   trip.leaders.push(req.user._id);
-  User.find({ email: { $in: req.body.leaders } }, (err, users) => {
-    users.forEach((user) => {
-      trip.leaders.push(user._id);
+  User.find({ email: { $in: req.body.leaders } })
+    .then((users) => {
+      users.forEach((user) => {
+        trip.leaders.push(user._id);
+      })
+    })
+    .then(() => {
+      return trip.save()
+        .then((savedTrip) => {
+          res.json({ message: 'Trip created' });
+          return savedTrip;
+        })
+    })
+    .catch((error) => {
+      console.log(error);
     });
-    console.log('about to respond');
-    trip.save().then((result) => { res.json({ message: 'Trip created' }); });
-  });
 };
 
 export const getTrips = (req, res) => {
@@ -83,6 +96,11 @@ export const updateTrip = (req, res) => {
       trip.location = req.body.location;
       trip.cost = req.body.cost;
       trip.experienceNeeded = req.body.experienceNeeded;
+      trip.OPOGearRequests = req.body.gearRequests;
+      if (req.body.newRequest) {
+        trip.gearStatus = 'pending'
+      }
+
       trip.save()
         .then((result) => {
           res.json({ message: 'Trip created' });
@@ -110,3 +128,20 @@ export const getTripsByClub = (req, res) => {
     }
   });
 };
+
+export const getGearRequests = (req, res) => {
+  Trip.find({ gearStatus: { $not: { $in: ['N/A'] } } }).populate('leaders').populate('club')
+    .then((gearRequests) => {
+      res.json(gearRequests);
+    })
+}
+
+export const respondToGearRequest = (req, res) => {
+  Trip.findById(req.body.id)
+    .then((trip) => {
+      trip.gearStatus = req.body.status
+      trip.save().then(getGearRequests(req, res));
+    }).catch((error) => {
+      res.status(500).send(error);
+    })
+}

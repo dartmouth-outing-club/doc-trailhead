@@ -16,6 +16,8 @@ const TripSchema = new Schema({
   cost: Number,
   description: String,
   experienceNeeded: Boolean,
+  OPOGearRequests: [String],
+  gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
 });
 
 TripSchema.set('toJSON', {
