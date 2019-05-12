@@ -25,27 +25,29 @@ export const getApprovals = (req, res) => {
 };
 
 export const respond = (req, res) => {
-  Approval.findById(req.body.id, (ApprovErr, approval) => {
-    if (ApprovErr) {
-      console.log(`Could not find approval: ${ApprovErr}`);
-    } else {
-      User.findById(approval.user._id, (UserErr, user) => {
-        if (UserErr) {
-          console.log(`Could not find user: ${UserErr}`);
-        } else if (req.body.status === 'approved') {
-          user.role = 'leader';
-          user.leader_for = approval.clubs;
-          user.has_pending_changes = false;
-          user.save();
-          approval.status = 'approved';
-          approval.save().then(getApprovals(req, res));
-        } else {
-          user.has_pending_changes = false;
-          user.save();
-          approval.status = 'denied';
-          approval.save().then(getApprovals(req, res));
-        }
-      });
-    }
-  });
-};
+  Approval.findById(req.body.id)
+    .then((approval) => {
+      User.findById(approval.user._id)
+        .then((user) => {
+          if (req.body.status === 'approved') {
+            user.role = 'Leader';
+            user.leader_for = approval.clubs;
+            user.has_pending_changes = false;
+            user.save();
+            approval.status = 'approved';
+            approval.save().then(getApprovals(req, res));
+          } else {
+            user.has_pending_changes = false;
+            user.save();
+            approval.status = 'denied';
+            approval.save().then(getApprovals(req, res));
+          }
+        })
+        .catch((error) => {
+          res.status(500).send(error)
+        })
+    })
+    .catch((error) => {
+      res.status(500).send(error);
+    })
+}
