@@ -57,7 +57,7 @@ export const roleAuthorization = (roles) => {
 };
 
 export const joinTrip = (req, res) => {
-  const { id } = req.body;
+  const { id, pend } = req.body;
   Trip.findById(id)
     .then((trip) => {
       if (!trip) {
@@ -65,11 +65,19 @@ export const joinTrip = (req, res) => {
       } else if (trip.members.length >= trip.limit) {
         res.json({ trip, isUserOnTrip: false });
       } else {
-        trip.members.push(req.user._id);
+        // add user to member list
+        trip.members.push(pend.id);
+        // remove user from pending list
+        trip.pending.forEach((pender, index) => {
+          if (String(pender) === String(pend.id)) {
+            trip.pending.splice(index, 1);
+          }
+        });
         trip.save().then(() => {
-          Trip.findById(id).populate('leaders').populate('members').then((updatedTrip) => {
-            res.json({ trip: updatedTrip, isUserOnTrip: true });
-          });
+          Trip.findById(id).populate('leaders').populate('members').populate('pending')
+            .then((updatedTrip) => {
+              res.json({ trip: updatedTrip, isUserOnTrip: true });
+            });
         });
       }
     })
