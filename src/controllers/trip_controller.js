@@ -3,7 +3,6 @@ import User from '../models/user_model';
 import Club from '../models/club_model';
 
 export const createTrip = (req, res) => {
-  console.log('creating trip from api');
   const trip = new Trip();
   trip.startDate = req.body.startDate;
   trip.endDate = req.body.endDate;
@@ -17,8 +16,13 @@ export const createTrip = (req, res) => {
   trip.location = req.body.location;
   trip.mileage = req.body.mileage;
   trip.OPOGearRequests = req.body.gearRequests;
+  trip.trippeeGear = req.body.trippeeGear;
+
   if (req.body.gearRequests.length > 0) {
     trip.gearStatus = 'pending';
+  }
+  if (req.body.trippeeGear.length > 0) {
+    trip.trippeeGearStatus = 'pending';
   }
   trip.members = [];
   trip.leaders = [];
@@ -54,7 +58,13 @@ export const getTrips = (req, res) => {
 };
 
 export const getTrip = (req, res) => {
-  Trip.findById(req.params.id).populate('leaders').populate('members').populate('pending')
+  Trip.findById(req.params.id).populate('leaders').populate({
+    path: 'members.user',
+    model: 'User',
+  }).populate({
+    path: 'pending.user',
+    model: 'User',
+  })
     .then((trip) => {
       res.json({ trip });
     })
@@ -132,6 +142,7 @@ export const getTripsByClub = (req, res) => {
 export const getGearRequests = (req, res) => {
   Trip.find({ gearStatus: { $not: { $in: ['N/A'] } } }).populate('leaders').populate('club')
     .then((gearRequests) => {
+      console.log(gearRequests);
       res.json(gearRequests);
     });
 };
@@ -140,6 +151,23 @@ export const respondToGearRequest = (req, res) => {
   Trip.findById(req.body.id)
     .then((trip) => {
       trip.gearStatus = req.body.status;
+      trip.save().then(getGearRequests(req, res));
+    }).catch((error) => {
+      res.status(500).send(error);
+    });
+};
+
+export const getTrippeeGearRequests = (req, res) => {
+  Trip.find({ trippeeGearStatus: { $ne: 'N/A' } }).populate('leaders').populate('club')
+    .then((trippeeGearRequests) => {
+      res.json(trippeeGearRequests);
+    });
+};
+
+export const respondToTrippeeGearRequest = (req, res) => {
+  Trip.findById(req.body.id)
+    .then((trip) => {
+      trip.trippeeGearStatus = req.body.status;
       trip.save().then(getGearRequests(req, res));
     }).catch((error) => {
       res.status(500).send(error);
