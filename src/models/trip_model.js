@@ -5,8 +5,14 @@ const TripSchema = new Schema({
   title: String,
   leaders: [{ type: Schema.Types.ObjectId, ref: 'User' }], // leaders
   club: { type: Schema.Types.ObjectId, ref: 'Club' },
-  members: [{ type: Schema.Types.ObjectId, ref: 'User' }], // users
-  pending: [{ type: Schema.Types.ObjectId, ref: 'User' }], // pending members
+  members: [{
+    user: { type: Schema.Types.ObjectId, ref: 'User' }, // users
+    gear: [{ gearId: String, gear: String }],
+  }], 
+  pending: [{
+    user: { type: Schema.Types.ObjectId, ref: 'User' }, // pending members
+    gear: [{ gearId: String, gear: String }],
+  }],
   startDate: Date,
   endDate: Date,
   startTime: String,
@@ -17,7 +23,9 @@ const TripSchema = new Schema({
   description: String,
   experienceNeeded: Boolean,
   OPOGearRequests: [String],
+  trippeeGear: [{ gear: String, quantity: Number }],
   gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
+  trippeeGearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
 });
 
 TripSchema.set('toJSON', {
