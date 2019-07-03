@@ -48,7 +48,7 @@ export const createTrip = (req, res) => {
 
 export const getTrips = (req, res) => {
   console.log('TRYING TO get trips');
-  Trip.find()
+  Trip.find().populate('club').populate('leaders')
     .then((trips) => {
       res.json(trips);
     })
@@ -168,7 +168,7 @@ export const respondToTrippeeGearRequest = (req, res) => {
   Trip.findById(req.body.id)
     .then((trip) => {
       trip.trippeeGearStatus = req.body.status;
-      trip.save().then(getGearRequests(req, res));
+      trip.save().then(getTrippeeGearRequests(req, res));
     }).catch((error) => {
       res.status(500).send(error);
     });
