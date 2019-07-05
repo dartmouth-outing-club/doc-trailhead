@@ -1,15 +1,15 @@
 import mongoose, { Schema } from 'mongoose';
 
-const ApprovalSchema = new Schema({
+const LeaderApprovalSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User' },
   clubs: [{ type: Schema.Types.ObjectId, ref: 'Club' }],
   status: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
 });
 
-ApprovalSchema.set('toJSON', {
+LeaderApprovalSchema.set('toJSON', {
   virtuals: true,
 });
 
-const ApprovalModel = mongoose.model('Approval', ApprovalSchema);
+const LeaderApprovalModel = mongoose.model('LeaderApproval', LeaderApprovalSchema);
 
-export default ApprovalModel;
+export default LeaderApprovalModel;

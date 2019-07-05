@@ -156,7 +156,7 @@ export const isOnTrip = (req, res) => {
 
 export const getUser = (req, res) => {
   User.findById(req.user.id).populate('leader_for').then((user) => {
-    res.json(cleanUser(user));
+    res.json(user);
   });
 };
 
@@ -223,12 +223,26 @@ export const updateUser = (req, res, next) => {
         user.name = req.body.name;
         // Determine if approval is required
         if (user.role === 'Trippee' && req.body.leader_for.length > 0) {
-          user.has_pending_changes = true;
+          user.has_pending_leader_change = true;
+          res.locals.leaderReq = true;
         } else {
           user.leader_for = req.body.leader_for;
         }
         if (req.body.leader_for.length === 0) {
           user.role = 'Trippee';
+        }
+
+        if ((!user.trailer_cert && req.body.trailer_cert) 
+          || ((req.body.driver_cert !== null) && (user.driver_cert !== req.body.driver_cert))) {
+          user.has_pending_cert_change = true;
+          res.locals.certReq = true;
+        }
+         
+        if (!req.body.trailer_cert) {
+          user.trailer_cert = req.body.trailer_cert;
+        }
+        if (req.body.driver_cert === null) {
+          user.driver_cert = req.body.driver_cert;
         }
 
         if (req.body.role) {
@@ -241,17 +255,18 @@ export const updateUser = (req, res, next) => {
         return User.findById(req.user.id).populate('leader_for');
       })
       .then((updatedUser) => {
-        res.json(cleanUser(updatedUser));
+        res.json(updatedUser);
         return [updatedUser, req.body];
       })
-      // invoke middleware if approval if required
+      // invoke middleware if approval is required
       .then((userAndReq) => {
-        if (userAndReq[0].role === 'Trippee' && userAndReq[1].leader_for.length > 0) {
+        if (userAndReq[0].has_pending_leader_change || userAndReq[0].has_pending_cert_change) {
           res.locals.userAndReq = userAndReq;
           next();
         }
       })
       .catch((error) => {
+        console.log(error);
         res.status(406).send(error.message);
       });
   });
@@ -286,6 +301,9 @@ function cleanUser(user) {
     role: user.role,
     leader_for: user.leader_for,
     dash_number: user.dash_number,
-    has_pending_changes: user.has_pending_changes,
+    has_pending_leader_change: user.has_pending_change,
+    has_pending_cert_change: user.has_pending_cert_change,
+    driver_cert: user.driver_cert,
+    trailer_cert: user.trailer_cert,
   };
 }

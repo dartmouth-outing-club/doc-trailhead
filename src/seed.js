@@ -2,7 +2,8 @@ import mongoose from 'mongoose';
 import Clubs from './models/club_model';
 import Users from './models/user_model';
 import Trips from './models/trip_model';
-import Approvals from './models/approval_model';
+import LeaderApprovals from './models/leader_approval_model';
+import CertApprovals from './models/cert_approval_model';
 
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
 mongoose.set('useCreateIndex', true);
@@ -52,38 +53,41 @@ const clubs = [
 
 
 function seedDb() {
-  Approvals.deleteMany({})
+  CertApprovals.deleteMany({})
     .then(() => {
-      Clubs.deleteMany({})
+      LeaderApprovals.deleteMany({})
         .then(() => {
-          Trips.deleteMany({})
+          Clubs.deleteMany({})
             .then(() => {
-              Users.deleteMany({})
+              Trips.deleteMany({})
                 .then(() => {
-                  Clubs.insertMany(clubs)
-                    .then((clubs) => {
-                      fakeUsers.map((fakeUser) => {
-                        const newUser = new Users();
-                        newUser.email = fakeUser.email;
-                        newUser.password = fakeUser.password;
-                        newUser.name = fakeUser.name;
-                        newUser.role = fakeUser.role;
-                        newUser.dash_number = fakeUser.dash_number;
-                        if (fakeUser.role === 'Leader') {
-                          let clubIds = [];
-                          clubs.map((club) => {
-                            clubIds.push(club._id);
-                          });
-                          newUser.leader_for = clubIds;
-                        } else {
-                          newUser.leader_for = fakeUser.leader_for;
-                        }
-                        newUser.save();
-                      });
-                    })
+                  Users.deleteMany({})
                     .then(() => {
-                      console.log('seeded db. Press cmd+c or ctrl+c to exit');
-                      // process.exit();
+                      Clubs.insertMany(clubs)
+                        .then((clubs) => {
+                          fakeUsers.map((fakeUser) => {
+                            const newUser = new Users();
+                            newUser.email = fakeUser.email;
+                            newUser.password = fakeUser.password;
+                            newUser.name = fakeUser.name;
+                            newUser.role = fakeUser.role;
+                            newUser.dash_number = fakeUser.dash_number;
+                            if (fakeUser.role === 'Leader') {
+                              let clubIds = [];
+                              clubs.map((club) => {
+                                clubIds.push(club._id);
+                              });
+                              newUser.leader_for = clubIds;
+                            } else {
+                              newUser.leader_for = fakeUser.leader_for;
+                            }
+                            newUser.save();
+                          });
+                        })
+                        .then(() => {
+                          console.log('seeded db. Press control+c to exit');
+                          // process.exit();
+                        })
                     })
                 })
             })
