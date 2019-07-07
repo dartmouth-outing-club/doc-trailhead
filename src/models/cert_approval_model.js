@@ -2,7 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 
 const CertApprovalSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User' },
-  driver_cert: { type: String, enum: ['MICROBUS', 'VAN', 'MINIVAN', null], default: null },
+  driver_cert: { type: String, enum: ['MICROBUS', 'VAN', null], default: null },
   trailer_cert: { type: Boolean, default: false },
   status: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
 });

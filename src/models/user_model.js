@@ -11,7 +11,7 @@ const UserSchema = new Schema({
   dash_number: String,
   has_pending_leader_change: { type: Boolean, default: false },
   has_pending_cert_change: { type: Boolean, default: false },
-  driver_cert: { type: String, enum: ['MICROBUS', 'VAN', 'MINIVAN', null], default: null },
+  driver_cert: { type: String, enum: ['MICROBUS', 'VAN', null], default: null },
   trailer_cert: { type: Boolean, default: false },
 });
 
