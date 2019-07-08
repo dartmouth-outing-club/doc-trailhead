@@ -9,7 +9,10 @@ const UserSchema = new Schema({
   role: { type: String, enum: ['Leader', 'Trippee', 'OPO'], default: 'Trippee' },
   leader_for: [{ type: Schema.Types.ObjectId, ref: 'Club' }], // the names/ids of clubs you are a leader for
   dash_number: String,
-  has_pending_changes: { type: Boolean, default: false },
+  has_pending_leader_change: { type: Boolean, default: false },
+  has_pending_cert_change: { type: Boolean, default: false },
+  driver_cert: { type: String, enum: ['MICROBUS', 'VAN', null], default: null },
+  trailer_cert: { type: Boolean, default: false },
 });
 
 UserSchema.set('toJSON', {

@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import * as Trips from './controllers/trip_controller';
 import * as Users from './controllers/user_controller';
-import * as Approvals from './controllers/approval_controller';
+import * as LeaderApprovals from './controllers/leader_approval_controller';
+import * as CertApprovals from './controllers/cert_approval_controller';
 import sendEmailToTrip from './controllers/email_controller';
 import * as Clubs from './controllers/club_controller';
 import { requireAuth, requireSignin } from './services/passport';
@@ -34,7 +35,7 @@ router.put('/addpending', requireAuth, Users.addToPending);
 
 router.route('/user')
   .get(requireAuth, Users.getUser)
-  .put(requireAuth, Users.updateUser, Approvals.reviewAccessRequest);
+  .put(requireAuth, Users.updateUser, LeaderApprovals.addLeaderRequest, CertApprovals.addCertRequest);
 
 router.get('/myTrips', requireAuth, Users.myTrips);
 router.get('/isOnTrip/:id', requireAuth, Users.isOnTrip);
@@ -47,9 +48,13 @@ router.route('/club')
   .post(Clubs.createClub)
   .get(Clubs.allClubs);
 
-router.route('/approvals')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Approvals.getApprovals)
-  .put(requireAuth, Users.roleAuthorization(['OPO']), Approvals.respond);
+router.route('/leaderapprovals')
+  .get(requireAuth, Users.roleAuthorization(['OPO']), LeaderApprovals.getApprovals)
+  .put(requireAuth, Users.roleAuthorization(['OPO']), LeaderApprovals.respond);
+
+router.route('/certapprovals')
+  .get(requireAuth, Users.roleAuthorization(['OPO']), CertApprovals.getApprovals)
+  .put(requireAuth, Users.roleAuthorization(['OPO']), CertApprovals.respond);
 
 router.route('/gearrequests')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getGearRequests)
