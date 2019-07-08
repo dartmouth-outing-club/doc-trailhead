@@ -221,8 +221,8 @@ export const updateUser = (req, res, next) => {
 
         user.email = req.body.email;
         user.name = req.body.name;
-        // Determine if approval is required
-        if (user.role === 'Trippee' && req.body.leader_for.length > 0) {
+        // Determine if approval is required. Approval is not required if user drops club. 
+        if (req.body.leader_for.length > user.leader_for.length) {
           user.has_pending_leader_change = true;
           res.locals.leaderReq = true;
         } else {
@@ -232,12 +232,12 @@ export const updateUser = (req, res, next) => {
           user.role = 'Trippee';
         }
 
-        if ((!user.trailer_cert && req.body.trailer_cert) 
+        if ((!user.trailer_cert && req.body.trailer_cert)
           || ((req.body.driver_cert !== null) && (user.driver_cert !== req.body.driver_cert))) {
           user.has_pending_cert_change = true;
           res.locals.certReq = true;
         }
-         
+
         if (!req.body.trailer_cert) {
           user.trailer_cert = req.body.trailer_cert;
         }
