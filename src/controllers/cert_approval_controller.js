@@ -28,7 +28,6 @@ export const getApprovals = (req, res) => {
 };
 
 export const respond = (req, res) => {
-  console.log('here');
   CertApproval.findById(req.body.id)
     .then((approval) => {
       User.findById(approval.user._id)

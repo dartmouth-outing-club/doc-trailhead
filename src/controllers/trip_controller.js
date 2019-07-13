@@ -14,6 +14,8 @@ export const createTrip = (req, res) => {
   trip.cost = req.body.cost;
   trip.experienceNeeded = req.body.experienceNeeded;
   trip.location = req.body.location;
+  trip.pickup = req.body.pickup;
+  trip.dropoff = req.body.dropoff;
   trip.mileage = req.body.mileage;
   trip.OPOGearRequests = req.body.gearRequests;
   trip.trippeeGear = req.body.trippeeGear;
@@ -47,7 +49,6 @@ export const createTrip = (req, res) => {
 };
 
 export const getTrips = (req, res) => {
-  console.log('TRYING TO get trips');
   Trip.find().populate('club').populate('leaders')
     .then((trips) => {
       res.json(trips);
@@ -58,18 +59,133 @@ export const getTrips = (req, res) => {
 };
 
 export const getTrip = (req, res) => {
-  Trip.findById(req.params.id).populate('leaders').populate({
+  Trip.findById(req.params.id).populate('club').populate('leaders').populate({
     path: 'members.user',
     model: 'User',
   }).populate({
     path: 'pending.user',
     model: 'User',
-  })
+  }).exec()
     .then((trip) => {
-      res.json({ trip });
+      const isPending = trip.pending.some((pender) => {
+        return pender.user.equals(req.user.id);
+      });
+
+      const isOntrip = trip.members.some((member) => {
+        return member.user.equals(req.user.id);
+      });
+      let userTripStatus = '';
+      if (isPending) {
+        userTripStatus = 'PENDING';
+      } else if (isOntrip) {
+        userTripStatus = 'APPROVED';
+      } else {
+        userTripStatus = 'NONE';
+      }
+      res.json({ trip, userTripStatus });
     })
     .catch((error) => {
+      console.log(error);
       res.status(500).send(error);
+    });
+};
+
+export const addToPending = (req, res) => {
+  const { id } = req.params;
+  const { trippeeGear } = req.body;
+  Trip.findById(id).exec()
+    .then((trip) => {
+      trip.pending.push({ user: req.user._id, gear: trippeeGear });
+      trip.save()
+        .then(getTrip(req, res))
+    })
+    .catch((error) => {
+      res.status(500).send(error.message);
+    });
+};
+
+export const editUserGear = (req, res) => {
+  const { id } = req.params;
+  const { trippeeGear } = req.body;
+  Trip.findById(id).exec()
+    .then((trip) => {
+      trip.pending.some((pender) => {
+        if (pender.user._id.equals(req.user._id)) {
+          pender.gear = trippeeGear
+        }
+        return pender.user._id.equals(req.user._id);
+      })
+      trip.save()
+        .then(getTrip(req, res))
+    })
+    .catch((error) => {
+      res.status(500).send(error.message);
+    });
+}
+
+export const joinTrip = (req, res) => {
+  const { id } = req.params;
+  const { pend } = req.body;
+  Trip.findById(id)
+    .then((trip) => {
+      // add user to member list
+      trip.members.push(pend);
+      pend.gear.forEach((pendGear) => {
+        trip.trippeeGear.forEach((gear) => {
+          if (pendGear.gearId === gear.id) {
+            gear.quantity += 1;
+          }
+        })
+      });
+      // remove user from pending list
+      trip.pending.forEach((pender, index) => {
+        if (String(pender.id) === String(pend._id)) {
+          trip.pending.splice(index, 1);
+        }
+      });
+      trip.save()
+        .then(getTrip(req, res));
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).send(error.message);
+    });
+};
+
+export const leaveTrip = (req, res) => {
+  Trip.findById(req.params.id).populate('leaders').populate({
+    path: 'members.user',
+    model: 'User',
+  }).exec()
+    .then((trip) => {
+      if (req.body.userTripStatus === 'APPROVED') {
+        trip.members.some((member, index) => {
+          if (member.user._id.equals(req.user._id)) {
+            member.gear.forEach((memberGear) => {
+              trip.trippeeGear.forEach((gear) => {
+                if (memberGear.gearId === gear.id) {
+                  gear.quantity -= 1;
+                }
+              })
+            });
+            trip.members.splice(index, 1);
+          }
+          return member.user._id.equals(req.user._id);
+        });
+      } else if (req.body.userTripStatus === 'PENDING') {
+        trip.pending.some((pender, index) => {
+          if (pender.user._id.equals(req.user._id)) {
+            trip.pending.splice(index, 1);
+          }
+          return pender.user._id.equals(req.user._id);
+        });
+      }
+
+      return trip.save();
+    })
+    .then(getTrip(req, res))
+    .catch((error) => {
+      res.status(500).send(error.message);
     });
 };
 
@@ -104,6 +220,8 @@ export const updateTrip = (req, res) => {
       trip.description = req.body.description;
       trip.mileage = req.body.mileage;
       trip.location = req.body.location;
+      trip.pickup = req.body.pickup;
+      trip.dropoff = req.body.dropoff;
       trip.cost = req.body.cost;
       trip.experienceNeeded = req.body.experienceNeeded;
       trip.OPOGearRequests = req.body.gearRequests;
@@ -142,7 +260,6 @@ export const getTripsByClub = (req, res) => {
 export const getGearRequests = (req, res) => {
   Trip.find({ gearStatus: { $not: { $in: ['N/A'] } } }).populate('leaders').populate('club')
     .then((gearRequests) => {
-      console.log(gearRequests);
       res.json(gearRequests);
     });
 };
