@@ -29,6 +29,7 @@ router.route('/trip/:id')
   .delete(requireAuth, Trips.deleteTrip);
 
 router.put('/jointrip/:id', requireAuth, Trips.joinTrip);
+router.put('/movetopending/:id', requireAuth, Trips.moveToPending);
 
 router.put('/addpending/:id', requireAuth, Trips.addToPending);
 router.put('/editusergear/:id', requireAuth, Trips.editUserGear);

@@ -126,7 +126,7 @@ export const updateUser = (req, res, next) => {
         } else {
           user.leader_for = req.body.leader_for;
         }
-        if (req.body.leader_for.length === 0) {
+        if (req.body.leader_for.length === 0 && user.role !== 'OPO') {
           user.role = 'Trippee';
         }
 

@@ -33,7 +33,9 @@ export const createTrip = (req, res) => {
   User.find({ email: { $in: req.body.leaders } })
     .then((users) => {
       users.forEach((user) => {
-        trip.leaders.push(user._id);
+        if (user._id !== req.user._id) {
+          trip.leaders.push(user._id);
+        }
       });
     })
     .then(() => {
@@ -71,18 +73,26 @@ export const getTrip = (req, res) => {
         return pender.user.equals(req.user.id);
       });
 
-      const isOntrip = trip.members.some((member) => {
+      const isOnTrip = trip.members.some((member) => {
         return member.user.equals(req.user.id);
       });
       let userTripStatus = '';
       if (isPending) {
         userTripStatus = 'PENDING';
-      } else if (isOntrip) {
+      } else if (isOnTrip) {
         userTripStatus = 'APPROVED';
       } else {
         userTripStatus = 'NONE';
       }
-      res.json({ trip, userTripStatus });
+
+      // The commeneted version will give co-leaders leader access to the trip regardless of their roles
+      // const isLeaderOnTrip = trip.leaders.some((leader) => {
+      //   return leader._id.equals(req.user.id);
+      // });
+
+      const isLeaderOnTrip = trip.leaders[0]._id.equals(req.user.id);
+
+      res.json({ trip, userTripStatus, isLeaderOnTrip });
     })
     .catch((error) => {
       console.log(error);
@@ -97,7 +107,9 @@ export const addToPending = (req, res) => {
     .then((trip) => {
       trip.pending.push({ user: req.user._id, gear: trippeeGear });
       trip.save()
-        .then(getTrip(req, res))
+        .then(() => {
+          getTrip(req, res);
+        })
     })
     .catch((error) => {
       res.status(500).send(error.message);
@@ -116,7 +128,9 @@ export const editUserGear = (req, res) => {
         return pender.user._id.equals(req.user._id);
       })
       trip.save()
-        .then(getTrip(req, res))
+        .then(() => {
+          getTrip(req, res);
+        });
     })
     .catch((error) => {
       res.status(500).send(error.message);
@@ -126,7 +140,7 @@ export const editUserGear = (req, res) => {
 export const joinTrip = (req, res) => {
   const { id } = req.params;
   const { pend } = req.body;
-  Trip.findById(id)
+  Trip.findById(id).exec()
     .then((trip) => {
       // add user to member list
       trip.members.push(pend);
@@ -139,18 +153,54 @@ export const joinTrip = (req, res) => {
       });
       // remove user from pending list
       trip.pending.forEach((pender, index) => {
-        if (String(pender.id) === String(pend._id)) {
+        if (pender.id === pend._id) {
           trip.pending.splice(index, 1);
         }
       });
       trip.save()
-        .then(getTrip(req, res));
+        .then(() => {
+          getTrip(req, res)
+        });
     })
     .catch((error) => {
       console.log(error);
       res.status(500).send(error.message);
     });
 };
+
+export const moveToPending = (req, res) => {
+  Trip.findById(req.params.id).populate('leaders').populate({
+    path: 'members.user',
+    model: 'User',
+  }).populate({
+    path: 'pending.user',
+    model: 'User',
+  }).exec()
+    .then((trip) => {
+      trip.members.some((member, index) => {
+        if (member.user._id.equals(req.body.member.user._id)) {
+          member.gear.forEach((memberGear) => {
+            trip.trippeeGear.forEach((gear) => {
+              if (memberGear.gearId === gear.id) {
+                gear.quantity -= 1;
+              }
+            })
+          });
+          trip.members.splice(index, 1);
+        }
+        return member.user.id === req.body.member.user.id;
+      });
+      trip.pending.push(req.body.member);
+      trip.save()
+        .then(() => {
+          getTrip(req, res)
+        });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).send(error.message);
+    });
+}
 
 export const leaveTrip = (req, res) => {
   Trip.findById(req.params.id).populate('leaders').populate({
@@ -180,10 +230,11 @@ export const leaveTrip = (req, res) => {
           return pender.user._id.equals(req.user._id);
         });
       }
-
-      return trip.save();
+      trip.save()
+        .then(() => {
+          getTrip(req, res);
+        })
     })
-    .then(getTrip(req, res))
     .catch((error) => {
       res.status(500).send(error.message);
     });
@@ -194,7 +245,7 @@ export const deleteTrip = (req, res) => {
     if (err) {
       res.json({ error: err });
     } else if (trip.leaders.indexOf(req.user._id) > -1) {
-      Trip.remove({ _id: req.params.id }, (err) => {
+      Trip.deleteOne({ _id: req.params.id }, (err) => {
         if (err) {
           res.json({ error: err });
         } else {
@@ -230,8 +281,8 @@ export const updateTrip = (req, res) => {
       }
 
       trip.save()
-        .then((result) => {
-          res.json({ message: 'Trip created' });
+        .then(() => {
+          getTrip(req, res);
         });
     } else {
       res.status(422).send('You must be a leader on the trip');
