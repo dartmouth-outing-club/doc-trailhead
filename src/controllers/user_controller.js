@@ -56,73 +56,6 @@ export const roleAuthorization = (roles) => {
   };
 };
 
-export const joinTrip = (req, res) => {
-  const { id, pend } = req.body;
-  Trip.findById(id)
-    .then((trip) => {
-      if (!trip) {
-        res.json({ trip: null, isUserOnTrip: false });
-      } else if (trip.members.length >= trip.limit) {
-        res.json({ trip, isUserOnTrip: false });
-      } else {
-        // add user to member list
-        trip.members.push(pend);
-        pend.gear.forEach((pendGear) => {
-          trip.trippeeGear.forEach((gear) => {
-            if (pendGear.gearId === gear.id) {
-              gear.quantity += 1;
-            }
-          })
-        });
-        // remove user from pending list
-        trip.pending.forEach((pender, index) => {
-          if (String(pender.id) === String(pend._id)) {
-            trip.pending.splice(index, 1);
-          }
-        });
-        trip.save()
-          .then(() => {
-            Trip.findById(id).populate('leaders').populate({
-              path: 'members.user',
-              model: 'User',
-            }).populate({
-              path: 'pending.user',
-              model: 'User',
-            })
-              .then((updatedTrip) => {
-                res.json({ trip: updatedTrip, isUserOnTrip: true });
-              });
-          });
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).send(error.message);
-    });
-};
-
-export const addToPending = (req, res) => {
-  const { id } = req.body;
-  const { trippeeGear } = req.body;
-  Trip.findById(id)
-    .then((trip) => {
-      if (!trip) {
-        res.json({ trip: null, isUserOnTrip: false });
-      } else {
-        trip.pending.push({ user: req.user._id, gear: trippeeGear });
-        trip.save().then(() => {
-          Trip.findById(id).populate('leaders').populate('pending').then((updatedTrip) => {
-            res.json({ trip: updatedTrip, isUserOnTrip: false });
-          });
-        });
-      }
-    })
-    .catch((error) => {
-      res.status(500).send(error.message);
-    });
-};
-
-
 export const myTrips = (req, res) => {
   const id = req.user._id;
   Trip.find({ $or: [{ members: id }, { leaders: id }] }).populate('club')
@@ -160,41 +93,6 @@ export const getUser = (req, res) => {
   });
 };
 
-
-export const leaveTrip = (req, res) => {
-  Trip.findById(req.params.id).populate('leaders').populate({
-    path: 'members.user',
-    model: 'User',
-  })
-    .then((trip) => {
-      if (!trip) {
-        res.status(422).send('Trip doesn\'t exist');
-      } else {
-        trip.members.some((member, index) => {
-          if (member.user._id.equals(req.user._id)) {
-            member.gear.forEach((memberGear) => {
-              trip.trippeeGear.forEach((gear) => {
-                if (memberGear.gearId === gear.id) {
-                  gear.quantity -= 1;
-                }
-              })
-            });
-            trip.members.splice(index, 1);
-          }
-          return member.user._id.equals(req.user._id);
-        });
-        return trip.save();
-      }
-    })
-    .then((trip) => {
-      res.json({ trip, isUserOnTrip: false });
-    })
-    .catch((error) => {
-      res.status(500).send(error.message);
-    });
-};
-
-
 export const updateUser = (req, res, next) => {
   User.findById(req.user.id, (err, user) => { // this should see if name is in member
     User.find({ email: req.body.email })
@@ -228,7 +126,7 @@ export const updateUser = (req, res, next) => {
         } else {
           user.leader_for = req.body.leader_for;
         }
-        if (req.body.leader_for.length === 0) {
+        if (req.body.leader_for.length === 0 && user.role !== 'OPO') {
           user.role = 'Trippee';
         }
 

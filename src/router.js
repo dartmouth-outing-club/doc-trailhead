@@ -19,18 +19,20 @@ router.post('/signup', Users.signup);
 
 router.route('/alltrips')
   .post(requireAuth, Users.roleAuthorization(['Leader']), Trips.createTrip)
-  .get(Trips.getTrips);
+  .get(requireAuth, Trips.getTrips);
 
 router.get('/trips/:club', Trips.getTripsByClub);
 
 router.route('/trip/:id')
-  .get(Trips.getTrip)
+  .get(requireAuth, Trips.getTrip)
   .put(requireAuth, Trips.updateTrip)
   .delete(requireAuth, Trips.deleteTrip);
 
-router.put('/jointrip', requireAuth, Users.joinTrip);
+router.put('/jointrip/:id', requireAuth, Trips.joinTrip);
+router.put('/movetopending/:id', requireAuth, Trips.moveToPending);
 
-router.put('/addpending', requireAuth, Users.addToPending);
+router.put('/addpending/:id', requireAuth, Trips.addToPending);
+router.put('/editusergear/:id', requireAuth, Trips.editUserGear);
 
 
 router.route('/user')
@@ -39,7 +41,7 @@ router.route('/user')
 
 router.get('/myTrips', requireAuth, Users.myTrips);
 router.get('/isOnTrip/:id', requireAuth, Users.isOnTrip);
-router.delete('/leaveTrip/:id', requireAuth, Users.leaveTrip);
+router.delete('/leaveTrip/:id', requireAuth, Trips.leaveTrip);
 router.get('/userTrips', requireAuth, Users.userTrips);
 
 router.post('/sendEmailToTrip', sendEmailToTrip);
