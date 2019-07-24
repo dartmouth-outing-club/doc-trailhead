@@ -58,6 +58,9 @@ router.route('/certapprovals')
   .get(requireAuth, Users.roleAuthorization(['OPO']), CertApprovals.getApprovals)
   .put(requireAuth, Users.roleAuthorization(['OPO']), CertApprovals.respond);
 
+router.route('/opotrips')
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getOPOTrips)
+  
 router.route('/gearrequests')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getGearRequests)
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToGearRequest);
