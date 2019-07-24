@@ -221,14 +221,14 @@ export const updateUser = (req, res, next) => {
 
         user.email = req.body.email;
         user.name = req.body.name;
-        // Determine if approval is required. Approval is not required if user drops club. 
+        // Determine if approval is required. Approval is not required if user drops club.
         if (req.body.leader_for.length > user.leader_for.length) {
           user.has_pending_leader_change = true;
           res.locals.leaderReq = true;
         } else {
           user.leader_for = req.body.leader_for;
         }
-        if (req.body.leader_for.length === 0) {
+        if (req.body.leader_for.length === 0 && user.role !== 'OPO' ) {
           user.role = 'Trippee';
         }
 
