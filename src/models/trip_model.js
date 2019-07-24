@@ -18,6 +18,8 @@ const TripSchema = new Schema({
   startTime: String,
   endTime: String,
   location: String,
+  pickup: String,
+  dropoff: String,
   mileage: Number,
   cost: Number,
   description: String,
@@ -26,6 +28,8 @@ const TripSchema = new Schema({
   trippeeGear: [{ gear: String, quantity: Number }],
   gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   trippeeGearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
+  pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
+  vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
 });
 
 TripSchema.set('toJSON', {
