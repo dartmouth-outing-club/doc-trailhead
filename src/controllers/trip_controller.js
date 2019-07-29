@@ -331,6 +331,12 @@ export const getTrippeeGearRequests = (req, res) => {
       res.json(trippeeGearRequests);
     });
 };
+export const getPCardRequests = (req, res) => {
+  Trip.find({ pcardStatus: { $ne: 'N/A' } }).populate('leaders').populate('club')
+    .then((pcardRequests) => {
+      res.json(pcardRequests);
+    });
+};
 
 export const getOPOTrips = (req, res) => {
   Trip.find({
@@ -351,6 +357,15 @@ export const respondToTrippeeGearRequest = (req, res) => {
     .then((trip) => {
       trip.trippeeGearStatus = req.body.status;
       trip.save().then(getTrippeeGearRequests(req, res));
+    }).catch((error) => {
+      res.status(500).send(error);
+    });
+};
+export const respondToPCardRequest = (req, res) => {
+  Trip.findById(req.body.id)
+    .then((trip) => {
+      trip.pcardStatus = req.body.status;
+      trip.save().then(getPCardRequests(req, res));
     }).catch((error) => {
       res.status(500).send(error);
     });
