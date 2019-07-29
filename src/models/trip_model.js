@@ -28,6 +28,16 @@ const TripSchema = new Schema({
   trippeeGear: [{ gear: String, quantity: Number }],
   gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   trippeeGearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
+  pcardRequest: [{ subclub: { type: Schema.Types.ObjectId, ref: 'Club' }, 
+                  participants: Number, 
+                  totalCost: Number,
+                  reason: [{  category: String, 
+                              info: [{  expenseDetails: String, 
+                                        unitCost: Number, 
+                                        totalCost: Number,
+                                      }]
+                          }],   
+                }],
   pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
 });
