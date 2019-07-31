@@ -119,6 +119,13 @@ export const updateUser = (req, res, next) => {
 
         user.email = req.body.email;
         user.name = req.body.name;
+        user.dash_number = req.body.dash_number;
+        user.allergies_dietary_restrictions = req.body.allergies_dietary_restrictions;
+        user.medical_conditions = req.body.medical_conditions;
+        user.clothe_size = req.body.clothe_size;
+        user.shoe_size = req.body.shoe_size;
+        user.height = req.body.height;
+
         // Determine if approval is required. Approval is not required if user drops club. 
         if (req.body.leader_for.length > user.leader_for.length) {
           user.has_pending_leader_change = true;
@@ -146,7 +153,6 @@ export const updateUser = (req, res, next) => {
         if (req.body.role) {
           user.role = req.body.role;
         }
-        user.dash_number = req.body.dash_number;
         return user.save();
       })
       .then(() => {
