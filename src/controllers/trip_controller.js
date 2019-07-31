@@ -332,6 +332,20 @@ export const getTrippeeGearRequests = (req, res) => {
     });
 };
 
+export const getOPOTrips = (req, res) => {
+  Trip.find({
+    $or: [
+      { trippeeGearStatus: { $ne: 'N/A' } },
+      { gearStatus: { $ne: 'N/A' } },
+      { pcardStatus: { $ne: 'N/A' } },
+      { vehicleStatus: { $ne: 'N/A' } },
+    ]
+  }).populate('leaders').populate('club')
+    .then((trips) => {
+      res.json(trips);
+    });
+};
+
 export const respondToTrippeeGearRequest = (req, res) => {
   Trip.findById(req.body.id)
     .then((trip) => {
