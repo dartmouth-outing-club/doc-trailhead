@@ -19,12 +19,17 @@ export const createTrip = (req, res) => {
   trip.mileage = req.body.mileage;
   trip.OPOGearRequests = req.body.gearRequests;
   trip.trippeeGear = req.body.trippeeGear;
+  trip.pcard = req.body.pcard;
+
 
   if (req.body.gearRequests.length > 0) {
     trip.gearStatus = 'pending';
   }
   if (req.body.trippeeGear.length > 0) {
     trip.trippeeGearStatus = 'pending';
+  }  
+  if (req.body.pcard.length > 0) {
+    trip.pcardStatus = 'pending';
   }
   trip.members = [];
   trip.leaders = [];
@@ -276,8 +281,10 @@ export const updateTrip = (req, res) => {
       trip.cost = req.body.cost;
       trip.experienceNeeded = req.body.experienceNeeded;
       trip.OPOGearRequests = req.body.gearRequests;
+      trip.pcardRequests = req.body.pcardRequests;
       if (req.body.newRequest) {
         trip.gearStatus = 'pending';
+        trip.pcardStatus = 'pending';
       }
 
       trip.save()
