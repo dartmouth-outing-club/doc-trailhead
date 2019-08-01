@@ -17,6 +17,7 @@ export const createTrip = (req, res) => {
   trip.pickup = req.body.pickup;
   trip.dropoff = req.body.dropoff;
   trip.mileage = req.body.mileage;
+  trip.co_leader_access = req.body.co_leader_access;
   trip.OPOGearRequests = req.body.gearRequests;
   trip.trippeeGear = req.body.trippeeGear;
   trip.pcard = req.body.pcard;
@@ -91,11 +92,14 @@ export const getTrip = (req, res) => {
       }
 
       // The commeneted version will give co-leaders leader access to the trip regardless of their roles
-      // const isLeaderOnTrip = trip.leaders.some((leader) => {
-      //   return leader._id.equals(req.user.id);
-      // });
-
-      const isLeaderOnTrip = trip.leaders[0]._id.equals(req.user.id);
+      let isLeaderOnTrip;
+      if (trip.co_leader_access) {
+        isLeaderOnTrip = trip.leaders.some((leader) => {
+          return leader._id.equals(req.user.id);
+        });
+      } else {
+        isLeaderOnTrip = trip.leaders[0]._id.equals(req.user.id);
+      }
 
       res.json({ trip, userTripStatus, isLeaderOnTrip });
     })
@@ -316,7 +320,10 @@ export const getTripsByClub = (req, res) => {
 };
 
 export const getGearRequests = (req, res) => {
-  Trip.find({ gearStatus: { $not: { $in: ['N/A'] } } }).populate('leaders').populate('club')
+  Trip.find({ gearStatus: { $not: { $in: ['N/A'] } } }).populate('leaders').populate('club').populate({
+    path: 'members.user',
+    model: 'User',
+  })
     .then((gearRequests) => {
       res.json(gearRequests);
     });
@@ -333,7 +340,10 @@ export const respondToGearRequest = (req, res) => {
 };
 
 export const getTrippeeGearRequests = (req, res) => {
-  Trip.find({ trippeeGearStatus: { $ne: 'N/A' } }).populate('leaders').populate('club')
+  Trip.find({ trippeeGearStatus: { $ne: 'N/A' } }).populate('leaders').populate('club').populate({
+    path: 'members.user',
+    model: 'User',
+  })
     .then((trippeeGearRequests) => {
       res.json(trippeeGearRequests);
     });
@@ -353,7 +363,10 @@ export const getOPOTrips = (req, res) => {
       { pcardStatus: { $ne: 'N/A' } },
       { vehicleStatus: { $ne: 'N/A' } },
     ]
-  }).populate('leaders').populate('club')
+  }).populate('leaders').populate('club').populate({
+    path: 'members.user',
+    model: 'User',
+  })
     .then((trips) => {
       res.json(trips);
     });
