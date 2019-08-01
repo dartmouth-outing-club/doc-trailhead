@@ -7,7 +7,7 @@ dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
   User.findById(req.user.id).populate('leader_for').then((user) => {
-    res.send({ token: tokenForUser(req.user), user: cleanUser(user) });
+    res.send({ token: tokenForUser(req.user), user: user });
   });
 };
 
@@ -205,6 +205,10 @@ function cleanUser(user) {
     role: user.role,
     leader_for: user.leader_for,
     dash_number: user.dash_number,
+    allergies_dietary_restrictions: user.allergies_dietary_restrictions,
+    medical_conditions: user.medical_conditions,
+    clothe_size: user.clothe_size,
+    height: user.height,
     has_pending_leader_change: user.has_pending_change,
     has_pending_cert_change: user.has_pending_cert_change,
     driver_cert: user.driver_cert,
