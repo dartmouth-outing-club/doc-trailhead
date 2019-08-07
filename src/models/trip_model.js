@@ -32,11 +32,11 @@ const TripSchema = new Schema({
   pcardRequest: [{ subclub: { type: Schema.Types.ObjectId, ref: 'Club' }, 
                   participants: Number, 
                   totalCost: Number,
-                  reason: [{  category: String, 
-                              info: [{  expenseDetails: String, 
-                                        unitCost: Number, 
-                                        totalCost: Number,
-                                      }]
+                  reason: [{info: [{  
+                              expenseDetails: String, 
+                              unitCost: Number, 
+                              totalCost: Number,
+                                  }]
                           }],   
                 }],
   pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },

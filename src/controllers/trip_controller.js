@@ -29,7 +29,7 @@ export const createTrip = (req, res) => {
   if (req.body.trippeeGear.length > 0) {
     trip.trippeeGearStatus = 'pending';
   }  
-  if (req.body.pcard.length > 0) {
+  if (req.body.pcard!==undefined && req.body.pcard.length > 0) {
     trip.pcardStatus = 'pending';
   }
   trip.members = [];
