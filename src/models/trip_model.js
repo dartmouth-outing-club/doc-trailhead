@@ -29,8 +29,7 @@ const TripSchema = new Schema({
   trippeeGear: [{ gear: String, size_type: {type: String, enum: ['N/A', 'Clothe', 'Shoe', 'Height'], default: 'N/A' }, quantity: Number }],
   gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   trippeeGearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
-  pcard: [{ subclub: { type: Schema.Types.ObjectId, ref: 'Club' }, 
-          participants: Number, 
+  pcard: [{participants: Number, 
           totalCost: Number,
           reason: [{info: [{  
                     expenseDetails: String, 
@@ -40,6 +39,7 @@ const TripSchema = new Schema({
                 }],   
             }],
   pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
+  pcardAssigned: {type: Number, default: null},
   vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
 });
 
