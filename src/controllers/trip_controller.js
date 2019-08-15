@@ -385,7 +385,7 @@ export const respondToPCardRequest = (req, res) => {
       trip.pcardStatus = req.body.pcardStatus;
       trip.pcardAssigned = req.body.pcardAssigned; 
       req.params.id = req.body.id;
-      trip.save().then(getTrip(req, res));
+      trip.save();
     }).catch((error) => {
       res.status(500).send(error);
     });
