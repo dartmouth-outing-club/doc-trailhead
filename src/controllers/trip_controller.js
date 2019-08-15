@@ -268,10 +268,11 @@ export const deleteTrip = (req, res) => {
 };
 
 export const updateTrip = (req, res) => {
+  console.log(req);
   Trip.findById(req.params.id, (err, trip) => {
     if (err) {
       res.json({ error: err });
-    } else if (trip.leaders.indexOf(req.user._id) !== -1) {
+    } else if (trip.leaders.indexOf(req.user._id) !== -1 || req.user.role === "OPO") {
       trip.startDate = req.body.startDate;
       trip.endDate = req.body.endDate;
       trip.startTime = req.body.startTime;
@@ -285,18 +286,21 @@ export const updateTrip = (req, res) => {
       trip.cost = req.body.cost;
       trip.experienceNeeded = req.body.experienceNeeded;
       trip.OPOGearRequests = req.body.gearRequests;
-      trip.pcardRequests = req.body.pcardRequests;
+      trip.pcard = req.body.pcard;
+      trip.pcardAssigned = req.body.pcardAssigned;
       if (req.body.newRequest) {
         trip.gearStatus = 'pending';
         trip.pcardStatus = 'pending';
+      }else{
+        trip.gearStatus = req.body.gearStatus;
+        trip.pcardStatus = req.body.pcardStatus;
       }
-
       trip.save()
         .then(() => {
           getTrip(req, res);
         });
     } else {
-      res.status(422).send('You must be a leader on the trip');
+      res.status(422).send('You must be a leader on the trip or OPO');
     }
   });
 };
@@ -348,12 +352,6 @@ export const getTrippeeGearRequests = (req, res) => {
       res.json(trippeeGearRequests);
     });
 };
-export const getPCardRequests = (req, res) => {
-  Trip.find({ pcardStatus: { $ne: 'N/A' } }).populate('leaders').populate('club')
-    .then((pcardRequests) => {
-      res.json(pcardRequests);
-    });
-};
 
 export const getOPOTrips = (req, res) => {
   Trip.find({
@@ -384,8 +382,10 @@ export const respondToTrippeeGearRequest = (req, res) => {
 export const respondToPCardRequest = (req, res) => {
   Trip.findById(req.body.id)
     .then((trip) => {
-      trip.pcardStatus = req.body.status;
-      trip.save().then(getPCardRequests(req, res));
+      trip.pcardStatus = req.body.pcardStatus;
+      trip.pcardAssigned = req.body.pcardAssigned; 
+      req.params.id = req.body.id;
+      trip.save().then(getTrip(req, res));
     }).catch((error) => {
       res.status(500).send(error);
     });

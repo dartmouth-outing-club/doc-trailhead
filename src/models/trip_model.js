@@ -38,8 +38,8 @@ const TripSchema = new Schema({
                         }]
                 }],   
             }],
-  pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
-  pcardAssigned: {type: Number, default: null},
+  pcardStatus: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
+  pcardAssigned: {type: Number},
   vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
 });
 

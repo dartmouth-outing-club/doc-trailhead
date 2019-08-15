@@ -66,7 +66,7 @@ router.route('/gearrequests')
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToGearRequest);
 
   router.route('/pcardrequests')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getPCardRequests)
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrip)
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToPCardRequest);
 
 router.route('/trippeegearrequests')
