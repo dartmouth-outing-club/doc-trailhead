@@ -3,6 +3,8 @@ import mongoose, { Schema } from 'mongoose';
 const VehicleRequestSchema = new Schema({
   requester: { type: Schema.Types.ObjectId, ref: 'User' },
   requestDetails: String,
+  mileage: Number,
+  noOfPeople: Number,
   associatedTrip: { type: Schema.Types.ObjectId, ref: 'Trip' },
   requestType: { type: String, enum: ['TRIP', 'SOLO'] },
   requestedVehicles: [

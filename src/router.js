@@ -72,6 +72,10 @@ router.route('/trippeegearrequests')
 router.route('/vehiclerequest/:id')
   .get(requireAuth, VehicleRequest.getVehicleRequest)
   .put(requireAuth, VehicleRequest.updateVehicleRequest)
-router.post('/vehicleRequest', requireAuth, VehicleRequest.makeVehicleRequest);
+
+router.route('/vehicleRequests')
+  .post(requireAuth, VehicleRequest.makeVehicleRequest)
+  .get(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequest.getVehicleRequests)
+  
 
 export default router;

@@ -4,6 +4,8 @@ export const makeVehicleRequest = (req, res) => {
   const vehicleRequest = new VehicleRequest();
   vehicleRequest.requester = req.body.requester;
   vehicleRequest.requestDetails = req.body.requestDetails;
+  vehicleRequest.mileage = req.body.mileage;
+  vehicleRequest.noOfPeople = req.body.noOfPeople;
   vehicleRequest.requestType = req.body.requestType;
   vehicleRequest.requestedVehicles = req.body.requestedVehicles;
   vehicleRequest.save()
@@ -20,6 +22,13 @@ export const getVehicleRequest = (req, res) => {
   VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip')
     .then((vehicleRequest) => {
       res.json(vehicleRequest);
+    });
+}
+
+export const getVehicleRequests = (req, res) => {
+  VehicleRequest.find().populate('requester').populate('associatedTrip')
+    .then((vehicleRequests) => {
+      res.json(vehicleRequests);
     });
 }
 
