@@ -12,7 +12,6 @@ mongoose.connect(mongoURI, { useNewUrlParser: true });
 // set mongoose promises to es6 default
 mongoose.Promise = global.Promise;
 
-
 // initialize
 const app = express();
 

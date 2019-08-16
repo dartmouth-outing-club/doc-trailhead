@@ -37,7 +37,7 @@ export const signup = (req, res, next) => {
         });
     }
   });
-};
+};          
 
 export const roleAuthorization = (roles) => {
   return function authorize(req, res, next) {
