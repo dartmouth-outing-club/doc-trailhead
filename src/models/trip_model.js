@@ -24,11 +24,22 @@ const TripSchema = new Schema({
   cost: Number,
   description: String,
   experienceNeeded: Boolean,
+  co_leader_access: { type: Boolean, default: false },
   OPOGearRequests: [String],
-  trippeeGear: [{ gear: String, quantity: Number }],
+  trippeeGear: [{ gear: String, size_type: {type: String, enum: ['N/A', 'Clothe', 'Shoe', 'Height'], default: 'N/A' }, quantity: Number }],
   gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   trippeeGearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
-  pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
+  pcard: [{participants: Number, 
+          totalCost: Number,
+          reason: [{info: [{  
+                    expenseDetails: String, 
+                    unitCost: Number, 
+                    totalCost: Number,
+                        }]
+                }],   
+            }],
+  pcardStatus: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
+  pcardAssigned: {type: Number},
   vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
 });
 

@@ -7,7 +7,7 @@ dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
   User.findById(req.user.id).populate('leader_for').then((user) => {
-    res.send({ token: tokenForUser(req.user), user: cleanUser(user) });
+    res.send({ token: tokenForUser(req.user), user: user });
   });
 };
 
@@ -93,6 +93,10 @@ export const getUser = (req, res) => {
   });
 };
 
+const isStringEmpty = (string) => {
+  return string.length === 0 || !string.trim();
+};
+
 export const updateUser = (req, res, next) => {
   User.findById(req.user.id, (err, user) => { // this should see if name is in member
     User.find({ email: req.body.email })
@@ -119,6 +123,26 @@ export const updateUser = (req, res, next) => {
 
         user.email = req.body.email;
         user.name = req.body.name;
+        const { dash_number, allergies_dietary_restrictions, medical_conditions, clothe_size, shoe_size, height } = req.body;
+        if (!isStringEmpty(dash_number)) {
+          user.dash_number = dash_number;
+        }
+        if (!isStringEmpty(allergies_dietary_restrictions)) {
+          user.allergies_dietary_restrictions = allergies_dietary_restrictions;
+        }
+        if (!isStringEmpty(medical_conditions)) {
+          user.medical_conditions = medical_conditions;
+        }
+        if (!isStringEmpty(clothe_size)) {
+          user.clothe_size = clothe_size;
+        }
+        if (!isStringEmpty(shoe_size)) {
+          user.shoe_size = shoe_size;
+        }
+        if (!isStringEmpty(height)) {
+          user.height = height;
+        }
+
         // Determine if approval is required. Approval is not required if user drops club.
         if (req.body.leader_for.length > user.leader_for.length) {
           user.has_pending_leader_change = true;
@@ -146,7 +170,6 @@ export const updateUser = (req, res, next) => {
         if (req.body.role) {
           user.role = req.body.role;
         }
-        user.dash_number = req.body.dash_number;
         return user.save();
       })
       .then(() => {
@@ -199,6 +222,10 @@ function cleanUser(user) {
     role: user.role,
     leader_for: user.leader_for,
     dash_number: user.dash_number,
+    allergies_dietary_restrictions: user.allergies_dietary_restrictions,
+    medical_conditions: user.medical_conditions,
+    clothe_size: user.clothe_size,
+    height: user.height,
     has_pending_leader_change: user.has_pending_change,
     has_pending_cert_change: user.has_pending_cert_change,
     driver_cert: user.driver_cert,
