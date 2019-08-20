@@ -81,5 +81,8 @@ router.route('/vehicleRequests')
 router.route('/vehicles')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Vehicles.getVehicles)
 
+router.route('/opoVehicleRequest/:id')
+  .put(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.respondToVehicleRequest)
+
 
 export default router;

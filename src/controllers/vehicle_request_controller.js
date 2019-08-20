@@ -1,4 +1,6 @@
 import VehicleRequest from '../models/vehicle_request_model';
+import Vehicle from '../models/vehicle_model';
+import Assignment from '../models/assignment_model';
 
 export const makeVehicleRequest = (req, res) => {
   const vehicleRequest = new VehicleRequest();
@@ -69,4 +71,9 @@ export const updateVehicleRequest = (req, res) => {
           });
       }
     });
+}
+
+export const respondToVehicleRequest = (req, res) => {
+  console.log(req.body.reqId);
+  console.log(req.body.assignments);
 }
