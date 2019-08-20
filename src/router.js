@@ -5,7 +5,8 @@ import * as LeaderApprovals from './controllers/leader_approval_controller';
 import * as CertApprovals from './controllers/cert_approval_controller';
 import sendEmailToTrip from './controllers/email_controller';
 import * as Clubs from './controllers/club_controller';
-import * as VehicleRequest from './controllers/vehicle_request_controller';
+import * as VehicleRequests from './controllers/vehicle_request_controller';
+import * as Vehicles from './controllers/vehicle_controller';
 import { requireAuth, requireSignin } from './services/passport';
 
 
@@ -70,12 +71,15 @@ router.route('/trippeegearrequests')
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToTrippeeGearRequest);
 
 router.route('/vehiclerequest/:id')
-  .get(requireAuth, VehicleRequest.getVehicleRequest)
-  .put(requireAuth, VehicleRequest.updateVehicleRequest)
+  .get(requireAuth, VehicleRequests.getVehicleRequest)
+  .put(requireAuth, VehicleRequests.updateVehicleRequest)
 
 router.route('/vehicleRequests')
-  .post(requireAuth, VehicleRequest.makeVehicleRequest)
-  .get(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequest.getVehicleRequests)
-  
+  .post(requireAuth, VehicleRequests.makeVehicleRequest)
+  .get(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.getVehicleRequests)
+
+router.route('/vehicles')
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Vehicles.getVehicles)
+
 
 export default router;
