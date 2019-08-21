@@ -4,6 +4,9 @@ import Users from './models/user_model';
 import Trips from './models/trip_model';
 import LeaderApprovals from './models/leader_approval_model';
 import CertApprovals from './models/cert_approval_model';
+import Vehicles from './models/vehicle_model';
+import VehicleRequests from './models/vehicle_request_model';
+import Assignmnets from './models/assignment_model';
 
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
 mongoose.set('useCreateIndex', true);
@@ -35,8 +38,10 @@ const fakeUsers = [
     role: 'Leader',
     leader_for: [],
     dash_number: '12345',
+    driver_cert: 'MICROBUS',
+    trailer_cert: true,
   }
-]
+];
 
 const clubs = [
   {
@@ -69,6 +74,61 @@ const clubs = [
   {
     name: 'Other',
   },
+];
+
+const vehicles = [
+  {
+    name: 'Van A',
+    type: 'Van',
+  },
+  {
+    name: 'Van D',
+    type: 'Van',
+  },
+  {
+    name: 'Van E',
+    type: 'Van',
+  },
+  {
+    name: 'Van F',
+    type: 'Van',
+  },
+  {
+    name: 'Van G',
+    type: 'Van',
+  },
+  {
+    name: 'Bus B',
+    type: 'Microbus',
+  },
+  {
+    name: 'Bus C',
+    type: 'Microbus',
+  },
+  {
+    name: 'Stake Truck',
+    type: 'Truck',
+  },
+  {
+    name: 'Red Truck',
+    type: 'Truck',
+  },
+  {
+    name: 'Minivan',
+    type: 'Van',
+  },
+  {
+    name: 'Van 100',
+    type: 'Van',
+  },
+  {
+    name: 'Van 101',
+    type: 'Van',
+  },
+  {
+    name: 'Enterprise',
+    type: 'Enterprise',
+  },
 ]
 
 
@@ -77,37 +137,49 @@ function seedDb() {
   CertApprovals.deleteMany({})
     .then(() => {
       LeaderApprovals.deleteMany({})
+      VehicleRequests.deleteMany({})
         .then(() => {
-          Clubs.deleteMany({})
+          Assignmnets.deleteMany({})
             .then(() => {
-              Trips.deleteMany({})
+              Vehicles.deleteMany({})
                 .then(() => {
-                  Users.deleteMany({})
+                  Clubs.deleteMany({})
                     .then(() => {
-                      Clubs.insertMany(clubs)
-                        .then((clubs) => {
-                          fakeUsers.map((fakeUser) => {
-                            const newUser = new Users();
-                            newUser.email = fakeUser.email;
-                            newUser.password = fakeUser.password;
-                            newUser.name = fakeUser.name;
-                            newUser.role = fakeUser.role;
-                            newUser.dash_number = fakeUser.dash_number;
-                            if (fakeUser.role === 'Leader') {
-                              let clubIds = [];
-                              clubs.map((club) => {
-                                clubIds.push(club._id);
-                              });
-                              newUser.leader_for = clubIds;
-                            } else {
-                              newUser.leader_for = fakeUser.leader_for;
-                            }
-                            newUser.save();
-                          });
-                        })
+                      Trips.deleteMany({})
                         .then(() => {
-                          console.log('seeded db. Press control+c to exit');
-                          // process.exit();
+                          Users.deleteMany({})
+                            .then(() => {
+                              Vehicles.insertMany(vehicles)
+                                .then((vehicles) => {
+                                  Clubs.insertMany(clubs)
+                                    .then((clubs) => {
+                                      fakeUsers.map((fakeUser) => {
+                                        const newUser = new Users();
+                                        newUser.email = fakeUser.email;
+                                        newUser.password = fakeUser.password;
+                                        newUser.name = fakeUser.name;
+                                        newUser.role = fakeUser.role;
+                                        newUser.dash_number = fakeUser.dash_number;
+                                        newUser.driver_cert = fakeUser.driver_cert;
+                                        newUser.trailer_cert = fakeUser.trailer_cert;
+                                        if (fakeUser.role === 'Leader') {
+                                          let clubIds = [];
+                                          clubs.map((club) => {
+                                            clubIds.push(club._id);
+                                          });
+                                          newUser.leader_for = clubIds;
+                                        } else {
+                                          newUser.leader_for = fakeUser.leader_for;
+                                        }
+                                        newUser.save();
+                                      });
+                                    })
+                                })
+                                .then(() => {
+                                  console.log('seeded db. Press control+c to exit');
+                                  // process.exit();
+                                })
+                            })
                         })
                     })
                 })
