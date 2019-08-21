@@ -94,7 +94,7 @@ export const getUser = (req, res) => {
 };
 
 const isStringEmpty = (string) => {
-  return string.length === 0 || !string.trim();
+  return string.length === 0 || !string.toString().trim();
 };
 
 export const updateUser = (req, res, next) => {
