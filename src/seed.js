@@ -36,15 +36,15 @@ const fakeUsers = [
     leader_for: [],
     dash_number: '12345',
   },
-  {
-    casID: 'Emma P. Rafkin@DARTMOUTH.EDU',
-    email: 'Emma.P.Rafkin.21@dartmouth.edu',
-    password: 'test',
-    name: 'Emma Rafkin',
-    role: 'OPO',
-    leader_for: [],
-    dash_number:'1111',
-  }
+  // {
+  //   casID: 'Emma P. Rafkin@DARTMOUTH.EDU',
+  //   email: 'Emma.P.Rafkin.21@dartmouth.edu',
+  //   password: 'test',
+  //   name: 'Emma Rafkin',
+  //   role: 'OPO',
+  //   leader_for: [],
+  //   dash_number:'1111',
+  // }
 ]
 
 const clubs = [

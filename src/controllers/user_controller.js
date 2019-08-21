@@ -9,6 +9,7 @@ dotenv.config({ silent: true });
 export const signin = (req, res, next) => {
 
   passport.authenticate('cas', (err, user, info)=>{
+    console.log(user);
     console.log("user: "+user);
     if(err){return err;}
     if(!user){
@@ -17,9 +18,24 @@ export const signin = (req, res, next) => {
         return res.redirect('/');
     }
     User.find({'casID': user}).populate('leader_for').then((user1) => {
-        console.log("name: " + user1.name);
-        console.log(tokenForUser(user1));
-         res.redirect("http://localhost:8080/authed?" + tokenForUser(user1) + "&" + user1.id); 
+      if(user1.length === 0){
+        const newUser = new User();
+        newUser.casID = user;
+        newUser.email = "";
+        newUser.name = "";
+        newUser.role = 'Trippee';
+        newUser.leader_for = [];
+        newUser.save()
+          .then((result) => {
+            res.redirect("http://localhost:8080/authed?" + tokenForUser(result) + "&" + result.id); 
+          })
+          .catch((error) => {
+            res.status(500).send(error.message);
+          });
+      }else{
+        res.redirect("http://localhost:8080/authed?" + tokenForUser(user1[0]) + "&" + user1[0].id); 
+
+      }
      }).catch((error)=>{
        res.status(500).send(error.message);
    });
@@ -32,59 +48,25 @@ export const signin = (req, res, next) => {
 export const signup = (req, res, next) => {
 
     const { email } = req.body;
-    const { password } = req.body;
     const { name } = req.body;
-    if (!email || !password || !name) {
+    if (!email || !name) {
       res.status(422).send('You must provide a name, email and password');
     }
-    User.findOne({ email }, (err, user1) => {
-      if (user) {
-        res.status(422).send('User already exists');
-      } else {
-        const newUser = new User();
-        newUser.casID = user1;
-        newUser.email = email;
-        newUser.password = password;
-        newUser.name = name;
-        newUser.role = 'Trippee';
-        newUser.leader_for = [];
-        newUser.save()
+    User.findById(req.body.id, (err, user1) => {
+        user1.email = email;
+        user1.name = name;
+        user1.role = 'Trippee';
+        user1.leader_for = [];
+        user1.save()
           .then((result) => {
-            res.send({ token: tokenForUser(result), user: cleanUser(result) });
+            res.send({user: cleanUser(result)});
           })
           .catch((error) => {
             res.status(500).send(error.message);
           });
-      }
-    });
+      });
+   
 };  
-// export const signup = (req, res, next) => {
-//   const { email } = req.body;
-//   const { password } = req.body;
-//   const { name } = req.body;
-//   if (!email || !password || !name) {
-//     res.status(422).send('You must provide a name, email and password');
-//   }
-//   User.findOne({ email }, (err, user) => {
-//     if (user) {
-//       res.status(422).send('User already exists');
-//     } else {
-//       const newUser = new User();
-//       newUser.email = email;
-//       newUser.password = password;
-//       newUser.name = name;
-//       newUser.role = 'Trippee';
-//       newUser.leader_for = [];
-//       newUser.save()
-//         .then((result) => {
-//           res.send({ token: tokenForUser(result), user: cleanUser(result) });
-//         })
-//         .catch((error) => {
-//           res.status(500).send(error.message);
-//         });
-//     }
-//   });
-// };          
 
 export const roleAuthorization = (roles) => {
   return function authorize(req, res, next) {
@@ -135,9 +117,7 @@ export const isOnTrip = (req, res) => {
 };
 
 export const getUser = (req, res) => {
-  console.log("this gets called");
   User.findById(req.user.id).populate('leader_for').then((user) => {
-    console.log(user);
     res.json(user);
   });
 };
