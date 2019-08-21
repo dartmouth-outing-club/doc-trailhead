@@ -1,3 +1,4 @@
+/* eslint-disable */
 import mongoose, { Schema } from 'mongoose';
 
 
@@ -8,7 +9,7 @@ const TripSchema = new Schema({
   members: [{
     user: { type: Schema.Types.ObjectId, ref: 'User' }, // users
     gear: [{ gearId: String, gear: String }],
-  }], 
+  }],
   pending: [{
     user: { type: Schema.Types.ObjectId, ref: 'User' }, // pending members
     gear: [{ gearId: String, gear: String }],
@@ -29,14 +30,14 @@ const TripSchema = new Schema({
   trippeeGear: [{ gear: String, size_type: {type: String, enum: ['N/A', 'Clothe', 'Shoe', 'Height'], default: 'N/A' }, quantity: Number }],
   gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   trippeeGearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
-  pcard: [{participants: Number, 
+  pcard: [{participants: Number,
           totalCost: Number,
-          reason: [{info: [{  
-                    expenseDetails: String, 
-                    unitCost: Number, 
+          reason: [{info: [{
+                    expenseDetails: String,
+                    unitCost: Number,
                     totalCost: Number,
                         }]
-                }],   
+                }],
             }],
   pcardStatus: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
   pcardAssigned: {type: Number},

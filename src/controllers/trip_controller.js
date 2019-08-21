@@ -1,3 +1,4 @@
+/* eslint-disable */
 import Trip from '../models/trip_model';
 import User from '../models/user_model';
 import Club from '../models/club_model';
@@ -28,7 +29,7 @@ export const createTrip = (req, res) => {
   }
   if (req.body.trippeeGear.length > 0) {
     trip.trippeeGearStatus = 'pending';
-  }  
+  }
   if (req.body.pcard!==undefined && req.body.pcard.length > 0) {
     trip.pcardStatus = 'pending';
   }
@@ -383,7 +384,7 @@ export const respondToPCardRequest = (req, res) => {
   Trip.findById(req.body.id)
     .then((trip) => {
       trip.pcardStatus = req.body.pcardStatus;
-      trip.pcardAssigned = req.body.pcardAssigned; 
+      trip.pcardAssigned = req.body.pcardAssigned;
       req.params.id = req.body.id;
       trip.save();
     }).catch((error) => {
