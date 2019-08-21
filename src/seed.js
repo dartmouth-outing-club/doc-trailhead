@@ -43,12 +43,21 @@ const fakeUsers = [
   },
 {
   casID: 'Emma P. Rafkin@DARTMOUTH.EDU',
-  email: 'Emma.P.Rafkin.21@dartmouth.edu',
+  email: '',
   password: 'test',
-  name: 'Emma Rafkin',
+  name: 'Emma',
   role: 'OPO',
   leader_for: [],
   dash_number:'1111',
+},
+{
+  casID: 'Chikezie Onungwa@DARTMOUTH.EDU',
+  email: '',
+  password: 'test',
+  name: 'Prosper!',
+  role: 'Leader',
+  leader_for: [],
+  dash_number:'2222',
 }
 
 ];
