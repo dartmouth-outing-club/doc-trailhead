@@ -20,6 +20,7 @@ export const signin = (req, res, next) => {
         return res.redirect('/');
     }
     User.find({'casID': user}).populate('leader_for').then((user1) => {
+      console.log(user1);
       if(user1.length === 0){
         const newUser = new User();
         newUser.casID = user;
