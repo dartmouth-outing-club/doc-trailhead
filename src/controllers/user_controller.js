@@ -4,6 +4,8 @@ import User from '../models/user_model';
 import Trip from '../models/trip_model';
 import passport from '../services/passport';
 
+import VehicleRequest from '../models/vehicle_request_model';
+
 dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
@@ -87,39 +89,26 @@ export const roleAuthorization = (roles) => {
 
 export const myTrips = (req, res) => {
   const id = req.user._id;
-  Trip.find({ $or: [{ members: id }, { leaders: id }] }).populate('club')
+  Trip.find({ $or: [{ 'members.user': id }, { 'pending.user': id }, { leaders: id }] }).populate('club')
     .then((trips) => { // this should see if name is in members
-      res.json(trips);
+      VehicleRequest.find({ requester: id })
+        .then((vehicleRequests) => {
+          res.json({ trips, vehicleRequests });
+        })
     })
     .catch((error) => {
       res.status(500).send(error.message);
     });
 };
 
-export const isOnTrip = (req, res) => {
-  const { id } = req.params;
-
-  Trip.findById(id) // this should see if name is in members
-    .then((trip) => {
-      const isInArray = trip.members.some((member) => {
-        return member.user.equals(req.user._id);
-      });
-      if (isInArray) {
-        res.json({ isOnTrip: true });
-      } else {
-        res.json({ isOnTrip: false });
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).send(error.message);
-    })
-};
-
 export const getUser = (req, res) => {
   User.findById(req.user.id).populate('leader_for').then((user) => {
     res.json(user);
   });
+};
+
+const isStringEmpty = (string) => {
+  return string.length === 0;
 };
 
 export const updateUser = (req, res, next) => {
@@ -148,12 +137,25 @@ export const updateUser = (req, res, next) => {
 
         user.email = req.body.email;
         user.name = req.body.name;
-        user.dash_number = req.body.dash_number;
-        user.allergies_dietary_restrictions = req.body.allergies_dietary_restrictions;
-        user.medical_conditions = req.body.medical_conditions;
-        user.clothe_size = req.body.clothe_size;
-        user.shoe_size = req.body.shoe_size;
-        user.height = req.body.height;
+        const { dash_number, allergies_dietary_restrictions, medical_conditions, clothe_size, shoe_size, height } = req.body;
+        if (!isStringEmpty(dash_number)) {
+          user.dash_number = dash_number;
+        }
+        if (!isStringEmpty(allergies_dietary_restrictions)) {
+          user.allergies_dietary_restrictions = allergies_dietary_restrictions;
+        }
+        if (!isStringEmpty(medical_conditions)) {
+          user.medical_conditions = medical_conditions;
+        }
+        if (!isStringEmpty(clothe_size)) {
+          user.clothe_size = clothe_size;
+        }
+        if (!isStringEmpty(shoe_size)) {
+          user.shoe_size = shoe_size;
+        }
+        if (!isStringEmpty(height)) {
+          user.height = height;
+        }
 
         // Determine if approval is required. Approval is not required if user drops club. 
         if (req.body.leader_for.length > user.leader_for.length) {

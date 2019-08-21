@@ -5,6 +5,7 @@ import path from 'path';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import apiRouter from './router';
+import Assignment from './models/assignment_model';
 
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
 mongoose.set('useCreateIndex', true);
@@ -12,6 +13,8 @@ mongoose.set('useCreateIndex', true);
 mongoose.connect(mongoURI, { useNewUrlParser: true });
 // set mongoose promises to es6 default
 mongoose.Promise = global.Promise;
+
+mongoose.model('Assignment');
 
 // initialize
 const app = express();

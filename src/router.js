@@ -5,7 +5,10 @@ import * as LeaderApprovals from './controllers/leader_approval_controller';
 import * as CertApprovals from './controllers/cert_approval_controller';
 import sendEmailToTrip from './controllers/email_controller';
 import * as Clubs from './controllers/club_controller';
-import { requireAuth, requireSignin, requireCAS } from './services/passport';
+
+import * as VehicleRequests from './controllers/vehicle_request_controller';
+import * as Vehicles from './controllers/vehicle_controller';
+import { requireAuth, requireSignin } from './services/passport';
 
 
 const router = Router();
@@ -40,7 +43,6 @@ router.route('/user')
   .put(requireAuth, Users.updateUser, LeaderApprovals.addLeaderRequest, CertApprovals.addCertRequest);
 
 router.get('/myTrips', requireAuth, Users.myTrips);
-router.get('/isOnTrip/:id', requireAuth, Users.isOnTrip);
 router.delete('/leaveTrip/:id', requireAuth, Trips.leaveTrip);
 router.get('/userTrips', requireAuth, Users.userTrips);
 
@@ -60,7 +62,7 @@ router.route('/certapprovals')
 
 router.route('/opotrips')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getOPOTrips)
-  
+
 router.route('/gearrequests')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getGearRequests)
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToGearRequest);
@@ -72,5 +74,20 @@ router.route('/gearrequests')
 router.route('/trippeegearrequests')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrippeeGearRequests)
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToTrippeeGearRequest);
+
+router.route('/vehiclerequest/:id')
+  .get(requireAuth, VehicleRequests.getVehicleRequest)
+  .put(requireAuth, VehicleRequests.updateVehicleRequest)
+
+router.route('/vehicleRequests')
+  .post(requireAuth, VehicleRequests.makeVehicleRequest)
+  .get(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.getVehicleRequests)
+
+router.route('/vehicles')
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Vehicles.getVehicles)
+
+router.route('/opoVehicleRequest/:id')
+  .put(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.respondToVehicleRequest)
+
 
 export default router;
