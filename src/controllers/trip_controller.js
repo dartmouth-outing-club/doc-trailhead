@@ -20,12 +20,17 @@ export const createTrip = (req, res) => {
   trip.co_leader_access = req.body.co_leader_access;
   trip.OPOGearRequests = req.body.gearRequests;
   trip.trippeeGear = req.body.trippeeGear;
+  trip.pcard = req.body.pcard;
+
 
   if (req.body.gearRequests.length > 0) {
     trip.gearStatus = 'pending';
   }
   if (req.body.trippeeGear.length > 0) {
     trip.trippeeGearStatus = 'pending';
+  }  
+  if (req.body.pcard.length > 0) {
+    trip.pcardStatus = 'pending';
   }
   trip.members = [];
   trip.leaders = [];
@@ -263,10 +268,11 @@ export const deleteTrip = (req, res) => {
 };
 
 export const updateTrip = (req, res) => {
+  console.log(req);
   Trip.findById(req.params.id, (err, trip) => {
     if (err) {
       res.json({ error: err });
-    } else if (trip.leaders.indexOf(req.user._id) !== -1) {
+    } else if (trip.leaders.indexOf(req.user._id) !== -1 || req.user.role === "OPO") {
       trip.startDate = req.body.startDate;
       trip.endDate = req.body.endDate;
       trip.startTime = req.body.startTime;
@@ -280,16 +286,21 @@ export const updateTrip = (req, res) => {
       trip.cost = req.body.cost;
       trip.experienceNeeded = req.body.experienceNeeded;
       trip.OPOGearRequests = req.body.gearRequests;
+      trip.pcard = req.body.pcard;
+      trip.pcardAssigned = req.body.pcardAssigned;
       if (req.body.newRequest) {
         trip.gearStatus = 'pending';
+        trip.pcardStatus = 'pending';
+      }else{
+        trip.gearStatus = req.body.gearStatus;
+        trip.pcardStatus = req.body.pcardStatus;
       }
-
       trip.save()
         .then(() => {
           getTrip(req, res);
         });
     } else {
-      res.status(422).send('You must be a leader on the trip');
+      res.status(422).send('You must be a leader on the trip or OPO');
     }
   });
 };
@@ -364,6 +375,17 @@ export const respondToTrippeeGearRequest = (req, res) => {
     .then((trip) => {
       trip.trippeeGearStatus = req.body.status;
       trip.save().then(getTrippeeGearRequests(req, res));
+    }).catch((error) => {
+      res.status(500).send(error);
+    });
+};
+export const respondToPCardRequest = (req, res) => {
+  Trip.findById(req.body.id)
+    .then((trip) => {
+      trip.pcardStatus = req.body.pcardStatus;
+      trip.pcardAssigned = req.body.pcardAssigned; 
+      req.params.id = req.body.id;
+      trip.save();
     }).catch((error) => {
       res.status(500).send(error);
     });

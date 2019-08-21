@@ -51,7 +51,28 @@ const clubs = [
     name: 'Ledyard',
   },
   {
-    name: 'Climbing',
+    name: 'Cabin and Trail',
+  },
+  {
+    name: 'Bait and Bullet',
+  },
+  {
+    name: 'Women in the Wilderness',
+  },
+  {
+    name: 'Woodsmen',
+  },
+  {
+    name: 'Surf Club',
+  },
+  {
+    name: 'Mountain Biking',
+  },
+  {
+    name: 'Winter Sports',
+  },
+  {
+    name: 'Other',
   },
 ];
 

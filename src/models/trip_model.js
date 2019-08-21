@@ -29,7 +29,23 @@ const TripSchema = new Schema({
   trippeeGear: [{ gear: String, size_type: {type: String, enum: ['N/A', 'Clothe', 'Shoe', 'Height'], default: 'N/A' }, quantity: Number }],
   gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   trippeeGearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
-  pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
+  pcard: [
+    {
+      numPeople: Number,
+      snacks: Number,
+      breakfast: Number,
+      lunch: Number,
+      dinner: Number,
+      otherCosts: [
+        {
+          title: String,
+          cost: Number,
+        }
+      ]
+    }
+  ], //will actually only have one entry
+  pcardStatus: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
+  pcardAssigned: Number,
   vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
 });
 
