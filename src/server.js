@@ -8,6 +8,7 @@ import apiRouter from './router';
 
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
 mongoose.set('useCreateIndex', true);
+
 mongoose.connect(mongoURI, { useNewUrlParser: true });
 // set mongoose promises to es6 default
 mongoose.Promise = global.Promise;
@@ -17,7 +18,10 @@ const app = express();
 
 // enable/disable cross origin resource sharing if necessary
 app.use(cors());
-
+app.use(function(req, res, next) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    next();
+  });
 // enable/disable http request logging
 app.use(morgan('dev'));
 

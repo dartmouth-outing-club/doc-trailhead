@@ -2,6 +2,10 @@ import passport from 'passport';
 import LocalStrategy from 'passport-local';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import User from '../models/user_model';
+import cas from 'passport-cas';
+import dotenv from 'dotenv';
+
+dotenv.config({ silent: true });
 
 const localOptions = { usernameField: 'email' };
 const jwtOptions = {
@@ -41,9 +45,25 @@ const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
   });
 });
 
+//dartmouth web auth
+
+const casOptions = {
+  ssoBaseURL: 'https://login.dartmouth.edu/cas',
+  //serverBaseURL: "http://dalidocplanner.surge.sh/cas"
+  serverBaseURL: 'http://localhost:9090/api/signin',
+};
+const casLogin = new cas.Strategy(casOptions, (user, done) => {
+  return done(null, user);
+});
+
+
+// Tell passport to use this strategy
+passport.use(casLogin);
 passport.use(jwtLogin);
 passport.use(localLogin);
 
 
 export const requireAuth = passport.authenticate('jwt', { session: false });
 export const requireSignin = passport.authenticate('local', { session: false });
+export const requireCAS = passport.authenticate('cas', {session: false});
+export default passport;

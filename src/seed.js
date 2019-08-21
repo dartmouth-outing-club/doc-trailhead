@@ -35,6 +35,15 @@ const fakeUsers = [
     role: 'Leader',
     leader_for: [],
     dash_number: '12345',
+  },
+  {
+    casID: 'Emma P. Rafkin@DARTMOUTH.EDU',
+    email: 'Emma.P.Rafkin.21@dartmouth.edu',
+    password: 'test',
+    name: 'Emma Rafkin',
+    role: 'OPO',
+    leader_for: [],
+    dash_number:'1111',
   }
 ]
 
@@ -88,6 +97,7 @@ function seedDb() {
                         .then((clubs) => {
                           fakeUsers.map((fakeUser) => {
                             const newUser = new Users();
+                            newUser.casID = fakeUser.casID
                             newUser.email = fakeUser.email;
                             newUser.password = fakeUser.password;
                             newUser.name = fakeUser.name;

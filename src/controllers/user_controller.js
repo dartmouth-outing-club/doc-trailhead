@@ -2,42 +2,89 @@ import jwt from 'jwt-simple';
 import dotenv from 'dotenv';
 import User from '../models/user_model';
 import Trip from '../models/trip_model';
+import passport from '../services/passport';
 
 dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
-  User.findById(req.user.id).populate('leader_for').then((user) => {
-    res.send({ token: tokenForUser(req.user), user: user });
-  });
+
+  passport.authenticate('cas', (err, user, info)=>{
+    console.log("user: "+user);
+    if(err){return err;}
+    if(!user){
+        console.log("rejected");
+        res.status(500).send("rejected");
+        return res.redirect('/');
+    }
+    User.find({'casID': user}).populate('leader_for').then((user1) => {
+        console.log("name: " + user1.name);
+        console.log(tokenForUser(user1));
+         res.redirect("http://localhost:8080/authed?" + tokenForUser(user1) + "&" + user1.id); 
+     }).catch((error)=>{
+       res.status(500).send(error.message);
+   });
+
+  })(req, res, next);;
+  
 };
 
+//how to route to signup instead?
 export const signup = (req, res, next) => {
-  const { email } = req.body;
-  const { password } = req.body;
-  const { name } = req.body;
-  if (!email || !password || !name) {
-    res.status(422).send('You must provide a name, email and password');
-  }
-  User.findOne({ email }, (err, user) => {
-    if (user) {
-      res.status(422).send('User already exists');
-    } else {
-      const newUser = new User();
-      newUser.email = email;
-      newUser.password = password;
-      newUser.name = name;
-      newUser.role = 'Trippee';
-      newUser.leader_for = [];
-      newUser.save()
-        .then((result) => {
-          res.send({ token: tokenForUser(result), user: cleanUser(result) });
-        })
-        .catch((error) => {
-          res.status(500).send(error.message);
-        });
+
+    const { email } = req.body;
+    const { password } = req.body;
+    const { name } = req.body;
+    if (!email || !password || !name) {
+      res.status(422).send('You must provide a name, email and password');
     }
-  });
-};          
+    User.findOne({ email }, (err, user1) => {
+      if (user) {
+        res.status(422).send('User already exists');
+      } else {
+        const newUser = new User();
+        newUser.casID = user1;
+        newUser.email = email;
+        newUser.password = password;
+        newUser.name = name;
+        newUser.role = 'Trippee';
+        newUser.leader_for = [];
+        newUser.save()
+          .then((result) => {
+            res.send({ token: tokenForUser(result), user: cleanUser(result) });
+          })
+          .catch((error) => {
+            res.status(500).send(error.message);
+          });
+      }
+    });
+};  
+// export const signup = (req, res, next) => {
+//   const { email } = req.body;
+//   const { password } = req.body;
+//   const { name } = req.body;
+//   if (!email || !password || !name) {
+//     res.status(422).send('You must provide a name, email and password');
+//   }
+//   User.findOne({ email }, (err, user) => {
+//     if (user) {
+//       res.status(422).send('User already exists');
+//     } else {
+//       const newUser = new User();
+//       newUser.email = email;
+//       newUser.password = password;
+//       newUser.name = name;
+//       newUser.role = 'Trippee';
+//       newUser.leader_for = [];
+//       newUser.save()
+//         .then((result) => {
+//           res.send({ token: tokenForUser(result), user: cleanUser(result) });
+//         })
+//         .catch((error) => {
+//           res.status(500).send(error.message);
+//         });
+//     }
+//   });
+// };          
 
 export const roleAuthorization = (roles) => {
   return function authorize(req, res, next) {
@@ -88,7 +135,9 @@ export const isOnTrip = (req, res) => {
 };
 
 export const getUser = (req, res) => {
+  console.log("this gets called");
   User.findById(req.user.id).populate('leader_for').then((user) => {
+    console.log(user);
     res.json(user);
   });
 };
