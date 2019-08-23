@@ -56,7 +56,7 @@ const fakeUsers = [
   },
   {
     casID: 'Chikezie Onungwa@DARTMOUTH.EDU',
-    email: 'chikezie.onungwa.21@dartmnouth.edu',
+    email: 'chikezie.onungwa.21@dartmouth.edu',
     password: 'test',
     name: 'Prosper!',
     role: 'Leader',
@@ -182,6 +182,7 @@ function seedDb() {
                                     .then((clubs) => {
                                       fakeUsers.map((fakeUser) => {
                                         const newUser = new Users();
+                                        newUser.casID = fakeUser.casID;
                                         newUser.email = fakeUser.email;
                                         newUser.password = fakeUser.password;
                                         newUser.name = fakeUser.name;
