@@ -268,7 +268,6 @@ export const deleteTrip = (req, res) => {
 };
 
 export const updateTrip = (req, res) => {
-  console.log(req);
   Trip.findById(req.params.id, (err, trip) => {
     if (err) {
       res.json({ error: err });

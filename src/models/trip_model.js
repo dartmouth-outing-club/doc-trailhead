@@ -44,7 +44,7 @@ const TripSchema = new Schema({
       ]
     }
   ], //will actually only have one entry
-  pcardStatus: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
+  pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   pcardAssigned: Number,
   vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
 });
