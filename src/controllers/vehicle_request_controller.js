@@ -1,7 +1,6 @@
 import VehicleRequest from '../models/vehicle_request_model';
 import Vehicle from '../models/vehicle_model';
 import Assignment from '../models/assignment_model';
-import { isValid } from 'ipaddr.js';
 
 export const makeVehicleRequest = (req, res) => {
   const vehicleRequest = new VehicleRequest();
@@ -63,8 +62,7 @@ export const updateVehicleRequest = (req, res) => {
         vehicleRequest.requestedVehicles = req.body.requestedVehicles;
         vehicleRequest.save()
           .then((savedRequest) => {
-            res.json(savedRequest);
-            return;
+            return res.json(savedRequest);
           })
           .catch((error) => {
             res.status(500).send(error);
@@ -74,18 +72,14 @@ export const updateVehicleRequest = (req, res) => {
     });
 }
 
-const createDateObject = (date, time) => {
-  const dateObject = new Date(date);
-  const splitTime = time.split(':');
-  dateObject.setHours(splitTime[0], splitTime[1]);
-  return dateObject;
-}
-
 export const respondToVehicleRequest = async (req, res) => {
   try {
-    const vehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip');
+    const vehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').exec();
     const proposedAssignments = req.body.assignments;
-    const processedAssignments = await Promise.all(proposedAssignments.map(processAssignment));
+    // const processedAssignments = await getArrayofProcessedAssignments(proposedAssignments, vehicleRequest);
+    const processedAssignments = await Promise.all(proposedAssignments.map((assignment) => {
+      return processAssignment(assignment, vehicleRequest);
+    }));
     const validAssignments = processedAssignments.filter((assignment) => {
       return !assignment.error;
     });
@@ -93,16 +87,56 @@ export const respondToVehicleRequest = async (req, res) => {
       return assignment.error;
     });
     vehicleRequest.assignments = validAssignments;
+    vehicleRequest.status = 'approved';
     const savedVehicleRequest = await vehicleRequest.save();
-    const response = invalidAssignments.length === 0 ? savedVehicleRequest : { savedVehicleRequest, invalidAssignments };
-    res.json(response);
+    const response = invalidAssignments.length === 0 ? { savedVehicleRequest } : { savedVehicleRequest, invalidAssignments };
+    return res.json(response);
   } catch (error) {
     console.log(error);
-    res.status(500).send(error);
+    return res.status(500).send(error);
   }
 }
 
-const processAssignment = async (assignment) => {
+const createDateObject = (date, time) => {
+  const dateObject = new Date(date);
+  const splitTime = time.split(':');
+  dateObject.setHours(splitTime[0], splitTime[1]);
+  return dateObject;
+}
+
+const isConflicting = (booking, assignment) => {
+  const existingPickupDateAndTime = new Date(booking.assigned_pickupDate);
+  const existingPickupSplitTime = booking.assigned_pickupTime.split(':');
+  existingPickupDateAndTime.setHours(existingPickupSplitTime[0], existingPickupSplitTime[1]);
+
+  const existingReturnDateAndTime = new Date(booking.assigned_returnDate);
+  const existingReturnSplitTime = booking.assigned_returnTime.split(':');
+  existingReturnDateAndTime.setHours(existingReturnSplitTime[0], existingReturnSplitTime[1]);
+
+  const proposedPickupDateAndTime = new Date(assignment.pickupDate);
+  const proposedPickupSplitTime = assignment.pickupTime.split(':');
+  proposedPickupDateAndTime.setHours(proposedPickupSplitTime[0], proposedPickupSplitTime[1]);
+
+  const proposedReturnDateAndTime = new Date(assignment.returnDate);
+  const proposedReturnSplitTime = assignment.returnTime.split(':');
+  proposedReturnDateAndTime.setHours(proposedReturnSplitTime[0], proposedReturnSplitTime[1]);
+
+  // const existingPickupDateAndTime = createDateObject(booking.assigned_pickupDate, booking.assigned_pickupTime);
+  // const existingReturnDateAndTime = createDateObject(booking.assigned_returnDate, booking.assigned_returnTime);
+
+  // const proposedPickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+  // const proposedReturnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+
+  return (proposedReturnDateAndTime >= existingPickupDateAndTime) || (proposedPickupDateAndTime <= existingReturnDateAndTime);
+}
+
+// const getArrayofProcessedAssignments = async (proposedAssignments, vehicleRequest) => {
+//   return await Promise.all(proposedAssignments.map((assignment) => {
+//     return processAssignment(assignment, vehicleRequest);
+//   }));
+// }
+
+const processAssignment = async (assignment, vehicleRequest) => {
   try {
     const pickupDate = new Date(assignment.pickupDate);
     const pickupTime = assignment.pickupTime.split(':');
@@ -116,18 +150,11 @@ const processAssignment = async (assignment) => {
         assignment,
       };
     }
-    const vehicle = await Vehicle.find({ name: assignment.assignedVehicle })
+    const vehicleInArray = await Vehicle.find({ name: assignment.assignedVehicle }).populate('bookings').exec();
+    const vehicle = vehicleInArray[0];
 
-    const conflictingEvents = vehicle.bookings.filter((booking) => {
-      const existingPickupDateAndTime = createDateObject(booking.assigned_pickupDate, booking.assigned_pickupTime);
-
-      const existingReturnDateAndTime = createDateObject(booking.assigned_returnDate, booking.assigned_returnTime);
-
-      const proposedPickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
-
-      const proposedReturnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
-
-      return (proposedReturnDateAndTime >= existingPickupDateAndTime) || (proposedPickupDateAndTime <= existingReturnDateAndTime);
+    const conflictingEvents = vehicle.bookings.filter(booking => {
+      return isConflicting(booking, assignment);
     });
 
     if (conflictingEvents.length > 0) {
@@ -137,19 +164,19 @@ const processAssignment = async (assignment) => {
         assignment,
       };
     } else {
-      const assignment = new Assignment();
-      assignment.request = vehicleRequest;
-      assignment.requester = vehicleRequest.requester;
-      assignment.responseIndex = assignment.responseIndex;
-      assignment.assigned_pickupDate = assignment.pickupDate;
-      assignment.assigned_pickupTime = assignment.pickupTime;
-      assignment.assigned_returnDate = assignment.returnDate;
-      assignment.assigned_returnTime = assignment.returnTime;
-      assignment.assigned_key = assignment.assignedKey;
-      assignment.assigned_vehicle = vehicle;
-      const savedAssignment = await assignment.save();
+      const newAssignment = new Assignment();
+      newAssignment.request = vehicleRequest;
+      newAssignment.requester = vehicleRequest.requester;
+      newAssignment.responseIndex = assignment.responseIndex;
+      newAssignment.assigned_pickupDate = assignment.pickupDate;
+      newAssignment.assigned_pickupTime = assignment.pickupTime;
+      newAssignment.assigned_returnDate = assignment.returnDate;
+      newAssignment.assigned_returnTime = assignment.returnTime;
+      newAssignment.assigned_key = assignment.assignedKey;
+      newAssignment.assigned_vehicle = vehicle;
+      const savedAssignment = await newAssignment.save();
       vehicle.bookings.push(savedAssignment);
-      const savedVehicle = await vehicle.save();
+      await vehicle.save();
       return savedAssignment;
     }
   } catch (error) {
