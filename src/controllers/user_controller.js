@@ -11,7 +11,6 @@ dotenv.config({ silent: true });
 export const signin = (req, res, next) => {
 
   passport.authenticate('cas', (err, user, info)=>{
-    console.log(user);
     console.log("user: "+user);
     if(err){return err;}
     if(!user){
@@ -21,7 +20,6 @@ export const signin = (req, res, next) => {
     }
 
     User.find({'casID': user}).populate('leader_for').then((user1) => {
-      console.log("found: "+ user1);
       if(user1.length === 0){
         const newUser = new User();
         newUser.casID = user;
