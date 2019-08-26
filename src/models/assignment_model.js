@@ -20,27 +20,27 @@ AssignmentSchema.set('toJSON', {
 
 AssignmentSchema.pre('deleteOne', async function () {
   print('here');
-  await deleteAssignmentFromVehicle();
-  await deleteAssignmentFromVehicleRequest();
+  await deleteAssignmentFromVehicle(this._id);
+  await deleteAssignmentFromVehicleRequest(this._id);
   // next();
 });
 
 AssignmentSchema.pre('deleteMany', async function () {
-  await deleteAssignmentFromVehicle();
-  await deleteAssignmentFromVehicleRequest();
+  await deleteAssignmentFromVehicle(this._id);
+  await deleteAssignmentFromVehicleRequest(this._id);
   // next();
 });
 
-const deleteAssignmentFromVehicle = () => {
+const deleteAssignmentFromVehicle = (id) => {
   return new Promise(async (resolve, reject) => {
-    await this.model('Vehicle').update({}, { $pull: { bookings: this._id } });
+    await this.model('Vehicle').update({}, { $pull: { bookings: id } });
     resolve();
   });
 }
 
-const deleteAssignmentFromVehicleRequest = () => {
+const deleteAssignmentFromVehicleRequest = (id) => {
   return new Promise(async (resolve, reject) => {
-    await this.model('VehicleRequest').update({}, { $pull: { assignments: this._id } });
+    await this.model('VehicleRequest').update({}, { $pull: { assignments: id } });
     resolve();
   });
 }
