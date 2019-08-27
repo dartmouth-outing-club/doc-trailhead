@@ -1,7 +1,6 @@
 import VehicleRequest from '../models/vehicle_request_model';
 import Vehicle from '../models/vehicle_model';
 import Assignment from '../models/assignment_model';
-import async from 'async';
 
 export const makeVehicleRequest = (req, res) => {
   const vehicleRequest = new VehicleRequest();
