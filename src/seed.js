@@ -46,7 +46,7 @@ const fakeUsers = [
     email: 'Emma.P.Rafkin.21@darmouth.edu',
     password: 'test',
     name: 'Emma',
-    role: 'OPO',
+    role: 'Leader',
     leader_for: [],
     dash_number:'1111',
     has_pending_leader_change: false,
@@ -97,6 +97,36 @@ const clubs = [
   },
   {
     name: 'Winter Sports',
+  },
+  {
+    name: 'Alpine Club Ski Team',
+  },
+  {
+    name: 'Archery Club',
+  },
+  {
+    name: 'Biathalon Club',
+  },
+  {
+    name: 'Climbing Team',
+  },
+  {
+    name: 'Environmental Stewardship',
+  },
+  {
+    name: 'Farm Club',
+  },
+  {
+    name: 'Graduate Outing Club',
+  },
+  {
+    name: 'Nordic Club Ski Team',
+  },
+  {
+    name: 'People of Color Outdoors',
+  },
+  {
+    name: 'Snowboard Club',
   },
   {
     name: 'Other',
