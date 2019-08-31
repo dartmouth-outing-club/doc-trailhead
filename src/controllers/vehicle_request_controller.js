@@ -28,7 +28,13 @@ export const getVehicleRequest = (req, res) => {
       path: 'leader_for',
       model: 'Club',
     },
-  })
+  }).populate({
+    path: 'assignments',
+    populate: {
+      path: 'assigned_vehicle',
+      model: 'Vehicle',
+    },
+  }).exec()
     .then((vehicleRequest) => {
       res.json(vehicleRequest);
     })
@@ -93,6 +99,12 @@ export const respondToVehicleRequest = async (req, res) => {
         path: 'leader_for',
         model: 'Club',
       },
+    }).populate({
+      path: 'assignments',
+      populate: {
+        path: 'assigned_vehicle',
+        model: 'Vehicle',
+      },
     }).exec();
     const output = (invalidAssignments.length === 0) ? { updatedVehicleRequest } : { updatedVehicleRequest, invalidAssignments };
     return res.json(output);
@@ -124,8 +136,23 @@ const processAssignment = async (vehicleRequest, assignment) => {
     }
     const vehicleInArray = await Vehicle.find({ name: assignment.assignedVehicle }).populate('bookings').exec();
     const vehicle = vehicleInArray[0];
+    let selectedVehicleBookings;
+    let existingAssignment;
 
-    const conflictingEvents = vehicle.bookings.filter(booking => {
+    if (assignment.existingAssignment) {
+      existingAssignment = await Assignment.findById(assignment.id).populate('assigned_vehicle').exec();
+      if (existingAssignment.assigned_vehicle.name === assignment.assignedVehicle) { // vehicle was not changed
+        selectedVehicleBookings = vehicle.bookings.filter((booking) => { // remove modified assignment to avoid conflicting with self when checking for validity
+          return booking.id !== assignment.id;
+        });
+      } else { // vehicle was changed
+        selectedVehicleBookings = vehicle.bookings; // no need to remove because assignment does not exist in new assigned vehicle
+      }
+    } else { // is new response
+      selectedVehicleBookings = vehicle.bookings;
+    }
+  
+    const conflictingEvents = selectedVehicleBookings.filter(booking => {
       return isConflicting(booking, assignment);
     });
 
@@ -136,20 +163,38 @@ const processAssignment = async (vehicleRequest, assignment) => {
         assignment,
       };
     } else {
-      const newAssignment = new Assignment();
-      newAssignment.request = vehicleRequest;
-      newAssignment.requester = vehicleRequest.requester;
-      newAssignment.responseIndex = assignment.responseIndex;
-      newAssignment.assigned_pickupDate = assignment.pickupDate;
-      newAssignment.assigned_pickupTime = assignment.pickupTime;
-      newAssignment.assigned_returnDate = assignment.returnDate;
-      newAssignment.assigned_returnTime = assignment.returnTime;
-      newAssignment.assigned_key = assignment.assignedKey;
-      newAssignment.assigned_vehicle = vehicle;
-      const savedAssignment = await newAssignment.save();
-      vehicle.bookings.push(savedAssignment);
-      await vehicle.save();
-      return savedAssignment;
+      if (assignment.existingAssignment) {
+        existingAssignment.assigned_pickupDate = assignment.pickupDate;
+        existingAssignment.assigned_pickupTime = assignment.pickupTime;
+        existingAssignment.assigned_returnDate = assignment.returnDate;
+        existingAssignment.assigned_returnTime = assignment.returnTime;
+        existingAssignment.assigned_key = assignment.assignedKey;
+        existingAssignment.pickedUp = assignment.pickedUp;
+        existingAssignment.returned = assignment.returned
+        existingAssignment.assigned_vehicle = vehicle;
+        const updatedAssignment = await existingAssignment.save();
+        if (existingAssignment.assigned_vehicle.name !== assignment.assignedVehicle) {
+          vehicle.bookings.push(updatedAssignment);
+          await vehicle.save();
+          await Vehicle.updateOne({ _id: existingAssignment.assigned_vehicle._id }, { $pull: { bookings:  existingAssignment._id} }); // remove assignment from previously assigned vehicle          
+        }
+        return updatedAssignment;
+      } else {
+        const newAssignment = new Assignment();
+        newAssignment.request = vehicleRequest;
+        newAssignment.requester = vehicleRequest.requester;
+        newAssignment.responseIndex = assignment.responseIndex;
+        newAssignment.assigned_pickupDate = assignment.pickupDate;
+        newAssignment.assigned_pickupTime = assignment.pickupTime;
+        newAssignment.assigned_returnDate = assignment.returnDate;
+        newAssignment.assigned_returnTime = assignment.returnTime;
+        newAssignment.assigned_key = assignment.assignedKey;
+        newAssignment.assigned_vehicle = vehicle;
+        const savedAssignment = await newAssignment.save();
+        vehicle.bookings.push(savedAssignment);
+        await vehicle.save();
+        return savedAssignment;
+      }   
     }
   } catch (error) {
     console.log(error);

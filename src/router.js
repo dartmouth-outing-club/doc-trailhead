@@ -66,7 +66,7 @@ router.route('/gearrequests')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getGearRequests)
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToGearRequest);
 
-  router.route('/pcardrequests')
+router.route('/pcardrequests')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrip)
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToPCardRequest);
 
@@ -87,6 +87,5 @@ router.route('/vehicles')
 
 router.route('/opoVehicleRequest/:id')
   .put(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.respondToVehicleRequest)
-
 
 export default router;

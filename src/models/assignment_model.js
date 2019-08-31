@@ -1,10 +1,12 @@
 import mongoose, { Schema } from 'mongoose';
+import Vehicle from './vehicle_model';
+import VehicleRequest from './vehicle_request_model';
 
 const AssignmentSchema = new Schema({
   request: { type: Schema.Types.ObjectId, ref: 'VehicleRequest' },
   requester: { type: Schema.Types.ObjectId, ref: 'User' },
   responseIndex: Number,
-  assigned_pickUpDate: Date,
+  assigned_pickupDate: Date,
   assigned_pickupTime: String,
   assigned_returnDate: Date,
   assigned_returnTime: String,
@@ -19,28 +21,25 @@ AssignmentSchema.set('toJSON', {
 });
 
 AssignmentSchema.pre('deleteOne', async function () {
-  print('here');
-  await deleteAssignmentFromVehicle(this._id);
-  await deleteAssignmentFromVehicleRequest(this._id);
-  // next();
+  await deleteAssignmentFromVehicle(this);
+  await deleteAssignmentFromVehicleRequest(this);
 });
 
 AssignmentSchema.pre('deleteMany', async function () {
-  await deleteAssignmentFromVehicle(this._id);
-  await deleteAssignmentFromVehicleRequest(this._id);
-  // next();
+  await deleteAssignmentFromVehicle(this);
+  await deleteAssignmentFromVehicleRequest(this);
 });
 
-const deleteAssignmentFromVehicle = (id) => {
+const deleteAssignmentFromVehicle = (thisObj) => {
   return new Promise(async (resolve, reject) => {
-    await this.model('Vehicle').update({}, { $pull: { bookings: id } });
+    await Vehicle.updateOne({ _id: thisObj.assigned_vehicle }, { $pull: { bookings: thisObj._id } });
     resolve();
   });
 }
 
-const deleteAssignmentFromVehicleRequest = (id) => {
+const deleteAssignmentFromVehicleRequest = (thisObj) => {
   return new Promise(async (resolve, reject) => {
-    await this.model('VehicleRequest').update({}, { $pull: { assignments: id } });
+    await VehicleRequest.updateOne({ _id: thisObj.request }, { $pull: { assignments: thisObj._id } });
     resolve();
   });
 }
