@@ -2,16 +2,51 @@ import jwt from 'jwt-simple';
 import dotenv from 'dotenv';
 import User from '../models/user_model';
 import Trip from '../models/trip_model';
+import passport from '../services/passport';
+
 import VehicleRequest from '../models/vehicle_request_model';
 
 dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
-  User.findById(req.user.id).populate('leader_for').then((user) => {
-    res.send({ token: tokenForUser(req.user), user: user });
-  });
+
+  passport.authenticate('cas', (err, user, info) => {
+    console.log("user: " + user);
+    if (err) { return err; }
+    if (!user) {
+      console.log("rejected");
+      res.status(500).send("rejected");
+      return res.redirect('/');
+    }
+
+    User.find({ 'casID': user }).populate('leader_for').then((user1) => {
+      if (user1.length === 0) {
+        const newUser = new User();
+        newUser.casID = user;
+        newUser.email = "";
+        newUser.name = "";
+        newUser.role = 'Trippee';
+        newUser.leader_for = [];
+        newUser.save()
+          .then((result) => {
+            res.redirect("http://localhost:8080/authed?" + tokenForUser(result) + "&" + result.id);
+          })
+          .catch((error) => {
+            res.status(500).send(error.message);
+          });
+      } else {
+        res.redirect("http://localhost:8080/authed?" + tokenForUser(user1[0]) + "&" + user1[0].id);
+
+      }
+    }).catch((error) => {
+      res.status(500).send(error.message);
+    });
+
+  })(req, res, next);;
+
 };
 
+//how to route to signup instead?
 export const signup = (req, res, next) => {
   const { email } = req.body;
   const { password } = req.body;
@@ -36,9 +71,29 @@ export const signup = (req, res, next) => {
         .catch((error) => {
           res.status(500).send(error.message);
         });
-    }
-  });
-};
+
+      const { email } = req.body;
+      const { name } = req.body;
+      if (!email || !name) {
+        res.status(422).send('You must provide a name, email and password');
+      }
+      User.findById(req.body.id, (err, user1) => {
+        user1.email = email;
+        user1.name = name;
+        user1.role = 'Trippee';
+        user1.leader_for = [];
+        user1.save()
+          .then((result) => {
+            res.send({ user: cleanUser(result) });
+          })
+          .catch((error) => {
+            res.status(500).send(error.message);
+          });
+      });
+
+    };
+  })
+}
 
 export const roleAuthorization = (roles) => {
   return function authorize(req, res, next) {

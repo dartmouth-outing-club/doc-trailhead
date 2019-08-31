@@ -3,6 +3,7 @@ import * as Trips from './controllers/trip_controller';
 import * as Users from './controllers/user_controller';
 import sendEmailToTrip from './controllers/email_controller';
 import * as Clubs from './controllers/club_controller';
+
 import * as VehicleRequests from './controllers/vehicle_request_controller';
 import * as Vehicles from './controllers/vehicle_controller';
 import { requireAuth, requireSignin } from './services/passport';
@@ -14,7 +15,7 @@ router.get('/', (req, res) => {
   res.json({ message: 'welcome to our doc app!' });
 });
 
-router.post('/signin', requireSignin, Users.signin);
+router.get('/signin', Users.signin);
 router.post('/signup', Users.signup);
 
 router.route('/alltrips')
