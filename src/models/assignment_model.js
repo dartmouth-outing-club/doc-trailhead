@@ -20,6 +20,7 @@ AssignmentSchema.set('toJSON', {
   virtuals: true,
 });
 
+// hooks to ensure referencing assignments are deleted. 
 AssignmentSchema.pre('deleteOne', async function () {
   await deleteAssignmentFromVehicle(this);
   await deleteAssignmentFromVehicleRequest(this);
