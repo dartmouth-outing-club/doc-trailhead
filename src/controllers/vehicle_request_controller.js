@@ -182,14 +182,26 @@ const processAssignment = async (vehicleRequest, assignment) => {
       } else {
         const newAssignment = new Assignment();
         newAssignment.request = vehicleRequest;
+        newAssignment.assigned_vehicle = vehicle;
         newAssignment.requester = vehicleRequest.requester;
-        newAssignment.responseIndex = assignment.responseIndex;
+
         newAssignment.assigned_pickupDate = assignment.pickupDate;
         newAssignment.assigned_pickupTime = assignment.pickupTime;
+        const pickupDate = new Date(assignment.pickupDate);
+        const pickupTime = assignment.pickupTime.split(':');
+        pickupDate.setHours(pickupTime[0], pickupTime[1]);
+        newAssignment.assigned_pickupDateAndTime = pickupDate;
+
         newAssignment.assigned_returnDate = assignment.returnDate;
         newAssignment.assigned_returnTime = assignment.returnTime;
+        const returnDate = new Date(assignment.returnDate);
+        const returnTime = assignment.returnTime.split(':');
+        returnDate.setHours(returnTime[0], returnTime[1]);
+        newAssignment.assigned_returnDateAndTime = returnDate;
+
+        newAssignment.responseIndex = assignment.responseIndex;
         newAssignment.assigned_key = assignment.assignedKey;
-        newAssignment.assigned_vehicle = vehicle;
+
         const savedAssignment = await newAssignment.save();
         vehicle.bookings.push(savedAssignment);
         await vehicle.save();
@@ -225,20 +237,7 @@ export const cancelAssignments = async (req, res) => {
     await Promise.all(toBeDeleted.map(async (id) => {
       const assignment = await Assignment.findById(id);
       await Vehicle.updateOne({ _id: assignment.assigned_vehicle }, { $pull: { bookings: assignment._id } }); // remove from vehicle bookings
-      const vehicleRequest = await VehicleRequest.findById(assignment.request);
-      const indexToRemove = vehicleRequest.assignments.findIndex((element) => {
-        return element == id;
-      });
-      const oldArray = vehicleRequest.assignments;
-      const updatedArray = oldArray.filter((element, index) => {
-        return index !== indexToRemove
-      });
-      vehicleRequest.assignments = updatedArray;
-      if (updatedArray.length === 0) {
-        vehicleRequest.status = 'denied';
-      }
-      await vehicleRequest.save();
-      return id;
+      await VehicleRequest.updateOne({ _id: assignment.request }, { $pull: { assignments: assignment._id } }); // remove from vehicle request assignments
     }));
     await Assignment.deleteMany({ '_id': { '$in': toBeDeleted } });
     const updatedVehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments').populate({
@@ -280,6 +279,16 @@ export const denyVehicleRequest = async (req, res) => {
       },
     }).exec();
     return res.json({ updatedVehicleRequest });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send(error);
+  }
+}
+
+export const getVehicleAssignments = async (req, res) => {
+  try {
+    const assignments = await Assignment.find().populate('request').populate('requester').populate('assigned_vehicle').exec();
+    return res.json(assignments);
   } catch (error) {
     console.log(error);
     return res.status(500).send(error);

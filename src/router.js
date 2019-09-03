@@ -83,12 +83,15 @@ router.route('/vehicleRequests')
   .get(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.getVehicleRequests)
 
 router.route('/vehicles')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Vehicles.getVehicles)
+  .get(requireAuth, Vehicles.getVehicles)
 
 router.route('/opoVehicleRequest/:id')
   .post(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.respondToVehicleRequest)
   .delete(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.cancelAssignments)
   .put(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.denyVehicleRequest)
+
+router.route('/vehicle-assignments')
+  .get(requireAuth, VehicleRequests.getVehicleAssignments)
 
 
 export default router;
