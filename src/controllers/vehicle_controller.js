@@ -16,7 +16,28 @@ export const createVehicle = (req, res) => {
 };
 
 export const getVehicle = (req, res) => {
-  Vehicle.findById(req.params.id).populate('bookings')
+  Vehicle.findById(req.params.id).populate('bookings').populate({
+    path: 'bookings',
+    populate: {
+      path: 'request',
+      model: 'VehicleRequest',
+    }
+  }).populate({
+    path: 'bookings',
+    populate: {
+      path: 'requester',
+      model: 'User',
+    }
+  }).populate({
+    path: 'bookings',
+    populate: {
+      path: 'request',
+      populate: {
+        path: 'associatedTrip',
+        model: 'Trip',
+      }
+    }
+  }).exec()
     .then((vehicle) => {
       res.json(vehicle);
       return;
@@ -28,7 +49,28 @@ export const getVehicle = (req, res) => {
 };
 
 export const getVehicles = (req, res) => {
-  Vehicle.find().populate('bookings')
+  Vehicle.find().populate('bookings').populate({
+    path: 'bookings',
+    populate: {
+      path: 'request',
+      model: 'VehicleRequest',
+    }
+  }).populate({
+    path: 'bookings',
+    populate: {
+      path: 'requester',
+      model: 'User',
+    }
+  }).populate({
+    path: 'bookings',
+    populate: {
+      path: 'request',
+      populate: {
+        path: 'associatedTrip',
+        model: 'Trip',
+      }
+    }
+  }).exec()
     .then((vehicles) => {
       res.json(vehicles);
       return;

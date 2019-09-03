@@ -166,8 +166,14 @@ const processAssignment = async (vehicleRequest, assignment) => {
       if (assignment.existingAssignment) {
         existingAssignment.assigned_pickupDate = assignment.pickupDate;
         existingAssignment.assigned_pickupTime = assignment.pickupTime;
+        const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+        existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
+
         existingAssignment.assigned_returnDate = assignment.returnDate;
         existingAssignment.assigned_returnTime = assignment.returnTime;
+        const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+        existingAssignment.assigned_returnDateAndTime = returnDateAndTime;
+
         existingAssignment.assigned_key = assignment.assignedKey;
         existingAssignment.pickedUp = assignment.pickedUp;
         existingAssignment.returned = assignment.returned
@@ -187,17 +193,13 @@ const processAssignment = async (vehicleRequest, assignment) => {
 
         newAssignment.assigned_pickupDate = assignment.pickupDate;
         newAssignment.assigned_pickupTime = assignment.pickupTime;
-        const pickupDate = new Date(assignment.pickupDate);
-        const pickupTime = assignment.pickupTime.split(':');
-        pickupDate.setHours(pickupTime[0], pickupTime[1]);
-        newAssignment.assigned_pickupDateAndTime = pickupDate;
+        const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+        newAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
 
         newAssignment.assigned_returnDate = assignment.returnDate;
         newAssignment.assigned_returnTime = assignment.returnTime;
-        const returnDate = new Date(assignment.returnDate);
-        const returnTime = assignment.returnTime.split(':');
-        returnDate.setHours(returnTime[0], returnTime[1]);
-        newAssignment.assigned_returnDateAndTime = returnDate;
+        const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+        newAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
         newAssignment.responseIndex = assignment.responseIndex;
         newAssignment.assigned_key = assignment.assignedKey;
@@ -225,10 +227,10 @@ const isConflicting = (booking, assignment) => {
 }
 
 const createDateObject = (date, time) => {
-  const dateObject = new Date(date);
+  // adapted from https://stackoverflow.com/questions/2488313/javascripts-getdate-returns-wrong-date
+  var parts = date.match(/(\d+)/g);
   const splitTime = time.split(':');
-  dateObject.setHours(splitTime[0], splitTime[1]);
-  return dateObject;
+  return new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
 }
 
 export const cancelAssignments = async (req, res) => {
@@ -238,6 +240,11 @@ export const cancelAssignments = async (req, res) => {
       const assignment = await Assignment.findById(id);
       await Vehicle.updateOne({ _id: assignment.assigned_vehicle }, { $pull: { bookings: assignment._id } }); // remove from vehicle bookings
       await VehicleRequest.updateOne({ _id: assignment.request }, { $pull: { assignments: assignment._id } }); // remove from vehicle request assignments
+      const vehicleRequest = await VehicleRequest.findById(assignment.request);
+      if (vehicleRequest.assignments.length === 0) {
+        vehicleRequest.status = 'denied';
+      }
+      await vehicleRequest.save();
     }));
     await Assignment.deleteMany({ '_id': { '$in': toBeDeleted } });
     const updatedVehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments').populate({
