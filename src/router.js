@@ -64,14 +64,19 @@ router.route('/opotrips')
 
 router.route('/gearrequests')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getGearRequests)
+
+router.route('/gearrequest/:id')
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrip)
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToGearRequest);
 
-router.route('/pcardrequests')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrip)
+router.route('/pcardrequest/:id')
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToPCardRequest);
 
 router.route('/trippeegearrequests')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrippeeGearRequests)
+
+router.route('/trippeegearrequest/:id')
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrip)
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToTrippeeGearRequest);
 
 router.route('/vehiclerequest/:id')
