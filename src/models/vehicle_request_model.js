@@ -20,7 +20,7 @@ const VehicleRequestSchema = new Schema({
     }
   ],
   status: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
-  assignedVehicles: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }]
+  assignments: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }]
 });
 
 VehicleRequestSchema.set('toJSON', {

@@ -269,7 +269,6 @@ export const deleteTrip = (req, res) => {
 };
 
 export const updateTrip = (req, res) => {
-  console.log(req);
   Trip.findById(req.params.id, (err, trip) => {
     if (err) {
       res.json({ error: err });
@@ -292,7 +291,7 @@ export const updateTrip = (req, res) => {
       if (req.body.newRequest) {
         trip.gearStatus = 'pending';
         trip.pcardStatus = 'pending';
-      }else{
+      } else {
         trip.gearStatus = req.body.gearStatus;
         trip.pcardStatus = req.body.pcardStatus;
       }
@@ -328,9 +327,9 @@ export const getGearRequests = (req, res) => {
   Trip.find({ gearStatus: { $not: { $in: ['N/A'] } } }).populate('leaders').populate('club').populate({
     path: 'members.user',
     model: 'User',
-  })
+  }).exec()
     .then((gearRequests) => {
-      res.json(gearRequests);
+      return res.json(gearRequests);
     });
 };
 
@@ -338,8 +337,12 @@ export const respondToGearRequest = (req, res) => {
   Trip.findById(req.body.id)
     .then((trip) => {
       trip.gearStatus = req.body.status;
-      trip.save().then(getGearRequests(req, res));
-    }).catch((error) => {
+      trip.save()
+        .then(() => {
+          getTrip(req, res);
+        });
+    })
+    .catch((error) => {
       res.status(500).send(error);
     });
 };
@@ -375,7 +378,10 @@ export const respondToTrippeeGearRequest = (req, res) => {
   Trip.findById(req.body.id)
     .then((trip) => {
       trip.trippeeGearStatus = req.body.status;
-      trip.save().then(getTrippeeGearRequests(req, res));
+      trip.save()
+        .then(() => {
+          getTrip(req, res);
+        })
     }).catch((error) => {
       res.status(500).send(error);
     });
@@ -386,7 +392,10 @@ export const respondToPCardRequest = (req, res) => {
       trip.pcardStatus = req.body.pcardStatus;
       trip.pcardAssigned = req.body.pcardAssigned;
       req.params.id = req.body.id;
-      trip.save();
+      trip.save()
+        .then(() => {
+          getTrip(req, res);
+        })
     }).catch((error) => {
       res.status(500).send(error);
     });
