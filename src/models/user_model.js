@@ -3,7 +3,6 @@ import * as bcrypt from 'bcryptjs';
 
 
 const UserSchema = new Schema({
-  casID: {type: String},
   email: { type: String, unique: true, lowercase: true },
   password: { type: String, select: false },
   name: { type: String },
