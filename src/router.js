@@ -39,7 +39,7 @@ router.put('/editusergear/:id', requireAuth, Trips.editUserGear);
 
 router.route('/user')
   .get(requireAuth, Users.getUser)
-  .put(requireAuth, Users.updateUser, LeaderApprovals.addLeaderRequest, CertApprovals.addCertRequest);
+  .put(requireAuth, Users.updateUser);
 
 router.get('/myTrips', requireAuth, Users.myTrips);
 router.delete('/leaveTrip/:id', requireAuth, Trips.leaveTrip);
@@ -52,12 +52,12 @@ router.route('/club')
   .get(Clubs.allClubs);
 
 router.route('/leaderapprovals')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), LeaderApprovals.getApprovals)
-  .put(requireAuth, Users.roleAuthorization(['OPO']), LeaderApprovals.respond);
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Users.getLeaderRequests)
+  .put(requireAuth, Users.roleAuthorization(['OPO']), Users.respondToLeaderRequest);
 
 router.route('/certapprovals')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), CertApprovals.getApprovals)
-  .put(requireAuth, Users.roleAuthorization(['OPO']), CertApprovals.respond);
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Users.getCertRequests)
+  .put(requireAuth, Users.roleAuthorization(['OPO']), Users.respondToCertRequest);
 
 router.route('/opotrips')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getOPOTrips)

@@ -1,4 +1,3 @@
-/* eslint-disable */
 import Trip from '../models/trip_model';
 import User from '../models/user_model';
 import Club from '../models/club_model';
