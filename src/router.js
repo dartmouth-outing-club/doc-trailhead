@@ -1,8 +1,6 @@
 import { Router } from 'express';
 import * as Trips from './controllers/trip_controller';
 import * as Users from './controllers/user_controller';
-import * as LeaderApprovals from './controllers/leader_approval_controller';
-import * as CertApprovals from './controllers/cert_approval_controller';
 import sendEmailToTrip from './controllers/email_controller';
 import * as Clubs from './controllers/club_controller';
 import * as VehicleRequests from './controllers/vehicle_request_controller';

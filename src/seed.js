@@ -2,8 +2,6 @@ import mongoose from 'mongoose';
 import Clubs from './models/club_model';
 import Users from './models/user_model';
 import Trips from './models/trip_model';
-import LeaderApprovals from './models/leader_approval_model';
-import CertApprovals from './models/cert_approval_model';
 import Vehicles from './models/vehicle_model';
 import VehicleRequests from './models/vehicle_request_model';
 import Assignmnets from './models/assignment_model';
@@ -134,51 +132,47 @@ const vehicles = [
 
 
 function seedDb() {
-  CertApprovals.deleteMany({})
+  VehicleRequests.deleteMany({})
     .then(() => {
-      LeaderApprovals.deleteMany({})
-      VehicleRequests.deleteMany({})
+      Assignmnets.deleteMany({})
         .then(() => {
-          Assignmnets.deleteMany({})
+          Vehicles.deleteMany({})
             .then(() => {
-              Vehicles.deleteMany({})
+              Clubs.deleteMany({})
                 .then(() => {
-                  Clubs.deleteMany({})
+                  Trips.deleteMany({})
                     .then(() => {
-                      Trips.deleteMany({})
+                      Users.deleteMany({})
                         .then(() => {
-                          Users.deleteMany({})
-                            .then(() => {
-                              Vehicles.insertMany(vehicles)
-                                .then((vehicles) => {
-                                  Clubs.insertMany(clubs)
-                                    .then((clubs) => {
-                                      fakeUsers.map((fakeUser) => {
-                                        const newUser = new Users();
-                                        newUser.email = fakeUser.email;
-                                        newUser.password = fakeUser.password;
-                                        newUser.name = fakeUser.name;
-                                        newUser.role = fakeUser.role;
-                                        newUser.dash_number = fakeUser.dash_number;
-                                        newUser.driver_cert = fakeUser.driver_cert;
-                                        newUser.trailer_cert = fakeUser.trailer_cert;
-                                        if (fakeUser.role === 'Leader') {
-                                          let clubIds = [];
-                                          clubs.map((club) => {
-                                            clubIds.push(club._id);
-                                          });
-                                          newUser.leader_for = clubIds;
-                                        } else {
-                                          newUser.leader_for = fakeUser.leader_for;
-                                        }
-                                        newUser.save();
+                          Vehicles.insertMany(vehicles)
+                            .then((vehicles) => {
+                              Clubs.insertMany(clubs)
+                                .then((clubs) => {
+                                  fakeUsers.map((fakeUser) => {
+                                    const newUser = new Users();
+                                    newUser.email = fakeUser.email;
+                                    newUser.password = fakeUser.password;
+                                    newUser.name = fakeUser.name;
+                                    newUser.role = fakeUser.role;
+                                    newUser.dash_number = fakeUser.dash_number;
+                                    newUser.driver_cert = fakeUser.driver_cert;
+                                    newUser.trailer_cert = fakeUser.trailer_cert;
+                                    if (fakeUser.role === 'Leader') {
+                                      let clubIds = [];
+                                      clubs.map((club) => {
+                                        clubIds.push(club._id);
                                       });
-                                    })
+                                      newUser.leader_for = clubIds;
+                                    } else {
+                                      newUser.leader_for = fakeUser.leader_for;
+                                    }
+                                    newUser.save();
+                                  });
                                 })
-                                .then(() => {
-                                  console.log('seeded db. Press control+c to exit');
-                                  // process.exit();
-                                })
+                            })
+                            .then(() => {
+                              console.log('seeded db. Press control+c to exit');
+                              // process.exit();
                             })
                         })
                     })
@@ -186,9 +180,10 @@ function seedDb() {
             })
         })
     })
-    .catch((error) => {
-      console.log(error);
-    })
+})
+    .catch ((error) => {
+  console.log(error);
+})
 };
 
 seedDb();

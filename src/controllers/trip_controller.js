@@ -75,6 +75,7 @@ export const getTrip = (req, res) => {
     model: 'User',
   }).exec()
     .then((trip) => {
+      console.log(trip);
       const isPending = trip.pending.some((pender) => {
         return pender.user.equals(req.user.id);
       });
@@ -267,17 +268,18 @@ export const deleteTrip = (req, res) => {
   });
 };
 
-export const updateTrip = (req, res) => {
-  Trip.findById(req.params.id, (err, trip) => {
-    if (err) {
-      res.json({ error: err });
-    } else if (trip.leaders.indexOf(req.user._id) !== -1 || req.user.role === "OPO") {
+export const updateTrip = async (req, res) => {
+  try {
+    const trip = await Trip.findById(req.params.id).exec();
+    if (trip.leaders.indexOf(req.user._id) !== -1) {
       trip.startDate = req.body.startDate;
       trip.endDate = req.body.endDate;
       trip.startTime = req.body.startTime;
       trip.endTime = req.body.endTime;
       trip.title = req.body.title;
       trip.description = req.body.description;
+      trip.co_leader_access = req.body.co_leader_access;
+      trip.club = req.body.club;
       trip.mileage = req.body.mileage;
       trip.location = req.body.location;
       trip.pickup = req.body.pickup;
@@ -285,23 +287,24 @@ export const updateTrip = (req, res) => {
       trip.cost = req.body.cost;
       trip.experienceNeeded = req.body.experienceNeeded;
       trip.OPOGearRequests = req.body.gearRequests;
+      trip.trippeeGear = req.body.trippeeGear
       trip.pcard = req.body.pcard;
-      trip.pcardAssigned = req.body.pcardAssigned;
-      if (req.body.newRequest) {
-        trip.gearStatus = 'pending';
-        trip.pcardStatus = 'pending';
-      } else {
-        trip.gearStatus = req.body.gearStatus;
-        trip.pcardStatus = req.body.pcardStatus;
-      }
-      trip.save()
-        .then(() => {
-          getTrip(req, res);
-        });
+      const coleaders = await User.find({ email: { $in: req.body.leaders } }).exec();
+      const allLeaders = [];
+      allLeaders.push(trip.leaders[0]);
+      coleaders.forEach((coleader) => {
+        allLeaders.push(coleader._id);
+      })
+      trip.leaders = allLeaders;
+      await trip.save();
+      getTrip(req, res);
     } else {
-      res.status(422).send('You must be a leader on the trip or OPO');
+      res.status(422).send('You must be a leader on the trip');
     }
-  });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send(error);
+  }
 };
 
 export const getTripsByClub = (req, res) => {
