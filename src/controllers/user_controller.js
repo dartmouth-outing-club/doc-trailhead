@@ -61,7 +61,7 @@ export const myTrips = (req, res) => {
   const id = req.user._id;
   Trip.find({ $or: [{ 'members.user': id }, { 'pending.user': id }, { leaders: id }] }).populate('club')
     .then((trips) => { // this should see if name is in members
-      VehicleRequest.find({ requester: id })
+      VehicleRequest.find({ requester: id }).populate('associatedTrip')
         .then((vehicleRequests) => {
           res.json({ trips, vehicleRequests });
         })
