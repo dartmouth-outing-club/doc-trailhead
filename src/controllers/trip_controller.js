@@ -85,6 +85,12 @@ export const getTrip = (req, res) => {
   }).populate({
     path: 'pending.user',
     model: 'User',
+  }).populate({
+    path: 'vehicleRequest',
+    populate: {
+      path: 'assignments',
+      model: 'Assignment',
+    }
   }).exec()
     .then((trip) => {
       const isPending = trip.pending.some((pender) => {
@@ -414,7 +420,7 @@ export const getOPOTrips = (req, res) => {
       { pcardStatus: { $ne: 'N/A' } },
       { vehicleStatus: { $ne: 'N/A' } },
     ]
-  }).populate('leaders').populate('club').populate({
+  }).populate('leaders').populate('club').populate('vehicleRequest').populate({
     path: 'members.user',
     model: 'User',
   })

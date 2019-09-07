@@ -1,6 +1,7 @@
 import VehicleRequest from '../models/vehicle_request_model';
 import Vehicle from '../models/vehicle_model';
 import Assignment from '../models/assignment_model';
+import Trip from '../models/trip_model';
 
 export const makeVehicleRequest = (req, res) => {
   const vehicleRequest = new VehicleRequest();
@@ -45,7 +46,7 @@ export const getVehicleRequest = (req, res) => {
 }
 
 export const getVehicleRequests = (req, res) => {
-  VehicleRequest.find().populate('requester').populate('associatedTrip')
+  VehicleRequest.find({ 'requestType': 'SOLO' }).populate('requester').populate('associatedTrip')
     .then((vehicleRequests) => {
       res.json(vehicleRequests);
     })
@@ -92,6 +93,11 @@ export const respondToVehicleRequest = async (req, res) => {
     });
     vehicleRequest.assignments = validAssignments;
     vehicleRequest.status = 'approved';
+    if (vehicleRequest.requestType === 'TRIP') {
+      const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).exec();
+      associatedTrip.vehicleStatus = 'approved';
+      await associatedTrip.save();
+    }
     await vehicleRequest.save();
     const updatedVehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments').populate({
       path: 'requester',
@@ -152,11 +158,9 @@ const processAssignment = async (vehicleRequest, assignment) => {
       selectedVehicleBookings = vehicle.bookings;
     }
 
-    const conflictingEvents = selectedVehicleBookings.filter(booking => {
-      return isConflicting(booking, assignment);
-    });
+    const conflictsWithEvent = isConflicting(selectedVehicleBookings, assignment);
 
-    if (conflictingEvents.length > 0) {
+    if (conflictsWithEvent) {
       return {
         error: 'Proposed assignment conflicts with already existing one',
         conflictingEvents,
@@ -216,19 +220,44 @@ const processAssignment = async (vehicleRequest, assignment) => {
   }
 }
 
-const isConflicting = (booking, assignment) => {
-  const existingPickupDateAndTime = createDateObject(booking.assigned_pickupDate, booking.assigned_pickupTime);
-  const existingReturnDateAndTime = createDateObject(booking.assigned_returnDate, booking.assigned_returnTime);
+const isConflicting = (selectedVehicleBookings, assignment) => {
+  const bookingsWithDateAndTime = selectedVehicleBookings.map((booking) => {
+    const updates = {};
+    updates.pickupDateAndTime = createDateObject(booking.assigned_pickupDate, booking.assigned_pickupTime);
+    updates.returnDateAndTime = createDateObject(booking.assigned_returnDate, booking.assigned_returnTime);
+    return Object.assign({}, booking, updates);
+  });
 
-  const proposedPickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
-  const proposedReturnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+  const assignmentUpdates = {};
+  assignmentUpdates.pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+  assignmentUpdates.returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+  const assignmentWithDateAndTime = Object.assign({}, assignment, assignmentUpdates);
 
-  return (proposedReturnDateAndTime >= existingPickupDateAndTime) || (proposedPickupDateAndTime <= existingReturnDateAndTime);
+  bookingsWithDateAndTime.push(assignmentWithDateAndTime);
+
+  bookingsWithDateAndTime.sort((booking1, booking2) => {
+    if (booking1.pickupDateAndTime < booking2.pickupDateAndTime) {
+      return -1;
+    }
+    if (booking1.pickupDateAndTime > booking2.pickupDateAndTime) {
+      return 1;
+    }
+    return 0;
+  });
+  const conflictsWithEvent = bookingsWithDateAndTime.some((booking, index, array) => {
+    let isConflicting = false;
+    if (index < array.length - 1) {
+      isConflicting = booking.returnDateAndTime >= array[index + 1].pickupDateAndTime;
+    }
+    return isConflicting;
+  });
+  return conflictsWithEvent;
 }
+
 
 const createDateObject = (date, time) => {
   // adapted from https://stackoverflow.com/questions/2488313/javascripts-getdate-returns-wrong-date
-  var parts = date.match(/(\d+)/g);
+  const parts = date.toString().match(/(\d+)/g);
   const splitTime = time.split(':');
   return new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
 }
@@ -243,6 +272,11 @@ export const cancelAssignments = async (req, res) => {
       const vehicleRequest = await VehicleRequest.findById(assignment.request);
       if (vehicleRequest.assignments.length === 0) {
         vehicleRequest.status = 'denied';
+        if (vehicleRequest.requestType === 'TRIP') {
+          const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).exec();
+          associatedTrip.vehicleStatus = 'denied';
+          await associatedTrip.save();
+        }
       }
       await vehicleRequest.save();
     }));
@@ -271,6 +305,11 @@ export const denyVehicleRequest = async (req, res) => {
   try {
     const vehicleRequest = await VehicleRequest.findById(req.params.id).exec();
     vehicleRequest.status = 'denied';
+    if (vehicleRequest.requestType === 'TRIP') {
+      const associatedTrip = await Trip.findById(vehichleRequest.associatedTrip).exec();
+      associatedTrip.vehicleStatus = 'denied';
+      await associatedTrip.save();
+    }
     await vehicleRequest.save();
     const updatedVehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments').populate({
       path: 'requester',
