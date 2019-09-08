@@ -128,17 +128,19 @@ const getArrayofProcessedAssignments = async (proposedAssignments, vehicleReques
 
 const processAssignment = async (vehicleRequest, assignment) => {
   try {
-    const pickupDate = new Date(assignment.pickupDate);
-    const pickupTime = assignment.pickupTime.split(':');
-    pickupDate.setHours(pickupTime[0], pickupTime[1]);
-    const returnDate = new Date(assignment.returnDate);
-    const returnTime = assignment.returnTime.split(':');
-    returnDate.setHours(returnTime[0], returnTime[1]);
-    if (returnDate < pickupDate) {
-      return {
-        error: 'Pickup date must be earlier than return date',
-        assignment,
-      };
+    if (assignment.assignedVehicle !== 'Enterprise') {
+      const pickupDate = new Date(assignment.pickupDate);
+      const pickupTime = assignment.pickupTime.split(':');
+      pickupDate.setHours(pickupTime[0], pickupTime[1]);
+      const returnDate = new Date(assignment.returnDate);
+      const returnTime = assignment.returnTime.split(':');
+      returnDate.setHours(returnTime[0], returnTime[1]);
+      if (returnDate < pickupDate) {
+        return {
+          error: 'Pickup date must be earlier than return date',
+          assignment,
+        };
+      }
     }
     const vehicleInArray = await Vehicle.find({ name: assignment.assignedVehicle }).populate('bookings').exec();
     const vehicle = vehicleInArray[0];
@@ -158,7 +160,7 @@ const processAssignment = async (vehicleRequest, assignment) => {
       selectedVehicleBookings = vehicle.bookings;
     }
 
-    const conflictsWithEvent = isConflicting(selectedVehicleBookings, assignment);
+    const conflictsWithEvent = assignment.assignedVehicle === 'Enterprise' ? false : isConflicting(selectedVehicleBookings, assignment);
 
     if (conflictsWithEvent) {
       return {
@@ -168,45 +170,49 @@ const processAssignment = async (vehicleRequest, assignment) => {
       };
     } else {
       if (assignment.existingAssignment) {
-        existingAssignment.assigned_pickupDate = assignment.pickupDate;
-        existingAssignment.assigned_pickupTime = assignment.pickupTime;
-        const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
-        existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
+        if (assignment.assignedVehicle !== 'Enterprise') {
+          existingAssignment.assigned_pickupDate = assignment.pickupDate;
+          existingAssignment.assigned_pickupTime = assignment.pickupTime;
+          const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+          existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
 
-        existingAssignment.assigned_returnDate = assignment.returnDate;
-        existingAssignment.assigned_returnTime = assignment.returnTime;
-        const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
-        existingAssignment.assigned_returnDateAndTime = returnDateAndTime;
+          existingAssignment.assigned_returnDate = assignment.returnDate;
+          existingAssignment.assigned_returnTime = assignment.returnTime;
+          const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+          existingAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
-        existingAssignment.assigned_key = assignment.assignedKey;
-        existingAssignment.pickedUp = assignment.pickedUp;
-        existingAssignment.returned = assignment.returned
-        existingAssignment.assigned_vehicle = vehicle;
-        const updatedAssignment = await existingAssignment.save();
+          existingAssignment.assigned_key = assignment.assignedKey;
+          existingAssignment.pickedUp = assignment.pickedUp;
+          existingAssignment.returned = assignment.returned
+        }
         if (existingAssignment.assigned_vehicle.name !== assignment.assignedVehicle) {
-          vehicle.bookings.push(updatedAssignment);
+          vehicle.bookings.push(existingAssignment);
           await vehicle.save();
           await Vehicle.updateOne({ _id: existingAssignment.assigned_vehicle._id }, { $pull: { bookings: existingAssignment._id } }); // remove assignment from previously assigned vehicle          
         }
+        existingAssignment.assigned_vehicle = vehicle;
+        const updatedAssignment = await existingAssignment.save();
         return updatedAssignment;
       } else {
         const newAssignment = new Assignment();
         newAssignment.request = vehicleRequest;
         newAssignment.assigned_vehicle = vehicle;
         newAssignment.requester = vehicleRequest.requester;
-
-        newAssignment.assigned_pickupDate = assignment.pickupDate;
-        newAssignment.assigned_pickupTime = assignment.pickupTime;
-        const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
-        newAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
-
-        newAssignment.assigned_returnDate = assignment.returnDate;
-        newAssignment.assigned_returnTime = assignment.returnTime;
-        const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
-        newAssignment.assigned_returnDateAndTime = returnDateAndTime;
-
         newAssignment.responseIndex = assignment.responseIndex;
-        newAssignment.assigned_key = assignment.assignedKey;
+
+        if (assignment.assignedVehicle !== 'Enterprise') {
+          newAssignment.assigned_pickupDate = assignment.pickupDate;
+          newAssignment.assigned_pickupTime = assignment.pickupTime;
+          const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+          newAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
+
+          newAssignment.assigned_returnDate = assignment.returnDate;
+          newAssignment.assigned_returnTime = assignment.returnTime;
+          const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+          newAssignment.assigned_returnDateAndTime = returnDateAndTime;
+
+          newAssignment.assigned_key = assignment.assignedKey;
+        }
 
         const savedAssignment = await newAssignment.save();
         vehicle.bookings.push(savedAssignment);

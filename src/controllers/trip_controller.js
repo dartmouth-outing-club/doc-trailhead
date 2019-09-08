@@ -91,6 +91,15 @@ export const getTrip = (req, res) => {
       path: 'assignments',
       model: 'Assignment',
     }
+  }).populate({
+    path: 'vehicleRequest',
+    populate: {
+      path: 'assignments',
+      populate: {
+        path: 'assigned_vehicle',
+        model: 'Vehicle',
+      }
+    }
   }).exec()
     .then((trip) => {
       const isPending = trip.pending.some((pender) => {
