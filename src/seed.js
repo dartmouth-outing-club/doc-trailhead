@@ -39,7 +39,7 @@ const fakeUsers = [
   //   driver_cert: 'MICROBUS',
   //   trailer_cert: true,
   // },
-//emma
+  //emma
   // {
   //   casID: 'Emma P. Rafkin@DARTMOUTH.EDU',
   //   email: 'Emma.P.Rafkin.21@darmouth.edu',
@@ -53,7 +53,7 @@ const fakeUsers = [
   //   driver_cert: null,
   //   trailer_cert: false,
   // },
-//prosper
+  //prosper
   {
     casID: 'Chikezie Onungwa@DARTMOUTH.EDU',
     email: 'chikezie.onungwa.21@dartmouth.edu',
@@ -61,14 +61,14 @@ const fakeUsers = [
     name: 'Prosper!',
     role: 'Leader',
     leader_for: [],
-    dash_number:'2222',
+    dash_number: '2222',
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: null,
     trailer_cert: false,
   },
-  
-    //ACTUAL OPO OFFICE ACCOUNTS DONT DELETE
+
+  //ACTUAL OPO OFFICE ACCOUNTS DONT DELETE
   {
     casID: 'Julie C. Bell@DARTMOUTH.EDU',
     email: 'julie.c.bell@dartmouth.edu',
@@ -76,7 +76,7 @@ const fakeUsers = [
     name: 'Julie Bell',
     role: 'OPO',
     leader_for: [],
-    dash_number:'',
+    dash_number: '',
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: null,
@@ -89,7 +89,7 @@ const fakeUsers = [
     name: 'Kathleen Decato',
     role: 'OPO',
     leader_for: [],
-    dash_number:'',
+    dash_number: '',
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: null,
@@ -102,7 +102,7 @@ const fakeUsers = [
     name: 'Rory Gawler',
     role: 'OPO',
     leader_for: [],
-    dash_number:'',
+    dash_number: '',
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: null,
@@ -115,7 +115,7 @@ const fakeUsers = [
     name: 'Mike Silverman',
     role: 'OPO',
     leader_for: [],
-    dash_number:'',
+    dash_number: '',
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: null,
@@ -128,7 +128,7 @@ const fakeUsers = [
     name: 'Willow Nilsen',
     role: 'OPO',
     leader_for: [],
-    dash_number:'',
+    dash_number: '',
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: null,
@@ -141,13 +141,13 @@ const fakeUsers = [
     name: 'Willow Nilsen',
     role: 'OPO',
     leader_for: [],
-    dash_number:'',
+    dash_number: '',
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: null,
     trailer_cert: false,
   },
-  
+
 
 ];
 
@@ -244,7 +244,7 @@ const vehicles = [
     type: 'Microbus',
   },
   {
-    name: 'Stake Truck',
+    name: 'State Truck',
     type: 'Truck',
   },
   {
@@ -267,7 +267,7 @@ const vehicles = [
     name: 'Enterprise',
     type: 'Enterprise',
   },
-]
+];
 
 
 
@@ -313,9 +313,6 @@ function seedDb() {
                                       });
                                     })
                                 })
-                                .then(() => {
-                                  console.log('seeded db. Press control+c to exit');
-                                })
                             })
                             .then(() => {
                               console.log('seeded db. Press control+c to exit');
@@ -326,11 +323,9 @@ function seedDb() {
                 })
             })
         })
+    }).catch((error) => {
+      console.log(error);
     })
-})
-    .catch ((error) => {
-  console.log(error);
-})
-};
+}
 
 seedDb();
