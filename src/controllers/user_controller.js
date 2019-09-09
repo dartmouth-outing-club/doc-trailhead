@@ -9,40 +9,37 @@ import VehicleRequest from '../models/vehicle_request_model';
 dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
-
   passport.authenticate('cas', (err, user, info) => {
-    console.log("user: " + user);
     if (err) { return err; }
     if (!user) {
-      console.log("rejected");
       res.status(500).send("rejected");
       return res.redirect('/');
     }
+    User.find({ 'casID': user }).populate('leader_for').exec()
+      .then((user1) => {
+        if (user1.length === 0) {
+          const newUser = new User();
+          newUser.casID = user;
+          newUser.email = "";
+          newUser.name = "";
+          newUser.role = 'Trippee';
+          newUser.leader_for = [];
+          newUser.save()
+            .then((result) => {
+              res.redirect("http://localhost:8080/authed?token=" + tokenForUser(result) + "&userId=" + result.id);
+            })
+            .catch((error) => {
+              res.status(500).send(error.message);
+            });
+        } else {
+          res.redirect("http://localhost:8080/authed?token=" + tokenForUser(user1[0]) + "&userId=" + user1[0].id);
 
-    User.find({ 'casID': user }).populate('leader_for').then((user1) => {
-      if (user1.length === 0) {
-        const newUser = new User();
-        newUser.casID = user;
-        newUser.email = "";
-        newUser.name = "";
-        newUser.role = 'Trippee';
-        newUser.leader_for = [];
-        newUser.save()
-          .then((result) => {
-            res.redirect("http://localhost:8080/authed?" + tokenForUser(result) + "&" + result.id);
-          })
-          .catch((error) => {
-            res.status(500).send(error.message);
-          });
-      } else {
-        res.redirect("http://localhost:8080/authed?" + tokenForUser(user1[0]) + "&" + user1[0].id);
+        }
+      }).catch((error) => {
+        res.status(500).send(error.message);
+      });
 
-      }
-    }).catch((error) => {
-      res.status(500).send(error.message);
-    });
-
-  })(req, res, next);;
+  })(req, res, next);
 
 };
 
@@ -129,7 +126,15 @@ export const myTrips = (req, res) => {
 export const getUser = (req, res) => {
   User.findById(req.user.id).populate('leader_for').populate('requested_clubs').exec()
     .then((user) => {
-      res.json(user);
+      let hasCompleteProfile = true;
+      if (!user.email || !user.name || !user.dash_number || !user.allergies_dietary_restrictions
+        || !user.medical_conditions || !user.clothe_size || !user.shoe_size || !user.height
+        || isInfoEmpty(user.email) || isInfoEmpty(user.name) || isInfoEmpty(user.dash_number)
+        || isInfoEmpty(user.allergies_dietary_restrictions) || isInfoEmpty(user.medical_conditions)
+        || isInfoEmpty(user.clothe_size) || isInfoEmpty(user.height)) {
+        hasCompleteProfile = false;
+      }
+      res.json({ user, hasCompleteProfile });
     })
     .catch((error) => {
       console.log(error);
@@ -140,6 +145,10 @@ export const getUser = (req, res) => {
 const isStringEmpty = (string) => {
   return string.length === 0;
 };
+
+const isInfoEmpty = (string) => {
+  return !string || string.length === 0 || !string.toString().trim();
+}
 
 export const updateUser = (req, res, next) => {
   User.findById(req.user.id, (err, user) => { // this should see if name is in member
