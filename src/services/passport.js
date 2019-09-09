@@ -50,7 +50,7 @@ const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
 const casOptions = {
   ssoBaseURL: 'https://login.dartmouth.edu/cas',
   //serverBaseURL: "http://dalidocplanner.surge.sh/cas"
-  serverBaseURL: 'http://localhost:9090/api/signin',
+  serverBaseURL: 'https://doc-planner.herokuapp.com/api/signin',
 };
 const casLogin = new cas.Strategy(casOptions, (user, done) => {
   return done(null, user);
