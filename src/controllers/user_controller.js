@@ -2,16 +2,48 @@ import jwt from 'jwt-simple';
 import dotenv from 'dotenv';
 import User from '../models/user_model';
 import Trip from '../models/trip_model';
+import passport from '../services/passport';
+
 import VehicleRequest from '../models/vehicle_request_model';
 
 dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
-  User.findById(req.user.id).populate('leader_for').then((user) => {
-    res.send({ token: tokenForUser(req.user), user: user });
-  });
+  passport.authenticate('cas', (err, user, info) => {
+    if (err) { return err; }
+    if (!user) {
+      res.status(500).send("rejected");
+      return res.redirect('/');
+    }
+    User.find({ 'casID': user }).populate('leader_for').exec()
+      .then((user1) => {
+        if (user1.length === 0) {
+          const newUser = new User();
+          newUser.casID = user;
+          newUser.email = "";
+          newUser.name = "";
+          newUser.role = 'Trippee';
+          newUser.leader_for = [];
+          newUser.save()
+            .then((result) => {
+              res.redirect("http://localhost:8080/authed?token=" + tokenForUser(result) + "&userId=" + result.id);
+            })
+            .catch((error) => {
+              res.status(500).send(error.message);
+            });
+        } else {
+          res.redirect("http://localhost:8080/authed?token=" + tokenForUser(user1[0]) + "&userId=" + user1[0].id);
+
+        }
+      }).catch((error) => {
+        res.status(500).send(error.message);
+      });
+
+  })(req, res, next);
+
 };
 
+//how to route to signup instead?
 export const signup = (req, res, next) => {
   const { email } = req.body;
   const { password } = req.body;
@@ -31,14 +63,34 @@ export const signup = (req, res, next) => {
       newUser.leader_for = [];
       newUser.save()
         .then((result) => {
-          res.send({ token: tokenForUser(result), user: cleanUser(result) });
+          res.send({ token: tokenForUser(result), user: result });
         })
         .catch((error) => {
           res.status(500).send(error.message);
         });
-    }
-  });
-};
+
+      const { email } = req.body;
+      const { name } = req.body;
+      if (!email || !name) {
+        res.status(422).send('You must provide a name, email and password');
+      }
+      User.findById(req.body.id, (err, user1) => {
+        user1.email = email;
+        user1.name = name;
+        user1.role = 'Trippee';
+        user1.leader_for = [];
+        user1.save()
+          .then((result) => {
+            res.send({ user: cleanUser(result) });
+          })
+          .catch((error) => {
+            res.status(500).send(error.message);
+          });
+      });
+
+    };
+  })
+}
 
 export const roleAuthorization = (roles) => {
   return function authorize(req, res, next) {
@@ -61,7 +113,7 @@ export const myTrips = (req, res) => {
   const id = req.user._id;
   Trip.find({ $or: [{ 'members.user': id }, { 'pending.user': id }, { leaders: id }] }).populate('club')
     .then((trips) => { // this should see if name is in members
-      VehicleRequest.find({ requester: id })
+      VehicleRequest.find({ requester: id }).populate('associatedTrip')
         .then((vehicleRequests) => {
           res.json({ trips, vehicleRequests });
         })
@@ -72,14 +124,31 @@ export const myTrips = (req, res) => {
 };
 
 export const getUser = (req, res) => {
-  User.findById(req.user.id).populate('leader_for').then((user) => {
-    res.json(user);
-  });
+  User.findById(req.user.id).populate('leader_for').populate('requested_clubs').exec()
+    .then((user) => {
+      let hasCompleteProfile = true;
+      if (!user.email || !user.name || !user.dash_number || !user.allergies_dietary_restrictions
+        || !user.medical_conditions || !user.clothe_size || !user.shoe_size || !user.height
+        || isInfoEmpty(user.email) || isInfoEmpty(user.name) || isInfoEmpty(user.dash_number)
+        || isInfoEmpty(user.allergies_dietary_restrictions) || isInfoEmpty(user.medical_conditions)
+        || isInfoEmpty(user.clothe_size) || isInfoEmpty(user.height)) {
+        hasCompleteProfile = false;
+      }
+      res.json({ user, hasCompleteProfile });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(406).send(error.message);
+    });
 };
 
 const isStringEmpty = (string) => {
   return string.length === 0;
 };
+
+const isInfoEmpty = (string) => {
+  return !string || string.length === 0 || !string.toString().trim();
+}
 
 export const updateUser = (req, res, next) => {
   User.findById(req.user.id, (err, user) => { // this should see if name is in member
@@ -130,9 +199,12 @@ export const updateUser = (req, res, next) => {
         // Determine if approval is required. Approval is not required if user drops club. 
         if (req.body.leader_for.length > user.leader_for.length) {
           user.has_pending_leader_change = true;
-          res.locals.leaderReq = true;
+          user.requested_clubs = req.body.leader_for;
+          // res.locals.leaderReq = true;
         } else {
           user.leader_for = req.body.leader_for;
+          user.has_pending_leader_change = false;
+          user.requested_clubs = [];
         }
         if (req.body.leader_for.length === 0 && user.role !== 'OPO') {
           user.role = 'Trippee';
@@ -141,7 +213,14 @@ export const updateUser = (req, res, next) => {
         if ((!user.trailer_cert && req.body.trailer_cert)
           || ((req.body.driver_cert !== null) && (user.driver_cert !== req.body.driver_cert))) {
           user.has_pending_cert_change = true;
-          res.locals.certReq = true;
+          const requestedCerts = {};
+          requestedCerts.driver_cert = req.body.driver_cert;
+          requestedCerts.trailer_cert = req.body.trailer_cert;
+          user.requested_certs = requestedCerts;
+          // res.locals.certReq = true;
+        } else {
+          user.has_pending_cert_change = false;
+          user.requested_certs = {};
         }
 
         if (!req.body.trailer_cert) {
@@ -154,21 +233,10 @@ export const updateUser = (req, res, next) => {
         if (req.body.role) {
           user.role = req.body.role;
         }
-        return user.save();
-      })
-      .then(() => {
-        return User.findById(req.user.id).populate('leader_for');
-      })
-      .then((updatedUser) => {
-        res.json(updatedUser);
-        return [updatedUser, req.body];
-      })
-      // invoke middleware if approval is required
-      .then((userAndReq) => {
-        if (userAndReq[0].has_pending_leader_change || userAndReq[0].has_pending_cert_change) {
-          res.locals.userAndReq = userAndReq;
-          next();
-        }
+        user.save()
+          .then(() => {
+            getUser(req, res);
+          })
       })
       .catch((error) => {
         console.log(error);
@@ -191,6 +259,78 @@ export const userTrips = (req, res) => {
     res.json({ leaderOf, memberOf });
   });
 };
+
+export const getLeaderRequests = (req, res) => {
+  User.find({ has_pending_leader_change: true }).populate('leader_for').populate('requested_clubs').exec()
+    .then((users) => {
+      return res.json(users);
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).send(error.message);
+    });
+}
+
+export const respondToLeaderRequest = (req, res) => {
+  User.findById(req.body.userId).populate('leader_for').populate('requested_clubs').exec()
+    .then((user) => {
+      if (req.body.status === 'approved') {
+        user.role = 'Leader';
+        user.leader_for = user.requested_clubs;
+        user.requested_clubs = [];
+        user.has_pending_leader_change = false;
+        user.save()
+          .then((user) => {
+            getLeaderRequests(req, res);
+          })
+      } else {
+        user.has_pending_leader_change = false;
+        user.requested_clubs = [];
+        user.save()
+          .then((user) => {
+            getLeaderRequests(req, res);
+          })
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).send(error.message);
+    });
+}
+
+export const getCertRequests = (req, res) => {
+  User.find({ has_pending_cert_change: true }).populate('leader_for').populate('requested_clubs').exec()
+    .then((users) => {
+      return res.json(users);
+    });
+}
+
+export const respondToCertRequest = (req, res) => {
+  User.findById(req.body.userId).populate('leader_for').populate('requested_clubs').exec()
+    .then((user) => {
+      if (req.body.status === 'approved') {
+        user.driver_cert = user.requested_certs.driver_cert;
+        user.trailer_cert = user.requested_certs.trailer_cert;
+        user.requested_certs = {};
+        user.has_pending_cert_change = false;
+        user.save()
+          .then((user) => {
+            getCertRequests(req, res);
+          })
+      } else {
+        user.has_pending_cert_change = false;
+        user.requested_certs = {};
+        user.save()
+          .then((user) => {
+            getCertrRequests(req, res);
+          })
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).send(error.message);
+    });
+}
 
 
 function tokenForUser(user) {

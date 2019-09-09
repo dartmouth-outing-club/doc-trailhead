@@ -2,8 +2,6 @@ import mongoose from 'mongoose';
 import Clubs from './models/club_model';
 import Users from './models/user_model';
 import Trips from './models/trip_model';
-import LeaderApprovals from './models/leader_approval_model';
-import CertApprovals from './models/cert_approval_model';
 import Vehicles from './models/vehicle_model';
 import VehicleRequests from './models/vehicle_request_model';
 import Assignmnets from './models/assignment_model';
@@ -15,32 +13,142 @@ mongoose.connect(mongoURI, { useNewUrlParser: true });
 mongoose.Promise = global.Promise;
 
 const fakeUsers = [
+  // {
+  //   email: 'trippee@dartmouth.edu',
+  //   password: '12345',
+  //   name: 'Trippee',
+  //   role: 'Trippee',
+  //   leader_for: [],
+  //   dash_number: '12345',
+  // },
+  // {
+  //   email: 'opo@dartmouth.edu',
+  //   password: '12345',
+  //   name: 'OPO',
+  //   role: 'OPO',
+  //   leader_for: [],
+  //   dash_number: '12345',
+  // },
+  // {
+  //   email: 'leader@dartmouth.edu',
+  //   password: '12345',
+  //   name: 'Leader',
+  //   role: 'Leader',
+  //   leader_for: [],
+  //   dash_number: '12345',
+  //   driver_cert: 'MICROBUS',
+  //   trailer_cert: true,
+  // },
+//emma
+  // {
+  //   casID: 'Emma P. Rafkin@DARTMOUTH.EDU',
+  //   email: 'Emma.P.Rafkin.21@darmouth.edu',
+  //   password: 'test',
+  //   name: 'Emma',
+  //   role: 'Leader',
+  //   leader_for: [],
+  //   dash_number:'1111',
+  //   has_pending_leader_change: false,
+  //   has_pending_cert_change: false,
+  //   driver_cert: null,
+  //   trailer_cert: false,
+  // },
+//prosper
   {
-    email: 'trippee@dartmouth.edu',
-    password: '12345',
-    name: 'Trippee',
-    role: 'Trippee',
-    leader_for: [],
-    dash_number: '12345',
-  },
-  {
-    email: 'opo@dartmouth.edu',
-    password: '12345',
-    name: 'OPO',
-    role: 'OPO',
-    leader_for: [],
-    dash_number: '12345',
-  },
-  {
-    email: 'leader@dartmouth.edu',
-    password: '12345',
-    name: 'Leader',
+    casID: 'Chikezie Onungwa@DARTMOUTH.EDU',
+    email: 'chikezie.onungwa.21@dartmouth.edu',
+    password: 'test',
+    name: 'Prosper!',
     role: 'Leader',
     leader_for: [],
-    dash_number: '12345',
-    driver_cert: 'MICROBUS',
-    trailer_cert: true,
-  }
+    dash_number:'2222',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: false,
+  },
+  
+    //ACTUAL OPO OFFICE ACCOUNTS DONT DELETE
+  {
+    casID: 'Julie C. Bell@DARTMOUTH.EDU',
+    email: 'julie.c.bell@dartmouth.edu',
+    password: '',
+    name: 'Julie Bell',
+    role: 'OPO',
+    leader_for: [],
+    dash_number:'',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: false,
+  },
+  {
+    casID: 'Kathleen Decato@DARTMOUTH.EDU',
+    email: 'kathleen.decato@dartmouth.edu',
+    password: '',
+    name: 'Kathleen Decato',
+    role: 'OPO',
+    leader_for: [],
+    dash_number:'',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: false,
+  },
+  {
+    casID: 'Rory C. Gawler@DARTMOUTH.EDU',
+    email: 'rory.c.gawler@dartmouth.edu',
+    password: '',
+    name: 'Rory Gawler',
+    role: 'OPO',
+    leader_for: [],
+    dash_number:'',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: false,
+  },
+  {
+    casID: 'Michael Silverman@DARTMOUTH.EDU',
+    email: 'michael.silverman@dartmouth.edu',
+    password: '',
+    name: 'Mike Silverman',
+    role: 'OPO',
+    leader_for: [],
+    dash_number:'',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: false,
+  },
+  {
+    casID: 'Willow Nilsen@DARTMOUTH.EDU',
+    email: 'willow.nilsen@dartmouth.edu',
+    password: '',
+    name: 'Willow Nilsen',
+    role: 'OPO',
+    leader_for: [],
+    dash_number:'',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: false,
+  },
+  {
+    casID: 'Gunnar W. Johnson@DARTMOUTH.EDU',
+    email: 'gunnar.w.johnson@dartmouth.edu',
+    password: '',
+    name: 'Willow Nilsen',
+    role: 'OPO',
+    leader_for: [],
+    dash_number:'',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: false,
+  },
+  
+
 ];
 
 const clubs = [
@@ -70,6 +178,36 @@ const clubs = [
   },
   {
     name: 'Winter Sports',
+  },
+  {
+    name: 'Alpine Club Ski Team',
+  },
+  {
+    name: 'Archery Club',
+  },
+  {
+    name: 'Biathalon Club',
+  },
+  {
+    name: 'Climbing Team',
+  },
+  {
+    name: 'Environmental Stewardship',
+  },
+  {
+    name: 'Farm Club',
+  },
+  {
+    name: 'Graduate Outing Club',
+  },
+  {
+    name: 'Nordic Club Ski Team',
+  },
+  {
+    name: 'People of Color Outdoors',
+  },
+  {
+    name: 'Snowboard Club',
   },
   {
     name: 'Other',
@@ -134,18 +272,17 @@ const vehicles = [
 
 
 function seedDb() {
-  CertApprovals.deleteMany({})
+  VehicleRequests.deleteMany({})
     .then(() => {
-      LeaderApprovals.deleteMany({})
-      VehicleRequests.deleteMany({})
+      Assignmnets.deleteMany({})
         .then(() => {
-          Assignmnets.deleteMany({})
+          Vehicles.deleteMany({})
             .then(() => {
-              Vehicles.deleteMany({})
+              Clubs.deleteMany({})
                 .then(() => {
-                  Clubs.deleteMany({})
+                  Trips.deleteMany({})
                     .then(() => {
-                      Trips.deleteMany({})
+                      Users.deleteMany({})
                         .then(() => {
                           Users.deleteMany({})
                             .then(() => {
@@ -155,6 +292,7 @@ function seedDb() {
                                     .then((clubs) => {
                                       fakeUsers.map((fakeUser) => {
                                         const newUser = new Users();
+                                        newUser.casID = fakeUser.casID;
                                         newUser.email = fakeUser.email;
                                         newUser.password = fakeUser.password;
                                         newUser.name = fakeUser.name;
@@ -177,8 +315,11 @@ function seedDb() {
                                 })
                                 .then(() => {
                                   console.log('seeded db. Press control+c to exit');
-                                  // process.exit();
                                 })
+                            })
+                            .then(() => {
+                              console.log('seeded db. Press control+c to exit');
+                              // process.exit();
                             })
                         })
                     })
@@ -186,9 +327,10 @@ function seedDb() {
             })
         })
     })
-    .catch((error) => {
-      console.log(error);
-    })
+})
+    .catch ((error) => {
+  console.log(error);
+})
 };
 
 seedDb();

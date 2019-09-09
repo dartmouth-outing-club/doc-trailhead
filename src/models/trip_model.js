@@ -1,4 +1,3 @@
-/* eslint-disable */
 import mongoose, { Schema } from 'mongoose';
 
 
@@ -48,6 +47,7 @@ const TripSchema = new Schema({
   pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   pcardAssigned: String,
   vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
+  vehicleRequest: { type: Schema.Types.ObjectId, ref: 'VehicleRequest' },
 });
 
 TripSchema.set('toJSON', {

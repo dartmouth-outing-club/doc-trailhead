@@ -1,10 +1,9 @@
 import { Router } from 'express';
 import * as Trips from './controllers/trip_controller';
 import * as Users from './controllers/user_controller';
-import * as LeaderApprovals from './controllers/leader_approval_controller';
-import * as CertApprovals from './controllers/cert_approval_controller';
 import sendEmailToTrip from './controllers/email_controller';
 import * as Clubs from './controllers/club_controller';
+
 import * as VehicleRequests from './controllers/vehicle_request_controller';
 import * as Vehicles from './controllers/vehicle_controller';
 import { requireAuth, requireSignin } from './services/passport';
@@ -16,7 +15,7 @@ router.get('/', (req, res) => {
   res.json({ message: 'welcome to our doc app!' });
 });
 
-router.post('/signin', requireSignin, Users.signin);
+router.get('/signin', Users.signin, );
 router.post('/signup', Users.signup);
 
 router.route('/alltrips')
@@ -39,7 +38,7 @@ router.put('/editusergear/:id', requireAuth, Trips.editUserGear);
 
 router.route('/user')
   .get(requireAuth, Users.getUser)
-  .put(requireAuth, Users.updateUser, LeaderApprovals.addLeaderRequest, CertApprovals.addCertRequest);
+  .put(requireAuth, Users.updateUser);
 
 router.get('/myTrips', requireAuth, Users.myTrips);
 router.delete('/leaveTrip/:id', requireAuth, Trips.leaveTrip);
@@ -52,12 +51,12 @@ router.route('/club')
   .get(Clubs.allClubs);
 
 router.route('/leaderapprovals')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), LeaderApprovals.getApprovals)
-  .put(requireAuth, Users.roleAuthorization(['OPO']), LeaderApprovals.respond);
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Users.getLeaderRequests)
+  .put(requireAuth, Users.roleAuthorization(['OPO']), Users.respondToLeaderRequest);
 
 router.route('/certapprovals')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), CertApprovals.getApprovals)
-  .put(requireAuth, Users.roleAuthorization(['OPO']), CertApprovals.respond);
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Users.getCertRequests)
+  .put(requireAuth, Users.roleAuthorization(['OPO']), Users.respondToCertRequest);
 
 router.route('/opotrips')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getOPOTrips)
