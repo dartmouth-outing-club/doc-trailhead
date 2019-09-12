@@ -15,11 +15,11 @@ router.get('/', (req, res) => {
   res.json({ message: 'welcome to our doc app!' });
 });
 
-router.get('/signin', Users.signin, );
+router.get('/signin', Users.signin);
 router.post('/signup', Users.signup);
 
 router.route('/alltrips')
-  .post(requireAuth, Users.roleAuthorization(['Leader']), Trips.createTrip)
+  .post(requireAuth, Trips.createTrip)
   .get(requireAuth, Trips.getTrips);
 
 router.get('/trips/:club', Trips.getTripsByClub);
