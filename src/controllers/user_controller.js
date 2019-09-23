@@ -26,13 +26,13 @@ export const signin = (req, res, next) => {
           newUser.leader_for = [];
           newUser.save()
             .then((result) => {
-              res.redirect("http://dartmouthoutingclub.surge.sh/authed?token=" + tokenForUser(result) + "&userId=" + result.id);
+              res.redirect("http://doc-signups.dali.dartmouth.edu/authed?token=" + tokenForUser(result) + "&userId=" + result.id);
             })
             .catch((error) => {
               res.status(500).send(error.message);
             });
         } else {
-          res.redirect("http://dartmouthoutingclub.surge.sh/authed?token=" + tokenForUser(user1[0]) + "&userId=" + user1[0].id);
+          res.redirect("http://doc-signups.dali.dartmouth.edu/authed?token=" + tokenForUser(user1[0]) + "&userId=" + user1[0].id);
 
         }
       }).catch((error) => {
