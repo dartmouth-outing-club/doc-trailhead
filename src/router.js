@@ -6,7 +6,7 @@ import * as Clubs from './controllers/club_controller';
 
 import * as VehicleRequests from './controllers/vehicle_request_controller';
 import * as Vehicles from './controllers/vehicle_controller';
-import { requireAuth, requireSignin } from './services/passport';
+import { requireAuth } from './services/passport';
 
 
 const router = Router();
@@ -59,10 +59,10 @@ router.route('/certapprovals')
   .put(requireAuth, Users.roleAuthorization(['OPO']), Users.respondToCertRequest);
 
 router.route('/opotrips')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getOPOTrips)
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getOPOTrips);
 
 router.route('/gearrequests')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getGearRequests)
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getGearRequests);
 
 router.route('/gearrequest/:id')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrip)
@@ -72,7 +72,7 @@ router.route('/pcardrequest/:id')
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToPCardRequest);
 
 router.route('/trippeegearrequests')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrippeeGearRequests)
+  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrippeeGearRequests);
 
 router.route('/trippeegearrequest/:id')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrip)
@@ -80,22 +80,22 @@ router.route('/trippeegearrequest/:id')
 
 router.route('/vehiclerequest/:id')
   .get(requireAuth, VehicleRequests.getVehicleRequest)
-  .put(requireAuth, VehicleRequests.updateVehicleRequest)
+  .put(requireAuth, VehicleRequests.updateVehicleRequest);
 
 router.route('/vehicleRequests')
   .post(requireAuth, VehicleRequests.makeVehicleRequest)
-  .get(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.getVehicleRequests)
+  .get(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.getVehicleRequests);
 
 router.route('/vehicles')
-  .get(requireAuth, Vehicles.getVehicles)
+  .get(requireAuth, Vehicles.getVehicles);
 
 router.route('/opoVehicleRequest/:id')
   .post(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.respondToVehicleRequest)
   .delete(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.cancelAssignments)
-  .put(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.denyVehicleRequest)
+  .put(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.denyVehicleRequest);
 
 router.route('/vehicle-assignments')
-  .get(requireAuth, VehicleRequests.getVehicleAssignments)
+  .get(requireAuth, VehicleRequests.getVehicleAssignments);
 
 
 export default router;

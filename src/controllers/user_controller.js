@@ -12,38 +12,38 @@ export const signin = (req, res, next) => {
   passport.authenticate('cas', (err, user, info) => {
     if (err) { return err; }
     if (!user) {
-      res.status(500).send("rejected");
+      res.status(500).send('rejected');
       return res.redirect('/');
     }
-    User.find({ 'casID': user }).populate('leader_for').exec()
+    User.find({ casID: user }).populate('leader_for').exec()
       .then((user1) => {
         if (user1.length === 0) {
           const newUser = new User();
           newUser.casID = user;
-          newUser.email = "";
-          newUser.name = "";
+          newUser.email = '';
+          newUser.name = '';
           newUser.role = 'Trippee';
           newUser.leader_for = [];
           newUser.save()
             .then((result) => {
-              res.redirect("http://doc-signups.dali.dartmouth.edu/authed?token=" + tokenForUser(result) + "&userId=" + result.id);
+              // res.redirect(`http://doc-signups.dali.dartmouth.edu/authed?token=${tokenForUser(result)}&userId=${result.id}`);
+              res.redirect(`http://localhost:8080/authed?token=${tokenForUser(result)}&userId=${result.id}`);
             })
             .catch((error) => {
               res.status(500).send(error.message);
             });
         } else {
-          res.redirect("http://doc-signups.dali.dartmouth.edu/authed?token=" + tokenForUser(user1[0]) + "&userId=" + user1[0].id);
-
+          // res.redirect(`http://doc-signups.dali.dartmouth.edu/authed?token=${tokenForUser(user1[0])}&userId=${user1[0].id}`);
+          res.redirect(`http://localhost:8080/authed?token=${tokenForUser(user1[0])}&userId=${user1[0].id}`);
         }
-      }).catch((error) => {
+      })
+      .catch((error) => {
         res.status(500).send(error.message);
       });
-
   })(req, res, next);
-
 };
 
-//how to route to signup instead?
+// how to route to signup instead?
 export const signup = (req, res, next) => {
   const { email } = req.body;
   const { password } = req.body;
@@ -87,10 +87,9 @@ export const signup = (req, res, next) => {
             res.status(500).send(error.message);
           });
       });
-
-    };
-  })
-}
+    }
+  });
+};
 
 export const roleAuthorization = (roles) => {
   return function authorize(req, res, next) {
@@ -116,7 +115,7 @@ export const myTrips = (req, res) => {
       VehicleRequest.find({ requester: id }).populate('associatedTrip')
         .then((vehicleRequests) => {
           res.json({ trips, vehicleRequests });
-        })
+        });
     })
     .catch((error) => {
       res.status(500).send(error.message);
@@ -148,7 +147,7 @@ const isStringEmpty = (string) => {
 
 const isInfoEmpty = (string) => {
   return !string || string.length === 0 || !string.toString().trim();
-}
+};
 
 export const updateUser = (req, res, next) => {
   User.findById(req.user.id, (err, user) => { // this should see if name is in member
@@ -176,7 +175,9 @@ export const updateUser = (req, res, next) => {
 
         user.email = req.body.email;
         user.name = req.body.name;
-        const { dash_number, allergies_dietary_restrictions, medical_conditions, clothe_size, shoe_size, height } = req.body;
+        const {
+          dash_number, allergies_dietary_restrictions, medical_conditions, clothe_size, shoe_size, height,
+        } = req.body;
         if (!isStringEmpty(dash_number)) {
           user.dash_number = dash_number;
         }
@@ -196,7 +197,7 @@ export const updateUser = (req, res, next) => {
           user.height = height;
         }
 
-        // Determine if approval is required. Approval is not required if user drops club. 
+        // Determine if approval is required. Approval is not required if user drops club.
         if (req.body.leader_for.length > user.leader_for.length) {
           user.has_pending_leader_change = true;
           user.requested_clubs = req.body.leader_for;
@@ -236,7 +237,7 @@ export const updateUser = (req, res, next) => {
         user.save()
           .then(() => {
             getUser(req, res);
-          })
+          });
       })
       .catch((error) => {
         console.log(error);
@@ -269,41 +270,43 @@ export const getLeaderRequests = (req, res) => {
       console.log(error);
       res.status(500).send(error.message);
     });
-}
+};
 
 export const respondToLeaderRequest = (req, res) => {
   User.findById(req.body.userId).populate('leader_for').populate('requested_clubs').exec()
     .then((user) => {
       if (req.body.status === 'approved') {
-        user.role = 'Leader';
+        if (user.role !== 'OPO') {
+          user.role = 'Leader';
+        }
         user.leader_for = user.requested_clubs;
         user.requested_clubs = [];
         user.has_pending_leader_change = false;
         user.save()
           .then((user) => {
             getLeaderRequests(req, res);
-          })
+          });
       } else {
         user.has_pending_leader_change = false;
         user.requested_clubs = [];
         user.save()
           .then((user) => {
             getLeaderRequests(req, res);
-          })
+          });
       }
     })
     .catch((error) => {
       console.log(error);
       res.status(500).send(error.message);
     });
-}
+};
 
 export const getCertRequests = (req, res) => {
   User.find({ has_pending_cert_change: true }).populate('leader_for').populate('requested_clubs').exec()
     .then((users) => {
       return res.json(users);
     });
-}
+};
 
 export const respondToCertRequest = (req, res) => {
   User.findById(req.body.userId).populate('leader_for').populate('requested_clubs').exec()
@@ -316,21 +319,21 @@ export const respondToCertRequest = (req, res) => {
         user.save()
           .then((user) => {
             getCertRequests(req, res);
-          })
+          });
       } else {
         user.has_pending_cert_change = false;
         user.requested_certs = {};
         user.save()
           .then((user) => {
             getCertrRequests(req, res);
-          })
+          });
       }
     })
     .catch((error) => {
       console.log(error);
       res.status(500).send(error.message);
     });
-}
+};
 
 
 function tokenForUser(user) {

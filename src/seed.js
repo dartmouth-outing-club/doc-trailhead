@@ -39,7 +39,7 @@ const fakeUsers = [
   //   driver_cert: 'MICROBUS',
   //   trailer_cert: true,
   // },
-  //emma
+  // emma
   // {
   //   casID: 'Emma P. Rafkin@DARTMOUTH.EDU',
   //   email: 'Emma.P.Rafkin.21@darmouth.edu',
@@ -53,7 +53,7 @@ const fakeUsers = [
   //   driver_cert: null,
   //   trailer_cert: false,
   // },
-  //prosper
+  // prosper
   {
     casID: 'Chikezie Onungwa@DARTMOUTH.EDU',
     email: 'chikezie.onungwa.21@dartmouth.edu',
@@ -68,7 +68,7 @@ const fakeUsers = [
     trailer_cert: false,
   },
 
-  //ACTUAL OPO OFFICE ACCOUNTS DONT DELETE
+  // ACTUAL OPO OFFICE ACCOUNTS DONT DELETE
   {
     casID: 'Julie C. Bell@DARTMOUTH.EDU',
     email: 'julie.c.bell@dartmouth.edu',
@@ -142,6 +142,19 @@ const fakeUsers = [
     role: 'OPO',
     leader_for: [],
     dash_number: '',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: false,
+  },
+  {
+    casID: 'Ashley Y. Song@DARTMOUTH.EDU',
+    email: 'ashley.y.song.21@dartmouth.edu',
+    password: '',
+    name: 'Ashley Song',
+    role: 'OPO',
+    leader_for: [],
+    dash_number: 'f00321n',
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: null,
@@ -270,7 +283,6 @@ const vehicles = [
 ];
 
 
-
 function seedDb() {
   VehicleRequests.deleteMany({})
     .then(() => {
@@ -301,7 +313,7 @@ function seedDb() {
                                         newUser.driver_cert = fakeUser.driver_cert;
                                         newUser.trailer_cert = fakeUser.trailer_cert;
                                         if (fakeUser.role === 'Leader') {
-                                          let clubIds = [];
+                                          const clubIds = [];
                                           clubs.map((club) => {
                                             clubIds.push(club._id);
                                           });
@@ -311,21 +323,21 @@ function seedDb() {
                                         }
                                         newUser.save();
                                       });
-                                    })
-                                })
+                                    });
+                                });
                             })
                             .then(() => {
                               console.log('seeded db. Press control+c to exit');
                               // process.exit();
-                            })
-                        })
-                    })
-                })
-            })
-        })
+                            });
+                        });
+                    });
+                });
+            });
+        });
     }).catch((error) => {
       console.log(error);
-    })
+    });
 }
 
 seedDb();
