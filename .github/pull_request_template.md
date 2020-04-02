@@ -24,6 +24,5 @@ Please attach screenshots or screen recordings if you made a UI change.
 
 ## Suggested Reviewers
 
-- Dev Mentor
-- Other Developer 1
-- Other Developer 2
+- Ziray Hao
+- Benedict Tedjokusumo
