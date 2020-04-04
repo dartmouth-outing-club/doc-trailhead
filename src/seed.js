@@ -312,10 +312,10 @@ function seedDb() {
                           Users.deleteMany({})
                             .then(() => {
                               Vehicles.insertMany(vehicles)
-                                .then((vehicles) => {
+                                .then(() => {
                                   Clubs.insertMany(clubs)
-                                    .then((clubs) => {
-                                      fakeUsers.map((fakeUser) => {
+                                    .then((insertedClubs) => {
+                                      fakeUsers.forEach((fakeUser) => {
                                         const newUser = new Users();
                                         newUser.casID = fakeUser.casID;
                                         newUser.email = fakeUser.email;
@@ -327,8 +327,8 @@ function seedDb() {
                                         newUser.trailer_cert = fakeUser.trailer_cert;
                                         if (fakeUser.role === 'Leader') {
                                           const clubIds = [];
-                                          clubs.map((club) => {
-                                            clubIds.push(club._id);
+                                          insertedClubs.forEach((insertedClub) => {
+                                            clubIds.push(insertedClub._id);
                                           });
                                           newUser.leader_for = clubIds;
                                         } else {
