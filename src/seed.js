@@ -55,6 +55,49 @@ const fakeUsers = [
   // },
   // prosper
   {
+    casID: null,
+    email: 'opo',
+    password: 'opo',
+    name: 'OPO Person',
+    role: 'OPO',
+    leader_for: [],
+    dash_number: '2222',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: true,
+  },
+
+  {
+    casID: null,
+    email: 'leader',
+    password: 'leader',
+    name: 'Trip Leader',
+    role: 'Leader',
+    leader_for: [],
+    dash_number: '2222',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: true,
+  },
+
+  {
+    casID: null,
+    email: 'trippee',
+    password: 'trippee',
+    name: 'A Trippee',
+    role: 'Trippee',
+    leader_for: [],
+    dash_number: '2222',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: false,
+  },
+
+
+  {
     casID: 'Chikezie Onungwa@DARTMOUTH.EDU',
     email: 'chikezie.onungwa.21@dartmouth.edu',
     password: 'test',
