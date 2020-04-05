@@ -9,15 +9,15 @@ import VehicleRequest from '../models/vehicle_request_model';
 dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
+  console.log(req.body);
   passport.authenticate('local', (err, user) => {
     if (err) { return err; }
     if (!user) {
       res.status(500).send('rejected');
-      return res.redirect('/');
     }
     User.findById(user.id).populate('leader_for').exec()
       .then((foundUser) => {
-        res.json(foundUser);
+        res.json({ token: tokenForUser(foundUser), user: foundUser });
       })
       .catch((error) => {
         res.status(500).send(error.message);
