@@ -9,6 +9,23 @@ import VehicleRequest from '../models/vehicle_request_model';
 dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
+  console.log(req.body);
+  passport.authenticate('local', (err, user) => {
+    if (err) { return err; }
+    if (!user) {
+      res.status(500).send('rejected');
+    }
+    User.findById(user.id).populate('leader_for').exec()
+      .then((foundUser) => {
+        res.json({ token: tokenForUser(foundUser), user: foundUser });
+      })
+      .catch((error) => {
+        res.status(500).send(error.message);
+      });
+  })(req, res, next);
+};
+
+export const signinCAS = (req, res, next) => {
   passport.authenticate('cas', (err, user, info) => {
     if (err) { return err; }
     if (!user) {
@@ -122,6 +139,14 @@ export const myTrips = (req, res) => {
     });
 };
 
+const isStringEmpty = (string) => {
+  return string.length === 0;
+};
+
+const isInfoEmpty = (string) => {
+  return !string || string.length === 0 || !string.toString().trim();
+};
+
 export const getUser = (req, res) => {
   User.findById(req.user.id).populate('leader_for').populate('requested_clubs').exec()
     .then((user) => {
@@ -139,14 +164,6 @@ export const getUser = (req, res) => {
       console.log(error);
       res.status(406).send(error.message);
     });
-};
-
-const isStringEmpty = (string) => {
-  return string.length === 0;
-};
-
-const isInfoEmpty = (string) => {
-  return !string || string.length === 0 || !string.toString().trim();
 };
 
 export const updateUser = (req, res, next) => {
