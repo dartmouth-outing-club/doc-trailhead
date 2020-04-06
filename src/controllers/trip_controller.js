@@ -200,6 +200,7 @@ export const joinTrip = (req, res) => {
           trip.pending.splice(index, 1);
         }
       });
+      console.log(trip.members);
       trip.save()
         .then(() => {
           getTrip(req, res);
@@ -235,6 +236,7 @@ export const moveToPending = (req, res) => {
         return member.user.id === req.body.member.user.id;
       });
       trip.pending.push(req.body.member);
+      console.log(trip.pending);
       trip.save()
         .then(() => {
           getTrip(req, res);

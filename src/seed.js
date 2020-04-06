@@ -394,6 +394,12 @@ function seedDb() {
                                         newUser.dash_number = fakeUser.dash_number;
                                         newUser.driver_cert = fakeUser.driver_cert;
                                         newUser.trailer_cert = fakeUser.trailer_cert;
+
+                                        newUser.clothe_size = 'S';
+                                        newUser.shoe_size = 1;
+                                        newUser.height = '6';
+                                        newUser.allergies_dietary_restrictions = 'none';
+                                        newUser.medical_conditions = 'Not a real human';
                                         if (fakeUser.role === 'Leader') {
                                           const clubIds = [];
                                           insertedClubs.forEach((insertedClub) => {
