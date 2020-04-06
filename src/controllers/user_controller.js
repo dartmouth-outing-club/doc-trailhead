@@ -9,7 +9,6 @@ import VehicleRequest from '../models/vehicle_request_model';
 dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
-  console.log(req.body);
   passport.authenticate('local', (err, user) => {
     if (err) { return err; }
     if (!user) {

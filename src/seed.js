@@ -64,7 +64,7 @@ const fakeUsers = [
     dash_number: '2222',
     has_pending_leader_change: false,
     has_pending_cert_change: false,
-    driver_cert: null,
+    driver_cert: 'MICROBUS',
     trailer_cert: true,
   },
 
@@ -78,22 +78,48 @@ const fakeUsers = [
     dash_number: '2222',
     has_pending_leader_change: false,
     has_pending_cert_change: false,
-    driver_cert: null,
+    driver_cert: 'MICROBUS',
     trailer_cert: true,
   },
 
   {
     casID: null,
-    email: 'trippee',
-    password: 'trippee',
-    name: 'A Trippee',
+    email: 'trippee1',
+    password: 'trippee1',
+    name: 'Trippee 1',
+    role: 'Trippee',
+    leader_for: [],
+    dash_number: '1111',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: 'MICROBUS',
+    trailer_cert: true,
+  },
+  {
+    casID: null,
+    email: 'trippee2',
+    password: 'trippee2',
+    name: 'Trippee 2',
     role: 'Trippee',
     leader_for: [],
     dash_number: '2222',
     has_pending_leader_change: false,
     has_pending_cert_change: false,
-    driver_cert: null,
+    driver_cert: 'VAN',
     trailer_cert: false,
+  },
+  {
+    casID: null,
+    email: 'trippee3',
+    password: 'trippee3',
+    name: 'Trippee 3',
+    role: 'Trippee',
+    leader_for: [],
+    dash_number: '3333',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: true,
   },
 
 
@@ -368,6 +394,12 @@ function seedDb() {
                                         newUser.dash_number = fakeUser.dash_number;
                                         newUser.driver_cert = fakeUser.driver_cert;
                                         newUser.trailer_cert = fakeUser.trailer_cert;
+
+                                        newUser.clothe_size = 'S';
+                                        newUser.shoe_size = 1;
+                                        newUser.height = '6';
+                                        newUser.allergies_dietary_restrictions = 'none';
+                                        newUser.medical_conditions = 'Not a real human';
                                         if (fakeUser.role === 'Leader') {
                                           const clubIds = [];
                                           insertedClubs.forEach((insertedClub) => {
