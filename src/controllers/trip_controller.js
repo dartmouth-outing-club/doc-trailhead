@@ -48,11 +48,13 @@ export const createTrip = async (req, res) => {
   trip.leaders = [];
   trip.pending = [];
   trip.leaders.push(req.user._id);
+  trip.members.push({ user: req.user._id, gear: {} });
   User.find({ email: { $in: req.body.leaders } })
     .then((users) => {
       users.forEach((user) => {
         if (user._id !== req.user._id) {
           trip.leaders.push(user._id);
+          trip.members.push(user._id);
         }
       });
     })
@@ -79,35 +81,40 @@ export const getTrips = (req, res) => {
 };
 
 export const getTrip = (req, res) => {
-  Trip.findById(req.params.id).populate('club').populate('leaders').populate('vehicleRequest').populate({
-    path: 'members.user',
-    model: 'User',
-  }).populate({
-    path: 'pending.user',
-    model: 'User',
-  }).populate({
-    path: 'vehicleRequest',
-    populate: {
-      path: 'assignments',
-      model: 'Assignment',
-    }
-  }).populate({
-    path: 'vehicleRequest',
-    populate: {
-      path: 'assignments',
+  Trip.findById(req.params.id).populate('club').populate('leaders').populate('vehicleRequest')
+    .populate({
+      path: 'members.user',
+      model: 'User',
+    })
+    .populate({
+      path: 'pending.user',
+      model: 'User',
+    })
+    .populate({
+      path: 'vehicleRequest',
       populate: {
-        path: 'assigned_vehicle',
-        model: 'Vehicle',
-      }
-    }
-  }).exec()
+        path: 'assignments',
+        model: 'Assignment',
+      },
+    })
+    .populate({
+      path: 'vehicleRequest',
+      populate: {
+        path: 'assignments',
+        populate: {
+          path: 'assigned_vehicle',
+          model: 'Vehicle',
+        },
+      },
+    })
+    .exec()
     .then((trip) => {
       const isPending = trip.pending.some((pender) => {
         return pender.user.equals(req.user.id);
       });
 
       const isOnTrip = trip.members.some((member) => {
-        return member.user.equals(req.user.id);
+        return member._id.equals(req.user.id);
       });
       let userTripStatus = '';
       if (isPending) {
@@ -145,7 +152,7 @@ export const addToPending = (req, res) => {
       trip.save()
         .then(() => {
           getTrip(req, res);
-        })
+        });
     })
     .catch((error) => {
       res.status(500).send(error.message);
@@ -159,10 +166,10 @@ export const editUserGear = (req, res) => {
     .then((trip) => {
       trip.pending.some((pender) => {
         if (pender.user._id.equals(req.user._id)) {
-          pender.gear = trippeeGear
+          pender.gear = trippeeGear;
         }
         return pender.user._id.equals(req.user._id);
-      })
+      });
       trip.save()
         .then(() => {
           getTrip(req, res);
@@ -171,7 +178,7 @@ export const editUserGear = (req, res) => {
     .catch((error) => {
       res.status(500).send(error.message);
     });
-}
+};
 
 export const joinTrip = (req, res) => {
   const { id } = req.params;
@@ -185,7 +192,7 @@ export const joinTrip = (req, res) => {
           if (pendGear.gearId === gear.id) {
             gear.quantity += 1;
           }
-        })
+        });
       });
       // remove user from pending list
       trip.pending.forEach((pender, index) => {
@@ -195,7 +202,7 @@ export const joinTrip = (req, res) => {
       });
       trip.save()
         .then(() => {
-          getTrip(req, res)
+          getTrip(req, res);
         });
     })
     .catch((error) => {
@@ -211,7 +218,8 @@ export const moveToPending = (req, res) => {
   }).populate({
     path: 'pending.user',
     model: 'User',
-  }).exec()
+  })
+    .exec()
     .then((trip) => {
       trip.members.some((member, index) => {
         if (member.user._id.equals(req.body.member.user._id)) {
@@ -220,7 +228,7 @@ export const moveToPending = (req, res) => {
               if (memberGear.gearId === gear.id) {
                 gear.quantity -= 1;
               }
-            })
+            });
           });
           trip.members.splice(index, 1);
         }
@@ -229,14 +237,14 @@ export const moveToPending = (req, res) => {
       trip.pending.push(req.body.member);
       trip.save()
         .then(() => {
-          getTrip(req, res)
+          getTrip(req, res);
         });
     })
     .catch((error) => {
       console.log(error);
       res.status(500).send(error.message);
     });
-}
+};
 
 export const leaveTrip = (req, res) => {
   Trip.findById(req.params.id).populate('leaders').populate({
@@ -252,7 +260,7 @@ export const leaveTrip = (req, res) => {
                 if (memberGear.gearId === gear.id) {
                   gear.quantity -= 1;
                 }
-              })
+              });
             });
             trip.members.splice(index, 1);
           }
@@ -269,7 +277,7 @@ export const leaveTrip = (req, res) => {
       trip.save()
         .then(() => {
           getTrip(req, res);
-        })
+        });
     })
     .catch((error) => {
       res.status(500).send(error.message);
@@ -313,7 +321,7 @@ export const updateTrip = async (req, res) => {
       trip.cost = req.body.cost;
       trip.experienceNeeded = req.body.experienceNeeded;
       trip.OPOGearRequests = req.body.gearRequests;
-      trip.trippeeGear = req.body.trippeeGear
+      trip.trippeeGear = req.body.trippeeGear;
       trip.pcard = req.body.pcard;
       if (trip.gearStatus === 'N/A' && req.body.gearRequests.length > 0) {
         trip.gearStatus = 'pending';
@@ -348,7 +356,7 @@ export const updateTrip = async (req, res) => {
         trip.vehicleRequest = savedVehicleRequest;
       }
       if (trip.vehicleStatus === 'pending' && req.body.vehicles.length === 0) {
-        await VehicleRequest.deleteOne({ '_id': req.body.vehicleReqId });
+        await VehicleRequest.deleteOne({ _id: req.body.vehicleReqId });
         trip.vehicleStatus = 'N/A';
       }
       const coleaders = await User.find({ email: { $in: req.body.leaders } }).exec();
@@ -356,7 +364,7 @@ export const updateTrip = async (req, res) => {
       allLeaders.push(trip.leaders[0]);
       coleaders.forEach((coleader) => {
         allLeaders.push(coleader._id);
-      })
+      });
       trip.leaders = allLeaders;
       await trip.save();
       getTrip(req, res);
@@ -391,7 +399,8 @@ export const getGearRequests = (req, res) => {
   Trip.find({ gearStatus: { $not: { $in: ['N/A'] } } }).populate('leaders').populate('club').populate({
     path: 'members.user',
     model: 'User',
-  }).exec()
+  })
+    .exec()
     .then((gearRequests) => {
       return res.json(gearRequests);
     });
@@ -428,11 +437,12 @@ export const getOPOTrips = (req, res) => {
       { gearStatus: { $ne: 'N/A' } },
       { pcardStatus: { $ne: 'N/A' } },
       { vehicleStatus: { $ne: 'N/A' } },
-    ]
-  }).populate('leaders').populate('club').populate('vehicleRequest').populate({
-    path: 'members.user',
-    model: 'User',
-  })
+    ],
+  }).populate('leaders').populate('club').populate('vehicleRequest')
+    .populate({
+      path: 'members.user',
+      model: 'User',
+    })
     .then((trips) => {
       res.json(trips);
     });
@@ -445,7 +455,7 @@ export const respondToTrippeeGearRequest = (req, res) => {
       trip.save()
         .then(() => {
           getTrip(req, res);
-        })
+        });
     }).catch((error) => {
       res.status(500).send(error);
     });
@@ -459,7 +469,7 @@ export const respondToPCardRequest = (req, res) => {
       trip.save()
         .then(() => {
           getTrip(req, res);
-        })
+        });
     }).catch((error) => {
       res.status(500).send(error);
     });
