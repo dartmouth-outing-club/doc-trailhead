@@ -395,8 +395,9 @@ function seedDb() {
                                         newUser.driver_cert = fakeUser.driver_cert;
                                         newUser.trailer_cert = fakeUser.trailer_cert;
 
-                                        newUser.clothe_size = 'S';
-                                        newUser.shoe_size = 1;
+                                        newUser.pronoun = 'they/them/their';
+                                        newUser.clothe_size = 'Men-S';
+                                        newUser.shoe_size = 'Men-2';
                                         newUser.height = '6';
                                         newUser.allergies_dietary_restrictions = 'none';
                                         newUser.medical_conditions = 'Not a real human';
