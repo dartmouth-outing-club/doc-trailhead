@@ -56,7 +56,7 @@ const fakeUsers = [
   // prosper
   {
     casID: null,
-    email: 'opo',
+    email: 'opo@dartmouth.edu',
     password: 'opo',
     name: 'OPO Person',
     role: 'OPO',
@@ -70,7 +70,7 @@ const fakeUsers = [
 
   {
     casID: null,
-    email: 'leader',
+    email: 'leader@dartmouth.edu',
     password: 'leader',
     name: 'Trip Leader',
     role: 'Leader',
@@ -84,7 +84,7 @@ const fakeUsers = [
 
   {
     casID: null,
-    email: 'trippee1',
+    email: 'trippee1@dartmouth.edu',
     password: 'trippee1',
     name: 'Trippee 1',
     role: 'Trippee',
@@ -97,7 +97,7 @@ const fakeUsers = [
   },
   {
     casID: null,
-    email: 'trippee2',
+    email: 'trippee2@dartmouth.edu',
     password: 'trippee2',
     name: 'Trippee 2',
     role: 'Trippee',
@@ -110,7 +110,7 @@ const fakeUsers = [
   },
   {
     casID: null,
-    email: 'trippee3',
+    email: 'trippee3@dartmouth.edu',
     password: 'trippee3',
     name: 'Trippee 3',
     role: 'Trippee',
