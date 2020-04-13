@@ -13,14 +13,15 @@ export const signin = (req, res, next) => {
     if (err) { return err; }
     if (!user) {
       res.status(500).send('rejected');
+    } else {
+      User.findById(user.id).populate('leader_for').exec()
+        .then((foundUser) => {
+          res.json({ token: tokenForUser(foundUser), user: foundUser });
+        })
+        .catch((error) => {
+          res.status(500).send(error.message);
+        });
     }
-    User.findById(user.id).populate('leader_for').exec()
-      .then((foundUser) => {
-        res.json({ token: tokenForUser(foundUser), user: foundUser });
-      })
-      .catch((error) => {
-        res.status(500).send(error.message);
-      });
   })(req, res, next);
 };
 

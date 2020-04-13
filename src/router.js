@@ -46,6 +46,8 @@ router.get('/userTrips', requireAuth, Users.userTrips);
 
 router.post('/sendEmailToTrip', sendEmailToTrip);
 
+// router.get('/isOnTrip/:tripID', requireAuth, Trips.isOnTrip);
+
 router.route('/club')
   .post(Clubs.createClub)
   .get(Clubs.allClubs);
