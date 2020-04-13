@@ -14,6 +14,7 @@ const AssignmentSchema = new Schema({
   assigned_vehicle: { type: Schema.Types.ObjectId, ref: 'Vehicle' },
   pickedUp: { type: Boolean, default: false },
   returned: { type: Boolean, default: false },
+  conflicts: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }],
 });
 
 AssignmentSchema.set('toJSON', {
