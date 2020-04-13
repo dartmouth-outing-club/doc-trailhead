@@ -60,8 +60,8 @@ const processAssignment = async (vehicleRequest, assignment) => {
         };
       }
     }
-    const vehicleInArray = await Vehicle.find({ name: assignment.assignedVehicle }).populate('bookings').exec();
-    const vehicle = vehicleInArray[0];
+    const vehicleInArray = await Vehicle.findOne({ name: assignment.assignedVehicle }).populate('bookings').exec();
+    const vehicle = vehicleInArray;
     let selectedVehicleBookings;
     let existingAssignment;
 
