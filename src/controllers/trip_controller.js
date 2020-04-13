@@ -37,6 +37,7 @@ export const createTrip = async (req, res) => {
     const vehicleRequest = new VehicleRequest();
     vehicleRequest.requester = req.user._id;
     vehicleRequest.mileage = req.body.mileage;
+    vehicleRequest.requestDetails = req.body.description;
     vehicleRequest.associatedTrip = trip;
     vehicleRequest.requestType = 'TRIP';
     vehicleRequest.requestedVehicles = req.body.vehicles;
