@@ -10,6 +10,40 @@ const createDateObject = (date, time) => {
   return new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
 };
 
+const isConflicting = (selectedVehicleBookings, assignment) => {
+  const bookingsWithDateAndTime = selectedVehicleBookings.map((booking) => {
+    const updates = {};
+    updates.pickupDateAndTime = createDateObject(booking.assigned_pickupDate, booking.assigned_pickupTime);
+    updates.returnDateAndTime = createDateObject(booking.assigned_returnDate, booking.assigned_returnTime);
+    return Object.assign({}, booking, updates);
+  });
+
+  const assignmentUpdates = {};
+  assignmentUpdates.pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+  assignmentUpdates.returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+  const assignmentWithDateAndTime = Object.assign({}, assignment, assignmentUpdates);
+
+  bookingsWithDateAndTime.push(assignmentWithDateAndTime);
+
+  bookingsWithDateAndTime.sort((booking1, booking2) => {
+    if (booking1.pickupDateAndTime < booking2.pickupDateAndTime) {
+      return -1;
+    }
+    if (booking1.pickupDateAndTime > booking2.pickupDateAndTime) {
+      return 1;
+    }
+    return 0;
+  });
+  const conflictsWithEvent = bookingsWithDateAndTime.some((booking, index, array) => {
+    let conflict = false;
+    if (index < array.length - 1) {
+      conflict = booking.returnDateAndTime >= array[index + 1].pickupDateAndTime;
+    }
+    return conflict;
+  });
+  return conflictsWithEvent;
+};
+
 const processAssignment = async (vehicleRequest, assignment) => {
   try {
     if (assignment.assignedVehicle !== 'Enterprise') {
@@ -46,7 +80,12 @@ const processAssignment = async (vehicleRequest, assignment) => {
 
     const conflictsWithEvent = assignment.assignedVehicle === 'Enterprise' ? false : isConflicting(selectedVehicleBookings, assignment);
 
+    const conflictingEvents = vehicle.bookings.filter((booking) => {
+      return isConflicting(booking, assignment);
+    });
+
     if (conflictsWithEvent) {
+      console.log('conflict');
       return {
         error: 'Proposed assignment conflicts with already existing one',
         conflictingEvents,
@@ -235,40 +274,6 @@ export const respondToVehicleRequest = async (req, res) => {
   }
 };
 
-const isConflicting = (selectedVehicleBookings, assignment) => {
-  const bookingsWithDateAndTime = selectedVehicleBookings.map((booking) => {
-    const updates = {};
-    updates.pickupDateAndTime = createDateObject(booking.assigned_pickupDate, booking.assigned_pickupTime);
-    updates.returnDateAndTime = createDateObject(booking.assigned_returnDate, booking.assigned_returnTime);
-    return Object.assign({}, booking, updates);
-  });
-
-  const assignmentUpdates = {};
-  assignmentUpdates.pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
-  assignmentUpdates.returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
-  const assignmentWithDateAndTime = Object.assign({}, assignment, assignmentUpdates);
-
-  bookingsWithDateAndTime.push(assignmentWithDateAndTime);
-
-  bookingsWithDateAndTime.sort((booking1, booking2) => {
-    if (booking1.pickupDateAndTime < booking2.pickupDateAndTime) {
-      return -1;
-    }
-    if (booking1.pickupDateAndTime > booking2.pickupDateAndTime) {
-      return 1;
-    }
-    return 0;
-  });
-  const conflictsWithEvent = bookingsWithDateAndTime.some((booking, index, array) => {
-    let isConflicting = false;
-    if (index < array.length - 1) {
-      isConflicting = booking.returnDateAndTime >= array[index + 1].pickupDateAndTime;
-    }
-    return isConflicting;
-  });
-  return conflictsWithEvent;
-};
-
 export const cancelAssignments = async (req, res) => {
   try {
     const { toBeDeleted } = req.body.deleteInfo;
@@ -316,7 +321,7 @@ export const denyVehicleRequest = async (req, res) => {
     const vehicleRequest = await VehicleRequest.findById(req.params.id).exec();
     vehicleRequest.status = 'denied';
     if (vehicleRequest.requestType === 'TRIP') {
-      const associatedTrip = await Trip.findById(vehichleRequest.associatedTrip).exec();
+      const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).exec();
       associatedTrip.vehicleStatus = 'denied';
       await associatedTrip.save();
     }
