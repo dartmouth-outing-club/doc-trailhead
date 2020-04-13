@@ -78,11 +78,17 @@ const processAssignment = async (vehicleRequest, assignment) => {
       selectedVehicleBookings = vehicle.bookings;
     }
 
+    console.log(assignment);
+
     const conflictsWithEvent = assignment.assignedVehicle === 'Enterprise' ? false : isConflicting(selectedVehicleBookings, assignment);
 
+    console.log('the first isConflicting passed');
+
     const conflictingEvents = vehicle.bookings.filter((booking) => {
-      return isConflicting(booking, assignment);
+      return isConflicting(selectedVehicleBookings, assignment);
     });
+
+    console.log('the second isConflicting passed');
 
     if (conflictsWithEvent) {
       console.log('conflict');
