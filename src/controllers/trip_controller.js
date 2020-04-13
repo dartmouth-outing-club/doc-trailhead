@@ -38,13 +38,13 @@ export const createTrip = (req, res) => {
     vehicleRequest.requester = req.user._id;
     vehicleRequest.mileage = req.body.mileage;
     vehicleRequest.requestDetails = req.body.description;
-    // vehicleRequest.associatedTrip = trip;
+    vehicleRequest.associatedTrip = null;
     vehicleRequest.requestType = 'TRIP';
     vehicleRequest.requestedVehicles = req.body.vehicles;
     vehicleRequest.save().then((savedVehicleRequest) => {
       trip.vehicleStatus = 'pending';
       trip.vehicleRequest = savedVehicleRequest;
-    });
+    }).catch((error) => { return console.log(error); });
   }
   trip.members = [];
   trip.leaders = [];
@@ -62,15 +62,14 @@ export const createTrip = (req, res) => {
           resolve();
         });
       })).then(() => {
-        trip.save()
-          .then((savedTrip) => {
-            VehicleRequest.findById(trip.vehicleRequest.id).then((foundAssociatedVehicleRequest) => {
-              foundAssociatedVehicleRequest.associatedTrip = savedTrip;
-              foundAssociatedVehicleRequest.save(() => {
-                res.json(savedTrip.vehicleRequest);
-              });
-            });
+        trip.save().then((savedTrip) => {
+          console.log(savedTrip._id);
+          VehicleRequest.findByIdAndUpdate({ _id: savedTrip.vehicleRequest.id }, { associatedTrip: savedTrip._id }).then((updatedVehicleRequest) => {
+            res.json(updatedVehicleRequest);
+          }).catch(() => {
+            res.send('Trip created without vehicle requests');
           });
+        });
       });
     })
     .catch((error) => {
