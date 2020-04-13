@@ -11,6 +11,9 @@ const createDateObject = (date, time) => {
 };
 
 const isConflicting = (selectedVehicleBookings, assignment) => {
+  /**
+   * Transforms {selectedVehicleBookings} to a simpler {bookingsWithDateAndTime} object with only times.
+   */
   const bookingsWithDateAndTime = selectedVehicleBookings.map((booking) => {
     const updates = {};
     updates.pickupDateAndTime = createDateObject(booking.assigned_pickupDate, booking.assigned_pickupTime);
@@ -18,6 +21,9 @@ const isConflicting = (selectedVehicleBookings, assignment) => {
     return Object.assign({}, booking, updates);
   });
 
+  /**
+   * Transforms {assignment} object to simpler {assignmentWithDateAndTime} object with only times.
+   */
   const assignmentUpdates = {};
   assignmentUpdates.pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
   assignmentUpdates.returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
@@ -34,126 +40,128 @@ const isConflicting = (selectedVehicleBookings, assignment) => {
     }
     return 0;
   });
-  const conflictsWithEvent = bookingsWithDateAndTime.some((booking, index, array) => {
-    let conflict = false;
-    if (index < array.length - 1) {
-      conflict = booking.returnDateAndTime >= array[index + 1].pickupDateAndTime;
+  const conflicts = [];
+  bookingsWithDateAndTime.forEach((booking, index, array) => {
+    let traverser = index + 1;
+    while (traverser < array.length - 1) {
+      console.log('array length', array.length);
+      console.log('traverser', traverser);
+      if (booking.returnDateAndTime > array[traverser].pickupDateAndTime) {
+        conflicts.push(array[traverser]);
+      }
+      traverser += 1;
     }
-    return conflict;
   });
-  return conflictsWithEvent;
+  console.log(conflicts);
+  return conflicts;
 };
 
-const processAssignment = async (vehicleRequest, assignment) => {
-  try {
-    if (assignment.assignedVehicle !== 'Enterprise') {
-      const pickupDate = new Date(assignment.pickupDate);
-      const pickupTime = assignment.pickupTime.split(':');
-      pickupDate.setHours(pickupTime[0], pickupTime[1]);
-      const returnDate = new Date(assignment.returnDate);
-      const returnTime = assignment.returnTime.split(':');
-      returnDate.setHours(returnTime[0], returnTime[1]);
-      if (returnDate < pickupDate) {
-        return {
-          error: 'Pickup date must be earlier than return date',
-          assignment,
-        };
-      }
-    }
-    const vehicleInArray = await Vehicle.findOne({ name: assignment.assignedVehicle }).populate('bookings').exec();
-    const vehicle = vehicleInArray;
-    let selectedVehicleBookings;
-    let existingAssignment;
-
-    if (assignment.existingAssignment) {
-      existingAssignment = await Assignment.findById(assignment.id).populate('assigned_vehicle').exec();
-      if (existingAssignment.assigned_vehicle.name === assignment.assignedVehicle) { // vehicle was not changed
-        selectedVehicleBookings = vehicle.bookings.filter((booking) => { // remove modified assignment to avoid conflicting with self when checking for validity
-          return booking.id !== assignment.id;
-        });
-      } else { // vehicle was changed
-        selectedVehicleBookings = vehicle.bookings; // no need to remove because assignment does not exist in new assigned vehicle
-      }
-    } else { // is new response
-      selectedVehicleBookings = vehicle.bookings;
-    }
-
-    console.log(assignment);
-
-    const conflictsWithEvent = assignment.assignedVehicle === 'Enterprise' ? false : isConflicting(selectedVehicleBookings, assignment);
-
-    console.log('the first isConflicting passed');
-
-    const conflictingEvents = vehicle.bookings.filter((booking) => {
-      return isConflicting(selectedVehicleBookings, assignment);
-    });
-
-    console.log('the second isConflicting passed');
-
-    if (conflictsWithEvent) {
-      console.log('conflict');
-      return {
-        error: 'Proposed assignment conflicts with already existing one',
-        conflictingEvents,
-        assignment,
-      };
-    } else if (assignment.existingAssignment) {
+const processAssignment = (vehicleRequest, assignment) => {
+  return new Promise(async (resolve, reject) => {
+    try {
       if (assignment.assignedVehicle !== 'Enterprise') {
-        existingAssignment.assigned_pickupDate = assignment.pickupDate;
-        existingAssignment.assigned_pickupTime = assignment.pickupTime;
-        const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
-        existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
-
-        existingAssignment.assigned_returnDate = assignment.returnDate;
-        existingAssignment.assigned_returnTime = assignment.returnTime;
-        const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
-        existingAssignment.assigned_returnDateAndTime = returnDateAndTime;
-
-        existingAssignment.assigned_key = assignment.assignedKey;
-        existingAssignment.pickedUp = assignment.pickedUp;
-        existingAssignment.returned = assignment.returned;
+        const pickupDate = new Date(assignment.pickupDate);
+        const pickupTime = assignment.pickupTime.split(':');
+        pickupDate.setHours(pickupTime[0], pickupTime[1]);
+        const returnDate = new Date(assignment.returnDate);
+        const returnTime = assignment.returnTime.split(':');
+        returnDate.setHours(returnTime[0], returnTime[1]);
+        if (returnDate < pickupDate) {
+          resolve({
+            error: 'Pickup date must be earlier than return date',
+            assignment,
+          });
+        }
       }
-      if (existingAssignment.assigned_vehicle.name !== assignment.assignedVehicle) {
-        vehicle.bookings.push(existingAssignment);
-        await vehicle.save();
-        await Vehicle.updateOne({ _id: existingAssignment.assigned_vehicle._id }, { $pull: { bookings: existingAssignment._id } }); // remove assignment from previously assigned vehicle
-      }
-      existingAssignment.assigned_vehicle = vehicle;
-      const updatedAssignment = await existingAssignment.save();
-      return updatedAssignment;
-    } else {
-      const newAssignment = new Assignment();
-      newAssignment.request = vehicleRequest;
-      newAssignment.assigned_vehicle = vehicle;
-      newAssignment.requester = vehicleRequest.requester;
-      newAssignment.responseIndex = assignment.responseIndex;
+      Vehicle.findOne({ name: assignment.assignedVehicle }).populate('bookings').exec().then((vehicle) => {
+        let selectedVehicleBookings;
+        let existingAssignment;
 
-      if (assignment.assignedVehicle !== 'Enterprise') {
-        newAssignment.assigned_pickupDate = assignment.pickupDate;
-        newAssignment.assigned_pickupTime = assignment.pickupTime;
-        const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
-        newAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
+        if (assignment.existingAssignment) {
+          Assignment.findById(assignment.id).populate('assigned_vehicle').exec().then((foundAssignment) => {
+            existingAssignment = foundAssignment;
+            if (existingAssignment.assigned_vehicle.name === assignment.assignedVehicle) { // vehicle was not changed
+              selectedVehicleBookings = vehicle.bookings.filter((booking) => { // remove modified assignment to avoid conflicting with self when checking for validity
+                return booking.id !== assignment.id;
+              });
+            } else { // vehicle was changed
+              selectedVehicleBookings = vehicle.bookings; // no need to remove because assignment does not exist in new assigned vehicle
+            }
+          });
+        } else { // is new response
+          selectedVehicleBookings = vehicle.bookings;
+        }
 
-        newAssignment.assigned_returnDate = assignment.returnDate;
-        newAssignment.assigned_returnTime = assignment.returnTime;
-        const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
-        newAssignment.assigned_returnDateAndTime = returnDateAndTime;
+        const conflicts = assignment.assignedVehicle === 'Enterprise' ? [] : isConflicting(selectedVehicleBookings, assignment);
 
-        newAssignment.assigned_key = assignment.assignedKey;
-      }
+        if (conflicts.length > 0) {
+          resolve({
+            error: 'Proposed assignment conflicts with already existing one',
+            assignment,
+            conflicts,
+          });
+        } else if (assignment.existingAssignment) {
+          if (assignment.assignedVehicle !== 'Enterprise') {
+            existingAssignment.assigned_pickupDate = assignment.pickupDate;
+            existingAssignment.assigned_pickupTime = assignment.pickupTime;
+            const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+            existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
 
-      const savedAssignment = await newAssignment.save();
-      vehicle.bookings.push(savedAssignment);
-      await vehicle.save();
-      return savedAssignment;
+            existingAssignment.assigned_returnDate = assignment.returnDate;
+            existingAssignment.assigned_returnTime = assignment.returnTime;
+            const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+            existingAssignment.assigned_returnDateAndTime = returnDateAndTime;
+
+            existingAssignment.assigned_key = assignment.assignedKey;
+            existingAssignment.pickedUp = assignment.pickedUp;
+            existingAssignment.returned = assignment.returned;
+          }
+          if (existingAssignment.assigned_vehicle.name !== assignment.assignedVehicle) {
+            vehicle.bookings.push(existingAssignment);
+            vehicle.save().then(() => {
+              Vehicle.updateOne({ _id: existingAssignment.assigned_vehicle._id }, { $pull: { bookings: existingAssignment._id } }); // remove assignment from previously assigned vehicle
+            });
+          }
+          existingAssignment.assigned_vehicle = vehicle;
+          existingAssignment.save().then((updatedAssignment) => {
+            resolve(updatedAssignment);
+          });
+        } else {
+          const newAssignment = new Assignment();
+          newAssignment.request = vehicleRequest;
+          newAssignment.assigned_vehicle = vehicle;
+          newAssignment.requester = vehicleRequest.requester;
+          newAssignment.responseIndex = assignment.responseIndex;
+
+          if (assignment.assignedVehicle !== 'Enterprise') {
+            newAssignment.assigned_pickupDate = assignment.pickupDate;
+            newAssignment.assigned_pickupTime = assignment.pickupTime;
+            const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+            newAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
+
+            newAssignment.assigned_returnDate = assignment.returnDate;
+            newAssignment.assigned_returnTime = assignment.returnTime;
+            const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+            newAssignment.assigned_returnDateAndTime = returnDateAndTime;
+
+            newAssignment.assigned_key = assignment.assignedKey;
+          }
+
+          newAssignment.save().then((savedAssignment) => {
+            vehicle.bookings.push(savedAssignment);
+            vehicle.save().then(() => {
+              resolve(savedAssignment);
+            });
+          });
+        }
+      });
+    } catch (error) {
+      reject(error);
     }
-  } catch (error) {
-    console.log(error);
-    res.status(500).send(error);
-  }
+  });
 };
 
-const getArrayofProcessedAssignments = async (proposedAssignments, vehicleRequest) => {
+const getArrayofProcessedAssignments = (proposedAssignments, vehicleRequest) => {
   return Promise.all(proposedAssignments.map(async (assignment) => {
     return processAssignment(vehicleRequest, assignment);
   }));
@@ -237,47 +245,57 @@ export const updateVehicleRequest = (req, res) => {
 };
 
 export const respondToVehicleRequest = async (req, res) => {
-  try {
-    const vehicleRequest = await VehicleRequest.findById(req.params.id).exec();
-    const proposedAssignments = req.body.assignments;
-    const processedAssignments = await getArrayofProcessedAssignments(proposedAssignments, vehicleRequest);
-
-    const validAssignments = processedAssignments.filter((assignment) => {
-      return !assignment.error;
-    });
-    const invalidAssignments = processedAssignments.filter((assignment) => {
-      return assignment.error;
-    });
-    vehicleRequest.assignments = validAssignments;
-    vehicleRequest.status = 'approved';
-    if (vehicleRequest.requestType === 'TRIP') {
-      const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).exec();
-      associatedTrip.vehicleStatus = 'approved';
-      await associatedTrip.save();
+  return new Promise((resolve, reject) => {
+    try {
+      VehicleRequest.findById(req.params.id).exec().then((vehicleRequest) => {
+        const proposedAssignments = req.body.assignments;
+        getArrayofProcessedAssignments(proposedAssignments, vehicleRequest).then(async (processedAssignments) => {
+          const validAssignments = processedAssignments.filter((assignment) => {
+            return !assignment.error;
+          });
+          const invalidAssignments = processedAssignments.filter((assignment) => {
+            return assignment.error;
+          });
+          vehicleRequest.assignments = validAssignments;
+          vehicleRequest.status = 'approved';
+          if (vehicleRequest.requestType === 'TRIP') {
+            Trip.findById(vehicleRequest.associatedTrip).exec().then(async (associatedTrip) => {
+              associatedTrip.vehicleStatus = 'approved';
+              await associatedTrip.save(); // needs await because of multi-path async
+            });
+          }
+          vehicleRequest.save().then((savedVehicleRequest) => {
+            VehicleRequest.findById(savedVehicleRequest.id).populate('requester')
+              .populate('associatedTrip')
+              .populate('assignments')
+              .populate({
+                path: 'requester',
+                populate: {
+                  path: 'leader_for',
+                  model: 'Club',
+                },
+              })
+              .populate({
+                path: 'assignments',
+                populate: {
+                  path: 'assigned_vehicle',
+                  model: 'Vehicle',
+                },
+              })
+              .exec()
+              .then((updatedVehicleRequest) => {
+                const output = (invalidAssignments.length === 0) ? { updatedVehicleRequest } : { updatedVehicleRequest, invalidAssignments };
+                console.log(output);
+                return res.json(output);
+              });
+          });
+        });
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send(error);
     }
-    await vehicleRequest.save();
-    const updatedVehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments')
-      .populate({
-        path: 'requester',
-        populate: {
-          path: 'leader_for',
-          model: 'Club',
-        },
-      })
-      .populate({
-        path: 'assignments',
-        populate: {
-          path: 'assigned_vehicle',
-          model: 'Vehicle',
-        },
-      })
-      .exec();
-    const output = (invalidAssignments.length === 0) ? { updatedVehicleRequest } : { updatedVehicleRequest, invalidAssignments };
-    return res.json(output);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).send(error);
-  }
+  });
 };
 
 export const cancelAssignments = async (req, res) => {
