@@ -51,7 +51,7 @@ const casOptions = {
   ssoBaseURL: 'https://login.dartmouth.edu/cas',
   // serverBaseURL: "http://dalidocplanner.surge.sh/cas"
   serverBaseURL: 'https://doc-planner.herokuapp.com/api/signin',
-  //serverBaseURL: 'http://localhost:9090/api',
+  // serverBaseURL: 'http://localhost:9090/api',
 };
 const casLogin = new cas.Strategy(casOptions, (user, done) => {
   return done(null, user);

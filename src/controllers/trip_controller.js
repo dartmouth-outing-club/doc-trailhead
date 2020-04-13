@@ -70,6 +70,20 @@ export const createTrip = async (req, res) => {
     });
 };
 
+// export const isOnTrip = (req, res) => {
+//   // user id is stored in req.user.id
+//   // you can access the Trips db via Trips.find({})
+//   // the requested trip id is stored in req.params.tripID
+
+//   if (Trip.findById(req.params.tripID).members.includes(req.user.id)) {
+//     return 'yes';
+//   } else if (Trip.findById(req.params.tripID).pending.includes(req.user.id)) {
+//     return 'pending';
+//   } else {
+//     return 'no';
+//   }
+// };
+
 export const getTrips = (req, res) => {
   Trip.find().populate('club').populate('leaders')
     .then((trips) => {
@@ -114,8 +128,12 @@ export const getTrip = (req, res) => {
       });
 
       const isOnTrip = trip.members.some((member) => {
-        return member._id.equals(req.user.id);
+        // console.log(req.user.id);
+        // console.log(member.user._id);
+        // console.log(member.user.id === req.user.id);
+        return member.user.id === req.user.id;
       });
+
       let userTripStatus = '';
       if (isPending) {
         userTripStatus = 'PENDING';
