@@ -33,19 +33,6 @@ export const createTrip = (req, res) => {
   if (req.body.pcard.length > 0) {
     trip.pcardStatus = 'pending';
   }
-  if (req.body.vehicles.length > 0) {
-    const vehicleRequest = new VehicleRequest();
-    vehicleRequest.requester = req.user._id;
-    vehicleRequest.mileage = req.body.mileage;
-    vehicleRequest.requestDetails = req.body.description;
-    vehicleRequest.associatedTrip = null;
-    vehicleRequest.requestType = 'TRIP';
-    vehicleRequest.requestedVehicles = req.body.vehicles;
-    vehicleRequest.save().then((savedVehicleRequest) => {
-      trip.vehicleStatus = 'pending';
-      trip.vehicleRequest = savedVehicleRequest;
-    }).catch((error) => { return console.log(error); });
-  }
   trip.members = [];
   trip.leaders = [];
   trip.pending = [];
@@ -63,11 +50,29 @@ export const createTrip = (req, res) => {
         });
       })).then(() => {
         trip.save().then((savedTrip) => {
-          VehicleRequest.findByIdAndUpdate({ _id: savedTrip.vehicleRequest.id }, { associatedTrip: savedTrip._id }).then((updatedVehicleRequest) => {
-            res.json(updatedVehicleRequest);
-          }).catch(() => {
-            res.send('Trip created without vehicle requests');
-          });
+          if (req.body.vehicles.length > 0) {
+            const vehicleRequest = new VehicleRequest();
+            vehicleRequest.requester = req.user._id;
+            vehicleRequest.mileage = req.body.mileage;
+            vehicleRequest.requestDetails = req.body.description;
+            vehicleRequest.associatedTrip = savedTrip._id;
+            vehicleRequest.requestType = 'TRIP';
+            vehicleRequest.requestedVehicles = req.body.vehicles;
+            vehicleRequest.save().then((savedVehicleRequest) => {
+              Trip.findById(savedTrip._id).then((t) => {
+                t.vehicleStatus = 'pending';
+                t.vehicleRequest = savedVehicleRequest;
+                t.save().then(() => {
+                  res.json(savedVehicleRequest);
+                });
+              });
+            }).catch((error) => { return console.log(error); });
+          }
+          // VehicleRequest.findByIdAndUpdate({ _id: savedTrip.vehicleRequest.id }, { associatedTrip: savedTrip._id }).then((updatedVehicleRequest) => {
+          //   res.json(updatedVehicleRequest);
+          // }).catch(() => {
+          //   res.send('Trip created without vehicle requests');
+          // });
         });
       });
     })
