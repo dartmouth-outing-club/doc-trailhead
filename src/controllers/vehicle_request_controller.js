@@ -95,7 +95,6 @@ const recomputeAllConflicts = () => {
  */
 export const checkForConflicts = (proposedAssignment) => {
   return new Promise((resolve, reject) => {
-    console.log('a', proposedAssignment._id);
     Assignment.find({}).then((assignments) => {
       assignments = assignments.filter(((assignment) => {
         const conflictingVehicles = proposedAssignment.assigned_vehicle._id.equals(assignment.assigned_vehicle._id);
@@ -103,7 +102,6 @@ export const checkForConflicts = (proposedAssignment) => {
           return (!assignment._id.equals(proposedAssignment._id)) && conflictingVehicles;
         } else return conflictingVehicles;
       }));
-      console.log(assignments.map((a) => { return a._id; }));
       assignments.sort((a1, a2) => {
         if (a1.assigned_pickupDateAndTime < a2.assigned_pickupDateAndTime) return -1;
         else if (a1.assigned_pickupDateAndTime > a2.assigned_pickupDateAndTime) return 1;
@@ -114,7 +112,6 @@ export const checkForConflicts = (proposedAssignment) => {
         assignments.map((assignment) => {
           return new Promise((resolve, reject) => {
             if (!(assignment.assigned_pickupDateAndTime > proposedAssignment.pickupDateAndTime || assignment.assigned_returnDateAndTime < proposedAssignment.returnDateAndTime)) {
-              console.log('conflict with ', assignment._id);
               conflicts.push(assignment._id);
             }
             resolve();
