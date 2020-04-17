@@ -10,177 +10,210 @@ const createDateObject = (date, time) => {
   return new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
 };
 
-const isConflicting = (selectedVehicleBookings, assignment) => {
+/**
+ * Cross-checks every assignment with every other assignment and updates the `conflict` parameter for each assignment.
+ */
+const recomputeAllConflicts = () => {
   return new Promise((resolve, reject) => {
-  /**
-   * Transforms {selectedVehicleBookings} to a simpler {bookingsWithDateAndTime} object with only times.
-   */
-    const bookingsWithDateAndTime = selectedVehicleBookings.map((booking) => {
-      const updates = {};
-      updates.id = booking.id;
-      updates.pickupDateAndTime = createDateObject(booking.assigned_pickupDate, booking.assigned_pickupTime);
-      updates.returnDateAndTime = createDateObject(booking.assigned_returnDate, booking.assigned_returnTime);
-      return Object.assign({}, booking, updates);
-    });
-
-    /**
-   * Transforms {assignment} object to simpler {assignmentWithDateAndTime} object with only times.
-   */
-    const assignmentUpdates = {};
-    assignmentUpdates.pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
-    assignmentUpdates.returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
-    const assignmentWithDateAndTime = Object.assign({}, assignment, assignmentUpdates);
-
-    bookingsWithDateAndTime.push(assignmentWithDateAndTime);
-
-    bookingsWithDateAndTime.sort((booking1, booking2) => {
-      if (booking1.pickupDateAndTime < booking2.pickupDateAndTime) {
-        return -1;
-      }
-      if (booking1.pickupDateAndTime > booking2.pickupDateAndTime) {
-        return 1;
-      }
-      return 0;
-    });
-    const conflicts = [];
-    Promise.all(
-      bookingsWithDateAndTime.map((booking, index, array) => {
-        return new Promise((resolve, reject) => {
-          let traverser = index + 1;
-          while (traverser < array.length - 1) {
-            if (booking.returnDateAndTime > array[traverser].pickupDateAndTime) {
-              conflicts.push(array[traverser].id);
-            }
-            traverser += 1;
-          }
-          resolve();
-        });
-      }),
-    ).then(() => {
-      resolve(Array.from(new Set(conflicts)));
-    });
-  });
-};
-
-const processAssignment = (vehicleRequest, assignment) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (assignment.assignedVehicle !== 'Enterprise') {
-        const pickupDate = new Date(assignment.pickupDate);
-        const pickupTime = assignment.pickupTime.split(':');
-        pickupDate.setHours(pickupTime[0], pickupTime[1]);
-        const returnDate = new Date(assignment.returnDate);
-        const returnTime = assignment.returnTime.split(':');
-        returnDate.setHours(returnTime[0], returnTime[1]);
-        if (returnDate < pickupDate) {
-          resolve({
-            error: 'Pickup date must be earlier than return date',
-            assignment,
-          });
-        }
-      }
-      Vehicle.findOne({ name: assignment.assignedVehicle }).populate('bookings').exec().then(async (vehicle) => {
-        let selectedVehicleBookings;
-        let existingAssignment;
-
-        if (assignment.existingAssignment) {
-          Assignment.findById(assignment.id).populate('assigned_vehicle').exec().then((foundAssignment) => {
-            existingAssignment = foundAssignment;
-            if (existingAssignment.assigned_vehicle.name === assignment.assignedVehicle) { // vehicle was not changed
-              selectedVehicleBookings = vehicle.bookings.filter((booking) => { // remove modified assignment to avoid conflicting with self when checking for validity
-                return booking.id !== assignment.id;
-              });
-            } else { // vehicle was changed
-              selectedVehicleBookings = vehicle.bookings; // no need to remove because assignment does not exist in new assigned vehicle
-            }
-          });
-        } else { // is new response
-          selectedVehicleBookings = vehicle.bookings;
-        }
-
-        let conflicts = [];
-
-        if (assignment.assignedVehicle === 'Enterprise') conflicts = [];
-
-        isConflicting(selectedVehicleBookings, assignment).then((calculatedConflicts) => {
-          conflicts = calculatedConflicts;
-          if (assignment.existingAssignment) {
-            if (assignment.assignedVehicle !== 'Enterprise') {
-              existingAssignment.assigned_pickupDate = assignment.pickupDate;
-              existingAssignment.assigned_pickupTime = assignment.pickupTime;
-              const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
-              existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
-
-              existingAssignment.assigned_returnDate = assignment.returnDate;
-              existingAssignment.assigned_returnTime = assignment.returnTime;
-              const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
-              existingAssignment.assigned_returnDateAndTime = returnDateAndTime;
-
-              existingAssignment.assigned_key = assignment.assignedKey;
-              existingAssignment.pickedUp = assignment.pickedUp;
-              existingAssignment.returned = assignment.returned;
-
-              existingAssignment.conflicts = conflicts;
-            }
-            if (existingAssignment.assigned_vehicle.name !== assignment.assignedVehicle) {
-              vehicle.bookings.push(existingAssignment);
-              vehicle.save().then(() => {
-                Vehicle.updateOne({ _id: existingAssignment.assigned_vehicle._id }, { $pull: { bookings: existingAssignment._id } }); // remove assignment from previously assigned vehicle
-              });
-            }
-            existingAssignment.assigned_vehicle = vehicle;
-            existingAssignment.save().then((updatedAssignment) => {
-              resolve(updatedAssignment);
-            });
-          } else {
-            const newAssignment = new Assignment();
-            newAssignment.request = vehicleRequest;
-            newAssignment.assigned_vehicle = vehicle;
-            newAssignment.requester = vehicleRequest.requester;
-            newAssignment.responseIndex = assignment.responseIndex;
-
-            if (assignment.assignedVehicle !== 'Enterprise') {
-              newAssignment.assigned_pickupDate = assignment.pickupDate;
-              newAssignment.assigned_pickupTime = assignment.pickupTime;
-              const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
-              newAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
-
-              newAssignment.assigned_returnDate = assignment.returnDate;
-              newAssignment.assigned_returnTime = assignment.returnTime;
-              const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
-              newAssignment.assigned_returnDateAndTime = returnDateAndTime;
-
-              newAssignment.assigned_key = assignment.assignedKey;
-
-              newAssignment.conflicts = conflicts;
-            }
-
-            newAssignment.save().then((savedAssignment) => {
-              vehicle.bookings.push(savedAssignment);
-              vehicle.save().then(() => {
-                resolve(savedAssignment);
-              });
-            });
-          }
-        });
+    Assignment.find({}).then((assignments) => {
+      assignments.filter((assignment) => { return assignment.assignedVehicle !== 'Enterprise'; });
+      assignments.sort((a1, a2) => {
+        if (a1.assigned_pickupDateAndTime < a2.assigned_pickupDateAndTime) return -1;
+        else if (a1.assigned_pickupDateAndTime > a2.assigned_pickupDateAndTime) return 1;
+        else return 0;
       });
-      // if (conflicts.length > 0) {
-      //   resolve({
-      //     error: 'Proposed assignment conflicts with already existing one',
-      //     assignment,
-      //     conflicts,
-      //   });
-      // }
-    } catch (error) {
-      reject(error);
-    }
+      Promise.all(
+        assignments.map((assignment, index, array) => {
+          return new Promise((resolve, reject) => {
+            // console.log('\tpivot', assignment._id);
+            console.log('\tpivot index', index);
+            console.log('\tmax length', array.length);
+            let traverser = index + 1;
+            while (traverser < array.length) {
+              console.log('\t\tcompare index', traverser);
+              // console.log('\t\ttraverser', array[traverser]._id);
+              // console.log('\t\t\tcompareFrom', assignment.assigned_returnDateAndTime);
+              // console.log('\t\t\tcompareTo', array[traverser].assigned_pickupDateAndTime);
+              console.log('\t\t\tdecision', assignment.assigned_returnDateAndTime > array[traverser].assigned_pickupDateAndTime);
+              if (assignment.assigned_returnDateAndTime > array[traverser].assigned_pickupDateAndTime) {
+                // console.log('\t\t\t\t', array[traverser]._id);
+
+                // Array.from(new Set(conflicts)) instead
+                console.log('\t\t\t\tincludes', !assignment.conflicts.includes(array[traverser]._id));
+                if (!assignment.conflicts.includes(array[traverser]._id)) {
+                  assignment.conflicts.push(array[traverser]._id);
+                }
+                // Assignment.findById(array[traverser]._id).then((conflictingAssignment) => {
+                //   if (!conflictingAssignment.conflicts.includes(assignment._id)) {
+                //     conflictingAssignment.conflicts.push(assignment._id);
+                //     conflictingAssignment.save();
+                //   }
+                // });
+              }
+              traverser += 1;
+            }
+            assignment.save().then((savedAssignment) => {
+              // console.log(savedAssignment.conflicts);
+              resolve();
+            });
+          });
+        }),
+      ).then(() => {
+        Assignment.find({}).then((assignmentsForBackChecking) => {
+          Promise.all(
+            assignmentsForBackChecking.map((pivot) => {
+              return new Promise((resolve, reject) => {
+                Promise.all(
+                  pivot.conflicts.map((compare_id) => {
+                    return new Promise((resolve, reject) => {
+                      Assignment.findById(compare_id).then((compare) => {
+                        if (!compare.conflicts.includes(pivot._id)) {
+                          compare.conflicts.push(pivot._id);
+                        }
+                        compare.save(() => {
+                          resolve();
+                        });
+                      });
+                    });
+                  }),
+                ).then(() => { return resolve(); });
+              });
+            }),
+          ).then(() => {
+            resolve();
+          });
+        });
+        // resolve();
+      });
+    });
   });
 };
 
-const getArrayofProcessedAssignments = (proposedAssignments, vehicleRequest) => {
-  return Promise.all(proposedAssignments.map(async (assignment) => {
-    return processAssignment(vehicleRequest, assignment);
-  }));
+/**
+ * Checks a given `proposedAssignment` against the current database of assignments for conflicts, return the `_id`s of those conflicts.
+ * @param {Assignment} proposedAssignment
+ */
+export const checkForConflicts = (proposedAssignment) => {
+  return new Promise((resolve, reject) => {
+    console.log('a', proposedAssignment._id);
+    Assignment.find({}).then((assignments) => {
+      assignments = assignments.filter(((assignment) => {
+        const conflictingVehicles = proposedAssignment.assigned_vehicle._id.equals(assignment.assigned_vehicle._id);
+        if (proposedAssignment._id) {
+          return (!assignment._id.equals(proposedAssignment._id)) && conflictingVehicles;
+        } else return conflictingVehicles;
+      }));
+      console.log(assignments.map((a) => { return a._id; }));
+      assignments.sort((a1, a2) => {
+        if (a1.assigned_pickupDateAndTime < a2.assigned_pickupDateAndTime) return -1;
+        else if (a1.assigned_pickupDateAndTime > a2.assigned_pickupDateAndTime) return 1;
+        else return 0;
+      });
+      const conflicts = [];
+      Promise.all(
+        assignments.map((assignment) => {
+          return new Promise((resolve, reject) => {
+            if (!(assignment.assigned_pickupDateAndTime > proposedAssignment.pickupDateAndTime || assignment.assigned_returnDateAndTime < proposedAssignment.returnDateAndTime)) {
+              console.log('conflict with ', assignment._id);
+              conflicts.push(assignment._id);
+            }
+            resolve();
+          });
+        }),
+      ).then(() => {
+        resolve(conflicts);
+      });
+    });
+  });
+};
+
+const processAssignment = (vehicleRequest, assignment, i) => {
+  return new Promise(async (resolve, reject) => {
+    Vehicle.findOne({ name: assignment.assignedVehicle }).populate('bookings').exec().then((vehicle) => {
+      let existingAssignment;
+
+      if (assignment.existingAssignment) {
+        // setting pickup times
+        existingAssignment.assigned_pickupDate = assignment.pickupDate;
+        existingAssignment.assigned_pickupTime = assignment.pickupTime;
+        const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+        existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
+        // setting return times
+        existingAssignment.assigned_returnDate = assignment.returnDate;
+        existingAssignment.assigned_returnTime = assignment.returnTime;
+        const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+        existingAssignment.assigned_returnDateAndTime = returnDateAndTime;
+
+        existingAssignment.assigned_key = assignment.assignedKey;
+        existingAssignment.pickedUp = assignment.pickedUp;
+        existingAssignment.returned = assignment.returned;
+        if (existingAssignment.assigned_vehicle.name !== assignment.assignedVehicle) {
+          vehicle.bookings.push(existingAssignment);
+          vehicle.save().then(() => {
+            Vehicle.updateOne({ _id: existingAssignment.assigned_vehicle._id }, { $pull: { bookings: existingAssignment._id } }); // remove assignment from previously assigned vehicle
+          });
+        }
+        existingAssignment.assigned_vehicle = vehicle;
+        existingAssignment.save().then((updatedAssignment) => {
+          resolve(updatedAssignment);
+        });
+      } else {
+        const newAssignment = new Assignment();
+        // setting basic info
+        newAssignment.request = vehicleRequest;
+        newAssignment.assigned_vehicle = vehicle;
+        newAssignment.requester = vehicleRequest.requester;
+        newAssignment.assigned_key = assignment.assignedKey;
+        newAssignment.responseIndex = assignment.responseIndex;
+        // setting pickup times
+        newAssignment.assigned_pickupDate = assignment.pickupDate;
+        newAssignment.assigned_pickupTime = assignment.pickupTime;
+        const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+        newAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
+        // setting return times
+        newAssignment.assigned_returnDate = assignment.returnDate;
+        newAssignment.assigned_returnTime = assignment.returnTime;
+        const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+        newAssignment.assigned_returnDateAndTime = returnDateAndTime;
+
+        newAssignment.save().then((savedAssignment) => {
+          console.log(savedAssignment);
+          vehicle.bookings.push(savedAssignment);
+          vehicle.save().then(() => {
+            checkForConflicts(savedAssignment).then((conflicts) => {
+              Promise.all(
+                conflicts.map((conflict_id) => {
+                  return new Promise((resolve, reject) => {
+                    Assignment.findById(conflict_id).then((conflictingAssignment) => {
+                      conflictingAssignment.conflicts.push(savedAssignment._id);
+                      conflictingAssignment.save().then(() => { return resolve(); });
+                    });
+                  });
+                }),
+              ).then(() => {
+                console.log(conflicts);
+                savedAssignment.conflicts = conflicts;
+                savedAssignment.save().then((updatedSavedAssignment) => {
+                  resolve(updatedSavedAssignment);
+                });
+              });
+            });
+          });
+        });
+      }
+    });
+  });
+};
+
+const processAllAssignments = async (proposedAssignments, vehicleRequest) => {
+  const processedAssignments = [];
+  for (let i = 0; i < proposedAssignments.length; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    await processAssignment(vehicleRequest, proposedAssignments[i], i).then((processedAssignment) => {
+      processedAssignments.push(processedAssignment);
+    });
+  }
+  return processedAssignments;
 };
 
 export const makeVehicleRequest = (req, res) => {
@@ -265,10 +298,7 @@ export const respondToVehicleRequest = async (req, res) => {
     try {
       VehicleRequest.findById(req.params.id).exec().then((vehicleRequest) => {
         const proposedAssignments = req.body.assignments;
-        getArrayofProcessedAssignments(proposedAssignments, vehicleRequest).then(async (processedAssignments) => {
-          // const validAssignments = processedAssignments.filter((assignment) => {
-          //   return !assignment.error;
-          // });
+        processAllAssignments(proposedAssignments, vehicleRequest).then(async (processedAssignments) => {
           const invalidAssignments = processedAssignments.filter((assignment) => {
             return assignment.error;
           });
@@ -301,7 +331,6 @@ export const respondToVehicleRequest = async (req, res) => {
               .exec()
               .then((updatedVehicleRequest) => {
                 const output = (invalidAssignments.length === 0) ? { updatedVehicleRequest } : { updatedVehicleRequest, invalidAssignments };
-                console.log(output);
                 return res.json(output);
               });
           });
