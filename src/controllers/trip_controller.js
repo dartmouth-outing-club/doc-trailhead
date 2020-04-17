@@ -63,7 +63,6 @@ export const createTrip = (req, res) => {
         });
       })).then(() => {
         trip.save().then((savedTrip) => {
-          console.log(savedTrip._id);
           VehicleRequest.findByIdAndUpdate({ _id: savedTrip.vehicleRequest.id }, { associatedTrip: savedTrip._id }).then((updatedVehicleRequest) => {
             res.json(updatedVehicleRequest);
           }).catch(() => {
