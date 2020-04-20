@@ -96,6 +96,9 @@ router.route('/opoVehicleRequest/:id')
   .delete(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.cancelAssignments)
   .put(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.denyVehicleRequest);
 
+router.route('/vehicle-requests/check-conflict')
+  .post(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.queryForConflicts);
+
 router.route('/vehicle-assignments')
   .get(requireAuth, VehicleRequests.getVehicleAssignments);
 
