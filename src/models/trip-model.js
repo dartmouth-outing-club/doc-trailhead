@@ -2,6 +2,7 @@ import mongoose, { Schema } from 'mongoose';
 
 
 const TripSchema = new Schema({
+  number: { type: Number, unique: true },
   title: String,
   leaders: [{ type: Schema.Types.ObjectId, ref: 'User' }], // leaders
   club: { type: Schema.Types.ObjectId, ref: 'Club' },
@@ -40,10 +41,10 @@ const TripSchema = new Schema({
         {
           title: String,
           cost: Number,
-        }
-      ]
-    }
-  ], //will actually only have one entry
+        },
+      ],
+    },
+  ], // will actually only have one entry
   pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   pcardAssigned: String,
   vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },

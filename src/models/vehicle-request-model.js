@@ -1,6 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 
 const VehicleRequestSchema = new Schema({
+  number: { type: Number, unique: true },
   requester: { type: Schema.Types.ObjectId, ref: 'User' },
   requestDetails: String,
   mileage: Number,
@@ -17,10 +18,10 @@ const VehicleRequestSchema = new Schema({
       returnTime: String,
       trailerNeeded: Boolean,
       passNeeded: Boolean,
-    }
+    },
   ],
   status: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
-  assignments: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }]
+  assignments: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }],
 });
 
 VehicleRequestSchema.set('toJSON', {
