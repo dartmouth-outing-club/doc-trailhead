@@ -1,7 +1,7 @@
-import Trip from '../models/trip_model';
-import User from '../models/user_model';
-import Club from '../models/club_model';
-import VehicleRequest from '../models/vehicle_request_model';
+import Trip from '../models/trip-model';
+import User from '../models/user-model';
+import Club from '../models/club-model';
+import VehicleRequest from '../models/vehicle-request-model';
 
 export const createTrip = (req, res) => {
   const trip = new Trip();

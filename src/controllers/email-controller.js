@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import Trip from '../models/trip_model';
+import Trip from '../models/trip-model';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',

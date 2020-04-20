@@ -1,10 +1,10 @@
 import jwt from 'jwt-simple';
 import dotenv from 'dotenv';
-import User from '../models/user_model';
-import Trip from '../models/trip_model';
+import User from '../models/user-model';
+import Trip from '../models/trip-model';
 import passport from '../services/passport';
 
-import VehicleRequest from '../models/vehicle_request_model';
+import VehicleRequest from '../models/vehicle-request-model';
 
 dotenv.config({ silent: true });
 

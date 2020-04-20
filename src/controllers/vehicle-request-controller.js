@@ -1,4 +1,4 @@
-import VehicleRequest from '../models/vehicle_request_model';
+import VehicleRequest from '../models/vehicle-request-model';
 import Vehicle from '../models/vehicle_model';
 import Assignment from '../models/assignment_model';
 import Trip from '../models/trip_model';

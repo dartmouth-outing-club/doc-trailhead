@@ -1,10 +1,10 @@
-import Club from '../models/club_model';
+import Club from '../models/club-model';
 
 export const createClub = (req, res) => {
   const club = new Club();
   club.name = req.body.name;
   club.save()
-    .then((result) => {
+    .then(() => {
       res.json({ message: 'Club Created' });
     })
     .catch((error) => {
