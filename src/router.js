@@ -97,7 +97,7 @@ router.route('/opoVehicleRequest/:id')
   .put(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.denyVehicleRequest);
 
 router.route('/vehicle-requests/check-conflict')
-  .post(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.queryForConflicts);
+  .post(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.precheckAssignment);
 
 router.route('/vehicle-assignments')
   .get(requireAuth, VehicleRequests.getVehicleAssignments);
