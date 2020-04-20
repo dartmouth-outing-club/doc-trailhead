@@ -10,6 +10,83 @@ const createDateObject = (date, time) => {
   return new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
 };
 
+export const makeVehicleRequest = (req, res) => {
+  const vehicleRequest = new VehicleRequest();
+  vehicleRequest.requester = req.body.requester;
+  vehicleRequest.requestDetails = req.body.requestDetails;
+  vehicleRequest.mileage = req.body.mileage;
+  vehicleRequest.noOfPeople = req.body.noOfPeople;
+  vehicleRequest.requestType = req.body.requestType;
+  vehicleRequest.requestedVehicles = req.body.requestedVehicles;
+  vehicleRequest.save()
+    .then((savedRequest) => {
+      res.json(savedRequest);
+    })
+    .catch((error) => {
+      res.status(500).send(error);
+      console.log(error);
+    });
+};
+
+export const getVehicleRequest = (req, res) => {
+  VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments')
+    .populate({
+      path: 'requester',
+      populate: {
+        path: 'leader_for',
+        model: 'Club',
+      },
+    })
+    .populate({
+      path: 'assignments',
+      populate: {
+        path: 'assigned_vehicle',
+        model: 'Vehicle',
+      },
+    })
+    .exec()
+    .then((vehicleRequest) => {
+      res.json(vehicleRequest);
+    })
+    .catch((error) => {
+      res.status(500).send(error);
+      console.log(error);
+    });
+};
+
+export const getVehicleRequests = (req, res) => {
+  VehicleRequest.find({}).populate('requester').populate('associatedTrip')
+    .then((vehicleRequests) => {
+      res.json(vehicleRequests);
+    })
+    .catch((error) => {
+      res.status(500).send(error);
+      console.log(error);
+    });
+};
+
+export const updateVehicleRequest = (req, res) => {
+  VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip')
+    .then((vehicleRequest) => {
+      if (vehicleRequest.status !== 'pending') {
+        res.status(400).send('Only pending requests can be updated');
+      } else {
+        vehicleRequest.requester = req.body.requester;
+        vehicleRequest.requestDetails = req.body.requestDetails;
+        vehicleRequest.requestType = req.body.requestType;
+        vehicleRequest.requestedVehicles = req.body.requestedVehicles;
+        vehicleRequest.save()
+          .then((savedRequest) => {
+            return res.json(savedRequest);
+          })
+          .catch((error) => {
+            res.status(500).send(error);
+            console.log(error);
+          });
+      }
+    });
+};
+
 /**
  * Cross-checks every assignment with every other assignment and updates the `conflict` parameter for each assignment.
  */
@@ -93,7 +170,7 @@ const recomputeAllConflicts = () => {
  * Checks a given `proposedAssignment` against the current database of assignments for conflicts, return the `_id`s of those conflicts.
  * @param {Assignment} proposedAssignment
  */
-export const checkForConflicts = (proposedAssignment) => {
+const checkForConflicts = (proposedAssignment) => {
   return new Promise((resolve, reject) => {
     Assignment.find({}).then((assignments) => {
       assignments = assignments.filter(((assignment) => {
@@ -124,27 +201,79 @@ export const checkForConflicts = (proposedAssignment) => {
   });
 };
 
-const processAssignment = (vehicleRequest, assignment, i) => {
-  return new Promise(async (resolve, reject) => {
-    Vehicle.findOne({ name: assignment.assignedVehicle }).populate('bookings').exec().then((vehicle) => {
+/**
+ * Router-connected function that prepares a `proposedAssignment` not yet assigned to be checked for potential conflicts.
+ * @param {*} req
+ * @param {*} res
+ */
+export const precheckAssignment = (req, res) => {
+  Vehicle.findOne({ name: req.assignedVehicle }).populate('bookings').exec().then((vehicle) => {
+    const proposedAssignment = {};
+
+    proposedAssignment.assigned_vehicle = vehicle;
+    // setting pickup times
+    proposedAssignment.assigned_pickupDate = req.body.pickupDate;
+    proposedAssignment.assigned_pickupTime = req.body.pickupTime;
+    const pickupDateAndTime = createDateObject(req.body.pickupDate, req.body.pickupTime);
+    proposedAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
+    // setting return times
+    proposedAssignment.assigned_returnDate = req.body.returnDate;
+    proposedAssignment.assigned_returnTime = req.body.returnTime;
+    const returnDateAndTime = createDateObject(req.body.returnDate, req.body.returnTime);
+    proposedAssignment.assigned_returnDateAndTime = returnDateAndTime;
+
+    checkForConflicts(proposedAssignment).then((conflicts) => {
+      Promise.all(conflicts.map((conflicting_assignment_id) => {
+        return new Promise(((resolve) => {
+          Assignment.findById(conflicting_assignment_id).then((conflicting_assignment) => {
+            resolve(conflicting_assignment.request);
+          });
+        }));
+      })).then((conflicting_requests) => {
+        Promise.all(conflicting_requests.map(((conflicting_request_id) => {
+          return new Promise((resolve) => {
+            VehicleRequest.findById(conflicting_request_id).then((conflicting_request) => {
+              if (conflicting_request.associatedTrip !== null) {
+                Trip.findById(conflicting_request.associatedTrip).then((conflicting_trip) => {
+                  resolve({ message: `Trip #${conflicting_trip.number}`, id: conflicting_trip._id });
+                });
+              } else resolve({ message: `Request #${conflicting_request.number}`, id: conflicting_request._id });
+            });
+          });
+        })));
+      }).then((conflicts_annotated) => {
+        res.json(conflicts_annotated);
+      });
+    });
+  });
+};
+
+/**
+ * Saves a single `proposedAssignment` to the database.
+ * @param {String} vehicleRequest
+ * @param {Assignment} proposedAssignment
+ */
+const processAssignment = (vehicleRequest, proposedAssignment) => {
+  return new Promise(async (resolve) => {
+    Vehicle.findOne({ name: proposedAssignment.assignedVehicle }).populate('bookings').exec().then((vehicle) => {
       let existingAssignment;
 
-      if (assignment.existingAssignment) {
+      if (proposedAssignment.existingAssignment) {
         // setting pickup times
-        existingAssignment.assigned_pickupDate = assignment.pickupDate;
-        existingAssignment.assigned_pickupTime = assignment.pickupTime;
-        const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+        existingAssignment.assigned_pickupDate = proposedAssignment.pickupDate;
+        existingAssignment.assigned_pickupTime = proposedAssignment.pickupTime;
+        const pickupDateAndTime = createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
         existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
         // setting return times
-        existingAssignment.assigned_returnDate = assignment.returnDate;
-        existingAssignment.assigned_returnTime = assignment.returnTime;
-        const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+        existingAssignment.assigned_returnDate = proposedAssignment.returnDate;
+        existingAssignment.assigned_returnTime = proposedAssignment.returnTime;
+        const returnDateAndTime = createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime);
         existingAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
-        existingAssignment.assigned_key = assignment.assignedKey;
-        existingAssignment.pickedUp = assignment.pickedUp;
-        existingAssignment.returned = assignment.returned;
-        if (existingAssignment.assigned_vehicle.name !== assignment.assignedVehicle) {
+        existingAssignment.assigned_key = proposedAssignment.assignedKey;
+        existingAssignment.pickedUp = proposedAssignment.pickedUp;
+        existingAssignment.returned = proposedAssignment.returned;
+        if (existingAssignment.assigned_vehicle.name !== proposedAssignment.assignedVehicle) {
           vehicle.bookings.push(existingAssignment);
           vehicle.save().then(() => {
             Vehicle.updateOne({ _id: existingAssignment.assigned_vehicle._id }, { $pull: { bookings: existingAssignment._id } }); // remove assignment from previously assigned vehicle
@@ -160,17 +289,17 @@ const processAssignment = (vehicleRequest, assignment, i) => {
         newAssignment.request = vehicleRequest;
         newAssignment.assigned_vehicle = vehicle;
         newAssignment.requester = vehicleRequest.requester;
-        newAssignment.assigned_key = assignment.assignedKey;
-        newAssignment.responseIndex = assignment.responseIndex;
+        newAssignment.assigned_key = proposedAssignment.assignedKey;
+        newAssignment.responseIndex = proposedAssignment.responseIndex;
         // setting pickup times
-        newAssignment.assigned_pickupDate = assignment.pickupDate;
-        newAssignment.assigned_pickupTime = assignment.pickupTime;
-        const pickupDateAndTime = createDateObject(assignment.pickupDate, assignment.pickupTime);
+        newAssignment.assigned_pickupDate = proposedAssignment.pickupDate;
+        newAssignment.assigned_pickupTime = proposedAssignment.pickupTime;
+        const pickupDateAndTime = createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
         newAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
         // setting return times
-        newAssignment.assigned_returnDate = assignment.returnDate;
-        newAssignment.assigned_returnTime = assignment.returnTime;
-        const returnDateAndTime = createDateObject(assignment.returnDate, assignment.returnTime);
+        newAssignment.assigned_returnDate = proposedAssignment.returnDate;
+        newAssignment.assigned_returnTime = proposedAssignment.returnTime;
+        const returnDateAndTime = createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime);
         newAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
         newAssignment.save().then((savedAssignment) => {
@@ -202,6 +331,11 @@ const processAssignment = (vehicleRequest, assignment, i) => {
   });
 };
 
+/**
+ * Asynchronously processes all `proposedAssignments`.
+ * @param {Assignment} proposedAssignments
+ * @param {String} vehicleRequest
+ */
 const processAllAssignments = async (proposedAssignments, vehicleRequest) => {
   const processedAssignments = [];
   for (let i = 0; i < proposedAssignments.length; i += 1) {
@@ -213,169 +347,48 @@ const processAllAssignments = async (proposedAssignments, vehicleRequest) => {
   return processedAssignments;
 };
 
-export const makeVehicleRequest = (req, res) => {
-  const vehicleRequest = new VehicleRequest();
-  vehicleRequest.requester = req.body.requester;
-  vehicleRequest.requestDetails = req.body.requestDetails;
-  vehicleRequest.mileage = req.body.mileage;
-  vehicleRequest.noOfPeople = req.body.noOfPeople;
-  vehicleRequest.requestType = req.body.requestType;
-  vehicleRequest.requestedVehicles = req.body.requestedVehicles;
-  vehicleRequest.save()
-    .then((savedRequest) => {
-      res.json(savedRequest);
-    })
-    .catch((error) => {
-      res.status(500).send(error);
-      console.log(error);
-    });
-};
-
-export const getVehicleRequest = (req, res) => {
-  VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments')
-    .populate({
-      path: 'requester',
-      populate: {
-        path: 'leader_for',
-        model: 'Club',
-      },
-    })
-    .populate({
-      path: 'assignments',
-      populate: {
-        path: 'assigned_vehicle',
-        model: 'Vehicle',
-      },
-    })
-    .exec()
-    .then((vehicleRequest) => {
-      res.json(vehicleRequest);
-    })
-    .catch((error) => {
-      res.status(500).send(error);
-      console.log(error);
-    });
-};
-
-export const getVehicleRequests = (req, res) => {
-  VehicleRequest.find({}).populate('requester').populate('associatedTrip')
-    .then((vehicleRequests) => {
-      res.json(vehicleRequests);
-    })
-    .catch((error) => {
-      res.status(500).send(error);
-      console.log(error);
-    });
-};
-
-export const updateVehicleRequest = (req, res) => {
-  VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip')
-    .then((vehicleRequest) => {
-      if (vehicleRequest.status !== 'pending') {
-        res.status(400).send('Only pending requests can be updated');
-      } else {
-        vehicleRequest.requester = req.body.requester;
-        vehicleRequest.requestDetails = req.body.requestDetails;
-        vehicleRequest.requestType = req.body.requestType;
-        vehicleRequest.requestedVehicles = req.body.requestedVehicles;
-        vehicleRequest.save()
-          .then((savedRequest) => {
-            return res.json(savedRequest);
-          })
-          .catch((error) => {
-            res.status(500).send(error);
-            console.log(error);
-          });
-      }
-    });
-};
-
 export const respondToVehicleRequest = async (req, res) => {
-  return new Promise((resolve, reject) => {
-    try {
-      VehicleRequest.findById(req.params.id).exec().then((vehicleRequest) => {
-        const proposedAssignments = req.body.assignments;
-        processAllAssignments(proposedAssignments, vehicleRequest).then(async (processedAssignments) => {
-          const invalidAssignments = processedAssignments.filter((assignment) => {
-            return assignment.error;
+  try {
+    VehicleRequest.findById(req.params.id).exec().then((vehicleRequest) => {
+      const proposedAssignments = req.body.assignments;
+      processAllAssignments(proposedAssignments, vehicleRequest).then(async (processedAssignments) => {
+        const invalidAssignments = processedAssignments.filter((assignment) => {
+          return assignment.error;
+        });
+        vehicleRequest.assignments = processedAssignments;
+        vehicleRequest.status = 'approved';
+        if (vehicleRequest.requestType === 'TRIP') {
+          Trip.findById(vehicleRequest.associatedTrip).exec().then(async (associatedTrip) => {
+            associatedTrip.vehicleStatus = 'approved';
+            await associatedTrip.save(); // needs await because of multi-path async
           });
-          vehicleRequest.assignments = processedAssignments;
-          vehicleRequest.status = 'approved';
-          if (vehicleRequest.requestType === 'TRIP') {
-            Trip.findById(vehicleRequest.associatedTrip).exec().then(async (associatedTrip) => {
-              associatedTrip.vehicleStatus = 'approved';
-              await associatedTrip.save(); // needs await because of multi-path async
+        }
+        vehicleRequest.save().then((savedVehicleRequest) => {
+          VehicleRequest.findById(savedVehicleRequest.id).populate('requester')
+            .populate('associatedTrip')
+            .populate('assignments')
+            .populate({
+              path: 'requester',
+              populate: {
+                path: 'leader_for',
+                model: 'Club',
+              },
+            })
+            .populate({
+              path: 'assignments',
+              populate: {
+                path: 'assigned_vehicle',
+                model: 'Vehicle',
+              },
+            })
+            .exec()
+            .then((updatedVehicleRequest) => {
+              const output = (invalidAssignments.length === 0) ? { updatedVehicleRequest } : { updatedVehicleRequest, invalidAssignments };
+              return res.json(output);
             });
-          }
-          vehicleRequest.save().then((savedVehicleRequest) => {
-            VehicleRequest.findById(savedVehicleRequest.id).populate('requester')
-              .populate('associatedTrip')
-              .populate('assignments')
-              .populate({
-                path: 'requester',
-                populate: {
-                  path: 'leader_for',
-                  model: 'Club',
-                },
-              })
-              .populate({
-                path: 'assignments',
-                populate: {
-                  path: 'assigned_vehicle',
-                  model: 'Vehicle',
-                },
-              })
-              .exec()
-              .then((updatedVehicleRequest) => {
-                const output = (invalidAssignments.length === 0) ? { updatedVehicleRequest } : { updatedVehicleRequest, invalidAssignments };
-                return res.json(output);
-              });
-          });
         });
       });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).send(error);
-    }
-  });
-};
-
-export const cancelAssignments = async (req, res) => {
-  try {
-    const { toBeDeleted } = req.body.deleteInfo;
-    await Promise.all(toBeDeleted.map(async (id) => {
-      const assignment = await Assignment.findById(id);
-      await Vehicle.updateOne({ _id: assignment.assigned_vehicle }, { $pull: { bookings: assignment._id } }); // remove from vehicle bookings
-      await VehicleRequest.updateOne({ _id: assignment.request }, { $pull: { assignments: assignment._id } }); // remove from vehicle request assignments
-      const vehicleRequest = await VehicleRequest.findById(assignment.request);
-      if (vehicleRequest.assignments.length === 0) {
-        vehicleRequest.status = 'denied';
-        if (vehicleRequest.requestType === 'TRIP') {
-          const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).exec();
-          associatedTrip.vehicleStatus = 'denied';
-          await associatedTrip.save();
-        }
-      }
-      await vehicleRequest.save();
-    }));
-    await Assignment.deleteMany({ _id: { $in: toBeDeleted } });
-    const updatedVehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments')
-      .populate({
-        path: 'requester',
-        populate: {
-          path: 'leader_for',
-          model: 'Club',
-        },
-      })
-      .populate({
-        path: 'assignments',
-        populate: {
-          path: 'assigned_vehicle',
-          model: 'Vehicle',
-        },
-      })
-      .exec();
-    return res.json({ updatedVehicleRequest });
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).send(error);
@@ -420,6 +433,48 @@ export const getVehicleAssignments = async (req, res) => {
     const assignments = await Assignment.find().populate('request').populate('requester').populate('assigned_vehicle')
       .exec();
     return res.json(assignments);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send(error);
+  }
+};
+
+export const cancelAssignments = async (req, res) => {
+  try {
+    const { toBeDeleted } = req.body.deleteInfo;
+    await Promise.all(toBeDeleted.map(async (id) => {
+      const assignment = await Assignment.findById(id);
+      await Vehicle.updateOne({ _id: assignment.assigned_vehicle }, { $pull: { bookings: assignment._id } }); // remove from vehicle bookings
+      await VehicleRequest.updateOne({ _id: assignment.request }, { $pull: { assignments: assignment._id } }); // remove from vehicle request assignments
+      const vehicleRequest = await VehicleRequest.findById(assignment.request);
+      if (vehicleRequest.assignments.length === 0) {
+        vehicleRequest.status = 'denied';
+        if (vehicleRequest.requestType === 'TRIP') {
+          const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).exec();
+          associatedTrip.vehicleStatus = 'denied';
+          await associatedTrip.save();
+        }
+      }
+      await vehicleRequest.save();
+    }));
+    await Assignment.deleteMany({ _id: { $in: toBeDeleted } });
+    const updatedVehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments')
+      .populate({
+        path: 'requester',
+        populate: {
+          path: 'leader_for',
+          model: 'Club',
+        },
+      })
+      .populate({
+        path: 'assignments',
+        populate: {
+          path: 'assigned_vehicle',
+          model: 'Vehicle',
+        },
+      })
+      .exec();
+    return res.json({ updatedVehicleRequest });
   } catch (error) {
     console.log(error);
     return res.status(500).send(error);
