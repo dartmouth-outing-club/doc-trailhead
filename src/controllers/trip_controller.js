@@ -3,7 +3,7 @@ import User from '../models/user_model';
 import Club from '../models/club_model';
 import VehicleRequest from '../models/vehicle_request_model';
 
-export const createTrip = async (req, res) => {
+export const createTrip = (req, res) => {
   const trip = new Trip();
   trip.startDate = req.body.startDate;
   trip.endDate = req.body.endDate;
@@ -33,38 +33,48 @@ export const createTrip = async (req, res) => {
   if (req.body.pcard.length > 0) {
     trip.pcardStatus = 'pending';
   }
-  if (req.body.vehicles.length > 0) {
-    const vehicleRequest = new VehicleRequest();
-    vehicleRequest.requester = req.user._id;
-    vehicleRequest.mileage = req.body.mileage;
-    vehicleRequest.requestDetails = req.body.description;
-    vehicleRequest.associatedTrip = trip;
-    vehicleRequest.requestType = 'TRIP';
-    vehicleRequest.requestedVehicles = req.body.vehicles;
-    const savedVehicleRequest = await vehicleRequest.save();
-    trip.vehicleStatus = 'pending';
-    trip.vehicleRequest = savedVehicleRequest;
-  }
   trip.members = [];
   trip.leaders = [];
   trip.pending = [];
-  trip.leaders.push(req.user._id);
-  trip.members.push({ user: req.user._id, gear: {} });
+  trip.leaders.push(req.user.id);
+  trip.members.push({ user: req.user.id, gear: {} });
   User.find({ email: { $in: req.body.leaders } })
     .then((users) => {
-      users.forEach((user) => {
-        if (user._id !== req.user._id) {
-          trip.leaders.push(user._id);
-          trip.members.push(user._id);
-        }
-      });
-    })
-    .then(() => {
-      return trip.save()
-        .then((savedTrip) => {
-          res.json({ message: 'Trip created' });
-          return savedTrip;
+      Promise.all(users.map((user) => {
+        return new Promise((resolve, reject) => {
+          if (user.id !== req.user.id) {
+            trip.leaders.push(user.id);
+            trip.members.push({ user: user.id, gear: {} });
+          }
+          resolve();
         });
+      })).then(() => {
+        trip.save().then((savedTrip) => {
+          if (req.body.vehicles.length > 0) {
+            const vehicleRequest = new VehicleRequest();
+            vehicleRequest.requester = req.user._id;
+            vehicleRequest.mileage = req.body.mileage;
+            vehicleRequest.requestDetails = req.body.description;
+            vehicleRequest.associatedTrip = savedTrip._id;
+            vehicleRequest.requestType = 'TRIP';
+            vehicleRequest.requestedVehicles = req.body.vehicles;
+            vehicleRequest.save().then((savedVehicleRequest) => {
+              Trip.findById(savedTrip._id).then((t) => {
+                t.vehicleStatus = 'pending';
+                t.vehicleRequest = savedVehicleRequest;
+                t.save().then(() => {
+                  res.json(savedVehicleRequest);
+                });
+              });
+            }).catch((error) => { return console.log(error); });
+          }
+          // VehicleRequest.findByIdAndUpdate({ _id: savedTrip.vehicleRequest.id }, { associatedTrip: savedTrip._id }).then((updatedVehicleRequest) => {
+          //   res.json(updatedVehicleRequest);
+          // }).catch(() => {
+          //   res.send('Trip created without vehicle requests');
+          // });
+        });
+      });
     })
     .catch((error) => {
       console.log(error);
