@@ -1,7 +1,8 @@
 import VehicleRequest from '../models/vehicle-request-model';
-import Vehicle from '../models/vehicle_model';
-import Assignment from '../models/assignment_model';
-import Trip from '../models/trip_model';
+import Vehicle from '../models/vehicle-model';
+import Assignment from '../models/assignment-model';
+import Trip from '../models/trip-model';
+import Global from '../models/global-model';
 
 const createDateObject = (date, time) => {
   // adapted from https://stackoverflow.com/questions/2488313/javascripts-getdate-returns-wrong-date
@@ -11,21 +12,27 @@ const createDateObject = (date, time) => {
 };
 
 export const makeVehicleRequest = (req, res) => {
-  const vehicleRequest = new VehicleRequest();
-  vehicleRequest.requester = req.body.requester;
-  vehicleRequest.requestDetails = req.body.requestDetails;
-  vehicleRequest.mileage = req.body.mileage;
-  vehicleRequest.noOfPeople = req.body.noOfPeople;
-  vehicleRequest.requestType = req.body.requestType;
-  vehicleRequest.requestedVehicles = req.body.requestedVehicles;
-  vehicleRequest.save()
-    .then((savedRequest) => {
-      res.json(savedRequest);
-    })
-    .catch((error) => {
-      res.status(500).send(error);
-      console.log(error);
+  Global.find({}).then((globals) => {
+    // Retrieves the current maximum vehicle request number and then updates it immediately.
+    const currentMaxVehicleRequestNumberglobals = globals[0].vehicleRequestNumberMax + 1;
+    globals[0].vehicleRequestNumberMax += 1;
+    globals[0].save().then(() => {
+      const vehicleRequest = new VehicleRequest();
+      vehicleRequest.number = currentMaxVehicleRequestNumberglobals;
+      vehicleRequest.requester = req.body.requester;
+      vehicleRequest.requestDetails = req.body.requestDetails;
+      vehicleRequest.mileage = req.body.mileage;
+      vehicleRequest.noOfPeople = req.body.noOfPeople;
+      vehicleRequest.requestType = req.body.requestType;
+      vehicleRequest.requestedVehicles = req.body.requestedVehicles;
+      vehicleRequest.save().then((savedRequest) => {
+        res.json(savedRequest);
+      }).catch((error) => {
+        res.status(500).send(error);
+        console.log(error);
+      });
     });
+  });
 };
 
 export const getVehicleRequest = (req, res) => {
