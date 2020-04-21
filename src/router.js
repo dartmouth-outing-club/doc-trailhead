@@ -1,11 +1,10 @@
 import { Router } from 'express';
-import * as Trips from './controllers/trip_controller';
-import * as Users from './controllers/user_controller';
-import sendEmailToTrip from './controllers/email_controller';
-import * as Clubs from './controllers/club_controller';
-
-import * as VehicleRequests from './controllers/vehicle_request_controller';
-import * as Vehicles from './controllers/vehicle_controller';
+import * as Trips from './controllers/trip-controller';
+import * as Users from './controllers/user-controller';
+import sendEmailToTrip from './controllers/email-controller';
+import * as Clubs from './controllers/club-controller';
+import * as VehicleRequests from './controllers/vehicle-request-controller';
+import * as Vehicles from './controllers/vehicle-controller';
 import { requireAuth } from './services/passport';
 
 
