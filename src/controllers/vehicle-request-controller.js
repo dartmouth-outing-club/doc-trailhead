@@ -192,11 +192,16 @@ const checkForConflicts = (proposedAssignment) => {
         else return 0;
       });
       const conflicts = [];
-      console.log(assignments);
       Promise.all(
         assignments.map((assignment) => {
           return new Promise((resolve) => {
-            if (!(assignment.assigned_pickupDateAndTime > proposedAssignment.pickupDateAndTime || assignment.assigned_returnDateAndTime < proposedAssignment.returnDateAndTime)) {
+            if (!((
+              assignment.assigned_pickupDateAndTime <= proposedAssignment.assigned_pickupDateAndTime
+               && assignment.assigned_returnDateAndTime <= proposedAssignment.assigned_pickupDateAndTime
+            ) || (
+              assignment.assigned_pickupDateAndTime >= proposedAssignment.assigned_returnDateAndTime
+               && assignment.assigned_returnDateAndTime >= proposedAssignment.assigned_returnDateAndTime
+            ))) {
               conflicts.push(assignment._id);
             }
             resolve();
