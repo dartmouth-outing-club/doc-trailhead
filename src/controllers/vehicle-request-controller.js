@@ -178,7 +178,7 @@ const recomputeAllConflicts = () => {
  * @param {Assignment} proposedAssignment
  */
 const checkForConflicts = (proposedAssignment) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     Assignment.find({}).then((assignments) => {
       assignments = assignments.filter(((assignment) => {
         const conflictingVehicles = proposedAssignment.assigned_vehicle._id.equals(assignment.assigned_vehicle._id);
@@ -214,7 +214,7 @@ const checkForConflicts = (proposedAssignment) => {
  * @param {*} res
  */
 export const precheckAssignment = (req, res) => {
-  Vehicle.findOne({ name: req.assignedVehicle }).populate('bookings').exec().then((vehicle) => {
+  Vehicle.findOne({ name: req.body.assignedVehicle }).populate('bookings').exec().then((vehicle) => {
     const proposedAssignment = {};
 
     proposedAssignment.assigned_vehicle = vehicle;
@@ -247,9 +247,9 @@ export const precheckAssignment = (req, res) => {
               } else resolve({ message: `Request #${conflicting_request.number}`, id: conflicting_request._id });
             });
           });
-        })));
-      }).then((conflicts_annotated) => {
-        res.json(conflicts_annotated);
+        }))).then((conflicts_annotated) => {
+          res.json(conflicts_annotated);
+        });
       });
     });
   });
