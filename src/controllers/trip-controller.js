@@ -56,22 +56,30 @@ export const createTrip = (req, res) => {
         })).then(() => {
           trip.save().then((savedTrip) => {
             if (req.body.vehicles.length > 0) {
-              const vehicleRequest = new VehicleRequest();
-              vehicleRequest.requester = req.user._id;
-              vehicleRequest.mileage = req.body.mileage;
-              vehicleRequest.requestDetails = req.body.description;
-              vehicleRequest.associatedTrip = savedTrip._id;
-              vehicleRequest.requestType = 'TRIP';
-              vehicleRequest.requestedVehicles = req.body.vehicles;
-              vehicleRequest.save().then((savedVehicleRequest) => {
-                Trip.findById(savedTrip._id).then((recentlyCreatedTrip) => {
-                  recentlyCreatedTrip.vehicleStatus = 'pending';
-                  recentlyCreatedTrip.vehicleRequest = savedVehicleRequest;
-                  recentlyCreatedTrip.save().then(() => {
-                    res.json(savedVehicleRequest);
-                  });
+              Global.find({}).then((globalsForVehicleRequest) => {
+                // Retrieves the current maximum vehicle request number and then updates it immediately.
+                const currentMaxVehicleRequestNumberglobals = globals[0].vehicleRequestNumberMax + 1;
+                globalsForVehicleRequest[0].vehicleRequestNumberMax += 1;
+                globalsForVehicleRequest[0].save().then(() => {
+                  const vehicleRequest = new VehicleRequest();
+                  vehicleRequest.number = currentMaxVehicleRequestNumberglobals;
+                  vehicleRequest.requester = req.user._id;
+                  vehicleRequest.mileage = req.body.mileage;
+                  vehicleRequest.requestDetails = req.body.description;
+                  vehicleRequest.associatedTrip = savedTrip._id;
+                  vehicleRequest.requestType = 'TRIP';
+                  vehicleRequest.requestedVehicles = req.body.vehicles;
+                  vehicleRequest.save().then((savedVehicleRequest) => {
+                    Trip.findById(savedTrip._id).then((recentlyCreatedTrip) => {
+                      recentlyCreatedTrip.vehicleStatus = 'pending';
+                      recentlyCreatedTrip.vehicleRequest = savedVehicleRequest;
+                      recentlyCreatedTrip.save().then(() => {
+                        res.json(savedVehicleRequest);
+                      });
+                    });
+                  }).catch((error) => { res.status(500).json({ message: 'Trip successfully created, but error creating associated vehicle request for trip.', error, trip: savedTrip }); });
                 });
-              }).catch((error) => { res.status(500).json({ message: 'Trip successfully created, but error creating associated vehicle request for trip.', error, trip: savedTrip }); });
+              });
             } else res.json(savedTrip);
           });
         });
