@@ -192,9 +192,10 @@ const checkForConflicts = (proposedAssignment) => {
         else return 0;
       });
       const conflicts = [];
+      console.log(assignments);
       Promise.all(
         assignments.map((assignment) => {
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             if (!(assignment.assigned_pickupDateAndTime > proposedAssignment.pickupDateAndTime || assignment.assigned_returnDateAndTime < proposedAssignment.returnDateAndTime)) {
               conflicts.push(assignment._id);
             }
@@ -242,9 +243,9 @@ export const precheckAssignment = (req, res) => {
             VehicleRequest.findById(conflicting_request_id).then((conflicting_request) => {
               if (conflicting_request.associatedTrip !== null) {
                 Trip.findById(conflicting_request.associatedTrip).then((conflicting_trip) => {
-                  resolve({ message: `Trip #${conflicting_trip.number}`, id: conflicting_trip._id });
+                  resolve({ message: `Trip #${conflicting_trip.number}`, objectID: conflicting_trip._id });
                 });
-              } else resolve({ message: `Request #${conflicting_request.number}`, id: conflicting_request._id });
+              } else resolve({ message: `Request #${conflicting_request.number}`, objectID: conflicting_request._id });
             });
           });
         }))).then((conflicts_annotated) => {
