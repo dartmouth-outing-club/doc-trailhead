@@ -169,9 +169,12 @@ export const precheckAssignment = (req, res) => {
             VehicleRequest.findById(conflicting_request_id).then((conflicting_request) => {
               if (conflicting_request.associatedTrip !== null) {
                 Trip.findById(conflicting_request.associatedTrip).then((conflicting_trip) => {
-                  resolve({ message: `Trip #${conflicting_trip.number}`, objectID: conflicting_trip._id });
+                  const parseStartDate = conflicting_trip.startDate.toString().split(' ');
+                  const parseEndDate = conflicting_trip.endDate.toString().split(' ');
+                  const time = { start: `${parseStartDate[1]} ${parseStartDate[2]}, ${conflicting_trip.startTime}`, end: `${parseEndDate[1]} ${parseEndDate[2]}, ${conflicting_trip.endTime}` };
+                  resolve({ message: `Trip #${conflicting_trip.number}`, time, objectID: conflicting_trip._id });
                 });
-              } else resolve({ message: `Request #${conflicting_request.number}`, objectID: conflicting_request._id });
+              } else resolve({ message: `Request #${conflicting_request.number}`, time: 'N/A', objectID: conflicting_request._id });
             });
           });
         }))).then((conflicts_annotated) => {
