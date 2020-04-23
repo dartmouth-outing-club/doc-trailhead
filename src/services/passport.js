@@ -7,6 +7,10 @@ import User from '../models/user_model';
 
 dotenv.config({ silent: true });
 
+const PROD_URL = 'https://doc-planner.herokuapp.com/api/signin';
+const SURGE_URL = 'http://dalidocplanner.surge.sh/cas';
+const LOCAL_URL = 'http://localhost:9090/api';
+
 const localOptions = { usernameField: 'email' };
 const jwtOptions = {
   jwtFromRequest: ExtractJwt.fromHeader('authorization'),
@@ -46,12 +50,9 @@ const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
 });
 
 // dartmouth web auth
-
 const casOptions = {
   ssoBaseURL: 'https://login.dartmouth.edu/cas',
-  // serverBaseURL: "http://dalidocplanner.surge.sh/cas"
-  serverBaseURL: 'https://doc-planner.herokuapp.com/api/signin',
-  // serverBaseURL: 'http://localhost:9090/api',
+  serverBaseURL: PROD_URL,
 };
 const casLogin = new cas.Strategy(casOptions, (user, done) => {
   return done(null, user);
