@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
-import Clubs from './models/club_model';
-import Users from './models/user_model';
-import Trips from './models/trip_model';
-import Vehicles from './models/vehicle_model';
-import VehicleRequests from './models/vehicle_request_model';
-import Assignmnets from './models/assignment_model';
+import Clubs from './models/club-model';
+import Users from './models/user-model';
+import Trips from './models/trip-model';
+import Vehicles from './models/vehicle-model';
+import VehicleRequests from './models/vehicle-request-model';
+import Assignmnets from './models/assignment-model';
 
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
 mongoose.set('useCreateIndex', true);
@@ -13,47 +13,6 @@ mongoose.connect(mongoURI, { useNewUrlParser: true });
 mongoose.Promise = global.Promise;
 
 const fakeUsers = [
-  // {
-  //   email: 'trippee@dartmouth.edu',
-  //   password: '12345',
-  //   name: 'Trippee',
-  //   role: 'Trippee',
-  //   leader_for: [],
-  //   dash_number: '12345',
-  // },
-  // {
-  //   email: 'opo@dartmouth.edu',
-  //   password: '12345',
-  //   name: 'OPO',
-  //   role: 'OPO',
-  //   leader_for: [],
-  //   dash_number: '12345',
-  // },
-  // {
-  //   email: 'leader@dartmouth.edu',
-  //   password: '12345',
-  //   name: 'Leader',
-  //   role: 'Leader',
-  //   leader_for: [],
-  //   dash_number: '12345',
-  //   driver_cert: 'MICROBUS',
-  //   trailer_cert: true,
-  // },
-  // emma
-  // {
-  //   casID: 'Emma P. Rafkin@DARTMOUTH.EDU',
-  //   email: 'Emma.P.Rafkin.21@darmouth.edu',
-  //   password: 'test',
-  //   name: 'Emma',
-  //   role: 'Leader',
-  //   leader_for: [],
-  //   dash_number:'1111',
-  //   has_pending_leader_change: false,
-  //   has_pending_cert_change: false,
-  //   driver_cert: null,
-  //   trailer_cert: false,
-  // },
-  // prosper
   {
     casID: null,
     email: 'opo@dartmouth.edu',
@@ -67,7 +26,6 @@ const fakeUsers = [
     driver_cert: 'MICROBUS',
     trailer_cert: true,
   },
-
   {
     casID: null,
     email: 'leader@dartmouth.edu',
@@ -81,7 +39,6 @@ const fakeUsers = [
     driver_cert: 'MICROBUS',
     trailer_cert: true,
   },
-
   {
     casID: null,
     email: 'trippee1@dartmouth.edu',
@@ -121,8 +78,19 @@ const fakeUsers = [
     driver_cert: null,
     trailer_cert: true,
   },
-
-
+  {
+    casID: 'Emma P. Rafkin@DARTMOUTH.EDU',
+    email: 'Emma.P.Rafkin.21@darmouth.edu',
+    password: 'test',
+    name: 'Emma',
+    role: 'Leader',
+    leader_for: [],
+    dash_number: '1111',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: false,
+  },
   {
     casID: 'Chikezie Onungwa@DARTMOUTH.EDU',
     email: 'chikezie.onungwa.21@dartmouth.edu',
@@ -136,7 +104,6 @@ const fakeUsers = [
     driver_cert: null,
     trailer_cert: false,
   },
-
   // ACTUAL OPO OFFICE ACCOUNTS DONT DELETE
   {
     casID: 'Julie C. Bell@DARTMOUTH.EDU',
@@ -229,21 +196,19 @@ const fakeUsers = [
     driver_cert: null,
     trailer_cert: false,
   },
-  // {
-  //   casID: 'Hyun Jo Park @DARTMOUTH.EDU',
-  //   email: 'hyun.jo.park.20@dartmouth.edu',
-  //   password: '',
-  //   name: 'Hyunjo Park',
-  //   role: 'Leader',
-  //   leader_for: [],
-  //   dash_number: 'f002qwc',
-  //   has_pending_leader_change: false,
-  //   has_pending_cert_change: false,
-  //   driver_cert: null,
-  //   trailer_cert: false,
-  // },
-
-
+  {
+    casID: 'Hyun Jo Park @DARTMOUTH.EDU',
+    email: 'hyun.jo.park.20@dartmouth.edu',
+    password: '',
+    name: 'Hyunjo Park',
+    role: 'Leader',
+    leader_for: [],
+    dash_number: 'f002qwc',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: false,
+  },
 ];
 
 const clubs = [
@@ -364,8 +329,7 @@ const vehicles = [
   },
 ];
 
-
-function seedDb() {
+function seedDB() {
   VehicleRequests.deleteMany({})
     .then(() => {
       Assignmnets.deleteMany({})
@@ -429,4 +393,4 @@ function seedDb() {
     });
 }
 
-seedDb();
+seedDB();

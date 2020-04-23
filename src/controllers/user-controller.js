@@ -1,10 +1,10 @@
 import jwt from 'jwt-simple';
 import dotenv from 'dotenv';
-import User from '../models/user_model';
-import Trip from '../models/trip_model';
+import User from '../models/user-model';
+import Trip from '../models/trip-model';
 import passport from '../services/passport';
 
-import VehicleRequest from '../models/vehicle_request_model';
+import VehicleRequest from '../models/vehicle-request-model';
 
 dotenv.config({ silent: true });
 
@@ -85,9 +85,6 @@ export const signup = (req, res, next) => {
         .catch((error) => {
           res.status(500).send(error.message);
         });
-
-      const { email } = req.body;
-      const { name } = req.body;
       if (!email || !name) {
         res.status(422).send('You must provide a name, email and password');
       }
@@ -303,14 +300,14 @@ export const respondToLeaderRequest = (req, res) => {
         user.requested_clubs = [];
         user.has_pending_leader_change = false;
         user.save()
-          .then((user) => {
+          .then(() => {
             getLeaderRequests(req, res);
           });
       } else {
         user.has_pending_leader_change = false;
         user.requested_clubs = [];
         user.save()
-          .then((user) => {
+          .then(() => {
             getLeaderRequests(req, res);
           });
       }
@@ -337,15 +334,15 @@ export const respondToCertRequest = (req, res) => {
         user.requested_certs = {};
         user.has_pending_cert_change = false;
         user.save()
-          .then((user) => {
+          .then(() => {
             getCertRequests(req, res);
           });
       } else {
         user.has_pending_cert_change = false;
         user.requested_certs = {};
         user.save()
-          .then((user) => {
-            getCertrRequests(req, res);
+          .then(() => {
+            getCertRequests(req, res);
           });
       }
     })

@@ -1,7 +1,8 @@
-import VehicleRequest from '../models/vehicle_request_model';
-import Vehicle from '../models/vehicle_model';
-import Assignment from '../models/assignment_model';
-import Trip from '../models/trip_model';
+import VehicleRequest from '../models/vehicle-request-model';
+import Vehicle from '../models/vehicle-model';
+import Assignment from '../models/assignment-model';
+import Trip from '../models/trip-model';
+import Global from '../models/global-model';
 
 const createDateObject = (date, time) => {
   // adapted from https://stackoverflow.com/questions/2488313/javascripts-getdate-returns-wrong-date
@@ -11,21 +12,27 @@ const createDateObject = (date, time) => {
 };
 
 export const makeVehicleRequest = (req, res) => {
-  const vehicleRequest = new VehicleRequest();
-  vehicleRequest.requester = req.body.requester;
-  vehicleRequest.requestDetails = req.body.requestDetails;
-  vehicleRequest.mileage = req.body.mileage;
-  vehicleRequest.noOfPeople = req.body.noOfPeople;
-  vehicleRequest.requestType = req.body.requestType;
-  vehicleRequest.requestedVehicles = req.body.requestedVehicles;
-  vehicleRequest.save()
-    .then((savedRequest) => {
-      res.json(savedRequest);
-    })
-    .catch((error) => {
-      res.status(500).send(error);
-      console.log(error);
+  Global.find({}).then((globals) => {
+    // Retrieves the current maximum vehicle request number and then updates it immediately.
+    const currentMaxVehicleRequestNumberglobals = globals[0].vehicleRequestNumberMax + 1;
+    globals[0].vehicleRequestNumberMax += 1;
+    globals[0].save().then(() => {
+      const vehicleRequest = new VehicleRequest();
+      vehicleRequest.number = currentMaxVehicleRequestNumberglobals;
+      vehicleRequest.requester = req.body.requester;
+      vehicleRequest.requestDetails = req.body.requestDetails;
+      vehicleRequest.mileage = req.body.mileage;
+      vehicleRequest.noOfPeople = req.body.noOfPeople;
+      vehicleRequest.requestType = req.body.requestType;
+      vehicleRequest.requestedVehicles = req.body.requestedVehicles;
+      vehicleRequest.save().then((savedRequest) => {
+        res.json(savedRequest);
+      }).catch((error) => {
+        res.status(500).send(error);
+        console.log(error);
+      });
     });
+  });
 };
 
 export const getVehicleRequest = (req, res) => {
@@ -88,90 +95,11 @@ export const updateVehicleRequest = (req, res) => {
 };
 
 /**
- * Cross-checks every assignment with every other assignment and updates the `conflict` parameter for each assignment.
- */
-const recomputeAllConflicts = () => {
-  return new Promise((resolve, reject) => {
-    Assignment.find({}).then((assignments) => {
-      assignments.filter((assignment) => { return assignment.assignedVehicle !== 'Enterprise'; });
-      assignments.sort((a1, a2) => {
-        if (a1.assigned_pickupDateAndTime < a2.assigned_pickupDateAndTime) return -1;
-        else if (a1.assigned_pickupDateAndTime > a2.assigned_pickupDateAndTime) return 1;
-        else return 0;
-      });
-      Promise.all(
-        assignments.map((assignment, index, array) => {
-          return new Promise((resolve, reject) => {
-            // console.log('\tpivot', assignment._id);
-            console.log('\tpivot index', index);
-            console.log('\tmax length', array.length);
-            let traverser = index + 1;
-            while (traverser < array.length) {
-              console.log('\t\tcompare index', traverser);
-              // console.log('\t\ttraverser', array[traverser]._id);
-              // console.log('\t\t\tcompareFrom', assignment.assigned_returnDateAndTime);
-              // console.log('\t\t\tcompareTo', array[traverser].assigned_pickupDateAndTime);
-              console.log('\t\t\tdecision', assignment.assigned_returnDateAndTime > array[traverser].assigned_pickupDateAndTime);
-              if (assignment.assigned_returnDateAndTime > array[traverser].assigned_pickupDateAndTime) {
-                // console.log('\t\t\t\t', array[traverser]._id);
-
-                // Array.from(new Set(conflicts)) instead
-                console.log('\t\t\t\tincludes', !assignment.conflicts.includes(array[traverser]._id));
-                if (!assignment.conflicts.includes(array[traverser]._id)) {
-                  assignment.conflicts.push(array[traverser]._id);
-                }
-                // Assignment.findById(array[traverser]._id).then((conflictingAssignment) => {
-                //   if (!conflictingAssignment.conflicts.includes(assignment._id)) {
-                //     conflictingAssignment.conflicts.push(assignment._id);
-                //     conflictingAssignment.save();
-                //   }
-                // });
-              }
-              traverser += 1;
-            }
-            assignment.save().then((savedAssignment) => {
-              // console.log(savedAssignment.conflicts);
-              resolve();
-            });
-          });
-        }),
-      ).then(() => {
-        Assignment.find({}).then((assignmentsForBackChecking) => {
-          Promise.all(
-            assignmentsForBackChecking.map((pivot) => {
-              return new Promise((resolve, reject) => {
-                Promise.all(
-                  pivot.conflicts.map((compare_id) => {
-                    return new Promise((resolve, reject) => {
-                      Assignment.findById(compare_id).then((compare) => {
-                        if (!compare.conflicts.includes(pivot._id)) {
-                          compare.conflicts.push(pivot._id);
-                        }
-                        compare.save(() => {
-                          resolve();
-                        });
-                      });
-                    });
-                  }),
-                ).then(() => { return resolve(); });
-              });
-            }),
-          ).then(() => {
-            resolve();
-          });
-        });
-        // resolve();
-      });
-    });
-  });
-};
-
-/**
  * Checks a given `proposedAssignment` against the current database of assignments for conflicts, return the `_id`s of those conflicts.
  * @param {Assignment} proposedAssignment
  */
 const checkForConflicts = (proposedAssignment) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     Assignment.find({}).then((assignments) => {
       assignments = assignments.filter(((assignment) => {
         const conflictingVehicles = proposedAssignment.assigned_vehicle._id.equals(assignment.assigned_vehicle._id);
@@ -187,8 +115,14 @@ const checkForConflicts = (proposedAssignment) => {
       const conflicts = [];
       Promise.all(
         assignments.map((assignment) => {
-          return new Promise((resolve, reject) => {
-            if (!(assignment.assigned_pickupDateAndTime > proposedAssignment.pickupDateAndTime || assignment.assigned_returnDateAndTime < proposedAssignment.returnDateAndTime)) {
+          return new Promise((resolve) => {
+            if (!((
+              assignment.assigned_pickupDateAndTime <= proposedAssignment.assigned_pickupDateAndTime
+               && assignment.assigned_returnDateAndTime <= proposedAssignment.assigned_pickupDateAndTime
+            ) || (
+              assignment.assigned_pickupDateAndTime >= proposedAssignment.assigned_returnDateAndTime
+               && assignment.assigned_returnDateAndTime >= proposedAssignment.assigned_returnDateAndTime
+            ))) {
               conflicts.push(assignment._id);
             }
             resolve();
@@ -207,7 +141,7 @@ const checkForConflicts = (proposedAssignment) => {
  * @param {*} res
  */
 export const precheckAssignment = (req, res) => {
-  Vehicle.findOne({ name: req.assignedVehicle }).populate('bookings').exec().then((vehicle) => {
+  Vehicle.findOne({ name: req.body.assignedVehicle }).populate('bookings').exec().then((vehicle) => {
     const proposedAssignment = {};
 
     proposedAssignment.assigned_vehicle = vehicle;
@@ -235,14 +169,14 @@ export const precheckAssignment = (req, res) => {
             VehicleRequest.findById(conflicting_request_id).then((conflicting_request) => {
               if (conflicting_request.associatedTrip !== null) {
                 Trip.findById(conflicting_request.associatedTrip).then((conflicting_trip) => {
-                  resolve({ message: `Trip #${conflicting_trip.number}`, id: conflicting_trip._id });
+                  resolve({ message: `Trip #${conflicting_trip.number}`, objectID: conflicting_trip._id });
                 });
-              } else resolve({ message: `Request #${conflicting_request.number}`, id: conflicting_request._id });
+              } else resolve({ message: `Request #${conflicting_request.number}`, objectID: conflicting_request._id });
             });
           });
-        })));
-      }).then((conflicts_annotated) => {
-        res.json(conflicts_annotated);
+        }))).then((conflicts_annotated) => {
+          res.json(conflicts_annotated);
+        });
       });
     });
   });

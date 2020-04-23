@@ -1,4 +1,4 @@
-import Vehicle from '../models/vehicle_model';
+import Vehicle from '../models/vehicle-model';
 
 export const createVehicle = (req, res) => {
   const vehicle = new Vehicle();
