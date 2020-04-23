@@ -15,7 +15,7 @@ router.get('/', (req, res) => {
   res.json({ message: 'welcome to our doc app!' });
 });
 
-router.get('/signin', Users.signin);
+router.post('/signin', Users.signin);
 router.post('/signup', Users.signup);
 
 router.route('/alltrips')
@@ -45,6 +45,8 @@ router.delete('/leaveTrip/:id', requireAuth, Trips.leaveTrip);
 router.get('/userTrips', requireAuth, Users.userTrips);
 
 router.post('/sendEmailToTrip', sendEmailToTrip);
+
+// router.get('/isOnTrip/:tripID', requireAuth, Trips.isOnTrip);
 
 router.route('/club')
   .post(Clubs.createClub)
@@ -93,6 +95,9 @@ router.route('/opoVehicleRequest/:id')
   .post(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.respondToVehicleRequest)
   .delete(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.cancelAssignments)
   .put(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.denyVehicleRequest);
+
+router.route('/vehicle-requests/check-conflict')
+  .post(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.precheckAssignment);
 
 router.route('/vehicle-assignments')
   .get(requireAuth, VehicleRequests.getVehicleAssignments);

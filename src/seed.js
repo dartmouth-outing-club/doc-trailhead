@@ -55,6 +55,75 @@ const fakeUsers = [
   // },
   // prosper
   {
+    casID: null,
+    email: 'opo@dartmouth.edu',
+    password: 'opo',
+    name: 'OPO Person',
+    role: 'OPO',
+    leader_for: [],
+    dash_number: '2222',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: 'MICROBUS',
+    trailer_cert: true,
+  },
+
+  {
+    casID: null,
+    email: 'leader@dartmouth.edu',
+    password: 'leader',
+    name: 'Trip Leader',
+    role: 'Leader',
+    leader_for: [],
+    dash_number: '2222',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: 'MICROBUS',
+    trailer_cert: true,
+  },
+
+  {
+    casID: null,
+    email: 'trippee1@dartmouth.edu',
+    password: 'trippee1',
+    name: 'Trippee 1',
+    role: 'Trippee',
+    leader_for: [],
+    dash_number: '1111',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: 'MICROBUS',
+    trailer_cert: true,
+  },
+  {
+    casID: null,
+    email: 'trippee2@dartmouth.edu',
+    password: 'trippee2',
+    name: 'Trippee 2',
+    role: 'Trippee',
+    leader_for: [],
+    dash_number: '2222',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: 'VAN',
+    trailer_cert: false,
+  },
+  {
+    casID: null,
+    email: 'trippee3@dartmouth.edu',
+    password: 'trippee3',
+    name: 'Trippee 3',
+    role: 'Trippee',
+    leader_for: [],
+    dash_number: '3333',
+    has_pending_leader_change: false,
+    has_pending_cert_change: false,
+    driver_cert: null,
+    trailer_cert: true,
+  },
+
+
+  {
     casID: 'Chikezie Onungwa@DARTMOUTH.EDU',
     email: 'chikezie.onungwa.21@dartmouth.edu',
     password: 'test',
@@ -312,10 +381,10 @@ function seedDb() {
                           Users.deleteMany({})
                             .then(() => {
                               Vehicles.insertMany(vehicles)
-                                .then((vehicles) => {
+                                .then(() => {
                                   Clubs.insertMany(clubs)
-                                    .then((clubs) => {
-                                      fakeUsers.map((fakeUser) => {
+                                    .then((insertedClubs) => {
+                                      fakeUsers.forEach((fakeUser) => {
                                         const newUser = new Users();
                                         newUser.casID = fakeUser.casID;
                                         newUser.email = fakeUser.email;
@@ -325,10 +394,17 @@ function seedDb() {
                                         newUser.dash_number = fakeUser.dash_number;
                                         newUser.driver_cert = fakeUser.driver_cert;
                                         newUser.trailer_cert = fakeUser.trailer_cert;
+
+                                        newUser.pronoun = 'they/them/their';
+                                        newUser.clothe_size = 'Men-S';
+                                        newUser.shoe_size = 'Men-2';
+                                        newUser.height = '6';
+                                        newUser.allergies_dietary_restrictions = 'none';
+                                        newUser.medical_conditions = 'Not a real human';
                                         if (fakeUser.role === 'Leader') {
                                           const clubIds = [];
-                                          clubs.map((club) => {
-                                            clubIds.push(club._id);
+                                          insertedClubs.forEach((insertedClub) => {
+                                            clubIds.push(insertedClub._id);
                                           });
                                           newUser.leader_for = clubIds;
                                         } else {

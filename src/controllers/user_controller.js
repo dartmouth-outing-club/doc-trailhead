@@ -9,6 +9,23 @@ import VehicleRequest from '../models/vehicle_request_model';
 dotenv.config({ silent: true });
 
 export const signin = (req, res, next) => {
+  passport.authenticate('local', (err, user) => {
+    if (err) { return err; }
+    if (!user) {
+      res.status(500).send('rejected');
+    } else {
+      User.findById(user.id).populate('leader_for').exec()
+        .then((foundUser) => {
+          res.json({ token: tokenForUser(foundUser), user: foundUser });
+        })
+        .catch((error) => {
+          res.status(500).send(error.message);
+        });
+    }
+  })(req, res, next);
+};
+
+export const signinCAS = (req, res, next) => {
   passport.authenticate('cas', (err, user, info) => {
     if (err) { return err; }
     if (!user) {
@@ -122,13 +139,21 @@ export const myTrips = (req, res) => {
     });
 };
 
+const isStringEmpty = (string) => {
+  return string.length === 0;
+};
+
+const isInfoEmpty = (string) => {
+  return !string || string.length === 0 || !string.toString().trim();
+};
+
 export const getUser = (req, res) => {
   User.findById(req.user.id).populate('leader_for').populate('requested_clubs').exec()
     .then((user) => {
       let hasCompleteProfile = true;
-      if (!user.email || !user.name || !user.dash_number || !user.allergies_dietary_restrictions
+      if (!user.email || !user.name || !user.pronoun || !user.dash_number || !user.allergies_dietary_restrictions
         || !user.medical_conditions || !user.clothe_size || !user.shoe_size || !user.height
-        || isInfoEmpty(user.email) || isInfoEmpty(user.name) || isInfoEmpty(user.dash_number)
+        || isInfoEmpty(user.email) || isInfoEmpty(user.name) || isInfoEmpty(user.pronoun) || isInfoEmpty(user.dash_number)
         || isInfoEmpty(user.allergies_dietary_restrictions) || isInfoEmpty(user.medical_conditions)
         || isInfoEmpty(user.clothe_size) || isInfoEmpty(user.height)) {
         hasCompleteProfile = false;
@@ -139,14 +164,6 @@ export const getUser = (req, res) => {
       console.log(error);
       res.status(406).send(error.message);
     });
-};
-
-const isStringEmpty = (string) => {
-  return string.length === 0;
-};
-
-const isInfoEmpty = (string) => {
-  return !string || string.length === 0 || !string.toString().trim();
 };
 
 export const updateUser = (req, res, next) => {
@@ -176,10 +193,13 @@ export const updateUser = (req, res, next) => {
         user.email = req.body.email;
         user.name = req.body.name;
         const {
-          dash_number, allergies_dietary_restrictions, medical_conditions, clothe_size, shoe_size, height,
+          pronoun, dash_number, allergies_dietary_restrictions, medical_conditions, clothe_size, shoe_size, height,
         } = req.body;
         if (!isStringEmpty(dash_number)) {
           user.dash_number = dash_number;
+        }
+        if (!isStringEmpty(pronoun)) {
+          user.pronoun = pronoun;
         }
         if (!isStringEmpty(allergies_dietary_restrictions)) {
           user.allergies_dietary_restrictions = allergies_dietary_restrictions;
@@ -346,6 +366,7 @@ function cleanUser(user) {
     id: user.id,
     email: user.email,
     name: user.name,
+    pronoun: user.pronoun,
     role: user.role,
     leader_for: user.leader_for,
     dash_number: user.dash_number,

@@ -7,7 +7,6 @@ export const createVehicle = (req, res) => {
   vehicle.save()
     .then((savedVehicle) => {
       res.json(savedVehicle);
-      return;
     })
     .catch((error) => {
       res.status(500).send(error);
@@ -21,26 +20,27 @@ export const getVehicle = (req, res) => {
     populate: {
       path: 'request',
       model: 'VehicleRequest',
-    }
+    },
   }).populate({
     path: 'bookings',
     populate: {
       path: 'requester',
       model: 'User',
-    }
-  }).populate({
-    path: 'bookings',
-    populate: {
-      path: 'request',
+    },
+  })
+    .populate({
+      path: 'bookings',
       populate: {
-        path: 'associatedTrip',
-        model: 'Trip',
-      }
-    }
-  }).exec()
+        path: 'request',
+        populate: {
+          path: 'associatedTrip',
+          model: 'Trip',
+        },
+      },
+    })
+    .exec()
     .then((vehicle) => {
       res.json(vehicle);
-      return;
     })
     .catch((error) => {
       res.status(500).send(error);
@@ -54,26 +54,27 @@ export const getVehicles = (req, res) => {
     populate: {
       path: 'request',
       model: 'VehicleRequest',
-    }
+    },
   }).populate({
     path: 'bookings',
     populate: {
       path: 'requester',
       model: 'User',
-    }
-  }).populate({
-    path: 'bookings',
-    populate: {
-      path: 'request',
+    },
+  })
+    .populate({
+      path: 'bookings',
       populate: {
-        path: 'associatedTrip',
-        model: 'Trip',
-      }
-    }
-  }).exec()
+        path: 'request',
+        populate: {
+          path: 'associatedTrip',
+          model: 'Trip',
+        },
+      },
+    })
+    .exec()
     .then((vehicles) => {
       res.json(vehicles);
-      return;
     })
     .catch((error) => {
       res.status(500).send(error);
@@ -89,14 +90,13 @@ export const updateVehicle = (req, res) => {
       vehicle.save()
         .then(() => {
           res.json(vehicle);
-          return;
-        })
+        });
     })
     .catch((error) => {
       res.status(500).send(error);
       console.log(error);
     });
-}
+};
 
 export const deleteVehicle = (req, res) => {
   Vehicle.findById(req.params.id).populate('bookings')
@@ -105,7 +105,6 @@ export const deleteVehicle = (req, res) => {
         if (error) {
           res.json(error);
           console.log(error);
-          return;
         } else {
           res.json('Vehicle deleted');
         }
@@ -115,4 +114,4 @@ export const deleteVehicle = (req, res) => {
       res.status(500).send(error);
       console.log(error);
     });
-}
+};
