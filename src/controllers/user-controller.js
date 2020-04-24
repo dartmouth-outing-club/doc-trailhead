@@ -163,6 +163,19 @@ export const getUser = (req, res) => {
     });
 };
 
+/**
+ * Returns all users in the database void of the requester.
+ * @param {*} req
+ * @param {*} res
+ */
+export const getUsers = (req, res) => {
+  User.find({}).then((foundUsers) => {
+    res.send(foundUsers.filter((user) => {
+      return !user._id.equals(req.user._id);
+    }));
+  });
+};
+
 export const updateUser = (req, res, next) => {
   User.findById(req.user.id, (err, user) => { // this should see if name is in member
     User.find({ email: req.body.email })

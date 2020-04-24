@@ -39,6 +39,8 @@ router.route('/user')
   .get(requireAuth, Users.getUser)
   .put(requireAuth, Users.updateUser);
 
+router.route('/users').get(requireAuth, Users.getUsers);
+
 router.get('/myTrips', requireAuth, Users.myTrips);
 router.delete('/leaveTrip/:id', requireAuth, Trips.leaveTrip);
 router.get('/userTrips', requireAuth, Users.userTrips);
