@@ -3,11 +3,11 @@ import * as bcrypt from 'bcryptjs';
 
 
 const UserSchema = new Schema({
-  casID: { type: String },
+  casID: String,
   email: { type: String, unique: true, lowercase: true },
-  password: { type: String, select: false },
-  name: { type: String },
-  pronoun: { type: String },
+  password: { type: String, select: false }, // not defined if the user is from CAS
+  name: String,
+  pronoun: String,
   dash_number: String,
   allergies_dietary_restrictions: String,
   medical_conditions: String,
@@ -15,12 +15,12 @@ const UserSchema = new Schema({
   shoe_size: String,
   height: String,
   role: { type: String, enum: ['Leader', 'Trippee', 'OPO'], default: 'Trippee' },
-  leader_for: [{ type: Schema.Types.ObjectId, ref: 'Club' }], // the names/ids of clubs you are a leader for
+  leader_for: { type: [{ type: Schema.Types.ObjectId, ref: 'Club' }], default: [] }, // the names/ids of clubs you are a leader for
   has_pending_leader_change: { type: Boolean, default: false },
   has_pending_cert_change: { type: Boolean, default: false },
   driver_cert: { type: String, enum: ['MICROBUS', 'VAN', null], default: null },
   trailer_cert: { type: Boolean, default: false },
-  requested_clubs: [{ type: Schema.Types.ObjectId, ref: 'Club' }],
+  requested_clubs: { type: [{ type: Schema.Types.ObjectId, ref: 'Club' }], default: [] },
   requested_certs: {
     driver_cert: { type: String, enum: ['MICROBUS', 'VAN', null], default: null },
     trailer_cert: { type: Boolean, default: false },
