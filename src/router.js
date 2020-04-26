@@ -14,7 +14,8 @@ router.get('/', (req, res) => {
   res.json({ message: 'welcome to our doc app!' });
 });
 
-router.post('/signin', Users.signin);
+router.post('/signin-simple', Users.signinSimple);
+router.get('/signin-cas', Users.signinCAS);
 router.post('/signup', Users.signup);
 
 router.route('/alltrips')
