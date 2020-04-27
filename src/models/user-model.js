@@ -25,6 +25,7 @@ const UserSchema = new Schema({
     driver_cert: { type: String, enum: ['MICROBUS', 'VAN', null], default: null },
     trailer_cert: { type: Boolean, default: false },
   },
+  completedProfile: { type: Boolean, default: true },
 });
 
 UserSchema.set('toJSON', {

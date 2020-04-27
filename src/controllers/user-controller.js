@@ -37,6 +37,7 @@ export const signinCAS = (req, res, next) => {
         if (userFromDB.length === 0) {
           const newUser = new User();
           newUser.casID = user;
+          newUser.completedProfile = false;
           newUser.save()
             .then((savedUser) => {
               res.redirect(`${constants.frontendURL}?token=${tokenForUser(savedUser)}&userId=${savedUser.id}`);
