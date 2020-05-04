@@ -1,14 +1,14 @@
 import jwt from 'jwt-simple';
 import dotenv from 'dotenv';
+import passport from '../services/passport';
+import * as constants from '../constants';
 import User from '../models/user-model';
 import Trip from '../models/trip-model';
-import passport from '../services/passport';
-
 import VehicleRequest from '../models/vehicle-request-model';
 
 dotenv.config({ silent: true });
 
-export const signin = (req, res, next) => {
+export const signinSimple = (req, res, next) => {
   passport.authenticate('local', (err, user) => {
     if (err) { return err; }
     if (!user) {
@@ -26,36 +26,28 @@ export const signin = (req, res, next) => {
 };
 
 export const signinCAS = (req, res, next) => {
-  passport.authenticate('cas', (err, user, info) => {
-    if (err) { return err; }
+  passport.authenticate('cas', (error, user) => {
+    if (error) { return error; }
     if (!user) {
-      res.status(500).send('rejected');
-      return res.redirect('/');
+      res.redirect(constants.frontendURL);
     }
     User.find({ casID: user }).populate('leader_for').exec()
-      .then((user1) => {
-        if (user1.length === 0) {
+      .then((userFromDB) => {
+        console.log(userFromDB);
+        if (userFromDB.length === 0) {
           const newUser = new User();
           newUser.casID = user;
-          newUser.email = '';
-          newUser.name = '';
-          newUser.role = 'Trippee';
-          newUser.leader_for = [];
+          newUser.completedProfile = false;
           newUser.save()
-            .then((result) => {
-              res.redirect(`http://doc-signups.dali.dartmouth.edu/authed?token=${tokenForUser(result)}&userId=${result.id}`);
-              // res.redirect(`http://localhost:8080/authed?token=${tokenForUser(result)}&userId=${result.id}`);
-            })
-            .catch((error) => {
-              res.status(500).send(error.message);
+            .then((savedUser) => {
+              res.redirect(`${constants.frontendURL}?token=${tokenForUser(savedUser)}&userId=${savedUser.id}`);
             });
         } else {
-          res.redirect(`http://doc-signups.dali.dartmouth.edu/authed?token=${tokenForUser(user1[0])}&userId=${user1[0].id}`);
-          // res.redirect(`http://localhost:8080/authed?token=${tokenForUser(user1[0])}&userId=${user1[0].id}`);
+          res.redirect(`${constants.frontendURL}?token=${tokenForUser(userFromDB[0])}&userId=${userFromDB[0].id}`);
         }
       })
-      .catch((error) => {
-        res.status(500).send(error.message);
+      .catch((errorInFindingUser) => {
+        res.status(500).send(errorInFindingUser.message);
       });
   })(req, res, next);
 };
