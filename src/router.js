@@ -91,7 +91,11 @@ router.route('/vehicleRequests')
   .get(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.getVehicleRequests);
 
 router.route('/vehicles')
-  .get(requireAuth, Vehicles.getVehicles);
+  .get(requireAuth, Vehicles.getVehicles)
+  .post(requireAuth, Users.roleAuthorization(['OPO']), Vehicles.createVehicle);
+
+router.route('/vehicles/:id')
+  .delete(requireAuth, Users.roleAuthorization(['OPO']), Vehicles.deleteVehicle);
 
 router.route('/opoVehicleRequest/:id')
   .post(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.respondToVehicleRequest)

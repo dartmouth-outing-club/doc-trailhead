@@ -62,7 +62,7 @@ export const getVehicleRequest = (req, res) => {
 };
 
 export const getVehicleRequests = (req, res) => {
-  VehicleRequest.find({}).populate('requester').populate('associatedTrip')
+  VehicleRequest.find({}).populate('requester').populate('associatedTrip').populate('assignments')
     .then((vehicleRequests) => {
       res.json(vehicleRequests);
     })

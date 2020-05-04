@@ -365,7 +365,7 @@ function seedDB() {
                                         newUser.height = '6';
                                         newUser.allergies_dietary_restrictions = 'none';
                                         newUser.medical_conditions = 'Not a real human';
-                                        if (fakeUser.role === 'Leader') {
+                                        if (fakeUser.role === 'Leader' || fakeUser.role === 'OPO') {
                                           const clubIds = [];
                                           insertedClubs.forEach((insertedClub) => {
                                             clubIds.push(insertedClub._id);
