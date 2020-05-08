@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import * as Trips from './controllers/trip-controller';
 import * as Users from './controllers/user-controller';
-import sendEmailToTrip from './controllers/email-controller';
 import * as Clubs from './controllers/club-controller';
 import * as VehicleRequests from './controllers/vehicle-request-controller';
 import * as Vehicles from './controllers/vehicle-controller';
@@ -43,10 +42,8 @@ router.route('/user')
 router.route('/users').get(requireAuth, Users.getUsers);
 
 router.get('/myTrips', requireAuth, Users.myTrips);
-router.delete('/leaveTrip/:id', requireAuth, Trips.leaveTrip);
+router.post('/leaveTrip/:id', requireAuth, Trips.leaveTrip);
 router.get('/userTrips', requireAuth, Users.userTrips);
-
-router.post('/sendEmailToTrip', sendEmailToTrip);
 
 // router.get('/isOnTrip/:tripID', requireAuth, Trips.isOnTrip);
 
