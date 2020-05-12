@@ -1,5 +1,8 @@
 import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
 import Trip from '../models/trip-model';
+
+dotenv.config({ silent: true });
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -8,8 +11,6 @@ const transporter = nodemailer.createTransport({
     pass: 'DALI20SDOC',
   },
 });
-
-console.log(process.env.EMAIL_PASSWORD);
 
 const sendEmailToTrip = (req, res) => {
   Trip.findById(req.body.id).populate('leaders').populate('members')
