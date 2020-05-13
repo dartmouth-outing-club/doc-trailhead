@@ -91,20 +91,6 @@ export const createTrip = (req, res) => {
   });
 };
 
-// export const isOnTrip = (req, res) => {
-//   // user id is stored in req.user.id
-//   // you can access the Trips db via Trips.find({})
-//   // the requested trip id is stored in req.params.tripID
-
-//   if (Trip.findById(req.params.tripID).members.includes(req.user.id)) {
-//     return 'yes';
-//   } else if (Trip.findById(req.params.tripID).pending.includes(req.user.id)) {
-//     return 'pending';
-//   } else {
-//     return 'no';
-//   }
-// };
-
 export const getTrips = (req, res) => {
   Trip.find().populate('club').populate('leaders')
     .then((trips) => {
@@ -219,6 +205,11 @@ export const editUserGear = (req, res) => {
     });
 };
 
+/**
+ * Moves a pending member to the approved list, while adding their gear requests to the trip's total.
+ * @param {*} req
+ * @param {*} res
+ */
 export const joinTrip = (req, res) => {
   const { id } = req.params;
   const { pend } = req.body;
@@ -228,18 +219,19 @@ export const joinTrip = (req, res) => {
       trip.members.push(pend);
       pend.gear.forEach((pendGear) => {
         trip.trippeeGear.forEach((gear) => {
-          if (pendGear.gearId === gear.id) {
+          console.log('pendGear', pendGear);
+          console.log('gear', gear);
+          if (pendGear.gearId === gear._id.toString()) {
             gear.quantity += 1;
           }
         });
       });
       // remove user from pending list
       trip.pending.forEach((pender, index) => {
-        if (pender.id === pend._id) {
+        if (pender._id.equals(pend._id)) {
           trip.pending.splice(index, 1);
         }
       });
-      console.log(trip.members);
       trip.save()
         .then(() => {
           getTrip(req, res);
@@ -265,7 +257,7 @@ export const moveToPending = (req, res) => {
         if (member.user._id.equals(req.body.member.user._id)) {
           member.gear.forEach((memberGear) => {
             trip.trippeeGear.forEach((gear) => {
-              if (memberGear.gearId === gear.id) {
+              if (memberGear.gearId === gear._id) {
                 gear.quantity -= 1;
               }
             });
@@ -275,7 +267,6 @@ export const moveToPending = (req, res) => {
         return member.user.id === req.body.member.user.id;
       });
       trip.pending.push(req.body.member);
-      console.log(trip.pending);
       trip.save()
         .then(() => {
           getTrip(req, res);
@@ -307,7 +298,7 @@ export const leaveTrip = (req, res) => {
           if (member.user._id.equals(req.user._id)) {
             member.gear.forEach((memberGear) => {
               trip.trippeeGear.forEach((gear) => {
-                if (memberGear.gearId === gear.id) {
+                if (memberGear.gearId === gear._id) {
                   gear.quantity -= 1;
                 }
               });
