@@ -4,10 +4,12 @@ import Trip from '../models/trip-model';
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'doc.planner.18s@gmail.com',
-    pass: process.env.EMAIL_PASSWORD,
+    user: 'no.reply.dartmouth.outing.club@gmail.com',
+    pass: 'DALI20SDOC',
   },
 });
+
+console.log(process.env.EMAIL_PASSWORD);
 
 const sendEmailToTrip = (req, res) => {
   Trip.findById(req.body.id).populate('leaders').populate('members')
@@ -27,7 +29,7 @@ const sendEmailToTrip = (req, res) => {
     })
     .then((emails) => {
       const mailOptions = {
-        from: 'doc.planner.18s@gmail.com',
+        from: 'no.reply.dartmouth.outing.club@gmail.com',
         to: emails,
         subject: req.body.subject,
         text: req.body.text,
@@ -47,4 +49,21 @@ const sendEmailToTrip = (req, res) => {
     });
 };
 
-export default sendEmailToTrip;
+const sendEmail = (email, subject, message) => {
+  console.log(email);
+  const mailOptions = {
+    from: 'no.reply.dartmouth.outing.club@gmail.com',
+    to: email,
+    subject,
+    text: message,
+  };
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log(`Email sent: ${info.response}`);
+    }
+  });
+};
+
+export { sendEmailToTrip, sendEmail };

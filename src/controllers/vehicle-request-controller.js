@@ -240,7 +240,6 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
         newAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
         newAssignment.save().then((savedAssignment) => {
-          console.log(savedAssignment);
           vehicle.bookings.push(savedAssignment);
           vehicle.save().then(() => {
             checkForConflicts(savedAssignment).then((conflicts) => {
@@ -254,7 +253,6 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
                   });
                 }),
               ).then(() => {
-                console.log(conflicts);
                 savedAssignment.conflicts = conflicts;
                 savedAssignment.save().then((updatedSavedAssignment) => {
                   resolve(updatedSavedAssignment);
@@ -367,7 +365,7 @@ export const denyVehicleRequest = async (req, res) => {
 
 export const getVehicleAssignments = async (req, res) => {
   try {
-    const assignments = await Assignment.find().populate('request').populate('requester').populate('assigned_vehicle')
+    const assignments = await Assignment.find().populate('requester').populate({ path: 'request', populate: { path: 'associatedTrip' } }).populate('assigned_vehicle')
       .exec();
     return res.json(assignments);
   } catch (error) {

@@ -3,6 +3,7 @@ import User from '../models/user-model';
 import Club from '../models/club-model';
 import Global from '../models/global-model';
 import VehicleRequest from '../models/vehicle-request-model';
+import { sendEmail } from './email-controller';
 
 export const createTrip = (req, res) => {
   Global.find({}).then((globals) => {
@@ -292,6 +293,15 @@ export const leaveTrip = (req, res) => {
     model: 'User',
   }).exec()
     .then((trip) => {
+      User.findById(req.user.id).then((leavingUser) => {
+        console.log(req.body.userTripStatus);
+        trip.leaders.forEach((leaderID) => {
+          User.findById(leaderID).then((leader) => {
+            sendEmail(leader.email, `Trip update: ${leavingUser.name} left your trip`, `Hello ${leader.name},\nYour approved trippee for Trip #${trip.number} cancelled for this trip. You can reach them at ${leavingUser.email}.\nBest,\nDOC Planner`);
+          });
+        });
+      });
+      // console.log(req.body.userTripStatus);
       if (req.body.userTripStatus === 'APPROVED') {
         trip.members.some((member, index) => {
           if (member.user._id.equals(req.user._id)) {
