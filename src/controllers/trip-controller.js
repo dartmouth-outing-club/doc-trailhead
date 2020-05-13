@@ -243,6 +243,31 @@ export const joinTrip = (req, res) => {
     });
 };
 
+/**
+ * Sets the attending status for each member of trip.
+ * @param {*} req
+ * @param {*} res
+ */
+export const setMemberAttendance = (req, res) => {
+  const { tripID } = req.params;
+  const { attendingMemberID } = req.body;
+  const { attendedTrip } = req.body;
+  Trip.findById(tripID).then((trip) => {
+    Promise.all(
+      trip.members.map((member) => {
+        if (member.user.toString() === attendingMemberID) {
+          return new Promise((resolve) => {
+            member.attendedTrip = attendedTrip;
+            resolve(member.attendedTrip);
+          });
+        } else return null;
+      }),
+    ).then((result) => {
+      res.json({ result });
+    });
+  }).catch((error) => { return res.status(500).json(error); });
+};
+
 export const moveToPending = (req, res) => {
   Trip.findById(req.params.id).populate('leaders').populate({
     path: 'members.user',
