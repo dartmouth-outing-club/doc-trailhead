@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 import mongoose from 'mongoose';
-import Trip from './models/trip-model';
-import Global from './models/global-model';
-import VehicleRequest from './models/vehicle-request-model';
-import UserModel from './models/user-model';
+import Trip from '../models/trip-model';
+import Global from '../models/global-model';
+import VehicleRequest from '../models/vehicle-request-model';
+import UserModel from '../models/user-model';
 
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
 mongoose.set('useCreateIndex', true);
