@@ -250,20 +250,22 @@ export const joinTrip = (req, res) => {
  */
 export const setMemberAttendance = (req, res) => {
   const { tripID } = req.params;
-  const { attendingMemberID } = req.body;
-  const { attendedTrip } = req.body;
+  const { memberID } = req.body;
+  const { status } = req.body;
   Trip.findById(tripID).then((trip) => {
     Promise.all(
       trip.members.map((member) => {
-        if (member.user.toString() === attendingMemberID) {
+        if (member.user.toString() === memberID) {
           return new Promise((resolve) => {
-            member.attendedTrip = attendedTrip;
-            resolve(member.attendedTrip);
+            member.attendedTrip = status;
+            resolve();
           });
         } else return null;
       }),
-    ).then((result) => {
-      res.json({ result });
+    ).then(() => {
+      trip.save().then(() => {
+        res.json({ status });
+      });
     });
   }).catch((error) => { return res.status(500).json(error); });
 };
