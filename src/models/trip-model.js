@@ -8,6 +8,7 @@ const TripSchema = new Schema({
   club: { type: Schema.Types.ObjectId, ref: 'Club' },
   members: [{
     user: { type: Schema.Types.ObjectId, ref: 'User' }, // users
+    attendedTrip: { type: Boolean, default: false }, // whether or not the user was present for the trip or bailed out
     gear: [{ gearId: String, name: String }],
   }],
   pending: [{
