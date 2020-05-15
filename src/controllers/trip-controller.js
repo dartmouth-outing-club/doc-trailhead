@@ -373,7 +373,7 @@ export const deleteTrip = (req, res) => {
 export const updateTrip = async (req, res) => {
   try {
     const trip = await Trip.findById(req.params.id).exec();
-    if (trip.leaders.indexOf(req.user._id) !== -1) {
+    if (trip.leaders.indexOf(req.user._id) !== -1 || req.user.role === 'OPO') {
       trip.startDate = req.body.startDate;
       trip.endDate = req.body.endDate;
       trip.startTime = req.body.startTime;
