@@ -1,11 +1,14 @@
 import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
 import Trip from '../models/trip-model';
+
+dotenv.config({ silent: true });
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'doc.planner.18s@gmail.com',
-    pass: process.env.EMAIL_PASSWORD,
+    user: 'no.reply.dartmouth.outing.club@gmail.com',
+    pass: 'DALI20SDOC',
   },
 });
 
@@ -27,7 +30,7 @@ const sendEmailToTrip = (req, res) => {
     })
     .then((emails) => {
       const mailOptions = {
-        from: 'doc.planner.18s@gmail.com',
+        from: 'no.reply.dartmouth.outing.club@gmail.com',
         to: emails,
         subject: req.body.subject,
         text: req.body.text,
@@ -47,4 +50,21 @@ const sendEmailToTrip = (req, res) => {
     });
 };
 
-export default sendEmailToTrip;
+const sendEmail = (email, subject, message) => {
+  console.log(email);
+  const mailOptions = {
+    from: 'no.reply.dartmouth.outing.club@gmail.com',
+    to: email,
+    subject,
+    text: message,
+  };
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log(`Email sent: ${info.response}`);
+    }
+  });
+};
+
+export { sendEmailToTrip, sendEmail };

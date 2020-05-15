@@ -8,11 +8,11 @@ const TripSchema = new Schema({
   club: { type: Schema.Types.ObjectId, ref: 'Club' },
   members: [{
     user: { type: Schema.Types.ObjectId, ref: 'User' }, // users
-    gear: [{ gearId: String, gear: String }],
+    gear: [{ gearId: String, name: String }],
   }],
   pending: [{
     user: { type: Schema.Types.ObjectId, ref: 'User' }, // pending members
-    gear: [{ gearId: String, gear: String }],
+    gear: [{ gearId: String, name: String }],
   }],
   startDate: Date,
   endDate: Date,
@@ -27,7 +27,7 @@ const TripSchema = new Schema({
   experienceNeeded: Boolean,
   co_leader_access: { type: Boolean, default: false },
   OPOGearRequests: [String],
-  trippeeGear: [{ gear: String, size_type: { type: String, enum: ['N/A', 'Clothe', 'Shoe', 'Height'], default: 'N/A' }, quantity: Number }],
+  trippeeGear: [{ name: String, size_type: { type: String, enum: ['N/A', 'Clothe', 'Shoe', 'Height'], default: 'N/A' }, quantity: Number }],
   gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   trippeeGearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   pcard: [
