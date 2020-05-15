@@ -391,6 +391,7 @@ export const updateTrip = async (req, res) => {
       trip.OPOGearRequests = req.body.gearRequests;
       trip.trippeeGear = req.body.trippeeGear;
       trip.pcard = req.body.pcard;
+      trip.returned = req.body.returned;
       if (trip.gearStatus === 'N/A' && req.body.gearRequests.length > 0) {
         trip.gearStatus = 'pending';
       }
