@@ -4,6 +4,7 @@ import mongoose, { Schema } from 'mongoose';
 const TripSchema = new Schema({
   number: { type: Number, unique: true },
   title: String,
+  returned: { type: Boolean, default: false },
   leaders: [{ type: Schema.Types.ObjectId, ref: 'User' }], // leaders
   club: { type: Schema.Types.ObjectId, ref: 'Club' },
   members: [{
