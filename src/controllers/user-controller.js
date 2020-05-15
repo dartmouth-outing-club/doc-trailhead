@@ -1,12 +1,12 @@
 import jwt from 'jwt-simple';
-import dotenv from 'dotenv';
+// import dotenv from 'dotenv';
 import passport from '../services/passport';
 import * as constants from '../constants';
 import User from '../models/user-model';
 import Trip from '../models/trip-model';
 import VehicleRequest from '../models/vehicle-request-model';
 
-dotenv.config({ silent: true });
+// dotenv.config({ silent: true });
 
 export const signinSimple = (req, res, next) => {
   passport.authenticate('local', (err, user) => {
@@ -195,8 +195,11 @@ export const updateUser = (req, res, next) => {
         user.email = req.body.email;
         user.name = req.body.name;
         const {
-          pronoun, dash_number, allergies_dietary_restrictions, medical_conditions, clothe_size, shoe_size, height,
+          pronoun, dash_number, allergies_dietary_restrictions, medical_conditions, clothe_size, shoe_size, height, photo_url,
         } = req.body;
+        if (!isStringEmpty(photo_url)) {
+          user.photo_url = photo_url;
+        }
         if (!isStringEmpty(dash_number)) {
           user.dash_number = dash_number;
         }
