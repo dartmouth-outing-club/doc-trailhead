@@ -7,6 +7,7 @@ const UserSchema = new Schema({
   email: { type: String, unique: true, lowercase: true },
   password: { type: String, select: false }, // not defined if the user is from CAS
   name: String,
+  photo_url: String,
   pronoun: String,
   dash_number: String,
   allergies_dietary_restrictions: String,
