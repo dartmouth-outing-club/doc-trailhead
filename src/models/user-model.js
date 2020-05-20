@@ -26,7 +26,7 @@ const UserSchema = new Schema({
     driver_cert: { type: String, enum: ['MICROBUS', 'VAN', null], default: null },
     trailer_cert: { type: Boolean, default: false },
   },
-  completedProfile: { type: Boolean, default: true },
+  completedProfile: { type: Boolean, default: false },
 });
 
 UserSchema.set('toJSON', {
@@ -35,6 +35,14 @@ UserSchema.set('toJSON', {
 
 UserSchema.pre('save', function beforeYourModelSave(next) {
   const user = this;
+
+  // checks whether the user has a completed profile
+  if (user.email && user.name && user.pronoun && user.dash_number && user.allergies_dietary_restrictions && user.medical_conditions && user.clothe_size && user.shoe_size && user.height) {
+    user.completedProfile = true;
+  } else {
+    user.completedProfile = false;
+  }
+
   if (!user.isModified('password')) {
     return next();
   }

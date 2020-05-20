@@ -359,10 +359,10 @@ function seedDB() {
                                         newUser.driver_cert = fakeUser.driver_cert;
                                         newUser.trailer_cert = fakeUser.trailer_cert;
 
-                                        newUser.photo_url = '';
+                                        newUser.photo_url = 'https://i.pinimg.com/originals/aa/05/23/aa05237847e53e19a5d0deef64c33b79.jpg';
                                         newUser.pronoun = 'they/them/their';
                                         newUser.clothe_size = 'Men-S';
-                                        newUser.shoe_size = 'Men-2';
+                                        newUser.shoe_size = 'Women-2';
                                         newUser.height = '6';
 
                                         newUser.allergies_dietary_restrictions = 'none';
