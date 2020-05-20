@@ -129,7 +129,7 @@ export const myTrips = (req, res) => {
 };
 
 const isStringEmpty = (string) => {
-  return string.length === 0;
+  return (!string || string.length === 0);
 };
 
 const isInfoEmpty = (string) => {
