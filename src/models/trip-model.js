@@ -4,10 +4,12 @@ import mongoose, { Schema } from 'mongoose';
 const TripSchema = new Schema({
   number: { type: Number, unique: true },
   title: String,
+  returned: { type: Boolean, default: false },
   leaders: [{ type: Schema.Types.ObjectId, ref: 'User' }], // leaders
   club: { type: Schema.Types.ObjectId, ref: 'Club' },
   members: [{
     user: { type: Schema.Types.ObjectId, ref: 'User' }, // users
+    attendedTrip: { type: Boolean, default: false }, // whether or not the user was present for the trip or bailed out
     gear: [{ gearId: String, name: String }],
   }],
   pending: [{

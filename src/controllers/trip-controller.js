@@ -243,6 +243,33 @@ export const joinTrip = (req, res) => {
     });
 };
 
+/**
+ * Sets the attending status for each member of trip.
+ * @param {*} req
+ * @param {*} res
+ */
+export const setMemberAttendance = (req, res) => {
+  const { tripID } = req.params;
+  const { memberID } = req.body;
+  const { status } = req.body;
+  Trip.findById(tripID).then((trip) => {
+    Promise.all(
+      trip.members.map((member) => {
+        if (member.user.toString() === memberID) {
+          return new Promise((resolve) => {
+            member.attendedTrip = status;
+            resolve();
+          });
+        } else return null;
+      }),
+    ).then(() => {
+      trip.save().then(() => {
+        res.json({ status });
+      });
+    });
+  }).catch((error) => { return res.status(500).json(error); });
+};
+
 export const moveToPending = (req, res) => {
   Trip.findById(req.params.id).populate('leaders').populate({
     path: 'members.user',
@@ -346,7 +373,7 @@ export const deleteTrip = (req, res) => {
 export const updateTrip = async (req, res) => {
   try {
     const trip = await Trip.findById(req.params.id).exec();
-    if (trip.leaders.indexOf(req.user._id) !== -1) {
+    if (trip.leaders.indexOf(req.user._id) !== -1 || req.user.role === 'OPO') {
       trip.startDate = req.body.startDate;
       trip.endDate = req.body.endDate;
       trip.startTime = req.body.startTime;
@@ -364,6 +391,7 @@ export const updateTrip = async (req, res) => {
       trip.OPOGearRequests = req.body.gearRequests;
       trip.trippeeGear = req.body.trippeeGear;
       trip.pcard = req.body.pcard;
+      trip.returned = req.body.returned;
       if (trip.gearStatus === 'N/A' && req.body.gearRequests.length > 0) {
         trip.gearStatus = 'pending';
       }

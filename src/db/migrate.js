@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 import mongoose from 'mongoose';
-import Trip from './models/trip-model';
-import Global from './models/global-model';
-import VehicleRequest from './models/vehicle-request-model';
-import UserModel from './models/user-model';
+import Trip from '../models/trip-model';
+import Global from '../models/global-model';
+import VehicleRequest from '../models/vehicle-request-model';
+import UserModel from '../models/user-model';
 
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
 mongoose.set('useCreateIndex', true);
@@ -38,7 +38,7 @@ function migrateDB() {
    * PR #29
    * Adds numbering to trips and vehicle requests.
    */
-  const global = new Global();
+  global = new Global();
   global.tripNumberMax = 0;
   global.vehicleRequestNumberMax = 0;
   global.save().then(() => {

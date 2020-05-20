@@ -32,6 +32,7 @@ router.route('/trip/:id')
   .put(requireAuth, Trips.updateTrip)
   .delete(requireAuth, Trips.deleteTrip);
 
+router.put('/set-attendence/:tripID', requireAuth, Trips.setMemberAttendance);
 router.put('/jointrip/:id', requireAuth, Trips.joinTrip);
 router.put('/movetopending/:id', requireAuth, Trips.moveToPending);
 
