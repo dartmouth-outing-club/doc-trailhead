@@ -256,6 +256,7 @@ export const updateUser = (req, res, next) => {
         if (req.body.role) {
           user.role = req.body.role;
         }
+
         user.save()
           .then(() => {
             getUser(req, res);
