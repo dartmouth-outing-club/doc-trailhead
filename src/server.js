@@ -4,7 +4,9 @@ import cors from 'cors';
 import path from 'path';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import apiRouter from './router';
+
 
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
 mongoose.set('useCreateIndex', true);
@@ -14,6 +16,8 @@ mongoose.connect(mongoURI, { useNewUrlParser: true });
 mongoose.Promise = global.Promise;
 
 mongoose.model('Assignment');
+
+dotenv.config({ silent: true });
 
 // initialize
 const app = express();

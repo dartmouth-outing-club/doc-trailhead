@@ -4,10 +4,14 @@ import * as Users from './controllers/user-controller';
 import * as Clubs from './controllers/club-controller';
 import * as VehicleRequests from './controllers/vehicle-request-controller';
 import * as Vehicles from './controllers/vehicle-controller';
+import signS3 from './services/s3';
 import { requireAuth } from './services/passport';
 
 
 const router = Router();
+
+router.get('/sign-s3', signS3);
+
 
 router.get('/', (req, res) => {
   res.json({ message: 'welcome to our doc app!' });
