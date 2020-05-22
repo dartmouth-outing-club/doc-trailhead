@@ -3,7 +3,7 @@ import User from '../models/user-model';
 import Club from '../models/club-model';
 import Global from '../models/global-model';
 import VehicleRequest from '../models/vehicle-request-model';
-import { sendEmail } from './email-controller';
+import { mailer } from '../services/emailing';
 
 export const createTrip = (req, res) => {
   Global.find({}).then((globals) => {
@@ -305,6 +305,13 @@ export const moveToPending = (req, res) => {
     });
 };
 
+/**
+ * Processes request from trippee to leave trip.
+ * If the trippee was approved, removes all gear requested by trippee in the group list and sends email alert to all trip leaders and co-leaders.
+ * Returns the modified trip document to client.
+ * @param {*} req
+ * @param {*} res
+ */
 export const leaveTrip = (req, res) => {
   Trip.findById(req.params.id).populate('leaders').populate({
     path: 'members.user',
@@ -312,17 +319,16 @@ export const leaveTrip = (req, res) => {
   }).exec()
     .then((trip) => {
       User.findById(req.user.id).then((leavingUser) => {
-        console.log(req.body.userTripStatus);
         trip.leaders.forEach((leaderID) => {
           User.findById(leaderID).then((leader) => {
-            sendEmail(leader.email, `Trip update: ${leavingUser.name} left your trip`, `Hello ${leader.name},\nYour approved trippee for Trip #${trip.number} cancelled for this trip. You can reach them at ${leavingUser.email}.\nBest,\nDOC Planner`);
+            mailer.send([{ address: leader.email, subject: `Trip update: ${leavingUser.name} left your trip`, message: `Hello ${leader.name},\nYour approved trippee for Trip #${trip.number} cancelled for this trip. You can reach them at ${leavingUser.email}.\nBest,\nDOC Planner` }]);
           });
         });
       });
-      // console.log(req.body.userTripStatus);
-      if (req.body.userTripStatus === 'APPROVED') {
+      if (req.body.userTripStatus === 'APPROVED') { // trippee was originally approved to attend
         trip.members.some((member, index) => {
-          if (member.user._id.equals(req.user._id)) {
+          if (member.user._id.equals(req.user._id)) { // find trippee in list of members
+            // match and reduce each gear request by 1
             member.gear.forEach((memberGear) => {
               trip.trippeeGear.forEach((gear) => {
                 if (memberGear.gearId === gear._id) {
@@ -330,22 +336,21 @@ export const leaveTrip = (req, res) => {
                 }
               });
             });
-            trip.members.splice(index, 1);
+            trip.members.splice(index, 1); // remove trippee
           }
           return member.user._id.equals(req.user._id);
         });
       } else if (req.body.userTripStatus === 'PENDING') {
         trip.pending.some((pender, index) => {
           if (pender.user._id.equals(req.user._id)) {
-            trip.pending.splice(index, 1);
+            trip.pending.splice(index, 1); // remove trippee
           }
           return pender.user._id.equals(req.user._id);
         });
       }
-      trip.save()
-        .then(() => {
-          getTrip(req, res);
-        });
+      trip.save().then(() => {
+        getTrip(req, res);
+      });
     })
     .catch((error) => {
       res.status(500).send(error.message);
