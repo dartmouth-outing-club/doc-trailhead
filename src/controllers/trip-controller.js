@@ -3,6 +3,7 @@ import User from '../models/user-model';
 import Club from '../models/club-model';
 import Global from '../models/global-model';
 import VehicleRequest from '../models/vehicle-request-model';
+import * as constants from '../constants';
 import { mailer } from '../services';
 
 export const createTrip = (req, res) => {
@@ -211,6 +212,7 @@ export const joinTrip = (req, res) => {
   const { id } = req.params;
   const { pend } = req.body;
   Trip.findById(id)
+    .populate('leaders')
     .then((trip) => {
       // add user to member list
       trip.members.push(pend);
@@ -306,7 +308,7 @@ export const moveToPending = (req, res) => {
       trip.save()
         .then(() => {
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip Update: ${req.body.member.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${req.body.member.name} for Trip #${trip.number} has been moved from the approved list to the pending list. You can reach them at ${req.body.member.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+          mailer.send({ address: leaderEmails, subject: `Trip Update: ${req.body.member.user.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${req.body.member.name} for Trip #${trip.number} has been moved from the approved list to the pending list. You can reach them at ${req.body.member.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
           getTrip(req, res);
         });
     })
