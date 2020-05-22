@@ -5,9 +5,15 @@ const schedule = (task, frequency) => {
     case 'daily':
       cron.schedule('0 0 * * *', task);
       break;
+    case 'minutely':
+      cron.schedule('* * * * *', task);
+      break;
     default:
+      cron.schedule('* * * * *', () => {
+        console.log('minute has passed');
+      });
       break;
   }
 };
 
-export default schedule;
+export default { schedule };
