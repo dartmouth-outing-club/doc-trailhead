@@ -165,14 +165,24 @@ export const getTrip = (req, res) => {
     });
 };
 
+/**
+ * Puts a trippee on the pending list.
+ * Sends an email confirmation to trippee and notice to all leaders and co-leaders.
+ * @param {*} req
+ * @param {*} res
+ */
 export const addToPending = (req, res) => {
   const { id } = req.params;
   const { trippeeGear } = req.body;
-  Trip.findById(id).exec()
+  Trip.findById(id)
+    .populate('leaders')
     .then((trip) => {
       trip.pending.push({ user: req.user._id, gear: trippeeGear });
       trip.save()
         .then(() => {
+          mailer.send({ address: req.user.email, subject: 'Confirmation: You\'ve signed up for a trip', message: `Hello ${req.user.name},\n\nYou've signed up for Trip #${trip.number}, awaiting leader approval.\n\nView the trip here: ${constants.frontendURL}/trip/${id}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
+          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+          mailer.send({ address: leaderEmails, subject: `Trip Update: ${req.user.name} applied to your trip`, message: `Hello,\n\nTrippee ${req.user.name} has applied to join Trip #${trip.number}. Please use our platform to approve them. You can reach them at ${req.user.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
           getTrip(req, res);
         });
     })
@@ -232,7 +242,7 @@ export const joinTrip = (req, res) => {
       trip.save()
         .then(() => {
           User.findById(pend.user).then((foundUser) => {
-            mailer.send({ address: foundUser.email, subject: 'Trip Update: You\'ve been approved!', message: `Hello ${foundUser.name},\n\nYou've been approved for Trip #${trip.number}!.\n\nView the trip here: ${constants.frontendURL}/trip/${id}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
+            mailer.send({ address: foundUser.email, subject: 'Trip Update: You\'ve been approved!', message: `Hello ${foundUser.name},\n\nYou've been approved for Trip #${trip.number}!\n\nView the trip here: ${constants.frontendURL}/trip/${id}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
             const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
             mailer.send({ address: leaderEmails, subject: `Trip Update: ${foundUser.name} got approved!`, message: `Hello,\n\nYour pending trippee ${foundUser.name} for Trip #${trip.number} has been approved. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
           });
@@ -492,12 +502,20 @@ export const getGearRequests = (req, res) => {
     });
 };
 
+/**
+ * OPO approves or denies a trip's general gear requests.
+ * Sends notification email to all trip leaders and co-leaders.
+ * @param {*} req
+ * @param {*} res
+ */
 export const respondToGearRequest = (req, res) => {
   Trip.findById(req.body.id)
     .then((trip) => {
       trip.gearStatus = req.body.status;
       trip.save()
         .then(() => {
+          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+          mailer.send({ address: leaderEmails, subject: `Trip Update: Gear requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}'s group gear requests have all been ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
           getTrip(req, res);
         });
     })
@@ -516,6 +534,50 @@ export const getTrippeeGearRequests = (req, res) => {
     });
 };
 
+/**
+ * OPO approves or denies a trip's trippee gear requests.
+ * Sends notification email to all trip leaders and co-leaders.
+ * @param {*} req
+ * @param {*} res
+ */
+export const respondToTrippeeGearRequest = (req, res) => {
+  Trip.findById(req.body.id)
+    .then((trip) => {
+      trip.trippeeGearStatus = req.body.status;
+      trip.save()
+        .then(() => {
+          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+          mailer.send({ address: leaderEmails, subject: `Trip Update: Gear requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}'s trippee (not group) gear requests have all been ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+          getTrip(req, res);
+        });
+    }).catch((error) => {
+      res.status(500).send(error);
+    });
+};
+
+/**
+ * OPO assigns a P-Card to a trip or denies.
+ * Sends notification email to all trip leaders and co-leaders.
+ * @param {*} req
+ * @param {*} res
+ */
+export const respondToPCardRequest = (req, res) => {
+  Trip.findById(req.body.id)
+    .then((trip) => {
+      trip.pcardStatus = req.body.pcardStatus;
+      trip.pcardAssigned = req.body.pcardAssigned;
+      req.params.id = req.body.id;
+      trip.save()
+        .then(() => {
+          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+          mailer.send({ address: leaderEmails, subject: `Trip Update: P-Card requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}'s P-Card requests has been ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+          getTrip(req, res);
+        });
+    }).catch((error) => {
+      res.status(500).send(error);
+    });
+};
+
 export const getOPOTrips = (req, res) => {
   Trip.find({
     $or: [
@@ -531,32 +593,5 @@ export const getOPOTrips = (req, res) => {
     })
     .then((trips) => {
       res.json(trips);
-    });
-};
-
-export const respondToTrippeeGearRequest = (req, res) => {
-  Trip.findById(req.body.id)
-    .then((trip) => {
-      trip.trippeeGearStatus = req.body.status;
-      trip.save()
-        .then(() => {
-          getTrip(req, res);
-        });
-    }).catch((error) => {
-      res.status(500).send(error);
-    });
-};
-export const respondToPCardRequest = (req, res) => {
-  Trip.findById(req.body.id)
-    .then((trip) => {
-      trip.pcardStatus = req.body.pcardStatus;
-      trip.pcardAssigned = req.body.pcardAssigned;
-      req.params.id = req.body.id;
-      trip.save()
-        .then(() => {
-          getTrip(req, res);
-        });
-    }).catch((error) => {
-      res.status(500).send(error);
     });
 };
