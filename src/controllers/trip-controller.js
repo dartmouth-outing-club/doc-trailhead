@@ -3,6 +3,7 @@ import User from '../models/user-model';
 import Club from '../models/club-model';
 import Global from '../models/global-model';
 import VehicleRequest from '../models/vehicle-request-model';
+import { tokenForUser } from './user-controller';
 import * as constants from '../constants';
 import { mailer } from '../services';
 
@@ -46,17 +47,22 @@ export const createTrip = (req, res) => {
       trip.leaders = [req.user._id];
       trip.pending = [];
 
+      const leaderEmails = [req.user.email];
+
       User.find({ email: { $in: req.body.leaders } }).then((foundUsers) => {
         Promise.all(foundUsers.map((user) => {
           return new Promise((resolve) => {
             if (!user._id.equals(req.user._id)) {
               trip.leaders.push(user._id);
               trip.members.push({ user: user._id, gear: {} });
+              leaderEmails.push(user.email);
             }
             resolve();
           });
         })).then(() => {
           trip.save().then((savedTrip) => {
+            mailer.send({ address: leaderEmails, subject: `New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've created a new Trip #${savedTrip.number}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nIMPORTANT: on the day of the trip, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${savedTrip._id}?token=${tokenForUser(req.user, 'mobile', savedTrip._id)}\n\nBest,\nDOC Planner` });
+
             if (req.body.vehicles.length > 0) {
               Global.find({}).then((globalsForVehicleRequest) => {
                 // Retrieves the current maximum vehicle request number and then updates it immediately.
