@@ -41,7 +41,7 @@ const fakeUsers = [
   },
   {
     casID: null,
-    email: 'morgan.sorbaro@dali.dartmouth.edu',
+    email: 'ziray.hao.22@dartmouth.edu',
     password: 'trippee1',
     name: 'Trippee 1',
     role: 'Trippee',
@@ -54,7 +54,7 @@ const fakeUsers = [
   },
   {
     casID: null,
-    email: 'benedict.tedjokusumo@dali.dartmouth.edu',
+    email: 'ziray.hao@dali.dartmouth.edu',
     password: 'trippee2',
     name: 'Trippee 2',
     role: 'Trippee',
@@ -67,7 +67,7 @@ const fakeUsers = [
   },
   {
     casID: null,
-    email: 'ziray.hao@dali.dartmouth.edu',
+    email: 'zirui.hao@gmail.com',
     password: 'trippee3',
     name: 'Trippee 3',
     role: 'Trippee',
