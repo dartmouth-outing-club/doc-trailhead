@@ -128,16 +128,12 @@ export const getTrip = (req, res) => {
         },
       },
     })
-    .exec()
     .then((trip) => {
       const isPending = trip.pending.some((pender) => {
         return pender.user.equals(req.user.id);
       });
 
       const isOnTrip = trip.members.some((member) => {
-        // console.log(req.user.id);
-        // console.log(member.user._id);
-        // console.log(member.user.id === req.user.id);
         return member.user.id === req.user.id;
       });
 
@@ -207,20 +203,19 @@ export const editUserGear = (req, res) => {
 
 /**
  * Moves a pending member to the approved list, while adding their gear requests to the trip's total.
+ * Sends approved notification email to the trippee and a notice to all leaders and co-leaders.
  * @param {*} req
  * @param {*} res
  */
 export const joinTrip = (req, res) => {
   const { id } = req.params;
   const { pend } = req.body;
-  Trip.findById(id).exec()
+  Trip.findById(id)
     .then((trip) => {
       // add user to member list
       trip.members.push(pend);
       pend.gear.forEach((pendGear) => {
         trip.trippeeGear.forEach((gear) => {
-          console.log('pendGear', pendGear);
-          console.log('gear', gear);
           if (pendGear.gearId === gear._id.toString()) {
             gear.quantity += 1;
           }
@@ -234,6 +229,11 @@ export const joinTrip = (req, res) => {
       });
       trip.save()
         .then(() => {
+          User.findById(pend.user).then((foundUser) => {
+            mailer.send({ address: foundUser.email, subject: 'Trip Update: You\'ve been approved!', message: `Hello ${foundUser.name},\n\nYou've been approved for Trip #${trip.number}!.\n\nView the trip here: ${constants.frontendURL}/trip/${id}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
+            const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+            mailer.send({ address: leaderEmails, subject: `Trip Update: ${foundUser.name} got approved!`, message: `Hello,\n\nYour pending trippee ${foundUser.name} for Trip #${trip.number} has been approved. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+          });
           getTrip(req, res);
         });
     })
@@ -270,18 +270,27 @@ export const setMemberAttendance = (req, res) => {
   }).catch((error) => { return res.status(500).json(error); });
 };
 
+/**
+ * Moves a currently approved trippee to the pending list.
+ * Removes trippees gear requests from the group list.
+ * Sends all trip leaders and co-leaders a notification email.
+ * @param {*} req
+ * @param {*} res
+ */
 export const moveToPending = (req, res) => {
-  Trip.findById(req.params.id).populate('leaders').populate({
-    path: 'members.user',
-    model: 'User',
-  }).populate({
-    path: 'pending.user',
-    model: 'User',
-  })
-    .exec()
+  Trip.findById(req.params.id)
+    .populate('leaders')
+    .populate({
+      path: 'members.user',
+      model: 'User',
+    }).populate({
+      path: 'pending.user',
+      model: 'User',
+    })
     .then((trip) => {
       trip.members.some((member, index) => {
         if (member.user._id.equals(req.body.member.user._id)) {
+          // decrement all gear requests made by the user by 1 from the group list
           member.gear.forEach((memberGear) => {
             trip.trippeeGear.forEach((gear) => {
               if (memberGear.gearId === gear._id) {
@@ -289,13 +298,15 @@ export const moveToPending = (req, res) => {
               }
             });
           });
-          trip.members.splice(index, 1);
+          trip.members.splice(index, 1); // remove the trippee from the member list
         }
         return member.user.id === req.body.member.user.id;
       });
       trip.pending.push(req.body.member);
       trip.save()
         .then(() => {
+          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+          mailer.send({ address: leaderEmails, subject: `Trip Update: ${req.body.member.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${req.body.member.name} for Trip #${trip.number} has been moved from the approved list to the pending list. You can reach them at ${req.body.member.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
           getTrip(req, res);
         });
     })
@@ -321,9 +332,8 @@ export const leaveTrip = (req, res) => {
     }).then((trip) => {
       console.log(trip);
       User.findById(req.user.id).then((leavingUser) => {
-        mailer.send(trip.leaders.map((leader) => {
-          return { address: leader.email, subject: `Trip update: ${leavingUser.name} left your trip`, message: `Hello ${leader.name},\n\nYour approved trippee ${leavingUser.name} for Trip #${trip.number} cancelled for this trip. You can reach them at ${leavingUser.email}.\n\nBest,\nDOC Planner` };
-        }));
+        const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+        mailer.send({ address: leaderEmails, subject: `Trip Update: ${leavingUser.name} left your trip`, message: `Hello,\n\nYour approved trippee ${leavingUser.name} for Trip #${trip.number} cancelled for this trip. You can reach them at ${leavingUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
       });
       if (req.body.userTripStatus === 'APPROVED') { // trippee was originally approved to attend
         trip.members.some((member, index) => {
