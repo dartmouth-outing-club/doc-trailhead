@@ -3,7 +3,7 @@ import User from '../models/user-model';
 import Club from '../models/club-model';
 import Global from '../models/global-model';
 import VehicleRequest from '../models/vehicle-request-model';
-import { mailer } from '../services/emailing';
+import { mailer } from '../services';
 
 export const createTrip = (req, res) => {
   Global.find({}).then((globals) => {
@@ -313,17 +313,17 @@ export const moveToPending = (req, res) => {
  * @param {*} res
  */
 export const leaveTrip = (req, res) => {
-  Trip.findById(req.params.id).populate('leaders').populate({
-    path: 'members.user',
-    model: 'User',
-  }).exec()
-    .then((trip) => {
+  Trip.findById(req.params.id)
+    .populate('leaders')
+    .populate({
+      path: 'members.user',
+      model: 'User',
+    }).then((trip) => {
+      console.log(trip);
       User.findById(req.user.id).then((leavingUser) => {
-        trip.leaders.forEach((leaderID) => {
-          User.findById(leaderID).then((leader) => {
-            mailer.send([{ address: leader.email, subject: `Trip update: ${leavingUser.name} left your trip`, message: `Hello ${leader.name},\nYour approved trippee for Trip #${trip.number} cancelled for this trip. You can reach them at ${leavingUser.email}.\nBest,\nDOC Planner` }]);
-          });
-        });
+        mailer.send(trip.leaders.map((leader) => {
+          return { address: leader.email, subject: `Trip update: ${leavingUser.name} left your trip`, message: `Hello ${leader.name},\n\nYour approved trippee ${leavingUser.name} for Trip #${trip.number} cancelled for this trip. You can reach them at ${leavingUser.email}.\n\nBest,\nDOC Planner` };
+        }));
       });
       if (req.body.userTripStatus === 'APPROVED') { // trippee was originally approved to attend
         trip.members.some((member, index) => {
