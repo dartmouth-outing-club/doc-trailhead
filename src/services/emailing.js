@@ -29,4 +29,4 @@ const send = (emails) => {
   });
 };
 
-export default send;
+export default { send };
