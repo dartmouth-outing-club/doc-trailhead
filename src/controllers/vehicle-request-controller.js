@@ -3,6 +3,8 @@ import Vehicle from '../models/vehicle-model';
 import Assignment from '../models/assignment-model';
 import Trip from '../models/trip-model';
 import Global from '../models/global-model';
+import * as constants from '../constants';
+import { mailer } from '../services';
 
 const createDateObject = (date, time) => {
   // adapted from https://stackoverflow.com/questions/2488313/javascripts-getdate-returns-wrong-date
@@ -292,12 +294,19 @@ export const respondToVehicleRequest = async (req, res) => {
         });
         vehicleRequest.assignments = processedAssignments;
         vehicleRequest.status = 'approved';
+        const email = { address: [vehicleRequest.requester.email], subject: '', message: '' };
         if (vehicleRequest.requestType === 'TRIP') {
           Trip.findById(vehicleRequest.associatedTrip).exec().then(async (associatedTrip) => {
             associatedTrip.vehicleStatus = 'approved';
             await associatedTrip.save(); // needs await because of multi-path async
+            email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
+            email.subject = 'Trip Update: Your vehicle requests got approved';
+            email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been approved by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
           });
         }
+        email.subject = 'Your vehicle requests got approved';
+        email.message = `Hello,\n\nYour vehicle request #${vehicleRequest.number} has been approved by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
+        mailer.send(email);
         vehicleRequest.save().then((savedVehicleRequest) => {
           VehicleRequest.findById(savedVehicleRequest.id).populate('requester')
             .populate('associatedTrip')
@@ -330,16 +339,29 @@ export const respondToVehicleRequest = async (req, res) => {
   }
 };
 
+/**
+ * OPO denies a vehicle request.
+ * Sends notice to trip leaders and co-leaders.
+ * @param {*} req
+ * @param {*} res
+ */
 export const denyVehicleRequest = async (req, res) => {
   try {
-    const vehicleRequest = await VehicleRequest.findById(req.params.id).exec();
+    const vehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').exec();
+    const email = { address: [vehicleRequest.requester.email], subject: '', message: '' };
     vehicleRequest.status = 'denied';
     if (vehicleRequest.requestType === 'TRIP') {
-      const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).exec();
+      const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).populate('leaders').exec();
       associatedTrip.vehicleStatus = 'denied';
+      email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
+      email.subject = 'Trip Update: Your vehicle requests got denied';
+      email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been denied by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
       await associatedTrip.save();
     }
     await vehicleRequest.save();
+    email.subject = 'Your vehicle requests got denied';
+    email.message = `Hello,\n\nYour vehicle request #${vehicleRequest.number} has been denied by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
+    mailer.send(email);
     const updatedVehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments')
       .populate({
         path: 'requester',
@@ -382,14 +404,21 @@ export const cancelAssignments = async (req, res) => {
       await Vehicle.updateOne({ _id: assignment.assigned_vehicle }, { $pull: { bookings: assignment._id } }); // remove from vehicle bookings
       await VehicleRequest.updateOne({ _id: assignment.request }, { $pull: { assignments: assignment._id } }); // remove from vehicle request assignments
       const vehicleRequest = await VehicleRequest.findById(assignment.request);
+      const email = { address: [vehicleRequest.requester.email], subject: '', message: '' };
       if (vehicleRequest.assignments.length === 0) {
         vehicleRequest.status = 'denied';
         if (vehicleRequest.requestType === 'TRIP') {
           const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).exec();
           associatedTrip.vehicleStatus = 'denied';
+          email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
+          email.subject = 'Trip Update: Your vehicle requests have been cancelled';
+          email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been cancelled by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
           await associatedTrip.save();
         }
       }
+      email.subject = 'Your vehicle requests got cancelled';
+      email.message = `Hello,\n\nYour vehicle request #${vehicleRequest.number} has been cancelled by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
+      mailer.send(email);
       await vehicleRequest.save();
     }));
     await Assignment.deleteMany({ _id: { $in: toBeDeleted } });

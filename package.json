@@ -33,6 +33,7 @@
     "jwt-simple": "^0.5.5",
     "mongoose": "^5.4.19",
     "morgan": "^1.9.1",
+    "node-cron": "^2.0.3",
     "nodemailer": "^5.1.1",
     "passport": "^0.4.0",
     "passport-cas": "^0.1.1",
