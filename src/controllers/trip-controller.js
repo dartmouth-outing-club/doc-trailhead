@@ -99,7 +99,32 @@ export const createTrip = (req, res) => {
 };
 
 export const getTrips = (req, res) => {
-  Trip.find().populate('club').populate('leaders')
+  Trip.find().populate('club').populate('leaders').populate('vehicleRequest')
+    .populate({
+      path: 'members.user',
+      model: 'User',
+    })
+    .populate({
+      path: 'pending.user',
+      model: 'User',
+    })
+    .populate({
+      path: 'vehicleRequest',
+      populate: {
+        path: 'assignments',
+        model: 'Assignment',
+      },
+    })
+    .populate({
+      path: 'vehicleRequest',
+      populate: {
+        path: 'assignments',
+        populate: {
+          path: 'assigned_vehicle',
+          model: 'Vehicle',
+        },
+      },
+    })
     .then((trips) => {
       res.json(trips);
     })
