@@ -16,7 +16,7 @@ export const signinSimple = (req, res, next) => {
     } else {
       User.findById(user.id).populate('leader_for').exec()
         .then((foundUser) => {
-          res.json({ token: tokenForUser(foundUser), user: foundUser });
+          res.json({ token: tokenForUser(foundUser, 'normal'), user: foundUser });
         })
         .catch((error) => {
           res.status(500).send(error.message);
@@ -40,10 +40,10 @@ export const signinCAS = (req, res, next) => {
           newUser.completedProfile = false;
           newUser.save()
             .then((savedUser) => {
-              res.redirect(`${constants.frontendURL}?token=${tokenForUser(savedUser)}&userId=${savedUser.id}`);
+              res.redirect(`${constants.frontendURL}?token=${tokenForUser(savedUser, 'normal')}&userId=${savedUser.id}`);
             });
         } else {
-          res.redirect(`${constants.frontendURL}?token=${tokenForUser(userFromDB[0])}&userId=${userFromDB[0].id}`);
+          res.redirect(`${constants.frontendURL}?token=${tokenForUser(userFromDB[0], 'normal')}&userId=${userFromDB[0].id}`);
         }
       })
       .catch((errorInFindingUser) => {
@@ -72,7 +72,7 @@ export const signup = (req, res, next) => {
       newUser.leader_for = [];
       newUser.save()
         .then((result) => {
-          res.send({ token: tokenForUser(result), user: result });
+          res.send({ token: tokenForUser(result, 'normal'), user: result });
         })
         .catch((error) => {
           res.status(500).send(error.message);
@@ -361,10 +361,11 @@ export const respondToCertRequest = (req, res) => {
     });
 };
 
-
-function tokenForUser(user) {
+export function tokenForUser(user, purpose, tripID) {
   const timestamp = new Date().getTime();
-  return jwt.encode({ sub: user.id, iat: timestamp }, process.env.AUTH_SECRET);
+  return jwt.encode({
+    sub: user.id, iat: timestamp, purpose, tripID,
+  }, process.env.AUTH_SECRET);
 }
 
 function cleanUser(user) {

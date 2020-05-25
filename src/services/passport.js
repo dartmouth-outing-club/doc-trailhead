@@ -5,6 +5,7 @@ import cas from 'passport-cas';
 import dotenv from 'dotenv';
 import * as constants from '../constants';
 import User from '../models/user-model';
+import Trip from '../models/trip-model';
 
 dotenv.config({ silent: true });
 
@@ -40,7 +41,22 @@ const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
     if (err) {
       done(err, false);
     } else if (user) {
-      done(null, user);
+      if (payload.purpose === 'mobile') {
+        console.log('token time', payload.iat);
+        console.log(payload);
+        Trip.findById(payload.tripID).then((trip) => {
+          const today = new Date();
+          if (today.getTime() <= trip.startDate.getTime()) {
+            console.log('token is valid');
+            done(null, user);
+          } else {
+            done(err, false);
+            console.log('token expired');
+          }
+        });
+      } else {
+        done(null, user);
+      }
     } else {
       done(null, false);
     }
