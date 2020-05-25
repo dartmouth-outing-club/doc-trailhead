@@ -18,6 +18,7 @@ const VehicleRequestSchema = new Schema({
       returnTime: String,
       trailerNeeded: Boolean,
       passNeeded: Boolean,
+      recurringVehicle: Boolean,
     },
   ],
   status: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
