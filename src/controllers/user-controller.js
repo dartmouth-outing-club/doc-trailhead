@@ -26,8 +26,10 @@ export const signinSimple = (req, res, next) => {
 };
 
 export const findByCASID = (req, res, next) => {
-  User.find({ casID: req.params.casID }).then((found) => {
-    res.send(found);
+  User.find({ casID: req.params.casID }).populate('leader_for').exec().then((found) => {
+    if (found.length === 0) {
+      res.send('not found');
+    } else res.send('found');
   });
 };
 
@@ -37,7 +39,7 @@ export const signinCAS = (req, res, next) => {
     if (!user) {
       res.redirect(constants.frontendURL);
     }
-    console.log(user);
+    res.redirect(`${constants.frontendURL}?token=${user}`);
     User.find({ casID: user }).populate('leader_for').exec()
       .then((userFromDB) => {
         if (userFromDB.length === 0) {
