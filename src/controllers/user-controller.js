@@ -25,12 +25,19 @@ export const signinSimple = (req, res, next) => {
   })(req, res, next);
 };
 
+export const findByCASID = (req, res, next) => {
+  User.find({ casID: req.params.casID }).then((found) => {
+    res.send(found);
+  });
+};
+
 export const signinCAS = (req, res, next) => {
   passport.authenticate('cas', (error, user) => {
     if (error) { return error; }
     if (!user) {
       res.redirect(constants.frontendURL);
     }
+    console.log(user);
     User.find({ casID: user }).populate('leader_for').exec()
       .then((userFromDB) => {
         if (userFromDB.length === 0) {

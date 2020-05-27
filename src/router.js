@@ -44,6 +44,8 @@ router.route('/user')
   .get(requireAuth, Users.getUser)
   .put(requireAuth, Users.updateUser);
 
+router.route('/userByCASID/:casID').get(Users.findByCASID);
+
 router.route('/users').get(requireAuth, Users.getUsers);
 
 router.get('/myTrips', requireAuth, Users.myTrips);
