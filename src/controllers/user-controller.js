@@ -39,9 +39,9 @@ export const signinCAS = (req, res, next) => {
     if (!user) {
       res.redirect(constants.frontendURL);
     }
-    res.redirect(`${constants.frontendURL}?token=${user}`);
     User.find({ casID: user }).populate('leader_for').exec()
       .then((userFromDB) => {
+        res.redirect(`${constants.frontendURL}?user=${userFromDB}`);
         if (userFromDB.length === 0) {
           const newUser = new User();
           newUser.casID = user;
