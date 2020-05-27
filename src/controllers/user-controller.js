@@ -25,47 +25,31 @@ export const signinSimple = (req, res, next) => {
   })(req, res, next);
 };
 
-export const findByCASID = (req, res, next) => {
-  User.find({}).then((found) => {
-    res.send({ len: found.length, mongoURI: process.env.MONGODB_URI });
-  });
-  // passport.authenticate('cas', (error, user) => {
-  //   User.find({ casID: user }).populate('leader_for').exec().then((found) => {
-  //     if (found.length === 0) {
-  //       res.send(`not found ${user}`);
-  //     } else res.send(`found${user}`);
-  //   });
-  // })(req, res, next);
-};
-
 export const signinCAS = (req, res, next) => {
   passport.authenticate('cas', (error, user) => {
     if (error) { return error; }
     if (!user) {
       res.redirect(constants.frontendURL);
     }
-    User.find({}).then((allUsers) => {
-      res.redirect(`${constants.frontendURL}?numOfUsers=${allUsers.length}?mongoURI=${process.env.MONGODB_URI}`);
-    });
-    // User.find({ casID: user }).populate('leader_for').exec()
-    //   .then((userFromDB) => {
-    //     if (userFromDB.length === 0) {
-    //       const newUser = new User();
-    //       newUser.casID = user;
-    //       newUser.completedProfile = false;
-    //       newUser.save()
-    //         .then((savedUser) => {
-    //           console.log('cas new user', savedUser);
-    //           res.redirect(`${constants.frontendURL}?token=${tokenForUser(savedUser, 'normal')}&userId=${savedUser.id}&new?=yes`);
-    //         });
-    //     } else {
-    //       console.log('cas user', userFromDB[0]);
-    //       res.redirect(`${constants.frontendURL}?token=${tokenForUser(userFromDB[0], 'normal')}&userId=${userFromDB[0].id}&new?=${userFromDB[0]}.casID`);
-    //     }
-    //   })
-    //   .catch((errorInFindingUser) => {
-    //     res.status(500).send(errorInFindingUser.message);
-    //   });
+    User.find({ casID: user }).populate('leader_for').exec()
+      .then((userFromDB) => {
+        if (userFromDB.length === 0) {
+          const newUser = new User();
+          newUser.casID = user;
+          newUser.completedProfile = false;
+          newUser.save()
+            .then((savedUser) => {
+              console.log('cas new user', savedUser);
+              res.redirect(`${constants.frontendURL}?token=${tokenForUser(savedUser, 'normal')}&userId=${savedUser.id}&new?=yes`);
+            });
+        } else {
+          console.log('cas user', userFromDB[0]);
+          res.redirect(`${constants.frontendURL}?token=${tokenForUser(userFromDB[0], 'normal')}&userId=${userFromDB[0].id}&new?=${userFromDB[0]}.casID`);
+        }
+      })
+      .catch((errorInFindingUser) => {
+        res.status(500).send(errorInFindingUser.message);
+      });
   })(req, res, next);
 };
 
