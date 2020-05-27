@@ -26,13 +26,16 @@ export const signinSimple = (req, res, next) => {
 };
 
 export const findByCASID = (req, res, next) => {
-  passport.authenticate('cas', (error, user) => {
-    User.find({ casID: user }).populate('leader_for').exec().then((found) => {
-      if (found.length === 0) {
-        res.send(`not found ${user}`);
-      } else res.send(`found${user}`);
-    });
+  User.find({}).then((found) => {
+    res.send(found.length);
   });
+  // passport.authenticate('cas', (error, user) => {
+  //   User.find({ casID: user }).populate('leader_for').exec().then((found) => {
+  //     if (found.length === 0) {
+  //       res.send(`not found ${user}`);
+  //     } else res.send(`found${user}`);
+  //   });
+  // })(req, res, next);
 };
 
 export const signinCAS = (req, res, next) => {
