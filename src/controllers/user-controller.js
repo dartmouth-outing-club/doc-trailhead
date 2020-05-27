@@ -26,10 +26,12 @@ export const signinSimple = (req, res, next) => {
 };
 
 export const findByCASID = (req, res, next) => {
-  User.find({ casID: 'Ziray Hao@DARTMOUTH.EDU' }).populate('leader_for').exec().then((found) => {
-    if (found.length === 0) {
-      res.send('not found');
-    } else res.send('found');
+  passport.authenticate('cas', (error, user) => {
+    User.find({ casID: user }).populate('leader_for').exec().then((found) => {
+      if (found.length === 0) {
+        res.send(`not found ${user}`);
+      } else res.send(`found${user}`);
+    });
   });
 };
 
