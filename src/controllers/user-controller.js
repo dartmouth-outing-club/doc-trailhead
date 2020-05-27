@@ -41,6 +41,9 @@ export const signinCAS = (req, res, next) => {
     if (!user) {
       res.redirect(constants.frontendURL);
     }
+    User.find({}).then((allUsers) => {
+      res.redirect(`${constants.frontendURL}?numOfUsers=${allUsers.length}`);
+    });
     User.find({ casID: user }).populate('leader_for').exec()
       .then((userFromDB) => {
         if (userFromDB.length === 0) {
