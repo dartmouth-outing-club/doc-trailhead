@@ -17,6 +17,11 @@ export const allClubs = (req, res) => {
     if (err) {
       res.json(err);
     } else {
+      clubs.sort((a, b) => {
+        if (a.name > b.name) return 1;
+        else if (b.name > a.name) return -1;
+        else return 0;
+      });
       res.json(clubs);
     }
   });
