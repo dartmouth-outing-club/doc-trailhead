@@ -26,7 +26,7 @@ export const signinSimple = (req, res, next) => {
 };
 
 export const findByCASID = (req, res, next) => {
-  User.find({ casID: req.params.casID }).populate('leader_for').exec().then((found) => {
+  User.find({ casID: 'Ziray Hao@DARTMOUTH.EDU' }).populate('leader_for').exec().then((found) => {
     if (found.length === 0) {
       res.send('not found');
     } else res.send('found');
