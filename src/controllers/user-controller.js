@@ -27,7 +27,7 @@ export const signinSimple = (req, res, next) => {
 
 export const findByCASID = (req, res, next) => {
   User.find({}).then((found) => {
-    res.send(found.length);
+    res.send({ len: found.length, mongoURI: process.env.MONGODB_URI });
   });
   // passport.authenticate('cas', (error, user) => {
   //   User.find({ casID: user }).populate('leader_for').exec().then((found) => {
@@ -45,7 +45,7 @@ export const signinCAS = (req, res, next) => {
       res.redirect(constants.frontendURL);
     }
     User.find({}).then((allUsers) => {
-      res.redirect(`${constants.frontendURL}?numOfUsers=${allUsers.length}`);
+      res.redirect(`${constants.frontendURL}?numOfUsers=${allUsers.length}?mongoURI=${process.env.MONGODB_URI}`);
     });
     // User.find({ casID: user }).populate('leader_for').exec()
     //   .then((userFromDB) => {
