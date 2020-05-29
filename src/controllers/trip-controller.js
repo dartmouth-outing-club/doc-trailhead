@@ -440,7 +440,6 @@ export const updateTrip = async (req, res) => {
       trip.description = req.body.description;
       trip.co_leader_access = req.body.co_leader_access;
       trip.club = req.body.club;
-      trip.mileage = req.body.mileage;
       trip.location = req.body.location;
       trip.pickup = req.body.pickup;
       trip.dropoff = req.body.dropoff;

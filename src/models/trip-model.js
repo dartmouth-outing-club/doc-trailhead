@@ -23,7 +23,6 @@ const TripSchema = new Schema({
   location: String,
   pickup: String,
   dropoff: String,
-  mileage: Number,
   cost: Number,
   description: String,
   experienceNeeded: Boolean,
