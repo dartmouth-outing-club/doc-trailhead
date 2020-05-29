@@ -5,6 +5,7 @@ const TripSchema = new Schema({
   number: { type: Number, unique: true },
   title: String,
   returned: { type: Boolean, default: false },
+  markedLate: { type: Boolean, default: false },
   leaders: [{ type: Schema.Types.ObjectId, ref: 'User' }], // leaders
   club: { type: Schema.Types.ObjectId, ref: 'Club' },
   members: [{
@@ -16,6 +17,8 @@ const TripSchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: 'User' }, // pending members
     gear: [{ gearId: String, name: String }],
   }],
+  startDateAndTime: Date,
+  endDateAndTime: Date,
   startDate: Date,
   endDate: Date,
   startTime: String,
