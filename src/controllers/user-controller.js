@@ -44,7 +44,7 @@ export const signinCAS = (req, res, next) => {
             });
         } else {
           console.log('cas user', userFromDB[0]);
-          res.redirect(`${constants.frontendURL}?token=${tokenForUser(userFromDB[0], 'normal')}&userId=${userFromDB[0].id}&new?=no`);
+          res.redirect(`${constants.frontendURL}?token=${tokenForUser(userFromDB[0], 'normal')}&userId=${userFromDB[0].id}&new?=${userFromDB[0]}.casID`);
         }
       })
       .catch((errorInFindingUser) => {
