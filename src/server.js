@@ -130,10 +130,3 @@ scheduler.schedule(sendCheckInEmail, 'daily');
 scheduler.schedule(sendCheckOutEmail, 'daily');
 scheduler.schedule(send90MinuteLateEmail, 'daily');
 scheduler.schedule(send3HourLateEmail, 'daily');
-
-
-Trip.findById('5ed159e7367efdaedcf3994e').populate('leaders').then((trip) => {
-  console.log('[Mailer] Sending trip check-in email to leaders');
-  const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-  mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} should be returning soon`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.name} is should return soon. If an EMERGENCY occured, please get emergency help right away, and follow the link below to mark your status so OPO staff is informed.\n\nIMPORTANT: right after you return, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Planner` });
-});
