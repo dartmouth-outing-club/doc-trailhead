@@ -27,12 +27,13 @@ router.route('/alltrips')
 
 router.get('/trips/:club', Trips.getTripsByClub);
 
-router.route('/trip/:id')
+router.route('/trip/:tripID')
   .get(requireAuth, Trips.getTrip)
   .put(requireAuth, Trips.updateTrip)
   .delete(requireAuth, Trips.deleteTrip);
 
 router.put('/set-attendence/:tripID', requireAuth, Trips.setMemberAttendance);
+router.put('/toggle-returned/:tripID', requireAuth, Trips.toggleTripReturnedStatus);
 router.put('/jointrip/:id', requireAuth, Trips.joinTrip);
 router.put('/movetopending/:id', requireAuth, Trips.moveToPending);
 

@@ -458,6 +458,8 @@ export const updateTrip = async (req, res) => {
       trip.endDate = req.body.endDate;
       trip.startTime = req.body.startTime;
       trip.endTime = req.body.endTime;
+      trip.startDateAndTime = constants.createDateObject(req.body.startDate, req.body.startTime);
+      trip.endDateAndTime = constants.createDateObject(req.body.endDate, req.body.endTime);
       trip.title = req.body.title;
       trip.description = req.body.description;
       trip.co_leader_access = req.body.co_leader_access;
