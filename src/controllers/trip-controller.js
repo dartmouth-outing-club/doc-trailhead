@@ -18,6 +18,8 @@ export const createTrip = (req, res) => {
       trip.startDate = req.body.startDate;
       trip.endDate = req.body.endDate;
       trip.startTime = req.body.startTime;
+      trip.startDateAndTime = constants.createDateObject(req.body.startDate, req.body.startTime);
+      trip.endDateAndTime = constants.createDateObject(req.body.endDate, req.body.endTime);
       trip.endTime = req.body.endTime;
       trip.title = req.body.title;
       trip.description = req.body.description;
@@ -61,7 +63,7 @@ export const createTrip = (req, res) => {
           });
         })).then(() => {
           trip.save().then((savedTrip) => {
-            mailer.send({ address: leaderEmails, subject: `New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've created a new Trip #${savedTrip.number}: ${savedTrip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nIMPORTANT: on the day of the trip, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${savedTrip._id}?token=${tokenForUser(req.user, 'mobile', savedTrip._id)}\n\nBest,\nDOC Planner` });
+            mailer.send({ address: leaderEmails, subject: `New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've created a new Trip #${savedTrip.number}: ${savedTrip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nIMPORTANT: on the day of the trip, you must check-out all attendees here: ${constants.frontendURL}/trip-check-out/${savedTrip._id}?token=${tokenForUser(req.user, 'mobile', savedTrip._id)}\n\nBest,\nDOC Planner` });
 
             if (req.body.vehicles.length > 0) {
               Global.find({}).then((globalsForVehicleRequest) => {
@@ -134,7 +136,7 @@ export const getTrips = (req, res) => {
 };
 
 export const getTrip = (req, res) => {
-  Trip.findById(req.params.id).populate('club').populate('leaders').populate('vehicleRequest')
+  Trip.findById(req.params.tripID).populate('club').populate('leaders').populate('vehicleRequest')
     .populate({
       path: 'members.user',
       model: 'User',
@@ -309,6 +311,26 @@ export const setMemberAttendance = (req, res) => {
       trip.save().then(() => {
         res.json({ status });
       });
+    });
+  }).catch((error) => { return res.status(500).json(error); });
+};
+
+/**
+ * Sets the attending status for each member of trip.
+ * @param {*} req
+ * @param {*} res
+ */
+export const toggleTripReturnedStatus = (req, res) => {
+  const { tripID } = req.params;
+  const { status } = req.body;
+  const now = new Date();
+  Trip.findById(tripID).populate('leaders').then((trip) => {
+    trip.returned = status;
+    trip.save().then((savedTrip) => {
+      const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+      if (trip.markedLate) leaderEmails.concat(constants.OPOEmails); // will inform OPO that the trip has been returned if it had been marked as late (3 hr) before
+      mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT' : ''} returned at ${now}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Planner` });
+      getTrip(req, res);
     });
   }).catch((error) => { return res.status(500).json(error); });
 };
