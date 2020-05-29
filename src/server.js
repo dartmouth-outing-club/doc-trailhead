@@ -96,7 +96,7 @@ const send90MinuteLateEmail = () => {
   const today = new Date();
   Trip.find({}).populate('leaders').then((trips) => {
     trips.forEach((trip) => {
-      if ((trip.endDate > today) && (trip.endDate.getTime() - today.getTime() < (48 * 3600000)) && (trip.endDate.getTime() - today.getTime() > (1.5 * 3600000))) {
+      if ((!trip.returned) && (trip.endDate > today) && (trip.endDate.getTime() - today.getTime() < (48 * 3600000)) && (trip.endDate.getTime() - today.getTime() > (1.5 * 3600000))) {
         console.log('[Mailer] Sending 90 minute fail-to-return email to leaders');
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
         mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} late for return`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.name} is is now 90 minutes late. OPO will be notified in the next 90 minutes if your trip is not back in Hanover. If you are having difficulties getting back, please follow the DOC Emergency Protocols found here:\n\nhttps://docs.google.com/forms/u/1/d/e/1FAIpQLSeo9jIcTGNstZ1uADtovDjJT8kkPtS-YpRwzJC2MZkVkbH0hw/viewform.\n\nIMPORTANT: right after you return, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Planner` });
@@ -113,7 +113,7 @@ const send3HourLateEmail = () => {
   const today = new Date();
   Trip.find({}).populate('leaders').then((trips) => {
     trips.forEach((trip) => {
-      if ((trip.endDate > today) && (trip.endDate.getTime() - today.getTime() < (3 * 3600000)) && (trip.endDate.getTime() - today.getTime() > (1.5 * 3600000))) {
+      if ((!trip.returned) && (trip.endDate > today) && (trip.endDate.getTime() - today.getTime() < (3 * 3600000)) && (trip.endDate.getTime() - today.getTime() > (1.5 * 3600000))) {
         console.log('[Mailer] Sending 3 hour fail-to-return notice leaders and OPO staff');
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
         mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} not returned`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, was due back at ${trip.endDate} and has not yet checked back in from Hanover. We have informed OPO staff about your status. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
@@ -130,3 +130,10 @@ scheduler.schedule(sendCheckInEmail, 'daily');
 scheduler.schedule(sendCheckOutEmail, 'daily');
 scheduler.schedule(send90MinuteLateEmail, 'daily');
 scheduler.schedule(send3HourLateEmail, 'daily');
+
+
+Trip.findById('5ed159e7367efdaedcf3994e').populate('leaders').then((trip) => {
+  console.log('[Mailer] Sending trip check-in email to leaders');
+  const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+  mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} should be returning soon`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.name} is should return soon. If an EMERGENCY occured, please get emergency help right away, and follow the link below to mark your status so OPO staff is informed.\n\nIMPORTANT: right after you return, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Planner` });
+});

@@ -27,17 +27,18 @@ router.route('/alltrips')
 
 router.get('/trips/:club', Trips.getTripsByClub);
 
-router.route('/trip/:id')
+router.route('/trip/:tripID')
   .get(requireAuth, Trips.getTrip)
   .put(requireAuth, Trips.updateTrip)
   .delete(requireAuth, Trips.deleteTrip);
 
 router.put('/set-attendence/:tripID', requireAuth, Trips.setMemberAttendance);
-router.put('/jointrip/:id', requireAuth, Trips.joinTrip);
-router.put('/movetopending/:id', requireAuth, Trips.moveToPending);
+router.put('/toggle-returned/:tripID', requireAuth, Trips.toggleTripReturnedStatus);
+router.put('/jointrip/:tripID', requireAuth, Trips.joinTrip);
+router.put('/movetopending/:tripID', requireAuth, Trips.moveToPending);
 
-router.put('/addpending/:id', requireAuth, Trips.addToPending);
-router.put('/editusergear/:id', requireAuth, Trips.editUserGear);
+router.put('/addpending/:tripID', requireAuth, Trips.addToPending);
+router.put('/editusergear/:tripID', requireAuth, Trips.editUserGear);
 
 
 router.route('/user')
@@ -47,7 +48,7 @@ router.route('/user')
 router.route('/users').get(requireAuth, Users.getUsers);
 
 router.get('/myTrips', requireAuth, Users.myTrips);
-router.post('/leaveTrip/:id', requireAuth, Trips.leaveTrip);
+router.post('/leaveTrip/:tripID', requireAuth, Trips.leaveTrip);
 router.get('/userTrips', requireAuth, Users.userTrips);
 
 // router.get('/isOnTrip/:tripID', requireAuth, Trips.isOnTrip);

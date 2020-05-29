@@ -3,9 +3,11 @@ import LocalStrategy from 'passport-local';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import cas from 'passport-cas';
 import dotenv from 'dotenv';
+import { add } from 'date-arithmetic';
 import * as constants from '../constants';
 import User from '../models/user-model';
 import Trip from '../models/trip-model';
+
 
 dotenv.config({ silent: true });
 
@@ -46,7 +48,8 @@ const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
         console.log(payload);
         Trip.findById(payload.tripID).then((trip) => {
           const today = new Date();
-          if (today.getTime() <= trip.startDate.getTime()) {
+
+          if (today.getTime() <= add(trip.endDateAndTime, 24, 'hours').getTime()) {
             console.log('token is valid');
             done(null, user);
           } else {
