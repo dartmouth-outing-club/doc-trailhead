@@ -205,10 +205,18 @@ export const getTrip = (req, res) => {
  * @param {*} res
  */
 export const addToPending = (req, res) => {
-  const { id } = req.params;
+  const id = req.params.tripID;
   const { trippeeGear } = req.body;
   Trip.findById(id)
     .populate('leaders')
+    .populate({
+      path: 'members.user',
+      model: 'User',
+    })
+    .populate({
+      path: 'pending.user',
+      model: 'User',
+    })
     .then((trip) => {
       trip.pending.push({ user: req.user._id, gear: trippeeGear });
       trip.save()
@@ -225,7 +233,7 @@ export const addToPending = (req, res) => {
 };
 
 export const editUserGear = (req, res) => {
-  const { id } = req.params;
+  const id = req.params.tripID;
   const { trippeeGear } = req.body;
   Trip.findById(id).exec()
     .then((trip) => {
@@ -252,20 +260,30 @@ export const editUserGear = (req, res) => {
  * @param {*} res
  */
 export const joinTrip = (req, res) => {
-  const { id } = req.params;
+  const id = req.params.tripID;
   const { pend } = req.body;
   Trip.findById(id)
     .populate('leaders')
+    .populate({
+      path: 'members.user',
+      model: 'User',
+    })
+    .populate({
+      path: 'pending.user',
+      model: 'User',
+    })
     .then((trip) => {
       // add user to member list
-      trip.members.push(pend);
-      pend.gear.forEach((pendGear) => {
-        trip.trippeeGear.forEach((gear) => {
-          if (pendGear.gearId === gear._id.toString()) {
-            gear.quantity += 1;
-          }
+      if (!trip.members.some((member) => { return member.user._id.equals(pend.user._id); })) {
+        trip.members.push(pend);
+        pend.gear.forEach((pendGear) => {
+          trip.trippeeGear.forEach((gear) => {
+            if (pendGear.gearId === gear._id.toString()) {
+              gear.quantity += 1;
+            }
+          });
         });
-      });
+      }
       // remove user from pending list
       trip.pending.forEach((pender, index) => {
         if (pender._id.equals(pend._id)) {
@@ -343,7 +361,7 @@ export const toggleTripReturnedStatus = (req, res) => {
  * @param {*} res
  */
 export const moveToPending = (req, res) => {
-  Trip.findById(req.params.id)
+  Trip.findById(req.params.tripID)
     .populate('leaders')
     .populate({
       path: 'members.user',
@@ -367,7 +385,9 @@ export const moveToPending = (req, res) => {
         }
         return member.user.id === req.body.member.user.id;
       });
-      trip.pending.push(req.body.member);
+      if (!trip.pending.some((pender) => { return pender.user._id.equals(req.body.member.user._id); })) {
+        trip.pending.push(req.body.member);
+      }
       trip.save()
         .then(() => {
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
@@ -389,7 +409,7 @@ export const moveToPending = (req, res) => {
  * @param {*} res
  */
 export const leaveTrip = (req, res) => {
-  Trip.findById(req.params.id)
+  Trip.findById(req.params.tripID)
     .populate('leaders')
     .populate({
       path: 'members.user',
@@ -433,11 +453,11 @@ export const leaveTrip = (req, res) => {
 };
 
 export const deleteTrip = (req, res) => {
-  Trip.findById(req.params.id, (err, trip) => {
+  Trip.findById(req.params.tripID, (err, trip) => {
     if (err) {
       res.json({ error: err });
     } else if (trip.leaders.indexOf(req.user._id) > -1) {
-      Trip.deleteOne({ _id: req.params.id }, (err) => {
+      Trip.deleteOne({ _id: req.params.tripID }, (err) => {
         if (err) {
           res.json({ error: err });
         } else {
@@ -452,7 +472,7 @@ export const deleteTrip = (req, res) => {
 
 export const updateTrip = async (req, res) => {
   try {
-    const trip = await Trip.findById(req.params.id).exec();
+    const trip = await Trip.findById(req.params.tripID).exec();
     if (trip.leaders.indexOf(req.user._id) !== -1 || req.user.role === 'OPO') {
       trip.startDate = req.body.startDate;
       trip.endDate = req.body.endDate;
@@ -620,7 +640,7 @@ export const respondToPCardRequest = (req, res) => {
     .then((trip) => {
       trip.pcardStatus = req.body.pcardStatus;
       trip.pcardAssigned = req.body.pcardAssigned;
-      req.params.id = req.body.id;
+      req.params.tripID = req.body.id;
       trip.save()
         .then(() => {
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
