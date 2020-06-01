@@ -45,7 +45,7 @@ export const createTrip = (req, res) => {
         trip.pcardStatus = 'pending';
       }
 
-      trip.members = [{ user: req.user._id, gear: {} }];
+      trip.members = [{ user: req.user._id, gear: [] }];
       trip.leaders = [req.user._id];
       trip.pending = [];
 
