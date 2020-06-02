@@ -214,12 +214,12 @@ Users.findOne({ role: 'Leader' }).then((user) => {
         const vReqID = response.data._id;
         const assignments = [
           {
-            assignedVehicle: 'Van A',
+            assignedVehicle: 'Van G',
             pickupDate: day.startDate,
             returnDate: day.endDate,
             pickupTime: day.startTime,
             returnTime: day.endTime,
-            assignedKey: '33A',
+            assignedKey: '33G',
           },
         ];
         Users.findOne({ role: 'OPO' }).then((OPOUser) => {
