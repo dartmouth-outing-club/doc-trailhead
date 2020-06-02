@@ -7,13 +7,6 @@ import Global from '../models/global-model';
 import * as constants from '../constants';
 import { mailer } from '../services';
 
-const createDateObject = (date, time) => {
-  // adapted from https://stackoverflow.com/questions/2488313/javascripts-getdate-returns-wrong-date
-  const parts = date.toString().match(/(\d+)/g);
-  const splitTime = time.split(':');
-  return new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
-};
-
 export const makeVehicleRequest = (req, res) => {
   Global.find({}).then((globals) => {
     // Retrieves the current maximum vehicle request number and then updates it immediately.
@@ -153,12 +146,12 @@ export const precheckAssignment = (req, res) => {
     // setting pickup times
     proposedAssignment.assigned_pickupDate = req.body.pickupDate;
     proposedAssignment.assigned_pickupTime = req.body.pickupTime;
-    const pickupDateAndTime = createDateObject(req.body.pickupDate, req.body.pickupTime);
+    const pickupDateAndTime = constants.createDateObject(req.body.pickupDate, req.body.pickupTime);
     proposedAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
     // setting return times
     proposedAssignment.assigned_returnDate = req.body.returnDate;
     proposedAssignment.assigned_returnTime = req.body.returnTime;
-    const returnDateAndTime = createDateObject(req.body.returnDate, req.body.returnTime);
+    const returnDateAndTime = constants.createDateObject(req.body.returnDate, req.body.returnTime);
     proposedAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
     checkForConflicts(proposedAssignment).then((conflicts) => {
@@ -204,12 +197,12 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
         // setting pickup times
         existingAssignment.assigned_pickupDate = proposedAssignment.pickupDate;
         existingAssignment.assigned_pickupTime = proposedAssignment.pickupTime;
-        const pickupDateAndTime = createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
+        const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
         existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
         // setting return times
         existingAssignment.assigned_returnDate = proposedAssignment.returnDate;
         existingAssignment.assigned_returnTime = proposedAssignment.returnTime;
-        const returnDateAndTime = createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime);
+        const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime);
         existingAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
         existingAssignment.assigned_key = proposedAssignment.assignedKey;
@@ -236,12 +229,12 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
         // setting pickup times
         newAssignment.assigned_pickupDate = proposedAssignment.pickupDate;
         newAssignment.assigned_pickupTime = proposedAssignment.pickupTime;
-        const pickupDateAndTime = createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
+        const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
         newAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
         // setting return times
         newAssignment.assigned_returnDate = proposedAssignment.returnDate;
         newAssignment.assigned_returnTime = proposedAssignment.returnTime;
-        const returnDateAndTime = createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime);
+        const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime);
         newAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
         newAssignment.save().then((savedAssignment) => {
