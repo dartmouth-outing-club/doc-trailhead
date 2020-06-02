@@ -11,7 +11,8 @@
     "build": "babel src -d dist",
     "prod": "yarn build; node dist/server.js",
     "seedDB": "babel-node src/db/seed.js",
-    "fillEvents": "NODE_ENV=development babel-node src/db/fill-events.js",
+    "fillEventsLocal": "NODE_ENV=development babel-node src/db/fill-events.js",
+    "fillEventsProduction": "NODE_ENV=production babel-node src/db/fill-events.js",
     "migrateDB": "babel-node src/db/migrate.js"
   },
   "license": "ISC",
