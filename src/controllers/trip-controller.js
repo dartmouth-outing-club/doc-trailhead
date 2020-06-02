@@ -64,7 +64,6 @@ export const createTrip = (req, res) => {
         })).then(() => {
           trip.save().then((savedTrip) => {
             mailer.send({ address: leaderEmails, subject: `New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've created a new Trip #${savedTrip.number}: ${savedTrip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nIMPORTANT: on the day of the trip, you must check-out all attendees here: ${constants.frontendURL}/trip-check-out/${savedTrip._id}?token=${tokenForUser(req.user, 'mobile', savedTrip._id)}\n\nBest,\nDOC Planner` });
-
             if (req.body.vehicles.length > 0) {
               Global.find({}).then((globalsForVehicleRequest) => {
                 // Retrieves the current maximum vehicle request number and then updates it immediately.
@@ -80,6 +79,7 @@ export const createTrip = (req, res) => {
                   vehicleRequest.requestType = 'TRIP';
                   vehicleRequest.requestedVehicles = req.body.vehicles;
                   vehicleRequest.save().then((savedVehicleRequest) => {
+                    mailer.send({ address: leaderEmails, subject: `re: New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${savedVehicleRequest.number}: ${savedTrip.title} that is linked to your Trip #${savedTrip.number}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedVehicleRequest._id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Planner` });
                     Trip.findById(savedTrip._id).then((recentlyCreatedTrip) => {
                       recentlyCreatedTrip.vehicleStatus = 'pending';
                       recentlyCreatedTrip.vehicleRequest = savedVehicleRequest;
