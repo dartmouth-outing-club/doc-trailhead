@@ -44,8 +44,6 @@ const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
       done(err, false);
     } else if (user) {
       if (payload.purpose === 'mobile') {
-        console.log('token time', payload.iat);
-        console.log(payload);
         Trip.findById(payload.tripID).then((trip) => {
           const today = new Date();
 
