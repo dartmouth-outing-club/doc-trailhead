@@ -2,6 +2,7 @@ import VehicleRequest from '../models/vehicle-request-model';
 import Vehicle from '../models/vehicle-model';
 import Assignment from '../models/assignment-model';
 import Trip from '../models/trip-model';
+import User from '../models/user-model';
 import Global from '../models/global-model';
 import * as constants from '../constants';
 import { mailer } from '../services';
@@ -294,16 +295,18 @@ export const respondToVehicleRequest = async (req, res) => {
         });
         vehicleRequest.assignments = processedAssignments;
         vehicleRequest.status = 'approved';
-        const email = { address: [vehicleRequest.requester.email], subject: '', message: '' };
+        const requester = await User.findById(vehicleRequest.requester).exec();
+        const email = { address: [requester.email], subject: '', message: '' };
         if (vehicleRequest.requestType === 'TRIP') {
-          Trip.findById(vehicleRequest.associatedTrip).exec().then(async (associatedTrip) => {
-            associatedTrip.vehicleStatus = 'approved';
-            await associatedTrip.save(); // needs await because of multi-path async
-            email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
-            email.subject = 'Trip Update: Your vehicle requests got approved';
-            email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been approved by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
-          });
+          const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).populate('leaders').exec();
+          associatedTrip.vehicleStatus = 'approved';
+          await associatedTrip.save(); // needs await because of multi-path async
+          email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
+          console.log('appending: ', email.address);
+          email.subject = 'Trip Update: Your vehicle requests got approved';
+          email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been approved by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
         }
+        console.log('final email list: ', email.address);
         email.subject = 'Your vehicle requests got approved';
         email.message = `Hello,\n\nYour vehicle request #${vehicleRequest.number} has been approved by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
         mailer.send(email);
