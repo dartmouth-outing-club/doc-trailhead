@@ -202,6 +202,29 @@ export const updateTrip = async (req, res) => {
       trip.trippeeGear = req.body.trippeeGear;
       trip.pcard = req.body.pcard;
       trip.returned = req.body.returned;
+
+      /**
+       * Updates each member's gear requests based on the new gear.
+       */
+      trip.members.concat(trip.pending).forEach((person) => {
+        const markToRemove = [];
+        person.gear.forEach((gear, idx) => {
+          let found = false;
+          trip.trippeeGear.forEach((newGear) => {
+            if (gear.gearId === newGear._id.toString()) {
+              gear.gearId = newGear._id;
+              found = true;
+            }
+          });
+          if (!found) {
+            markToRemove.push(idx);
+          }
+        });
+        for (let i = 0; i < markToRemove.length; i += 1) person.gear.splice(markToRemove[i], 1);
+      });
+
+      await calculateRequiredGear(trip);
+
       if (trip.gearStatus === 'N/A' && req.body.gearRequests.length > 0) {
         trip.gearStatus = 'pending';
       }
@@ -344,7 +367,7 @@ export const getOPOTrips = (req, res) => {
  * Recalculates the sum of trippee gear requests from the current list of members.
  * @param {Trip} trip
  */
-const calculateRequiredGear = (trip) => {
+function calculateRequiredGear(trip) {
   return new Promise((resolve) => {
     trip.trippeeGear.forEach((gear) => { gear.quantity = 0; });
     trip.members.forEach((member) => {
@@ -358,7 +381,7 @@ const calculateRequiredGear = (trip) => {
     });
     resolve();
   });
-};
+}
 
 
 export const getGearRequests = (req, res) => {
