@@ -543,7 +543,6 @@ export const leaveTrip = (req, res) => {
       path: 'members.user',
       model: 'User',
     }).then((trip) => {
-      console.log(trip);
       User.findById(req.user.id).then((leavingUser) => {
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
         mailer.send({ address: leaderEmails, subject: `Trip Update: ${leavingUser.name} left your trip`, message: `Hello,\n\nYour approved trippee ${leavingUser.name} for Trip #${trip.number}: ${trip.title} cancelled for this trip. You can reach them at ${leavingUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
