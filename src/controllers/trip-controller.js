@@ -109,14 +109,20 @@ export const createTrip = (req, res) => {
       trip.trippeeGear = req.body.trippeeGear;
       trip.pcard = req.body.pcard;
 
-      if (req.body.gearRequests.length > 0) {
-        trip.gearStatus = 'pending';
-      }
-      if (req.body.trippeeGear.length > 0) {
-        trip.trippeeGearStatus = 'pending';
-      }
-      if (req.body.pcard.length > 0) {
-        trip.pcardStatus = 'pending';
+      if (req.body.injectingStatus) {
+        trip.gearStatus = req.body.gearStatus;
+        trip.trippeeGearStatus = req.body.trippeeGearStatus;
+        trip.pcardStatus = req.body.pcardStatus;
+      } else {
+        if (req.body.gearRequests.length > 0) {
+          trip.gearStatus = 'pending';
+        }
+        if (req.body.trippeeGear.length > 0) {
+          trip.trippeeGearStatus = 'pending';
+        }
+        if (req.body.pcard.length > 0) {
+          trip.pcardStatus = 'pending';
+        }
       }
 
       trip.members = [{ user: req.user._id, gear: [] }];
@@ -155,7 +161,8 @@ export const createTrip = (req, res) => {
                   vehicleRequest.save().then((savedVehicleRequest) => {
                     mailer.send({ address: leaderEmails, subject: `re: New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${savedVehicleRequest.number}: ${savedTrip.title} that is linked to your Trip #${savedTrip.number}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedVehicleRequest._id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Planner` });
                     Trip.findById(savedTrip._id).then((recentlyCreatedTrip) => {
-                      recentlyCreatedTrip.vehicleStatus = 'pending';
+                      if (req.body.injectingStatus) recentlyCreatedTrip.vehicleStatus = req.body.vehicleStatus;
+                      else recentlyCreatedTrip.vehicleStatus = 'pending';
                       recentlyCreatedTrip.vehicleRequest = savedVehicleRequest;
                       recentlyCreatedTrip.save().then(() => {
                         res.json(savedVehicleRequest);

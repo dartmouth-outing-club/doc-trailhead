@@ -106,13 +106,17 @@ const titles = [
 
 const experienceNeededs = [false, true, true, true, true, true, true, false, true, false];
 
+const statuses = ['approved', 'pending', 'pending', 'approved', 'approved', 'pending', 'denied', 'denied', 'approved', 'denied'];
+
+const coleaders = ['ziray.hao.22@dartmouth.edu', 'zirui.hao@gmail.com', 'ziray.hao@dali.dartmouth.edu'];
 
 // create trips
 
-const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endTime, experienceNeeded) => {
+const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endTime, experienceNeeded, status) => {
   return {
+    injectingStatus: true,
     title,
-    leaders: ['ziray.hao.22@dartmouth.edu', 'zirui.hao@gmail.com', 'ziray.hao@dali.dartmouth.edu'],
+    leaders: coleaders.slice(0, Math.floor(Math.random() * (coleaders.length - 1))),
     club: clubID,
     experienceNeeded,
     description: 'This trip was created automatically to showcase the platform\'s features. Now for some nonsense: lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
@@ -127,6 +131,8 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
     dropoff: 'We don\'t come back',
     co_leader_access: true,
     gearRequests: ['Tent', 'GPS', 'Phones'],
+    gearStatus: status,
+    trippeeGearStatus: status,
     trippeeGear: [
       {
         name: 'Hiking boots',
@@ -181,6 +187,7 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
         },
       },
     ],
+    pcardStatus: status,
     vehicles: [
       {
         vehicleType: 'Van',
@@ -194,6 +201,7 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
         trailerNeeded: true,
       },
     ],
+    vehicleStatus: status,
     vehicleReqId: null,
   };
 };
@@ -209,7 +217,7 @@ Users.findOne({ role: 'Leader' }).then((user) => {
     for (let i = 0; i < titles.length; i += 1) {
       const clubID = clubs[Math.floor(Math.random() * clubs.length)];
       const day = days[i];
-      const trip = generateTripTemplate(titles[i], clubID, formatForModel(day.startDate), formatForModel(day.endDate), day.startTime, day.endTime, experienceNeededs[i]);
+      const trip = generateTripTemplate(titles[i], clubID, formatForModel(day.startDate), formatForModel(day.endDate), day.startTime, day.endTime, experienceNeededs[i], statuses[i]);
       axios.post(`${constants.backendURL}/alltrips`, trip, { headers: { authorization: tokenForUser(user, 'normal') } }).then((response) => {
         const vReqID = response.data._id;
         const assignments = [
