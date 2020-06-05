@@ -477,7 +477,7 @@ export const denyVehicleRequest = async (req, res) => {
 
 export const getVehicleAssignments = async (req, res) => {
   try {
-    const assignments = await Assignment.find().populate('requester').populate({ path: 'request', populate: { path: 'associatedTrip' } }).populate('assigned_vehicle')
+    const assignments = await Assignment.find().populate('requester').populate({ path: 'request', populate: { path: 'associatedTrip', populate: { path: 'leaders' } } }).populate('assigned_vehicle')
       .exec();
     return res.json(assignments);
   } catch (error) {
@@ -508,7 +508,7 @@ export const cancelAssignments = async (req, res) => {
         }
       }
       email.subject = 'Your vehicle requests got cancelled';
-      email.message = `Hello,\n\nYour vehicle request #${vehicleRequest.number} has been cancelled by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
+      email.message = `Hello,\n\nYour V-Req #${vehicleRequest.number}'s assignments have been cancelled by OPO staff.\n\nView the vehicle request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
       mailer.send(email);
       await vehicleRequest.save();
     }));

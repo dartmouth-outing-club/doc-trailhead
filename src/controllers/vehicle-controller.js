@@ -35,6 +35,9 @@ export const getVehicle = (req, res) => {
         populate: {
           path: 'associatedTrip',
           model: 'Trip',
+          populate: {
+            path: 'leaders',
+          },
         },
       },
     })
@@ -69,6 +72,9 @@ export const getVehicles = (req, res) => {
         populate: {
           path: 'associatedTrip',
           model: 'Trip',
+          populate: {
+            path: 'leaders',
+          },
         },
       },
     })
