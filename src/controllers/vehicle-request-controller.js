@@ -92,14 +92,14 @@ export const updateVehicleRequest = (req, res) => {
     });
 };
 
-export const deleteVehicleRequest = async (vehicleRequestID) => {
-  const request = await VehicleRequest.findById(vehicleRequestID).exec();
+export const deleteVehicleRequest = async (vehicleRequestID, reason) => {
+  const request = await VehicleRequest.findById(vehicleRequestID)
+    .populate({ path: 'assignments', populate: { path: 'assigned_vehicle' } }).exec();
   if (request.assignments) {
-    for (const assignmentID in request.assignments) {
-      if (Object.prototype.hasOwnProperty.call(request.assignments, assignmentID)) { // https://eslint.org/docs/rules/guard-for-in
-        await Assignment.deleteOne({ _id: assignmentID });
-      }
+    for (let i = 0; i < request.assignments.length; i += 1) {
+      await Assignment.deleteOne({ _id: request.assignments[i]._id });
     }
+    mailer.send({ address: constants.OPOEmails, subject: `V-Req #${request.number} deleted`, message: `Hello,\n\nThe V-Req #${request.number} has been deleted.\n\nReason: ${reason || 'no reason provided.'}\n\nIt had ${request.assignments.length} approved vehicle assignments, all of which have been unscheduled so that the vehicles can be assigned to other trips.\n\nDeleted assignments:\n${request.assignments.map((assignment) => { return `\t-\t${assignment.assigned_vehicle.name}: ${assignment.assigned_pickupDateAndTime} to ${assignment.assigned_returnDateAndTime}\n`; })}\n\nBest, DOC Planner` });
   }
   await VehicleRequest.deleteOne({ _id: vehicleRequestID });
   recomputeAllConflicts();
@@ -161,6 +161,7 @@ function recomputeAllConflicts() {
       Promise.all(
         assignments.map((assignment, index, array) => {
           return new Promise((resolve, reject) => {
+            assignment.conflicts = [];
             // console.log('\tpivot', assignment._id);
             console.log('\tpivot index', index);
             console.log('\tmax length', array.length);
