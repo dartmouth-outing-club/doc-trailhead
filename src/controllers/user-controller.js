@@ -212,9 +212,9 @@ export const updateUser = (req, res, next) => {
         if (!req.body.email) {
           throw new Error('You must have an email');
         }
-        if (!req.body.email.endsWith('@dartmouth.edu')) {
-          throw new Error('You must have a Dartmouth email');
-        }
+        // if (!req.body.email.endsWith('@dartmouth.edu')) {
+        //   throw new Error('You must have a Dartmouth email');
+        // }
         if (user.dash_number !== '' && req.body.dash_number === '') {
           throw new Error('You must have a dash number');
         }
