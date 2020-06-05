@@ -29,7 +29,7 @@ const fakeUsers = [
   },
   {
     casID: null,
-    email: 'leader@dartmouth.edu',
+    email: 'f003mfv@dartmouth.edu',
     password: 'leader',
     name: 'Trip Leader',
     role: 'Leader',

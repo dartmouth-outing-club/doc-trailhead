@@ -71,17 +71,17 @@ router.route('/opotrips')
 router.route('/gearrequests')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getGearRequests);
 
-router.route('/gearrequest/:id')
+router.route('/gearrequest/:tripID')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrip)
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToGearRequest);
 
-router.route('/pcardrequest/:id')
+router.route('/pcardrequest/:tripID')
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToPCardRequest);
 
 router.route('/trippeegearrequests')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrippeeGearRequests);
 
-router.route('/trippeegearrequest/:id')
+router.route('/trippeegearrequest/:tripID')
   .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrip)
   .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToTrippeeGearRequest);
 

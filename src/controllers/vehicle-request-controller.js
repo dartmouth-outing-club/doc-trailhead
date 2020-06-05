@@ -2,16 +2,10 @@ import VehicleRequest from '../models/vehicle-request-model';
 import Vehicle from '../models/vehicle-model';
 import Assignment from '../models/assignment-model';
 import Trip from '../models/trip-model';
+import User from '../models/user-model';
 import Global from '../models/global-model';
 import * as constants from '../constants';
 import { mailer } from '../services';
-
-const createDateObject = (date, time) => {
-  // adapted from https://stackoverflow.com/questions/2488313/javascripts-getdate-returns-wrong-date
-  const parts = date.toString().match(/(\d+)/g);
-  const splitTime = time.split(':');
-  return new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
-};
 
 export const makeVehicleRequest = (req, res) => {
   Global.find({}).then((globals) => {
@@ -27,7 +21,9 @@ export const makeVehicleRequest = (req, res) => {
       vehicleRequest.noOfPeople = req.body.noOfPeople;
       vehicleRequest.requestType = req.body.requestType;
       vehicleRequest.requestedVehicles = req.body.requestedVehicles;
-      vehicleRequest.save().then((savedRequest) => {
+      vehicleRequest.save().then(async (savedRequest) => {
+        const requester = await User.findById(vehicleRequest.requester).exec();
+        mailer.send({ address: [requester.email], subject: `New V-Req #${savedRequest.number} created`, message: `Hello,\n\nYou've created a new vehicle request, V-Req #${savedRequest.number}: ${savedRequest.requestDetails}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedRequest._id}\n\nThis request is not associated with any trip.\n\nBest,\nDOC Planner` });
         res.json(savedRequest);
       }).catch((error) => {
         res.status(500).send(error);
@@ -150,12 +146,12 @@ export const precheckAssignment = (req, res) => {
     // setting pickup times
     proposedAssignment.assigned_pickupDate = req.body.pickupDate;
     proposedAssignment.assigned_pickupTime = req.body.pickupTime;
-    const pickupDateAndTime = createDateObject(req.body.pickupDate, req.body.pickupTime);
+    const pickupDateAndTime = constants.createDateObject(req.body.pickupDate, req.body.pickupTime);
     proposedAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
     // setting return times
     proposedAssignment.assigned_returnDate = req.body.returnDate;
     proposedAssignment.assigned_returnTime = req.body.returnTime;
-    const returnDateAndTime = createDateObject(req.body.returnDate, req.body.returnTime);
+    const returnDateAndTime = constants.createDateObject(req.body.returnDate, req.body.returnTime);
     proposedAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
     checkForConflicts(proposedAssignment).then((conflicts) => {
@@ -201,12 +197,12 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
         // setting pickup times
         existingAssignment.assigned_pickupDate = proposedAssignment.pickupDate;
         existingAssignment.assigned_pickupTime = proposedAssignment.pickupTime;
-        const pickupDateAndTime = createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
+        const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
         existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
         // setting return times
         existingAssignment.assigned_returnDate = proposedAssignment.returnDate;
         existingAssignment.assigned_returnTime = proposedAssignment.returnTime;
-        const returnDateAndTime = createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime);
+        const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime);
         existingAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
         existingAssignment.assigned_key = proposedAssignment.assignedKey;
@@ -233,12 +229,12 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
         // setting pickup times
         newAssignment.assigned_pickupDate = proposedAssignment.pickupDate;
         newAssignment.assigned_pickupTime = proposedAssignment.pickupTime;
-        const pickupDateAndTime = createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
+        const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
         newAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
         // setting return times
         newAssignment.assigned_returnDate = proposedAssignment.returnDate;
         newAssignment.assigned_returnTime = proposedAssignment.returnTime;
-        const returnDateAndTime = createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime);
+        const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime);
         newAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
         newAssignment.save().then((savedAssignment) => {
@@ -294,15 +290,15 @@ export const respondToVehicleRequest = async (req, res) => {
         });
         vehicleRequest.assignments = processedAssignments;
         vehicleRequest.status = 'approved';
-        const email = { address: [vehicleRequest.requester.email], subject: '', message: '' };
+        const requester = await User.findById(vehicleRequest.requester).exec();
+        const email = { address: [requester.email], subject: '', message: '' };
         if (vehicleRequest.requestType === 'TRIP') {
-          Trip.findById(vehicleRequest.associatedTrip).exec().then(async (associatedTrip) => {
-            associatedTrip.vehicleStatus = 'approved';
-            await associatedTrip.save(); // needs await because of multi-path async
-            email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
-            email.subject = 'Trip Update: Your vehicle requests got approved';
-            email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been approved by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
-          });
+          const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).populate('leaders').exec();
+          associatedTrip.vehicleStatus = 'approved';
+          await associatedTrip.save(); // needs await because of multi-path async
+          email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
+          email.subject = 'Trip Update: Your vehicle requests got approved';
+          email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been approved by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
         }
         email.subject = 'Your vehicle requests got approved';
         email.message = `Hello,\n\nYour vehicle request #${vehicleRequest.number} has been approved by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
@@ -348,12 +344,13 @@ export const respondToVehicleRequest = async (req, res) => {
 export const denyVehicleRequest = async (req, res) => {
   try {
     const vehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').exec();
-    const email = { address: [vehicleRequest.requester.email], subject: '', message: '' };
+    const requester = await User.findById(vehicleRequest.requester).exec();
+    const email = { address: [requester.email], subject: '', message: '' };
     vehicleRequest.status = 'denied';
     if (vehicleRequest.requestType === 'TRIP') {
       const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).populate('leaders').exec();
       associatedTrip.vehicleStatus = 'denied';
-      email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
+      email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
       email.subject = 'Trip Update: Your vehicle requests got denied';
       email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been denied by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
       await associatedTrip.save();
@@ -404,13 +401,14 @@ export const cancelAssignments = async (req, res) => {
       await Vehicle.updateOne({ _id: assignment.assigned_vehicle }, { $pull: { bookings: assignment._id } }); // remove from vehicle bookings
       await VehicleRequest.updateOne({ _id: assignment.request }, { $pull: { assignments: assignment._id } }); // remove from vehicle request assignments
       const vehicleRequest = await VehicleRequest.findById(assignment.request);
-      const email = { address: [vehicleRequest.requester.email], subject: '', message: '' };
+      const requester = await User.findById(vehicleRequest.requester).exec();
+      const email = { address: [requester.email], subject: '', message: '' };
       if (vehicleRequest.assignments.length === 0) {
         vehicleRequest.status = 'denied';
         if (vehicleRequest.requestType === 'TRIP') {
           const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).exec();
           associatedTrip.vehicleStatus = 'denied';
-          email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
+          email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
           email.subject = 'Trip Update: Your vehicle requests have been cancelled';
           email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been cancelled by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
           await associatedTrip.save();
