@@ -487,13 +487,6 @@ export const joinTrip = (req, res) => {
       // add user to member list
       if (!trip.members.some((member) => { return member.user._id.equals(pend.user._id); })) {
         trip.members.push(pend);
-        // pend.gear.forEach((pendGear) => {
-        //   trip.trippeeGear.forEach((gear) => {
-        //     if (pendGear.gearId === gear._id.toString()) {
-        //       gear.quantity += 1;
-        //     }
-        //   });
-        // });
       }
       // remove user from pending list
       trip.pending.forEach((pender, index) => {
@@ -657,24 +650,40 @@ export const toggleTripReturnedStatus = (req, res) => {
  * @param {express.res} res
  */
 export const deleteTrip = (req, res) => {
-  Trip.findById(req.params.tripID, (err, trip) => {
-    if (err) {
-      res.json({ error: err });
-    } else if (trip.leaders.indexOf(req.user._id) > -1) {
-      Trip.deleteOne({ _id: req.params.tripID }, async (err) => {
-        if (err) {
-          res.json({ error: err });
-        } else if (trip.vehicleRequest) {
-          await deleteVehicleRequest(trip.vehicleRequest);
-          res.json({ message: 'Trip and associated vehicle request successfully' });
-        } else {
-          res.json({ message: 'Trip removed successfully' });
-        }
-      });
-    } else {
-      res.status(422).send('You must be a leader on the trip');
-    }
-  });
+  Trip.findById(req.params.tripID)
+    .populate('leaders')
+    .populate({
+      path: 'members.user',
+      model: 'User',
+    })
+    .populate({
+      path: 'pending.user',
+      model: 'User',
+    })
+    .populate('vehicleRequest')
+    .then((trip) => {
+      if (trip.leaders.some((leader) => { return leader._id.equals(req.user._id); })) {
+        Trip.deleteOne({ _id: req.params.tripID }, async (err) => {
+          if (err) {
+            res.json({ error: err });
+          } else {
+            mailer.send({ address: trip.members.concat(trip.pending).map((person) => { return person.user.email; }), subject: `Trip #${trip.number} deleted`, message: `Hello,\n\nThe Trip #${trip.number}: ${trip.title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${trip.leaders[0].email}.\n\nReason: ${req.body.reason ? req.body.reason : 'no reason provided.'}\n\nBest,\nDOC Planner` });
+            if (trip.vehicleRequest) {
+              await deleteVehicleRequest(trip.vehicleRequest._id);
+              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `re: Trip #${trip.number} deleted`, message: `Hello,\n\nThe associated vehicle request, V-Req #${trip.vehicleRequest.number}: ${trip.title} that is linked to your Trip #${trip.number} has also been deleted since your trip was deleted. We have informed OPO staff that you will no longer be needing this vehicle.\n\nBest,\nDOC Planner` });
+              res.json({ message: 'Trip and associated vehicle request successfully' });
+            } else {
+              res.json({ message: 'Trip removed successfully' });
+            }
+          }
+        });
+      } else {
+        res.status(422).send('You must be a leader on the trip');
+      }
+    })
+    .catch((error) => {
+      res.json({ error });
+    });
 };
 
 
