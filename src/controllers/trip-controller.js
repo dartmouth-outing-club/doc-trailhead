@@ -31,6 +31,7 @@ export const createTrip = (req, res) => {
       trip.dropoff = req.body.dropoff;
       trip.mileage = req.body.mileage;
       trip.co_leader_access = req.body.co_leader_access;
+      console.log(req.body.gearRequests);
       trip.OPOGearRequests = req.body.gearRequests;
       trip.trippeeGear = req.body.trippeeGear;
       trip.pcard = req.body.pcard;
@@ -305,7 +306,34 @@ export const joinTrip = (req, res) => {
       res.status(500).send(error.message);
     });
 };
-
+export const assignToLeader = (req, res) => {
+  Trip.findById(req.params.tripID)
+    .populate('leaders')
+    .populate({
+      path: 'members.user',
+      model: 'User',
+    }).populate({
+      path: 'pending.user',
+      model: 'User',
+    })
+    .then((trip) => {
+      trip.members.some((member, index) => {
+        if (member.user._id.equals(req.body.member.user._id)) {
+          trip.members.splice(index, 1); // remove the trippee from the member list
+          trip.members.splice(0, 0, member); // readd trippee to become leader
+        }
+        return member.user.id === req.body.member.user.id;
+      });
+      trip.save()
+        .then(() => {
+          getTrip(req, res);
+        });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).send(error.message);
+    });
+};
 /**
  * Sets the attending status for each member of trip.
  * @param {*} req
@@ -489,6 +517,7 @@ export const updateTrip = async (req, res) => {
       trip.dropoff = req.body.dropoff;
       trip.cost = req.body.cost;
       trip.experienceNeeded = req.body.experienceNeeded;
+      console.log(req.body.gearRequests);
       trip.OPOGearRequests = req.body.gearRequests;
       trip.trippeeGear = req.body.trippeeGear;
       trip.pcard = req.body.pcard;
