@@ -120,7 +120,7 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
     club: clubID,
     experienceNeeded,
     description: 'This trip was created automatically to showcase the platform\'s features. Now for some nonsense: lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-    mileage: '1',
+    mileage: '16',
     location: 'Faraway Lands',
     startDate,
     endDate,
@@ -130,7 +130,7 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
     pickup: 'Robo',
     dropoff: 'We don\'t come back',
     co_leader_access: true,
-    gearRequests: ['Tent', 'GPS', 'Phones'],
+    gearRequests: [['Tent', 1], ['GPS', 3], ['Phones', 10]],
     gearStatus: status,
     trippeeGearStatus: status,
     trippeeGear: [
