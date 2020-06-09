@@ -19,7 +19,7 @@ mongoose.Promise = global.Promise;
 
 const today = new Date();
 const weekStart = startOf(today, 'week');
-const formatForModel = (d) => { return `${d.getFullYear().toString()}-${(d.getMonth() + 1).toString()}-${(today.getDate() + 1).toString()}`; };
+// const formatForModel = (d) => { return `${d.getFullYear().toString()}-${(d.getMonth() + 1).toString()}-${(today.getDate() + 1).toString()}`; };
 
 const days = [
   {
@@ -217,7 +217,7 @@ Users.findOne({ role: 'Leader' }).then((user) => {
     for (let i = 0; i < titles.length; i += 1) {
       const clubID = clubs[Math.floor(Math.random() * clubs.length)];
       const day = days[i];
-      const trip = generateTripTemplate(titles[i], clubID, formatForModel(day.startDate), formatForModel(day.endDate), day.startTime, day.endTime, experienceNeededs[i], statuses[i]);
+      const trip = generateTripTemplate(titles[i], clubID, day.startDate, day.endDate, day.startTime, day.endTime, experienceNeededs[i], statuses[i]);
       axios.post(`${constants.backendURL}/alltrips`, trip, { headers: { authorization: tokenForUser(user, 'normal') } }).then((response) => {
         const vReqID = response.data._id;
         const assignments = [
