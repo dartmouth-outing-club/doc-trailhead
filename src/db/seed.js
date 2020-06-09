@@ -229,7 +229,7 @@ const clubs = [
     name: 'Women in the Wilderness',
   },
   {
-    name: 'Woodsmen',
+    name: 'Timber Team',
   },
   {
     name: 'Surf Club',
@@ -247,7 +247,7 @@ const clubs = [
     name: 'Archery Club',
   },
   {
-    name: 'Biathalon Club',
+    name: 'Biathlon Club',
   },
   {
     name: 'Climbing Team',

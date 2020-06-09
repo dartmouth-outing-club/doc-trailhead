@@ -510,7 +510,34 @@ export const joinTrip = (req, res) => {
       res.status(500).send(error.message);
     });
 };
-
+export const assignToLeader = (req, res) => {
+  Trip.findById(req.params.tripID)
+    .populate('leaders')
+    .populate({
+      path: 'members.user',
+      model: 'User',
+    }).populate({
+      path: 'pending.user',
+      model: 'User',
+    })
+    .then((trip) => {
+      trip.members.some((member, index) => {
+        if (member.user._id.equals(req.body.member.user._id)) {
+          trip.members.splice(index, 1); // remove the trippee from the member list
+          trip.members.splice(0, 0, member); // readd trippee to become leader
+        }
+        return member.user.id === req.body.member.user.id;
+      });
+      trip.save()
+        .then(() => {
+          getTrip(req, res);
+        });
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).send(error.message);
+    });
+};
 /**
  * Moves a currently approved trippee to the pending list.
  * Removes trippees gear requests from the group list.

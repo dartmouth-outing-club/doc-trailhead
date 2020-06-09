@@ -36,6 +36,7 @@ router.put('/set-attendence/:tripID', requireAuth, Trips.setMemberAttendance);
 router.put('/toggle-returned/:tripID', requireAuth, Trips.toggleTripReturnedStatus);
 router.put('/jointrip/:tripID', requireAuth, Trips.joinTrip);
 router.put('/movetopending/:tripID', requireAuth, Trips.moveToPending);
+router.put('/assignToLeader/:tripID', requireAuth, Trips.assignToLeader);
 
 router.put('/addpending/:tripID', requireAuth, Trips.addToPending);
 router.put('/editusergear/:tripID', requireAuth, Trips.editUserGear);
