@@ -50,7 +50,7 @@ const TripSchema = new Schema({
     },
   ], // will actually only have one entry
   pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
-  pcardAssigned: String,
+  pcardAssigned: { type: String, default: 'None' },
   vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   vehicleRequest: { type: Schema.Types.ObjectId, ref: 'VehicleRequest' },
 });

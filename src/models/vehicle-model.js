@@ -5,6 +5,7 @@ const VehicleSchema = new Schema({
   name: { type: String, unique: true },
   type: { type: String, enum: ['Van', 'Microbus', 'Truck', 'Enterprise'] },
   bookings: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }],
+  active: { type: Boolean, default: true },
 });
 
 VehicleSchema.set('toJSON', {

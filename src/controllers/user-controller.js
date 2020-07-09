@@ -117,8 +117,34 @@ export const roleAuthorization = (roles) => {
 
 export const myTrips = (req, res) => {
   const id = req.user._id;
-  Trip.find({ $or: [{ 'members.user': id }, { 'pending.user': id }, { leaders: id }] }).populate('leaders').populate('club')
-    .then((trips) => { // this should see if name is in members
+  Trip.find({ $or: [{ 'members.user': id }, { 'pending.user': id }, { leaders: id }] })
+    .populate('club').populate('leaders').populate('vehicleRequest')
+    .populate({
+      path: 'members.user',
+      model: 'User',
+    })
+    .populate({
+      path: 'pending.user',
+      model: 'User',
+    })
+    .populate({
+      path: 'vehicleRequest',
+      populate: {
+        path: 'assignments',
+        model: 'Assignment',
+      },
+    })
+    .populate({
+      path: 'vehicleRequest',
+      populate: {
+        path: 'assignments',
+        populate: {
+          path: 'assigned_vehicle',
+          model: 'Vehicle',
+        },
+      },
+    })
+    .then((trips) => {
       VehicleRequest.find({ requester: id }).populate('associatedTrip')
         .then((vehicleRequests) => {
           res.json({ trips, vehicleRequests });
@@ -186,9 +212,9 @@ export const updateUser = (req, res, next) => {
         if (!req.body.email) {
           throw new Error('You must have an email');
         }
-        if (!req.body.email.endsWith('@dartmouth.edu')) {
-          throw new Error('You must have a Dartmouth email');
-        }
+        // if (!req.body.email.endsWith('@dartmouth.edu')) {
+        //   throw new Error('You must have a Dartmouth email');
+        // }
         if (user.dash_number !== '' && req.body.dash_number === '') {
           throw new Error('You must have a dash number');
         }
