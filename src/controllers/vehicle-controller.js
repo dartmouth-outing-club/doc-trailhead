@@ -35,6 +35,9 @@ export const getVehicle = (req, res) => {
         populate: {
           path: 'associatedTrip',
           model: 'Trip',
+          populate: {
+            path: 'leaders',
+          },
         },
       },
     })
@@ -69,12 +72,15 @@ export const getVehicles = (req, res) => {
         populate: {
           path: 'associatedTrip',
           model: 'Trip',
+          populate: {
+            path: 'leaders',
+          },
         },
       },
     })
     .exec()
     .then((vehicles) => {
-      res.json(vehicles);
+      res.json(vehicles.filter((vehicle) => { return vehicle.active; }));
     })
     .catch((error) => {
       res.status(500).send(error);
@@ -101,13 +107,17 @@ export const updateVehicle = (req, res) => {
 export const deleteVehicle = (req, res) => {
   Vehicle.findById(req.params.id).populate('bookings')
     .then((vehicle) => {
-      Vehicle.deleteOne({ _id: req.params.id }, (error) => {
-        if (error) {
-          res.json(error);
-          console.log(error);
-        } else {
-          res.json('Vehicle deleted');
-        }
+      vehicle.active = false;
+      // Vehicle.deleteOne({ _id: req.params.id }, (error) => {
+      //   if (error) {
+      //     res.json(error);
+      //     console.log(error);
+      //   } else {
+      //     res.json('Vehicle deleted');
+      //   }
+      // });
+      vehicle.save().then(() => {
+        res.json('Vehicle decomissioned');
       });
     })
     .catch((error) => {

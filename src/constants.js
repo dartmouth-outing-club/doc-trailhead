@@ -5,7 +5,7 @@ dotenv.config({ silent: true });
 export const frontendURL = process.env.NODE_ENV === 'development' ? 'http://localhost:8080' : 'http://doc-dartmouth.surge.sh';
 export const backendURL = process.env.NODE_ENV === 'development' ? 'http://localhost:9090/api' : 'https://doc-dartmouth.herokuapp.com/api';
 
-export const OPOEmails = ['rory.c.gawler@dartmouth.edu'];
+export const OPOEmails = ['rory.c.gawler@dartmouth.edu', 'ziray.hao@dali.dartmouth.edu'];
 // export const OPOEmails = ['ziray.hao.22@dartmouth.edu'];
 
 export const createDateObject = (date, time) => {
