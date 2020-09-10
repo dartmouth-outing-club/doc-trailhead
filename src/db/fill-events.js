@@ -129,7 +129,7 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
     cost: '20',
     pickup: 'Robo',
     dropoff: 'We don\'t come back',
-    co_leader_access: true,
+    coLeaderCanEditTrip: true,
     gearRequests: [['Tent', 1], ['GPS', 3], ['Phones', 10]],
     gearStatus: status,
     trippeeGearStatus: status,

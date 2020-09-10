@@ -60,7 +60,7 @@ export const getTrip = (req, res) => {
 
       // The commeneted version will give co-leaders leader access to the trip regardless of their roles
       let isLeaderOnTrip;
-      if (trip.co_leader_access) {
+      if (trip.coLeaderCanEditTrip) {
         isLeaderOnTrip = trip.leaders.some((leader) => {
           return leader._id.equals(req.user.id);
         });
@@ -104,7 +104,7 @@ export const createTrip = (req, res) => {
       trip.pickup = req.body.pickup;
       trip.dropoff = req.body.dropoff;
       trip.mileage = req.body.mileage;
-      trip.co_leader_access = req.body.co_leader_access;
+      trip.coLeaderCanEditTrip = req.body.coLeaderCanEditTrip;
       trip.OPOGearRequests = req.body.gearRequests;
       trip.trippeeGear = req.body.trippeeGear;
       trip.pcard = req.body.pcard;
@@ -198,7 +198,7 @@ export const updateTrip = async (req, res) => {
       trip.endDateAndTime = constants.createDateObject(req.body.endDate, req.body.endTime);
       trip.title = req.body.title;
       trip.description = req.body.description;
-      trip.co_leader_access = req.body.co_leader_access;
+      trip.coLeaderCanEditTrip = req.body.coLeaderCanEditTrip;
       trip.club = req.body.club;
       trip.location = req.body.location;
       trip.pickup = req.body.pickup;

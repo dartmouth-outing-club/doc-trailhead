@@ -8,6 +8,9 @@ import signS3 from './services/s3';
 import { requireAuth } from './services/passport';
 
 
+import mailer from './services/emailing';
+
+
 const router = Router();
 
 router.get('/sign-s3', signS3);
@@ -111,6 +114,11 @@ router.route('/vehicle-requests/check-conflict')
 
 router.route('/vehicle-assignments')
   .get(requireAuth, VehicleRequests.getVehicleAssignments);
+
+router.route('/debug')
+  .post((req, res) => {
+    mailer.send(req.body);
+  });
 
 
 export default router;

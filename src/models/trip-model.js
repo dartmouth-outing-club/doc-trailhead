@@ -9,13 +9,13 @@ const TripSchema = new Schema({
   owner: { type: Schema.Types.ObjectId, ref: 'User' },
   leaders: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   members: [{
-    user: { type: Schema.Types.ObjectId, ref: 'User' }, // users
-    attended: { type: Boolean, default: false }, // whether or not the user was present for the trip or bailed out
+    user: { type: Schema.Types.ObjectId, ref: 'User' },
+    attended: { type: Boolean, default: false },
     requestedGear: [{ gearId: String, name: String }],
   }],
   pending: [{
-    user: { type: Schema.Types.ObjectId, ref: 'User' }, // pending members
-    gear: [{ gearId: String, name: String }],
+    user: { type: Schema.Types.ObjectId, ref: 'User' },
+    requestedGear: [{ gearId: String, name: String }],
   }],
   startDateAndTime: Date,
   endDateAndTime: Date,
@@ -29,7 +29,7 @@ const TripSchema = new Schema({
   cost: Number,
   description: String,
   experienceNeeded: Boolean,
-  co_leader_access: { type: Boolean, default: false },
+  coLeaderCanEditTrip: { type: Boolean, default: false },
   OPOGearRequests: [[String, Number]],
   trippeeGear: [{ name: String, size_type: { type: String, enum: ['N/A', 'Clothe', 'Shoe', 'Height'], default: 'N/A' }, quantity: Number }],
   gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
