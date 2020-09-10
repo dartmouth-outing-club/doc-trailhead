@@ -215,7 +215,7 @@ export const updateTrip = async (req, res) => {
        */
       trip.members.concat(trip.pending).forEach((person) => {
         const markToRemove = [];
-        person.gear.forEach((gear, idx) => {
+        person.requestedGear.forEach((gear, idx) => {
           let found = false;
           trip.trippeeGear.forEach((newGear) => {
             if (gear.gearId === newGear._id.toString()) {
@@ -227,7 +227,7 @@ export const updateTrip = async (req, res) => {
             markToRemove.push(idx);
           }
         });
-        for (let i = 0; i < markToRemove.length; i += 1) person.gear.splice(markToRemove[i], 1);
+        for (let i = 0; i < markToRemove.length; i += 1) person.requestedGear.splice(markToRemove[i], 1);
       });
 
       await calculateRequiredGear(trip);
@@ -378,7 +378,7 @@ function calculateRequiredGear(trip) {
   return new Promise((resolve) => {
     trip.trippeeGear.forEach((gear) => { gear.quantity = 0; });
     trip.members.forEach((member) => {
-      member.gear.forEach((g) => {
+      member.requedtedGear.forEach((g) => {
         trip.trippeeGear.forEach((gear) => {
           if (g.gearId === gear._id.toString()) {
             gear.quantity += 1;
@@ -412,7 +412,7 @@ export const editUserGear = (req, res) => {
   Trip.findById(tripID).populate('leaders').then((trip) => {
     trip.pending.concat(trip.members).forEach((person) => {
       if (person.user._id.equals(req.user._id)) {
-        person.gear = trippeeGear;
+        person.requestedGear = trippeeGear;
         User.findById(req.user._id).then((user) => {
           mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `Trip Update: ${user.name} changed gear requests`, message: `Hello,\n\nTrippee ${user.name} for Trip #${trip.number}: ${trip.title} changed their gear requests. You can reach them at ${user.email}.\n\nView the change here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
         });
@@ -638,7 +638,7 @@ export const setMemberAttendance = (req, res) => {
       trip.members.map((member) => {
         if (member.user.toString() === memberID) {
           return new Promise((resolve) => {
-            member.attendedTrip = status;
+            member.attended = status;
             resolve();
           });
         } else return null;
