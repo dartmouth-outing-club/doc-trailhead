@@ -28,7 +28,7 @@ const TripSchema = new Schema({
   dropoff: String,
   cost: Number,
   description: String,
-  experienceNeeded: Boolean,
+  experienceNeeded: { type: Boolean, default: false },
   coLeaderCanEditTrip: { type: Boolean, default: false },
   OPOGearRequests: [[String, Number]],
   trippeeGear: [{ name: String, size_type: { type: String, enum: ['N/A', 'Clothe', 'Shoe', 'Height'], default: 'N/A' }, quantity: Number }],
