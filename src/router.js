@@ -25,7 +25,11 @@ router.get('/signin-cas', Users.signinCAS);
 router.post('/signup', Users.signup);
 
 router.route('/alltrips')
-  .post(requireAuth, Trips.createTrip)
+  .post(requireAuth, (req, res) => {
+    Trips.createTrip(req.user, req.body).then((result) => {
+      res.json(result);
+    }).catch((error) => { return res.status(500).json(error); });
+  })
   .get(requireAuth, Trips.getTrips);
 
 router.get('/trips/:club', Trips.getTripsByClub);
