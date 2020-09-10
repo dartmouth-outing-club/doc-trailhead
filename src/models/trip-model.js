@@ -1,17 +1,17 @@
 import mongoose, { Schema } from 'mongoose';
 
-
 const TripSchema = new Schema({
   number: { type: Number, unique: true },
-  title: String,
+  title: { type: String, default: 'Untitled trip' },
   returned: { type: Boolean, default: false },
   markedLate: { type: Boolean, default: false },
-  leaders: [{ type: Schema.Types.ObjectId, ref: 'User' }], // leaders
   club: { type: Schema.Types.ObjectId, ref: 'Club' },
+  owner: { type: Schema.Types.ObjectId, ref: 'User' },
+  leaders: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   members: [{
     user: { type: Schema.Types.ObjectId, ref: 'User' }, // users
-    attendedTrip: { type: Boolean, default: false }, // whether or not the user was present for the trip or bailed out
-    gear: [{ gearId: String, name: String }],
+    attended: { type: Boolean, default: false }, // whether or not the user was present for the trip or bailed out
+    requestedGear: [{ gearId: String, name: String }],
   }],
   pending: [{
     user: { type: Schema.Types.ObjectId, ref: 'User' }, // pending members
