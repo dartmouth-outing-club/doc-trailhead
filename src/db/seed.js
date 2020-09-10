@@ -16,7 +16,7 @@ mongoose.Promise = global.Promise;
 const fakeUsers = [
   {
     casID: null,
-    email: 'opo@dartmouth.edu',
+    email: 'zirui.hao@gmail.com',
     password: 'opo',
     name: 'OPO Person',
     role: 'OPO',
@@ -29,7 +29,7 @@ const fakeUsers = [
   },
   {
     casID: null,
-    email: 'f003mfv@dartmouth.edu',
+    email: 'ziray.hao@dali.dartmouth.edu',
     password: 'leader',
     name: 'Trip Leader',
     role: 'Leader',
@@ -55,7 +55,7 @@ const fakeUsers = [
   },
   {
     casID: null,
-    email: 'ziray.hao@dali.dartmouth.edu',
+    email: 'f003mfv@dartmouth.edu',
     password: 'trippee2',
     name: 'Trippee 2',
     role: 'Trippee',
@@ -68,7 +68,7 @@ const fakeUsers = [
   },
   {
     casID: null,
-    email: 'zirui.hao@gmail.com',
+    email: 'z.22@dartmouth.edu',
     password: 'trippee3',
     name: 'Trippee 3',
     role: 'Trippee',
