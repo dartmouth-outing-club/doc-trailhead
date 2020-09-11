@@ -136,27 +136,27 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
     trippeeGear: [
       {
         name: 'Hiking boots',
-        size_type: 'Shoe',
+        sizeType: 'Shoe',
         quantity: 0,
       },
       {
         name: 'Raincoat',
-        size_type: 'Clothe',
+        sizeType: 'Clothe',
         quantity: 0,
       },
       {
         name: 'Underlayers',
-        size_type: 'Clothe',
+        sizeType: 'Clothe',
         quantity: 0,
       },
       {
         name: 'Head lamp',
-        size_type: 'N/A',
+        sizeType: 'N/A',
         quantity: 0,
       },
       {
         name: 'Skis',
-        size_type: 'Height',
+        sizeType: 'Height',
         quantity: 0,
       },
     ],
