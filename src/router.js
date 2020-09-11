@@ -3,9 +3,7 @@ import controllers from './controllers';
 import signS3 from './services/s3';
 import { requireAuth } from './services/passport';
 
-
 import mailer from './services/emailing';
-
 
 const router = Router();
 
@@ -18,13 +16,6 @@ router.get('/', (req, res) => {
 router.post('/signin-simple', controllers.users.signinSimple);
 router.get('/signin-cas', controllers.users.signinCAS);
 router.post('/signup', controllers.users.signup);
-
-router.get('/trips/:club', controllers.trips.getTripsByClub);
-
-router.route('/trip/:tripID')
-  .get(requireAuth, controllers.trips.getTrip)
-  .put(requireAuth, controllers.trips.updateTrip)
-  .delete(requireAuth, controllers.trips.deleteTrip);
 
 router.put('/set-attendence/:tripID', requireAuth, controllers.trips.setMemberAttendance);
 router.put('/toggle-returned/:tripID', requireAuth, controllers.trips.toggleTripReturnedStatus);

@@ -259,9 +259,9 @@ export const updateTrip = async (req, res) => {
 /**
  Fetches all trips with all fields populated.
  */
-export const getTrips = () => {
+export const getTrips = (filters = {}) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.find(), ['club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
+    populateTripDocument(Trip.find(filters), ['club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
       .then((trips) => {
         resolve(trips);
       })
