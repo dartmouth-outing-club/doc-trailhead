@@ -24,13 +24,17 @@ router.post('/signin-simple', Users.signinSimple);
 router.get('/signin-cas', Users.signinCAS);
 router.post('/signup', Users.signup);
 
-router.route('/alltrips')
+router.route('/trips')
   .post(requireAuth, (req, res) => {
     Trips.createTrip(req.user, req.body).then((result) => {
       res.json(result);
     }).catch((error) => { return res.status(500).json(error); });
   })
-  .get(requireAuth, Trips.getTrips);
+  .get(requireAuth, (req, res) => {
+    Trips.getTrips().then((result) => {
+      res.json(result);
+    }).catch((error) => { return res.status(500).json(error); });
+  });
 
 router.get('/trips/:club', Trips.getTripsByClub);
 

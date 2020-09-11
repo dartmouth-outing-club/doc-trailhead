@@ -8,72 +8,56 @@ import { deleteVehicleRequest } from './vehicle-request-controller';
 import * as constants from '../constants';
 import { mailer } from '../services';
 
+const populateTripDocument = (tripQuery, fields) => {
+  const fieldsDirectory = {
+    club: 'club',
+    leaders: 'leaders',
+    vehicleRequest: 'vehicleRequest',
+    membersUser: { path: 'members.user', model: 'User' },
+    pendingUser: { path: 'pending.user', model: 'User' },
+    vehicleRequestAssignments: { path: 'vehicleRequest', populate: { path: 'assignments', model: 'Assignment' } },
+    vehicleRequestAssignmentsAssignedVehicle: { path: 'vehicleRequest', populate: { path: 'assignments', populate: { path: 'assigned_vehicle', mode: 'Vehicle' } } },
+  };
+  return tripQuery.populate(fields.map((field) => { return fieldsDirectory[field]; }));
+};
+
 /**
  * Fetches a single trip with all fields populated.
  * @param {express.req} req
  * @param {express.res} res
  */
-export const getTrip = (req, res) => {
-  Trip.findById(req.params.tripID).populate('club').populate('leaders').populate('vehicleRequest')
-    .populate({
-      path: 'members.user',
-      model: 'User',
-    })
-    .populate({
-      path: 'pending.user',
-      model: 'User',
-    })
-    .populate({
-      path: 'vehicleRequest',
-      populate: {
-        path: 'assignments',
-        model: 'Assignment',
-      },
-    })
-    .populate({
-      path: 'vehicleRequest',
-      populate: {
-        path: 'assignments',
-        populate: {
-          path: 'assigned_vehicle',
-          model: 'Vehicle',
-        },
-      },
-    })
-    .then((trip) => {
-      const isPending = trip.pending.some((pender) => {
-        return pender.user.equals(req.user.id);
-      });
-
-      const isOnTrip = trip.members.some((member) => {
-        return member.user.id === req.user.id;
-      });
-
-      let userTripStatus = '';
-      if (isPending) {
-        userTripStatus = 'PENDING';
-      } else if (isOnTrip) {
-        userTripStatus = 'APPROVED';
-      } else {
-        userTripStatus = 'NONE';
-      }
-
-      // The commeneted version will give co-leaders leader access to the trip regardless of their roles
-      let isLeaderOnTrip;
-      if (trip.coLeaderCanEditTrip) {
-        isLeaderOnTrip = trip.leaders.some((leader) => {
-          return leader._id.equals(req.user.id);
+export const getTrip = (tripID, forUser) => {
+  return new Promise((resolve, reject) => {
+    populateTripDocument(Trip.findById(tripID), ['club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
+      .then((trip) => {
+        const isPending = trip.pending.some((pender) => {
+          return pender.user.equals(forUser.id);
         });
-      } else {
-        isLeaderOnTrip = trip.leaders[0]._id.equals(req.user.id);
-      }
 
-      res.json({ trip, userTripStatus, isLeaderOnTrip });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).send(error);
-    });
+        const isOnTrip = trip.members.some((member) => {
+          return member.user.id === forUser.id;
+        });
+
+        let userTripStatus;
+        if (isPending) userTripStatus = 'PENDING';
+        else if (isOnTrip) userTripStatus = 'APPROVED';
+        else userTripStatus = 'NONE';
+
+        let isLeaderOnTrip;
+        if (trip.coLeaderCanEditTrip) {
+          isLeaderOnTrip = trip.leaders.some((leader) => {
+            return leader._id.equals(forUser.id);
+          });
+        } else {
+          isLeaderOnTrip = trip.leaders[0]._id.equals(forUser.id);
+        }
+
+        resolve({ trip, userTripStatus, isLeaderOnTrip });
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
 };
 
 /**
@@ -274,42 +258,17 @@ export const updateTrip = async (req, res) => {
 
 /**
  Fetches all trips with all fields populated.
- * @param {express.req} req
- * @param {express.res} res
  */
-export const getTrips = (req, res) => {
-  Trip.find().populate('club').populate('leaders').populate('vehicleRequest')
-    .populate({
-      path: 'members.user',
-      model: 'User',
-    })
-    .populate({
-      path: 'pending.user',
-      model: 'User',
-    })
-    .populate({
-      path: 'vehicleRequest',
-      populate: {
-        path: 'assignments',
-        model: 'Assignment',
-      },
-    })
-    .populate({
-      path: 'vehicleRequest',
-      populate: {
-        path: 'assignments',
-        populate: {
-          path: 'assigned_vehicle',
-          model: 'Vehicle',
-        },
-      },
-    })
-    .then((trips) => {
-      res.json(trips);
-    })
-    .catch((error) => {
-      res.status(500).send(error);
-    });
+export const getTrips = () => {
+  return new Promise((resolve, reject) => {
+    populateTripDocument(Trip.find(), ['club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
+      .then((trips) => {
+        resolve(trips);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
 };
 
 export const getTripsByClub = (req, res) => {
