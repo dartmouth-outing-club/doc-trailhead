@@ -218,7 +218,7 @@ Users.findOne({ role: 'Leader' }).then((user) => {
       const clubID = clubs[Math.floor(Math.random() * clubs.length)];
       const day = days[i];
       const trip = generateTripTemplate(titles[i], clubID, day.startDate, day.endDate, day.startTime, day.endTime, experienceNeededs[i], statuses[i]);
-      axios.post(`${constants.backendURL}/alltrips`, trip, { headers: { authorization: tokenForUser(user, 'normal') } }).then((response) => {
+      axios.post(`${constants.backendURL}/trips`, trip, { headers: { authorization: tokenForUser(user, 'normal') } }).then((response) => {
         const vReqID = response.data._id;
         const assignments = [
           {
