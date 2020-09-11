@@ -14,7 +14,7 @@ dotenv.config({ silent: true });
 const localOptions = { usernameField: 'email' };
 
 const jwtOptions = {
-  jwtFromRequest: ExtractJwt.fromHeader('authorization'),
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   secretOrKey: process.env.AUTH_SECRET,
 };
 
