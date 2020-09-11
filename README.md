@@ -111,7 +111,7 @@ path : /trip/:id
 description : Update a trip
 data : club, start date, end date, title, cost, description, limit
 
-path : /joinTrip
+path : /join
 description : Join a trip  
 parameter : id of trip  
 response : json object with values for trip and isUserOnTrip
@@ -126,7 +126,7 @@ path : /trip/:id
 description : Remove a trip  
 data : id of trip  
 
-path : /leaveTrip  
+path : /leave  
 description : remove a user from a trip
 data : id of trip
 

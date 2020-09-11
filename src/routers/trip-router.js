@@ -33,4 +33,34 @@ tripsRouter.route('/:tripID')
   .put(requireAuth, controllers.trips.updateTrip)
   .delete(requireAuth, controllers.trips.deleteTrip);
 
+
+/**
+ * Trip membership functions
+ */
+
+tripsRouter.post('/apply/:tripID', requireAuth, (req, res) => {
+  controllers.trips.addToPending(req.params.tripID, req.user._id, req.body.trippeeGear)
+    .then(() => {
+      controllers.trips.getTrip(req.params.tripID, req.user).then((result) => { return res.json(result); });
+    })
+    .catch((error) => { console.log(error); res.status(500).json(error); });
+});
+
+tripsRouter.post('/join/:tripID', requireAuth, (req, res) => {
+  controllers.trips.join(req.params.tripID, req.body.joiningUserID).then(() => { res.json(); }).catch((error) => { console.log(error); res.status(500).json(error); });
+});
+tripsRouter.post('/reject/:tripID', requireAuth, (req, res) => {
+  controllers.trips.reject(req.params.tripID, req.body.rejectedUserID).then(() => { return res.json(); }).catch((error) => { res.status(500).json(error); });
+});
+
+tripsRouter.post('/leave/:tripID', requireAuth, (req, res) => {
+  controllers.trips.leave(req.params.tripID, req.body.leavingUserID).then(() => { res.json(); }).catch((error) => { return res.status(500).json(error); });
+});
+
+tripsRouter.put('/set-attendence/:tripID', requireAuth, controllers.trips.setMemberAttendance);
+tripsRouter.put('/toggle-returned/:tripID', requireAuth, controllers.trips.toggleTripReturnedStatus);
+tripsRouter.put('/assignToLeader/:tripID', requireAuth, controllers.trips.assignToLeader);
+
+tripsRouter.put('/editusergear/:tripID', requireAuth, controllers.trips.editUserGear);
+
 export default tripsRouter;

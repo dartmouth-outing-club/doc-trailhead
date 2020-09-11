@@ -50,7 +50,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 
-app.use('/', apiRouter);
+app.use('/', (req, res, next) => { next(); }, apiRouter);
 app.use('/trips', routers.trips);
 
 // START THE SERVER

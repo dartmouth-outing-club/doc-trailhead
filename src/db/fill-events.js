@@ -218,8 +218,8 @@ Users.findOne({ role: 'Leader' }).then((user) => {
       const clubID = clubs[Math.floor(Math.random() * clubs.length)];
       const day = days[i];
       const trip = generateTripTemplate(titles[i], clubID, day.startDate, day.endDate, day.startTime, day.endTime, experienceNeededs[i], statuses[i]);
-      axios.post(`${constants.backendURL}/trips`, trip, { headers: { authorization: tokenForUser(user, 'normal') } }).then((response) => {
-        const vReqID = response.data._id;
+      axios.post(`${constants.backendURL}/trips`, trip, { headers: { Authorization: `Bearer ${tokenForUser(user, 'normal')}` } }).then((response) => {
+        const vReqID = response.data.vehicleRequest._id;
         const assignments = [
           {
             assignedVehicle: 'Van G',
@@ -231,7 +231,7 @@ Users.findOne({ role: 'Leader' }).then((user) => {
           },
         ];
         Users.findOne({ role: 'OPO' }).then((OPOUser) => {
-          axios.post(`${constants.backendURL}/opoVehicleRequest/${vReqID}`, { assignments }, { headers: { authorization: tokenForUser(OPOUser, 'normal') } });
+          axios.post(`${constants.backendURL}/opoVehicleRequest/${vReqID}`, { assignments }, { headers: { Authorization: `Bearer ${tokenForUser(OPOUser, 'normal')}` } });
         });
       });
       console.log('sent');

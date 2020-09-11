@@ -271,24 +271,6 @@ export const getTrips = (filters = {}) => {
   });
 };
 
-export const getTripsByClub = (req, res) => {
-  const { club } = req.params;
-  Club.findOne({ name: club }, (err, theClub) => {
-    if (!theClub) {
-      res.json({ error: 'no club' });
-    } else {
-      const id = theClub._id;
-      Trip.find({ club: id }, (err, trips) => {
-        if (err) {
-          res.json({ error: err });
-        } else {
-          res.json(trips);
-        }
-      });
-    }
-  });
-};
-
 /**
  * Fetches only trips that have gear, P-Card, or vehicle requests.
  * @param {express.req} req
@@ -322,7 +304,7 @@ function calculateRequiredGear(trip) {
   return new Promise((resolve) => {
     trip.trippeeGear.forEach((gear) => { gear.quantity = 0; });
     trip.members.forEach((member) => {
-      member.requedtedGear.forEach((g) => {
+      member.requestedGear.forEach((g) => {
         trip.trippeeGear.forEach((gear) => {
           if (g.gearId === gear._id.toString()) {
             gear.quantity += 1;
@@ -333,7 +315,6 @@ function calculateRequiredGear(trip) {
     resolve();
   });
 }
-
 
 export const getGearRequests = (req, res) => {
   Trip.find({ gearStatus: { $not: { $in: ['N/A'] } } }).populate('leaders').populate('club').populate({
@@ -364,11 +345,11 @@ export const editUserGear = (req, res) => {
     });
     calculateRequiredGear(trip).then(() => {
       trip.save().then(() => {
-        getTrip(req, res);
-      });
+        res.send();
+      }).catch((error) => { return console.log('FUCK'); });
     });
   }).catch((error) => {
-    res.status(500).send(error.message);
+    res.status(500).json(error);
   });
 };
 
@@ -377,83 +358,102 @@ export const editUserGear = (req, res) => {
 /**
  * Puts a trippee on the pending list.
  * Sends an email confirmation to trippee and notice to all leaders and co-leaders.
- * @param {express.req} req
- * @param {express.res} res
+ * @param {String} tripID
+ * @param {String} joiningUserID
+ * @param {} requestedGear
  */
-export const addToPending = (req, res) => {
-  const id = req.params.tripID;
-  const { trippeeGear } = req.body;
-  Trip.findById(id)
-    .populate('leaders')
-    .populate({
-      path: 'members.user',
-      model: 'User',
-    })
-    .populate({
-      path: 'pending.user',
-      model: 'User',
-    })
-    .then((trip) => {
-      trip.pending.push({ user: req.user._id, gear: trippeeGear });
-      trip.save()
-        .then(() => {
-          mailer.send({ address: req.user.email, subject: 'Confirmation: You\'ve signed up for a trip', message: `Hello ${req.user.name},\n\nYou've signed up for Trip #${trip.number}: ${trip.title}, awaiting leader approval.\n\nView the trip here: ${constants.frontendURL}/trip/${id}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
-          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip Update: ${req.user.name} applied to your trip`, message: `Hello,\n\nTrippee ${req.user.name} has applied to join Trip #${trip.number}: ${trip.title}. Please use our platform to approve them. You can reach them at ${req.user.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
-          getTrip(req, res);
+export const addToPending = (tripID, joiningUserID, requestedGear) => {
+  return new Promise((resolve, reject) => {
+    populateTripDocument(Trip.findById(tripID), ['leaders', 'membersUser', 'pendingUser'])
+      .then(async (trip) => {
+        trip.pending.push({ user: joiningUserID, requestedGear });
+        await trip.save();
+        const foundUser = await User.findById(joiningUserID);
+        mailer.send({ address: foundUser.email, subject: 'Confirmation: You\'ve signed up for a trip', message: `Hello ${foundUser.name},\n\nYou've signed up for Trip #${trip.number}: ${trip.title}, awaiting leader approval.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
+        const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+        mailer.send({ address: leaderEmails, subject: `Trip Update: ${foundUser.name} applied to your trip`, message: `Hello,\n\nTrippee ${foundUser.name} has applied to join Trip #${trip.number}: ${trip.title}. Please use our platform to approve them. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+        resolve();
+      })
+      .catch((error) => { reject(error); });
+  });
+};
+
+/**
+ * Moves a currently approved trippee to the pending list.
+ * Removes trippees gear requests from the group list.
+ * Sends all trip leaders and co-leaders a notification email.
+ * @param {String} tripID The ID of the trip to leave
+ * @param {String} leavinUserID The user ID who is leaving
+ */
+export const reject = (tripID, leavingUserID) => {
+  return new Promise((resolve, reject) => {
+    populateTripDocument(Trip.findById(tripID), ['leaders', 'membersUser', 'pendingUser'])
+      .then(async (trip) => {
+        let leavingUserPender;
+        // Remove the trippee from the member list
+        trip.members.forEach((member, index) => {
+          if (member.user._id.toString() === leavingUserID) {
+            // eslint-disable-next-line prefer-destructuring
+            leavingUserPender = trip.members.splice(index, 1)[0];
+          }
         });
-    })
-    .catch((error) => {
-      res.status(500).send(error.message);
-    });
+        // Add user to pending list
+        if (leavingUserPender == null) reject(new Error('This user was not on the approved list before'));
+        if (!trip.pending.some((pender) => { return pender.user._id.toString() === leavingUserID; })) {
+          trip.pending.push(leavingUserPender);
+        }
+        await calculateRequiredGear(trip);
+        await trip.save();
+        User.findById(leavingUserID).then((foundUser) => {
+          mailer.send({ address: foundUser.email, subject: 'Trip Update: You\'ve been un-admitted', message: `Hello ${foundUser.name},\n\nYou've were previously approved for Trip #${trip.number}: ${trip.title}, but the leader has put you back into pending status, which means you are NOT approved to attend this trip.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
+          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+          mailer.send({ address: leaderEmails, subject: `Trip Update: ${foundUser.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${foundUser.name} for Trip #${trip.number}: ${trip.title} has been moved from the approved list to the pending list. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+          resolve();
+        });
+      })
+      .catch((error) => { console.log(error); reject(error); });
+  });
 };
 
 /**
  * Moves a pending member to the approved list, while adding their gear requests to the trip's total.
  * Sends approved notification email to the trippee and a notice to all leaders and co-leaders.
- * @param {express.req} req
- * @param {express.res} res
+ * @param {String} tripID The ID of the trip to join
+ * @param {String} joiningUserID The user ID who is requesting to join
  */
-export const joinTrip = (req, res) => {
-  const id = req.params.tripID;
-  const { pend } = req.body;
-  Trip.findById(id)
-    .populate('leaders')
-    .populate({
-      path: 'members.user',
-      model: 'User',
-    })
-    .populate({
-      path: 'pending.user',
-      model: 'User',
-    })
-    .then((trip) => {
-      // add user to member list
-      if (!trip.members.some((member) => { return member.user._id.equals(pend.user._id); })) {
-        trip.members.push(pend);
-      }
-      // remove user from pending list
-      trip.pending.forEach((pender, index) => {
-        if (pender._id.equals(pend._id)) {
-          trip.pending.splice(index, 1);
-        }
-      });
-      calculateRequiredGear(trip).then(() => {
-        trip.save().then(() => {
-          User.findById(pend.user).then((foundUser) => {
-            mailer.send({ address: foundUser.email, subject: 'Trip Update: You\'ve been approved!', message: `Hello ${foundUser.name},\n\nYou've been approved for Trip #${trip.number}: ${trip.title}!\n\nView the trip here: ${constants.frontendURL}/trip/${id}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
-            const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-            mailer.send({ address: leaderEmails, subject: `Trip Update: ${foundUser.name} got approved!`, message: `Hello,\n\nYour pending trippee ${foundUser.name} for Trip #${trip.number}: ${trip.title} has been approved. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
-          });
-          getTrip(req, res);
+export const join = (tripID, joiningUserID) => {
+  return new Promise((resolve, reject) => {
+    populateTripDocument(Trip.findById(tripID), ['leaders', 'membersUser', 'pendingUser'])
+      .then(async (trip) => {
+        let joiningUserPender = {};
+        // Remove user from pending list
+        trip.pending.forEach((pender, index) => {
+          if (pender.user._id.toString() === joiningUserID) {
+            // eslint-disable-next-line prefer-destructuring
+            joiningUserPender = trip.pending.splice(index, 1)[0];
+          }
         });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).send(error.message);
-    });
+
+        if (joiningUserPender == null) reject(new Error('This user is not yet on the pending list for this trip'));
+
+        // Add user to member list
+        if (!trip.members.some((member) => { return member.user._id.toString() === joiningUserID; })) {
+          trip.members.push(joiningUserPender);
+        } else reject(new Error('This user is already approved to be on the trip'));
+
+        await calculateRequiredGear(trip);
+        await trip.save();
+        User.findById(joiningUserID).then((foundUser) => {
+          mailer.send({ address: foundUser.email, subject: 'Trip Update: You\'ve been approved!', message: `Hello ${foundUser.name},\n\nYou've been approved for Trip #${trip.number}: ${trip.title}!\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
+          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+          mailer.send({ address: leaderEmails, subject: `Trip Update: ${foundUser.name} got approved!`, message: `Hello,\n\nYour pending trippee ${foundUser.name} for Trip #${trip.number}: ${trip.title} has been approved. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+        });
+        resolve();
+      })
+      .catch((error) => { reject(error); });
+  });
 };
+
 export const assignToLeader = (req, res) => {
   Trip.findById(req.params.tripID)
     .populate('leaders')
@@ -482,90 +482,44 @@ export const assignToLeader = (req, res) => {
       res.status(500).send(error.message);
     });
 };
-/**
- * Moves a currently approved trippee to the pending list.
- * Removes trippees gear requests from the group list.
- * Sends all trip leaders and co-leaders a notification email.
- * @param {*} req
- * @param {*} res
- */
-export const moveToPending = (req, res) => {
-  Trip.findById(req.params.tripID)
-    .populate('leaders')
-    .populate({
-      path: 'members.user',
-      model: 'User',
-    }).populate({
-      path: 'pending.user',
-      model: 'User',
-    })
-    .then((trip) => {
-      trip.members.some((member, index) => {
-        if (member.user._id.equals(req.body.member.user._id)) {
-          trip.members.splice(index, 1); // remove the trippee from the member list
-        }
-        return member.user.id === req.body.member.user.id;
-      });
-      if (!trip.pending.some((pender) => { return pender.user._id.equals(req.body.member.user._id); })) {
-        trip.pending.push(req.body.member);
-      }
-      calculateRequiredGear(trip).then(() => {
-        trip.save().then(() => {
-          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip Update: ${req.body.member.user.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${req.body.member.name} for Trip #${trip.number}: ${trip.title} has been moved from the approved list to the pending list. You can reach them at ${req.body.member.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
-          getTrip(req, res);
-        });
-      });
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).send(error.message);
-    });
-};
+
 
 /**
  * Processes request from trippee to leave trip.
  * If the trippee was approved, removes all gear requested by trippee in the group list and sends email alert to all trip leaders and co-leaders.
- * Returns the modified trip document to client.
- * @param {*} req
- * @param {*} res
+ * @param {String} tripID The ID of the trip to leave from
+ * @param {String} leavingUserID The ID of the user leaving
  */
-export const leaveTrip = (req, res) => {
-  Trip.findById(req.params.tripID)
-    .populate('leaders')
-    .populate({
-      path: 'members.user',
-      model: 'User',
-    }).then((trip) => {
-      User.findById(req.user.id).then((leavingUser) => {
-        const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip Update: ${leavingUser.name} left your trip`, message: `Hello,\n\nYour approved trippee ${leavingUser.name} for Trip #${trip.number}: ${trip.title} cancelled for this trip. You can reach them at ${leavingUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
-      });
-      let userIdx = -1;
-      if (trip.pending.some((pender, idx) => {
-        if (pender.user._id.equals(req.user._id)) {
-          userIdx = idx;
-          return true;
-        } else return false;
-      })) {
-        trip.pending.splice(userIdx, 1);
-      } else if (trip.members.some((member, idx) => {
-        if (member.user._id.equals(req.user._id)) {
-          userIdx = idx;
-          return true;
-        } else return false;
-      })) {
-        trip.members.splice(userIdx, 1);
-      }
-      calculateRequiredGear(trip).then(() => {
-        trip.save().then(() => {
-          getTrip(req, res);
+export const leave = (tripID, leavingUserID) => {
+  return new Promise((resolve, reject) => {
+    populateTripDocument(Trip.findById(tripID), ['leaders', 'membersUser'])
+      .then(async (trip) => {
+        User.findById(leavingUserID).then((leavingUser) => {
+          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+          mailer.send({ address: leaderEmails, subject: `Trip Update: ${leavingUser.name} left your trip`, message: `Hello,\n\nYour approved trippee ${leavingUser.name} for Trip #${trip.number}: ${trip.title} cancelled for this trip. You can reach them at ${leavingUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
         });
-      });
-    })
-    .catch((error) => {
-      res.status(500).send(error.message);
-    });
+        let userIdx = -1;
+        if (trip.pending.some((pender, idx) => {
+          if (pender.user._id.toString() === leavingUserID) {
+            userIdx = idx;
+            return true;
+          } else return false;
+        })) {
+          trip.pending.splice(userIdx, 1);
+        } else if (trip.members.some((member, idx) => {
+          if (member.user._id.toString() === leavingUserID) {
+            userIdx = idx;
+            return true;
+          } else return false;
+        })) {
+          trip.members.splice(userIdx, 1);
+        }
+        await calculateRequiredGear(trip);
+        await trip.save();
+        resolve();
+      })
+      .catch((error) => { console.log(error); reject(error); });
+  });
 };
 
 /**

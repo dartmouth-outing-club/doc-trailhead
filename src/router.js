@@ -17,15 +17,6 @@ router.post('/signin-simple', controllers.users.signinSimple);
 router.get('/signin-cas', controllers.users.signinCAS);
 router.post('/signup', controllers.users.signup);
 
-router.put('/set-attendence/:tripID', requireAuth, controllers.trips.setMemberAttendance);
-router.put('/toggle-returned/:tripID', requireAuth, controllers.trips.toggleTripReturnedStatus);
-router.put('/jointrip/:tripID', requireAuth, controllers.trips.joinTrip);
-router.put('/movetopending/:tripID', requireAuth, controllers.trips.moveToPending);
-router.put('/assignToLeader/:tripID', requireAuth, controllers.trips.assignToLeader);
-
-router.put('/addpending/:tripID', requireAuth, controllers.trips.addToPending);
-router.put('/editusergear/:tripID', requireAuth, controllers.trips.editUserGear);
-
 
 router.route('/user')
   .get(requireAuth, controllers.users.getUser)
@@ -34,7 +25,7 @@ router.route('/user')
 router.route('/users').get(requireAuth, controllers.users.getUsers);
 
 router.get('/myTrips', requireAuth, controllers.users.myTrips);
-router.post('/leaveTrip/:tripID', requireAuth, controllers.trips.leaveTrip);
+
 router.get('/userTrips', requireAuth, controllers.users.userTrips);
 
 // router.get('/isOnTrip/:tripID', requireAuth, controllers.trips.isOnTrip);
