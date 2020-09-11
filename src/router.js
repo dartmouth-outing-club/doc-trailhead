@@ -1,9 +1,5 @@
 import { Router } from 'express';
-import * as Trips from './controllers/trip-controller';
-import * as Users from './controllers/user-controller';
-import * as Clubs from './controllers/club-controller';
-import * as VehicleRequests from './controllers/vehicle-request-controller';
-import * as Vehicles from './controllers/vehicle-controller';
+import controllers from './controllers';
 import signS3 from './services/s3';
 import { requireAuth } from './services/passport';
 
@@ -15,113 +11,100 @@ const router = Router();
 
 router.get('/sign-s3', signS3);
 
-
 router.get('/', (req, res) => {
   res.json({ message: 'welcome to our doc app!' });
 });
 
-router.post('/signin-simple', Users.signinSimple);
-router.get('/signin-cas', Users.signinCAS);
-router.post('/signup', Users.signup);
+router.post('/signin-simple', controllers.users.signinSimple);
+router.get('/signin-cas', controllers.users.signinCAS);
+router.post('/signup', controllers.users.signup);
 
-router.route('/trips')
-  .post(requireAuth, (req, res) => {
-    Trips.createTrip(req.user, req.body).then((result) => {
-      res.json(result);
-    }).catch((error) => { return res.status(500).json(error); });
-  })
-  .get(requireAuth, (req, res) => {
-    Trips.getTrips().then((result) => {
-      res.json(result);
-    }).catch((error) => { return res.status(500).json(error); });
-  });
-
-router.get('/trips/:club', Trips.getTripsByClub);
+router.get('/trips/:club', controllers.trips.getTripsByClub);
 
 router.route('/trip/:tripID')
-  .get(requireAuth, Trips.getTrip)
-  .put(requireAuth, Trips.updateTrip)
-  .delete(requireAuth, Trips.deleteTrip);
+  .get(requireAuth, controllers.trips.getTrip)
+  .put(requireAuth, controllers.trips.updateTrip)
+  .delete(requireAuth, controllers.trips.deleteTrip);
 
-router.put('/set-attendence/:tripID', requireAuth, Trips.setMemberAttendance);
-router.put('/toggle-returned/:tripID', requireAuth, Trips.toggleTripReturnedStatus);
-router.put('/jointrip/:tripID', requireAuth, Trips.joinTrip);
-router.put('/movetopending/:tripID', requireAuth, Trips.moveToPending);
-router.put('/assignToLeader/:tripID', requireAuth, Trips.assignToLeader);
+router.put('/set-attendence/:tripID', requireAuth, controllers.trips.setMemberAttendance);
+router.put('/toggle-returned/:tripID', requireAuth, controllers.trips.toggleTripReturnedStatus);
+router.put('/jointrip/:tripID', requireAuth, controllers.trips.joinTrip);
+router.put('/movetopending/:tripID', requireAuth, controllers.trips.moveToPending);
+router.put('/assignToLeader/:tripID', requireAuth, controllers.trips.assignToLeader);
 
-router.put('/addpending/:tripID', requireAuth, Trips.addToPending);
-router.put('/editusergear/:tripID', requireAuth, Trips.editUserGear);
+router.put('/addpending/:tripID', requireAuth, controllers.trips.addToPending);
+router.put('/editusergear/:tripID', requireAuth, controllers.trips.editUserGear);
 
 
 router.route('/user')
-  .get(requireAuth, Users.getUser)
-  .put(requireAuth, Users.updateUser);
+  .get(requireAuth, controllers.users.getUser)
+  .put(requireAuth, controllers.users.updateUser);
 
-router.route('/users').get(requireAuth, Users.getUsers);
+router.route('/users').get(requireAuth, controllers.users.getUsers);
 
-router.get('/myTrips', requireAuth, Users.myTrips);
-router.post('/leaveTrip/:tripID', requireAuth, Trips.leaveTrip);
-router.get('/userTrips', requireAuth, Users.userTrips);
+router.get('/myTrips', requireAuth, controllers.users.myTrips);
+router.post('/leaveTrip/:tripID', requireAuth, controllers.trips.leaveTrip);
+router.get('/userTrips', requireAuth, controllers.users.userTrips);
 
-// router.get('/isOnTrip/:tripID', requireAuth, Trips.isOnTrip);
+// router.get('/isOnTrip/:tripID', requireAuth, controllers.trips.isOnTrip);
 
 router.route('/club')
-  .post(Clubs.createClub)
-  .get(Clubs.allClubs);
+  .post(controllers.clubs.createClub)
+  .get(controllers.clubs.allClubs);
 
 router.route('/leaderapprovals')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Users.getLeaderRequests)
-  .put(requireAuth, Users.roleAuthorization(['OPO']), Users.respondToLeaderRequest);
+  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.users.getLeaderRequests)
+  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.users.respondToLeaderRequest);
 
 router.route('/certapprovals')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Users.getCertRequests)
-  .put(requireAuth, Users.roleAuthorization(['OPO']), Users.respondToCertRequest);
+  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.users.getCertRequests)
+  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.users.respondToCertRequest);
 
 router.route('/opotrips')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getOPOTrips);
+  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getOPOTrips);
 
 router.route('/gearrequests')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getGearRequests);
+  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getGearRequests);
 
 router.route('/gearrequest/:tripID')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrip)
-  .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToGearRequest);
+  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getTrip)
+  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.respondToGearRequest);
 
 router.route('/pcardrequest/:tripID')
-  .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToPCardRequest);
+  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.respondToPCardRequest);
 
 router.route('/trippeegearrequests')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrippeeGearRequests);
+  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getTrippeeGearRequests);
 
 router.route('/trippeegearrequest/:tripID')
-  .get(requireAuth, Users.roleAuthorization(['OPO']), Trips.getTrip)
-  .put(requireAuth, Users.roleAuthorization(['OPO']), Trips.respondToTrippeeGearRequest);
+  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getTrip)
+  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.respondToTrippeeGearRequest);
 
 router.route('/vehiclerequest/:id')
-  .get(requireAuth, VehicleRequests.getVehicleRequest)
-  .put(requireAuth, VehicleRequests.updateVehicleRequest);
+  .get(requireAuth, controllers.vehicleRequests.getVehicleRequest)
+  .put(requireAuth, controllers.vehicleRequests.updateVehicleRequest);
 
 router.route('/vehicleRequests')
-  .post(requireAuth, VehicleRequests.makeVehicleRequest)
-  .get(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.getVehicleRequests);
+  .post(requireAuth, controllers.vehicleRequests.makeVehicleRequest)
+  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicleRequests.getVehicleRequests);
 
 router.route('/vehicles')
-  .get(requireAuth, Vehicles.getVehicles)
-  .post(requireAuth, Users.roleAuthorization(['OPO']), Vehicles.createVehicle);
+  .get(requireAuth, controllers.vehicles.getVehicles)
+  .post(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicles.createVehicle);
 
 router.route('/vehicles/:id')
-  .delete(requireAuth, Users.roleAuthorization(['OPO']), Vehicles.deleteVehicle);
+  .delete(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicles.deleteVehicle);
 
 router.route('/opoVehicleRequest/:id')
-  .post(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.respondToVehicleRequest)
-  .delete(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.cancelAssignments)
-  .put(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.denyVehicleRequest);
+  .post(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicleRequests.respondToVehicleRequest)
+  .delete(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicleRequests.cancelAssignments)
+  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicleRequests.denyVehicleRequest);
 
 router.route('/vehicle-requests/check-conflict')
-  .post(requireAuth, Users.roleAuthorization(['OPO']), VehicleRequests.precheckAssignment);
+  .post(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicleRequests.precheckAssignment);
 
 router.route('/vehicle-assignments')
-  .get(requireAuth, VehicleRequests.getVehicleAssignments);
+  .get(requireAuth, controllers.vehicleRequests.getVehicleAssignments);
 
 router.route('/debug')
   .post((req, res) => {

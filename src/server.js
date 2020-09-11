@@ -10,6 +10,7 @@ import { mailer, scheduler } from './services';
 import * as constants from './constants';
 import { tokenForUser } from './controllers/user-controller';
 import Trip from './models/trip-model';
+import routers from './routers';
 
 
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
@@ -50,6 +51,7 @@ app.use(bodyParser.json());
 
 
 app.use('/api', apiRouter);
+app.use('/trips', routers.trips);
 
 // START THE SERVER
 // =============================================================================
