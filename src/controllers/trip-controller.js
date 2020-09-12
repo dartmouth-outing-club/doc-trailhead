@@ -140,7 +140,8 @@ export const createTrip = (creator, data) => {
         vehicleRequest.requestDetails = data.description;
         vehicleRequest.associatedTrip = savedTrip._id;
         vehicleRequest.requestType = 'TRIP';
-        vehicleRequest.requestedVehicles = data.vehicles;
+        vehicleRequest.requestedVehicles = data.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime) }; });
+
         vehicleRequest.save().then(async (savedVehicleRequest) => {
           mailer.send({ address: leaderEmails, subject: `re: New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${savedVehicleRequest.number}: ${savedTrip.title} that is linked to your Trip #${savedTrip.number}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedVehicleRequest._id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Planner` });
           if (data.injectingStatus) savedTrip.vehicleStatus = data.vehicleStatus;
@@ -354,7 +355,7 @@ export const editUserGear = (req, res) => {
       calculateRequiredGear(trip).then(() => {
         trip.save().then(() => {
           res.send();
-        }).catch((error) => { return console.log('FUCK'); });
+        });
       });
     }).catch((error) => {
       res.status(500).json(error);

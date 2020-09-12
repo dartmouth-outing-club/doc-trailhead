@@ -20,7 +20,7 @@ export const makeVehicleRequest = (req, res) => {
       vehicleRequest.mileage = req.body.mileage;
       vehicleRequest.noOfPeople = req.body.noOfPeople;
       vehicleRequest.requestType = req.body.requestType;
-      vehicleRequest.requestedVehicles = req.body.requestedVehicles;
+      vehicleRequest.requestedVehicles = req.body.requestedVehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime) }; });
       vehicleRequest.save().then(async (savedRequest) => {
         const requester = await User.findById(vehicleRequest.requester).exec();
         mailer.send({ address: [requester.email], subject: `New V-Req #${savedRequest.number} created`, message: `Hello,\n\nYou've created a new vehicle request, V-Req #${savedRequest.number}: ${savedRequest.requestDetails}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedRequest._id}\n\nThis request is not associated with any trip.\n\nBest,\nDOC Planner` });

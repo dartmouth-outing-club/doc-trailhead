@@ -220,6 +220,7 @@ Users.findOne({ role: 'Leader' }).then((user) => {
       const trip = generateTripTemplate(titles[i], clubID, day.startDate, day.endDate, day.startTime, day.endTime, experienceNeededs[i], statuses[i]);
       axios.post(`${constants.backendURL}/trips`, trip, { headers: { Authorization: `Bearer ${tokenForUser(user, 'normal')}` } }).then((response) => {
         const vReqID = response.data.vehicleRequest._id;
+        console.log(response.data.vehicleRequest.requestedVehicles);
         const assignments = [
           {
             assignedVehicle: 'Van G',
