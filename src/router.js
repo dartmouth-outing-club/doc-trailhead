@@ -50,7 +50,9 @@ router.route('/gearrequests')
 
 router.route('/gearrequest/:tripID')
   .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getTrip)
-  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.respondToGearRequest);
+  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), (req, res) => {
+    controllers.trips.respondToGearRequest(req.params.tripID, req.body.status).then((updatedTrip) => { return res.json(updatedTrip); }).catch((error) => { return res.status(500).json(error); });
+  });
 
 router.route('/pcardrequest/:tripID')
   .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.respondToPCardRequest);
@@ -60,7 +62,9 @@ router.route('/trippeegearrequests')
 
 router.route('/trippeegearrequest/:tripID')
   .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getTrip)
-  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.respondToTrippeeGearRequest);
+  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), (req, res) => {
+    controllers.trips.respondToTrippeeGearRequest(req.params.tripID, req.body.status).then((updatedTrip) => { res.json(updatedTrip); }).catch((error) => { return res.status(500).json(error); });
+  });
 
 router.route('/vehiclerequest/:id')
   .get(requireAuth, controllers.vehicleRequests.getVehicleRequest)

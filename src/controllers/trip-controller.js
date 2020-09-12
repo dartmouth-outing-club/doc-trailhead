@@ -30,26 +30,28 @@ export const getTrip = (tripID, forUser) => {
   return new Promise((resolve, reject) => {
     populateTripDocument(Trip.findById(tripID), ['club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
       .then((trip) => {
-        const isPending = trip.pending.some((pender) => {
-          return pender.user.equals(forUser.id);
-        });
-
-        const isOnTrip = trip.members.some((member) => {
-          return member.user.id === forUser.id;
-        });
-
         let userTripStatus;
-        if (isPending) userTripStatus = 'PENDING';
-        else if (isOnTrip) userTripStatus = 'APPROVED';
-        else userTripStatus = 'NONE';
-
         let isLeaderOnTrip;
-        if (trip.coLeaderCanEditTrip) {
-          isLeaderOnTrip = trip.leaders.some((leader) => {
-            return leader._id.equals(forUser.id);
+        if (forUser) {
+          const isPending = trip.pending.some((pender) => {
+            return pender.user.equals(forUser.id);
           });
-        } else {
-          isLeaderOnTrip = trip.leaders[0]._id.equals(forUser.id);
+
+          const isOnTrip = trip.members.some((member) => {
+            return member.user.id === forUser.id;
+          });
+
+          if (isPending) userTripStatus = 'PENDING';
+          else if (isOnTrip) userTripStatus = 'APPROVED';
+          else userTripStatus = 'NONE';
+
+          if (trip.coLeaderCanEditTrip) {
+            isLeaderOnTrip = trip.leaders.some((leader) => {
+              return leader._id.equals(forUser.id);
+            });
+          } else {
+            isLeaderOnTrip = trip.leaders[0]._id.equals(forUser.id);
+          }
         }
 
         resolve({ trip, userTripStatus, isLeaderOnTrip });
@@ -615,23 +617,35 @@ export const deleteTrip = (req, res) => {
 /**
  * OPO approves or denies a trip's general gear requests.
  * Sends notification email to all trip leaders and co-leaders.
- * @param {*} req
- * @param {*} res
+ * @param {String} tripID The ID of the trip to edit status
+ * @param {String} status String value of the new status
  */
-export const respondToGearRequest = (req, res) => {
-  Trip.findById(req.body.id)
-    .then((trip) => {
-      trip.gearStatus = req.body.status;
-      trip.save()
-        .then(() => {
-          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip Update: Gear requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten all of its group gear requests ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
-          getTrip(req, res);
-        });
-    })
-    .catch((error) => {
-      res.status(500).send(error);
-    });
+export const respondToGearRequest = (tripID, status) => {
+  return new Promise((resolve, reject) => {
+    populateTripDocument(Trip.findById(tripID), ['leaders'])
+      .then(async (trip) => {
+        trip.gearStatus = status;
+        await trip.save();
+        const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+        let message;
+        switch (status) {
+          case 'approved':
+            message = 'got approved';
+            break;
+          case 'denied':
+            message = 'got denied';
+            break;
+          case 'pending':
+            message = 'was un-approved, pending again';
+            break;
+          default:
+            break;
+        }
+        mailer.send({ address: leaderEmails, subject: `Trip Update: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s group gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Planner` });
+        resolve(await getTrip(tripID));
+      })
+      .catch((error) => { reject(error); });
+  });
 };
 
 export const getTrippeeGearRequests = (req, res) => {
@@ -647,22 +661,34 @@ export const getTrippeeGearRequests = (req, res) => {
 /**
  * OPO approves or denies a trip's trippee gear requests.
  * Sends notification email to all trip leaders and co-leaders.
- * @param {*} req
- * @param {*} res
+ * @param {String} tripID The ID of the trip to edit status
+ * @param {String} status String value of the new status
  */
-export const respondToTrippeeGearRequest = (req, res) => {
-  Trip.findById(req.body.id)
-    .then((trip) => {
-      trip.trippeeGearStatus = req.body.status;
-      trip.save()
-        .then(() => {
-          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip Update: Gear requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its trippee (not group) gear requests ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
-          getTrip(req, res);
-        });
-    }).catch((error) => {
-      res.status(500).send(error);
-    });
+export const respondToTrippeeGearRequest = (tripID, status) => {
+  return new Promise((resolve, reject) => {
+    populateTripDocument(Trip.findById(tripID), ['leaders'])
+      .then(async (trip) => {
+        trip.trippeeGearStatus = status;
+        await trip.save();
+        let message;
+        switch (status) {
+          case 'approved':
+            message = 'got approved';
+            break;
+          case 'denied':
+            message = 'got denied';
+            break;
+          case 'pending':
+            message = 'was un-approved, pending again';
+            break;
+          default:
+            break;
+        }
+        const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+        mailer.send({ address: leaderEmails, subject: `Trip Update: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s trippee (not group) gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Planner` });
+        resolve(await getTrip(tripID));
+      }).catch((error) => { console.log(error.message); reject(error); });
+  });
 };
 
 /**
