@@ -336,28 +336,29 @@ export const getGearRequests = (req, res) => {
 export const editUserGear = (req, res) => {
   const { tripID } = req.params;
   const { trippeeGear } = req.body;
-  Trip.findById(tripID).populate('leaders').then((trip) => {
-    const isOnTrip = trip.members.some((member) => {
-      return member.user.id === req.user._id;
-    });
-    trip.pending.concat(trip.members).forEach((person) => {
-      if (person.user._id.equals(req.user._id)) {
-        person.requestedGear = trippeeGear;
-        if (isOnTrip) {
-          User.findById(req.user._id).then((user) => {
-            mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `Trip Update: ${user.name} changed gear requests`, message: `Hello,\n\nTrippee ${user.name} for Trip #${trip.number}: ${trip.title} changed their gear requests. You can reach them at ${user.email}.\n\nView the change here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
-          });
+  populateTripDocument(Trip.findById(tripID), ['leaders', 'membersUser'])
+    .then((trip) => {
+      const isOnTrip = trip.members.some((member) => {
+        return member.user.id === req.user._id.toString();
+      });
+      trip.pending.concat(trip.members).forEach((person) => {
+        if (person.user._id.equals(req.user._id)) {
+          person.requestedGear = trippeeGear;
+          if (isOnTrip) {
+            User.findById(req.user._id).then((user) => {
+              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `Trip Update: ${user.name} changed gear requests`, message: `Hello,\n\nTrippee ${user.name} for Trip #${trip.number}: ${trip.title} changed their gear requests. You can reach them at ${user.email}.\n\nView the change here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+            });
+          }
         }
-      }
+      });
+      calculateRequiredGear(trip).then(() => {
+        trip.save().then(() => {
+          res.send();
+        }).catch((error) => { return console.log('FUCK'); });
+      });
+    }).catch((error) => {
+      res.status(500).json(error);
     });
-    calculateRequiredGear(trip).then(() => {
-      trip.save().then(() => {
-        res.send();
-      }).catch((error) => { return console.log('FUCK'); });
-    });
-  }).catch((error) => {
-    res.status(500).json(error);
-  });
 };
 
 // JOINING AND LEAVING TRIPS
