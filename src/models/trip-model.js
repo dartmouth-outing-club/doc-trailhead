@@ -30,7 +30,12 @@ const TripSchema = new Schema({
   description: { type: String },
   experienceNeeded: { type: Boolean, default: false },
   coLeaderCanEditTrip: { type: Boolean, default: false },
-  OPOGearRequests: [[String, Number]],
+  OPOGearRequests: [
+    {
+      name: { type: String },
+      quantity: { type: Number },
+    },
+  ],
   trippeeGear: [{ name: String, sizeType: { type: String, enum: ['N/A', 'Clothe', 'Shoe', 'Height'], default: 'N/A' }, quantity: Number }],
   gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   trippeeGearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },

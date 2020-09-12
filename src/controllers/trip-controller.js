@@ -146,7 +146,7 @@ export const createTrip = (creator, data) => {
           if (data.injectingStatus) savedTrip.vehicleStatus = data.vehicleStatus;
           else savedTrip.vehicleStatus = 'pending';
           savedTrip.vehicleRequest = savedVehicleRequest;
-          resolve({ trip: await savedTrip.save(), vehicleRequest: savedVehicleRequest });
+          resolve(savedTrip);
         }).catch((error) => { reject(new Error(`${'Trip successfully created, but error creating associated vehicle request for trip:'} ${error.toString()}`)); });
       } else resolve(savedTrip);
     }).catch((error) => { reject(error); });
@@ -248,7 +248,7 @@ export const updateTrip = async (req, res) => {
       });
       trip.leaders = allLeaders;
       await trip.save();
-      getTrip(req, res);
+      res.json(await getTrip(trip.id));
     } else {
       res.status(422).send('You must be a leader on the trip');
     }
