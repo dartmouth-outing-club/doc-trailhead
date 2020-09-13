@@ -7,6 +7,7 @@ import { tokenForUser } from './user-controller';
 import { deleteVehicleRequest } from './vehicle-request-controller';
 import * as constants from '../constants';
 import { mailer } from '../services';
+import AssignmentModel from '../models/assignment-model';
 
 const populateTripDocument = (tripQuery, fields) => {
   const fieldsDirectory = {
@@ -26,6 +27,42 @@ const sendLeadersEmail = (tripID, subject, message) => {
   populateTripDocument(Trip.findById(tripID), ['leaders'])
     .then((trip) => {
       mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject, message });
+    });
+};
+
+/**
+ Fetches all trips with all fields populated.
+ */
+export const getTrips = (filters = {}) => {
+  return new Promise((resolve, reject) => {
+    populateTripDocument(Trip.find(filters), ['club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
+      .then((trips) => {
+        resolve(trips);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
+/**
+ * Fetches only trips that have gear, P-Card, or vehicle requests.
+ * @param {express.req} req
+ * @param {express.res} res
+ */
+export const getOPOTrips = (req, res) => {
+  populateTripDocument(
+    Trip.find({
+      $or: [
+        { trippeeGearStatus: { $ne: 'N/A' } },
+        { gearStatus: { $ne: 'N/A' } },
+        { pcardStatus: { $ne: 'N/A' } },
+        { vehicleStatus: { $ne: 'N/A' } },
+      ],
+    }), ['leaders', 'club', 'membersUser', 'pendingUser', 'vehicleRequest', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'],
+  )
+    .then((trips) => {
+      res.json(trips);
     });
 };
 
@@ -267,44 +304,40 @@ export const updateTrip = async (req, res) => {
 };
 
 /**
- Fetches all trips with all fields populated.
- */
-export const getTrips = (filters = {}) => {
-  return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.find(filters), ['club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
-      .then((trips) => {
-        resolve(trips);
-      })
-      .catch((error) => {
-        reject(error);
-      });
-  });
-};
-
-/**
- * Fetches only trips that have gear, P-Card, or vehicle requests.
+ * Deletes a trip.
  * @param {express.req} req
  * @param {express.res} res
  */
-export const getOPOTrips = (req, res) => {
-  Trip.find({
-    $or: [
-      { trippeeGearStatus: { $ne: 'N/A' } },
-      { gearStatus: { $ne: 'N/A' } },
-      { pcardStatus: { $ne: 'N/A' } },
-      { vehicleStatus: { $ne: 'N/A' } },
-    ],
-  }).populate('leaders').populate('club').populate('vehicleRequest')
-    .populate({
-      path: 'members.user',
-      model: 'User',
+export const deleteTrip = (req, res) => {
+  populateTripDocument(Trip.findById(req.params.tripID), ['leaders', 'membersUser', 'pendingUser', 'vehicleRequest'])
+    .then((trip) => {
+      if (trip.leaders.some((leader) => { return leader._id.equals(req.user._id); })) {
+        Trip.deleteOne({ _id: req.params.tripID }, async (err) => {
+          if (err) {
+            res.json({ error: err });
+          } else {
+            mailer.send({ address: trip.members.concat(trip.pending).map((person) => { return person.user.email; }), subject: `Trip #${trip.number} deleted`, message: `Hello,\n\nThe Trip #${trip.number}: ${trip.title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${trip.leaders[0].email}.\n\nReason: ${req.body.reason ? req.body.reason : 'no reason provided.'}\n\nBest,\nDOC Planner` });
+            if (trip.vehicleRequest) {
+              await deleteVehicleRequest(trip.vehicleRequest._id);
+              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `re: Trip #${trip.number} deleted`, message: `Hello,\n\nThe associated vehicle request, V-Req #${trip.vehicleRequest.number}: ${trip.title} that is linked to your Trip #${trip.number} has also been deleted since your trip was deleted. We have informed OPO staff that you will no longer be needing this vehicle.\n\nBest,\nDOC Planner` });
+              res.json({ message: 'Trip and associated vehicle request successfully' });
+            } else {
+              res.json({ message: 'Trip removed successfully' });
+            }
+          }
+        });
+      } else {
+        res.status(422).send('You must be a leader on the trip');
+      }
     })
-    .then((trips) => {
-      res.json(trips);
+    .catch((error) => {
+      res.json({ error });
     });
 };
 
-// EDITING GEAR ON TRIPS
+/**
+ * TRIP GEAR
+ */
 
 /**
  * Recalculates the sum of trippee gear requests from the current list of members.
@@ -336,16 +369,6 @@ function calculateRequiredGear(trip) {
     }
   });
 }
-
-export const getGearRequests = (req, res) => {
-  Trip.find({ gearStatus: { $not: { $in: ['N/A'] } } }).populate('leaders').populate('club').populate({
-    path: 'members.user',
-    model: 'User',
-  })
-    .then((gearRequests) => {
-      return res.json(gearRequests);
-    });
-};
 
 /**
  * Allows a user - both pending and approved - to edit their gear requests.
@@ -481,26 +504,6 @@ export const join = (tripID, joiningUserID) => {
   });
 };
 
-export const assignToLeader = (req, res) => {
-  populateTripDocument(Trip.findById(req.params.tripID), ['leaders', 'membersUser', 'pendingUser'])
-    .then(async (trip) => {
-      trip.members.some((member, index) => {
-        if (member.user._id.equals(req.body.member.user._id)) {
-          trip.members.splice(index, 1); // remove the trippee from the member list
-          trip.members.splice(0, 0, member); // read trippee to become leader
-        }
-        return member.user.id === req.body.member.user.id;
-      });
-      await trip.save();
-      res.json(await getTrip(req.params.tripID));
-    })
-    .catch((error) => {
-      console.log(error);
-      res.status(500).send(error.message);
-    });
-};
-
-
 /**
  * Processes request from trippee to leave trip.
  * If the trippee was approved, removes all gear requested by trippee in the group list and sends email alert to all trip leaders and co-leaders.
@@ -539,6 +542,25 @@ export const leave = (tripID, leavingUserID) => {
   });
 };
 
+export const assignToLeader = (req, res) => {
+  populateTripDocument(Trip.findById(req.params.tripID), ['leaders', 'membersUser', 'pendingUser'])
+    .then(async (trip) => {
+      trip.members.some((member, index) => {
+        if (member.user._id.equals(req.body.member.user._id)) {
+          trip.members.splice(index, 1); // remove the trippee from the member list
+          trip.members.splice(0, 0, member); // read trippee to become leader
+        }
+        return member.user.id === req.body.member.user.id;
+      });
+      await trip.save();
+      res.json(await getTrip(req.params.tripID));
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(500).send(error.message);
+    });
+};
+
 /**
  * Sets the attending status for each member of trip.
  * @param {express.req} req
@@ -567,6 +589,35 @@ export const setMemberAttendance = (req, res) => {
 };
 
 /**
+ * TRIP STATUS
+ */
+
+/**
+ * Sets the returned status for the trip.
+ * @param {express.req} req
+ * @param {express.res} res
+ */
+export const toggleTripLeftStatus = (req, res) => {
+  const { tripID } = req.params;
+  const { status } = req.body;
+  const now = new Date();
+  populateTripDocument(Trip.findById(tripID), ['leaders', 'vehicleRequest'])
+    .then(async (trip) => {
+      trip.left = status;
+      await trip.save();
+      if (trip.vehicleRequest) {
+        trip.vehicleRequest.assignments.forEach(async (assignmentID) => {
+          const assignment = await AssignmentModel.findById(assignmentID);
+          assignment.pickedUp = true;
+          assignment.save();
+        });
+      }
+      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}left`, `Hello,\n\nYou have marked your Trip #${trip.number}: ${trip.title} as just having ${!status ? 'NOT ' : ''}left ${trip.pickup} at ${constants.formatDateAndTime(now)}, and your trip is due for return at ${constants.formatDateAndTime(trip.endDateAndTime)}.\n\nIMPORTANT: within 90 minutes of returning from this trip, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(req.user, 'mobile', trip._id)}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Planner`);
+      res.json(await getTrip(tripID));
+    }).catch((error) => { return res.status(500).json(error); });
+};
+
+/**
  * Sets the returned status for the trip.
  * @param {express.req} req
  * @param {express.res} res
@@ -575,11 +626,18 @@ export const toggleTripReturnedStatus = (req, res) => {
   const { tripID } = req.params;
   const { status } = req.body;
   const now = new Date();
-  populateTripDocument(Trip.findById(tripID), ['leaders'])
+  populateTripDocument(Trip.findById(tripID), ['leaders', 'vehicleRequest'])
     .then(async (trip) => {
       trip.returned = status;
       await trip.save();
-      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT' : ''} returned at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Planner`);
+      if (trip.vehicleRequest) {
+        trip.vehicleRequest.assignments.forEach(async (assignmentID) => {
+          const assignment = await AssignmentModel.findById(assignmentID);
+          assignment.returned = true;
+          assignment.save();
+        });
+      }
+      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT ' : ''}returned at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Planner`);
       if (trip.markedLate) { // will inform OPO that the trip has been returned if it had been marked as late (3 hr) before
         mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}, has was marked as LATE, has now been marked as ${!status ? 'NOT' : ''} returned by the leader at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Planner` });
       }
@@ -588,47 +646,8 @@ export const toggleTripReturnedStatus = (req, res) => {
 };
 
 /**
- * Deletes a trip.
- * @param {express.req} req
- * @param {express.res} res
+ * TRIP REQUESTS
  */
-export const deleteTrip = (req, res) => {
-  Trip.findById(req.params.tripID)
-    .populate('leaders')
-    .populate({
-      path: 'members.user',
-      model: 'User',
-    })
-    .populate({
-      path: 'pending.user',
-      model: 'User',
-    })
-    .populate('vehicleRequest')
-    .then((trip) => {
-      if (trip.leaders.some((leader) => { return leader._id.equals(req.user._id); })) {
-        Trip.deleteOne({ _id: req.params.tripID }, async (err) => {
-          if (err) {
-            res.json({ error: err });
-          } else {
-            mailer.send({ address: trip.members.concat(trip.pending).map((person) => { return person.user.email; }), subject: `Trip #${trip.number} deleted`, message: `Hello,\n\nThe Trip #${trip.number}: ${trip.title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${trip.leaders[0].email}.\n\nReason: ${req.body.reason ? req.body.reason : 'no reason provided.'}\n\nBest,\nDOC Planner` });
-            if (trip.vehicleRequest) {
-              await deleteVehicleRequest(trip.vehicleRequest._id);
-              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `re: Trip #${trip.number} deleted`, message: `Hello,\n\nThe associated vehicle request, V-Req #${trip.vehicleRequest.number}: ${trip.title} that is linked to your Trip #${trip.number} has also been deleted since your trip was deleted. We have informed OPO staff that you will no longer be needing this vehicle.\n\nBest,\nDOC Planner` });
-              res.json({ message: 'Trip and associated vehicle request successfully' });
-            } else {
-              res.json({ message: 'Trip removed successfully' });
-            }
-          }
-        });
-      } else {
-        res.status(422).send('You must be a leader on the trip');
-      }
-    })
-    .catch((error) => {
-      res.json({ error });
-    });
-};
-
 
 /**
  * OPO approves or denies a trip's general gear requests.
@@ -662,16 +681,6 @@ export const respondToGearRequest = (tripID, status) => {
       })
       .catch((error) => { reject(error); });
   });
-};
-
-export const getTrippeeGearRequests = (req, res) => {
-  Trip.find({ trippeeGearStatus: { $ne: 'N/A' } }).populate('leaders').populate('club').populate({
-    path: 'members.user',
-    model: 'User',
-  })
-    .then((trippeeGearRequests) => {
-      res.json(trippeeGearRequests);
-    });
 };
 
 /**

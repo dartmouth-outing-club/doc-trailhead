@@ -45,9 +45,6 @@ router.route('/certapprovals')
 router.route('/opotrips')
   .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getOPOTrips);
 
-router.route('/gearrequests')
-  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getGearRequests);
-
 router.route('/gearrequest/:tripID')
   .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getTrip)
   .put(requireAuth, controllers.users.roleAuthorization(['OPO']), (req, res) => {
@@ -56,9 +53,6 @@ router.route('/gearrequest/:tripID')
 
 router.route('/pcardrequest/:tripID')
   .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.respondToPCardRequest);
-
-router.route('/trippeegearrequests')
-  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getTrippeeGearRequests);
 
 router.route('/trippeegearrequest/:tripID')
   .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getTrip)

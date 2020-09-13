@@ -58,6 +58,7 @@ tripsRouter.post('/leave/:tripID', requireAuth, (req, res) => {
 });
 
 tripsRouter.put('/set-attendence/:tripID', requireAuth, controllers.trips.setMemberAttendance);
+tripsRouter.put('/toggle-left/:tripID', requireAuth, controllers.trips.toggleTripLeftStatus);
 tripsRouter.put('/toggle-returned/:tripID', requireAuth, controllers.trips.toggleTripReturnedStatus);
 tripsRouter.put('/assignToLeader/:tripID', requireAuth, controllers.trips.assignToLeader);
 

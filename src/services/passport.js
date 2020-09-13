@@ -48,11 +48,11 @@ const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
           const today = new Date();
 
           if (today.getTime() <= add(trip.endDateAndTime, 24, 'hours').getTime()) {
-            console.log('token is valid');
+            console.log('Mobile token is time valid');
             done(null, user);
           } else {
             done(err, false);
-            console.log('token expired');
+            console.log('Mobile token expired');
           }
         });
       } else {
