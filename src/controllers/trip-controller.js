@@ -154,7 +154,7 @@ export const createTrip = (creator, data) => {
           if (data.injectingStatus) savedTrip.vehicleStatus = data.vehicleStatus;
           else savedTrip.vehicleStatus = 'pending';
           savedTrip.vehicleRequest = savedVehicleRequest;
-          resolve(savedTrip);
+          resolve(await savedTrip.save());
         }).catch((error) => { reject(new Error(`${'Trip successfully created, but error creating associated vehicle request for trip:'} ${error.toString()}`)); });
       } else resolve(savedTrip);
     }).catch((error) => { reject(error); });
