@@ -21,6 +21,14 @@ const populateTripDocument = (tripQuery, fields) => {
   return tripQuery.populate(fields.map((field) => { return fieldsDirectory[field]; }));
 };
 
+
+const sendLeadersEmail = (tripID, subject, message) => {
+  populateTripDocument(Trip.findById(tripID), ['leaders'])
+    .then((trip) => {
+      mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject, message });
+    });
+};
+
 /**
  * Fetches a single trip with all fields populated.
  * @param {express.req} req
@@ -160,8 +168,8 @@ export const createTrip = (creator, data) => {
  */
 export const updateTrip = async (req, res) => {
   try {
-    const trip = await Trip.findById(req.params.tripID).exec();
-    if (trip.leaders.indexOf(req.user._id) !== -1 || req.user.role === 'OPO') {
+    const trip = await Trip.findById(req.params.tripID);
+    if (trip.leaders.some((leaderID) => { return leaderID.toString() === req.user._id.toString(); }) || req.user.role === 'OPO') {
       trip.startDate = req.body.startDate;
       trip.endDate = req.body.endDate;
       trip.startTime = req.body.startTime;
@@ -303,7 +311,8 @@ export const getOPOTrips = (req, res) => {
  * @param {Trip} trip
  */
 function calculateRequiredGear(trip) {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
+    const originalGear = JSON.parse(JSON.stringify(trip.trippeeGear));
     trip.trippeeGear.forEach((gear) => { gear.quantity = 0; });
     trip.members.forEach((member) => {
       member.requestedGear.forEach((g) => {
@@ -314,7 +323,17 @@ function calculateRequiredGear(trip) {
         });
       });
     });
-    resolve();
+    if ((trip.trippeeGearStatus !== 'approved') || (trip.trippeeGearStatus === 'approved' && originalGear.length === trip.trippeeGear.length && originalGear.map((o, i) => { return [o, trip.trippeeGear[i]]; }).every((combined) => {
+      return (combined[0].name === combined[1].name && combined[0].quantity >= combined[1].quantity && combined[0].sizeType === combined[1].sizeType);
+    }))) {
+      resolve();
+    } else {
+      trip.trippeeGearStatus = 'pending';
+      await trip.save();
+      sendLeadersEmail(trip._id, 'Trip Update: Trippee gear requests un-approved', `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner`);
+      mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number}'s gear request changed`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}'s gear requests had been originally approved, but they recently made changes to their trippee gear requests because a new trippee was admitted to the trip.\n\nPlease re-approve their request at: ${constants.frontendURL}/approve-trip/${trip._id}\n\nBest,\nDOC Planner` });
+      resolve();
+    }
   });
 }
 
@@ -463,27 +482,17 @@ export const join = (tripID, joiningUserID) => {
 };
 
 export const assignToLeader = (req, res) => {
-  Trip.findById(req.params.tripID)
-    .populate('leaders')
-    .populate({
-      path: 'members.user',
-      model: 'User',
-    }).populate({
-      path: 'pending.user',
-      model: 'User',
-    })
-    .then((trip) => {
+  populateTripDocument(Trip.findById(req.params.tripID), ['leaders', 'membersUser', 'pendingUser'])
+    .then(async (trip) => {
       trip.members.some((member, index) => {
         if (member.user._id.equals(req.body.member.user._id)) {
           trip.members.splice(index, 1); // remove the trippee from the member list
-          trip.members.splice(0, 0, member); // readd trippee to become leader
+          trip.members.splice(0, 0, member); // read trippee to become leader
         }
         return member.user.id === req.body.member.user.id;
       });
-      trip.save()
-        .then(() => {
-          getTrip(req, res);
-        });
+      await trip.save();
+      res.json(await getTrip(req.params.tripID));
     })
     .catch((error) => {
       console.log(error);
@@ -566,15 +575,15 @@ export const toggleTripReturnedStatus = (req, res) => {
   const { tripID } = req.params;
   const { status } = req.body;
   const now = new Date();
-  Trip.findById(tripID).populate('leaders').then((trip) => {
-    trip.returned = status;
-    trip.save().then((savedTrip) => {
+  populateTripDocument(Trip.findById(tripID), ['leaders'])
+    .then(async (trip) => {
+      trip.returned = status;
+      await trip.save();
       const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
       if (trip.markedLate) leaderEmails.concat(constants.OPOEmails); // will inform OPO that the trip has been returned if it had been marked as late (3 hr) before
       mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT' : ''} returned at ${now}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Planner` });
-      getTrip(req, res);
-    });
-  }).catch((error) => { return res.status(500).json(error); });
+      res.json(await getTrip(tripID));
+    }).catch((error) => { return res.status(500).json(error); });
 };
 
 /**
@@ -704,17 +713,15 @@ export const respondToTrippeeGearRequest = (tripID, status) => {
  * @param {*} res
  */
 export const respondToPCardRequest = (req, res) => {
-  Trip.findById(req.body.id)
-    .then((trip) => {
+  populateTripDocument(Trip.findById(req.body.id), ['leaders'])
+    .then(async (trip) => {
       trip.pcardStatus = req.body.pcardStatus;
       trip.pcardAssigned = req.body.pcardAssigned;
       req.params.tripID = req.body.id;
-      trip.save()
-        .then(() => {
-          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip Update: P-Card requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its P-Card requests ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
-          getTrip(req, res);
-        });
+      await trip.save();
+      const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+      mailer.send({ address: leaderEmails, subject: `Trip Update: P-Card requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its P-Card requests ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+      res.json(await getTrip(req.body.id));
     }).catch((error) => {
       res.status(500).send(error);
     });

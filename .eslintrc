@@ -14,7 +14,7 @@
     "new-cap": ["error", {"capIsNewExceptions": ["Router"]}],
     "no-console": 0,
     "import/no-unresolved": [2, { "commonjs": true, "caseSensitive": false}],
-    "no-unused-vars": ["error", { "vars": "all", "args": "none" }],
+    "no-unused-vars": 1,
     "no-underscore-dangle": 0,
     "arrow-body-style": ["error", "always"],
     "no-shadow": ["error", { "allow": ["done", "res", "cb", "err", "resolve", "reject"] }],
