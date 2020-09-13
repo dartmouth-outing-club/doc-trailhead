@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import dateFormat from 'dateformat';
 
 dotenv.config({ silent: true });
 
@@ -13,4 +14,12 @@ export const createDateObject = (date, time) => {
   const parts = date.toString().match(/(\d+)/g);
   const splitTime = time.split(':');
   return new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
+};
+
+export const formatDateAndTime = (date, mode) => {
+  if (mode === 'LONG') {
+    return dateFormat(date, 'ddd, m/d/yy @ h:mm TT');
+  } else {
+    return dateFormat(date, 'm/d/yy, h:mm TT');
+  }
 };

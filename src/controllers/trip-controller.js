@@ -579,9 +579,10 @@ export const toggleTripReturnedStatus = (req, res) => {
     .then(async (trip) => {
       trip.returned = status;
       await trip.save();
-      const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-      if (trip.markedLate) leaderEmails.concat(constants.OPOEmails); // will inform OPO that the trip has been returned if it had been marked as late (3 hr) before
-      mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT' : ''} returned at ${now}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Planner` });
+      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT' : ''} returned at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Planner`);
+      if (trip.markedLate) { // will inform OPO that the trip has been returned if it had been marked as late (3 hr) before
+        mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}, has was marked as LATE, has now been marked as ${!status ? 'NOT' : ''} returned by the leader at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Planner` });
+      }
       res.json(await getTrip(tripID));
     }).catch((error) => { return res.status(500).json(error); });
 };

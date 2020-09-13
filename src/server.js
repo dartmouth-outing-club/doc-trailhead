@@ -118,8 +118,8 @@ const send3HourLateEmail = () => {
       if ((!trip.returned) && (trip.endDate > today) && (trip.endDate.getTime() - today.getTime() < (3 * 3600000)) && (trip.endDate.getTime() - today.getTime() > (1.5 * 3600000))) {
         console.log('[Mailer] Sending 3 hour fail-to-return notice leaders and OPO staff');
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} not returned`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, was due back at ${trip.endDate} and has not yet checked back in from Hanover. We have informed OPO staff about your status. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
-        mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number} not returned`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}, was due back at ${trip.endDate} and has not yet checked back in from Hanover. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} not returned`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, was due back at ${constants.formatDateAndTime(trip.endDateAndTime)} and has not yet checked back in from Hanover. We have informed OPO staff about your status. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+        mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number} not returned`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}, was due back at ${constants.formatDateAndTime(trip.endDateAndTime)} and has not yet checked back in from Hanover. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
       }
     });
   });
