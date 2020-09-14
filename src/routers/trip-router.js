@@ -9,12 +9,11 @@ tripsRouter.route('/')
   .post(requireAuth, (req, res) => {
     controllers.trips.createTrip(req.user, req.body).then((result) => {
       res.json(result);
-    }).catch((error) => { console.log(error); return res.status(500).json(error); });
+    }).catch((error) => { return res.status(500).json(error); });
   })
   .get(requireAuth, async (req, res) => {
     const filters = {};
     if (req.query.club) {
-      console.log(req.query.club);
       const club = await models.clubs.findOne({ name: req.query.club });
       if (club) filters.club = club.id;
       else res.status(404).json(new Error('No club found with that name'));
@@ -28,7 +27,7 @@ tripsRouter.route('/:tripID')
   .get(requireAuth, async (req, res) => {
     controllers.trips.getTrip(req.params.tripID, req.user)
       .then((result) => { res.json(result); })
-      .catch((error) => { console.log(error); return res.status(500).json(error); });
+      .catch((error) => { return res.status(500).json(error); });
   })
   .put(requireAuth, controllers.trips.updateTrip)
   .delete(requireAuth, controllers.trips.deleteTrip);
@@ -43,11 +42,11 @@ tripsRouter.post('/apply/:tripID', requireAuth, (req, res) => {
     .then(() => {
       controllers.trips.getTrip(req.params.tripID, req.user).then((result) => { return res.json(result); });
     })
-    .catch((error) => { console.log(error); res.status(500).json(error); });
+    .catch((error) => { res.status(500).json(error); });
 });
 
 tripsRouter.post('/join/:tripID', requireAuth, (req, res) => {
-  controllers.trips.join(req.params.tripID, req.body.joiningUserID).then(() => { res.json(); }).catch((error) => { console.log(error); res.status(500).json(error); });
+  controllers.trips.join(req.params.tripID, req.body.joiningUserID).then(() => { res.json(); }).catch((error) => { res.status(500).json(error); });
 });
 tripsRouter.post('/reject/:tripID', requireAuth, (req, res) => {
   controllers.trips.reject(req.params.tripID, req.body.rejectedUserID).then(() => { return res.json(); }).catch((error) => { res.status(500).json(error); });
