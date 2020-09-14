@@ -1,3 +1,4 @@
+/* eslint-disable no-unreachable */
 import VehicleRequest from '../models/vehicle-request-model';
 import Vehicle from '../models/vehicle-model';
 import Assignment from '../models/assignment-model';
@@ -22,7 +23,7 @@ export const makeVehicleRequest = (req, res) => {
       vehicleRequest.requestType = req.body.requestType;
       vehicleRequest.requestedVehicles = req.body.requestedVehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime) }; });
       vehicleRequest.save().then(async (savedRequest) => {
-        const requester = await User.findById(vehicleRequest.requester).exec();
+        const requester = await User.findById(vehicleRequest.requester);
         mailer.send({ address: [requester.email], subject: `New V-Req #${savedRequest.number} created`, message: `Hello,\n\nYou've created a new vehicle request, V-Req #${savedRequest.number}: ${savedRequest.requestDetails}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedRequest._id}\n\nThis request is not associated with any trip.\n\nBest,\nDOC Planner` });
         res.json(savedRequest);
       }).catch((error) => {
@@ -247,25 +248,31 @@ export const precheckAssignment = (req, res) => {
     const returnDateAndTime = constants.createDateObject(req.body.returnDate, req.body.returnTime);
     proposedAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
-    checkForConflicts(proposedAssignment).then((conflicts) => {
-      Promise.all(conflicts.map((conflicting_assignment_id) => {
+    checkForConflicts(proposedAssignment).then((conflictingAssignments) => {
+      Promise.all(conflictingAssignments.map((conflicting_assignment_id) => {
         return new Promise(((resolve) => {
           Assignment.findById(conflicting_assignment_id).then((conflicting_assignment) => {
-            resolve(conflicting_assignment.request);
+            resolve({ request: conflicting_assignment.request, start: conflicting_assignment.assigned_pickupDateAndTime, end: conflicting_assignment.assigned_returnDateAndTime });
           });
         }));
-      })).then((conflicting_requests) => {
-        Promise.all(conflicting_requests.map(((conflicting_request_id) => {
+      })).then((conflicts) => {
+        Promise.all(conflicts.map(((conflict) => {
           return new Promise((resolve) => {
-            VehicleRequest.findById(conflicting_request_id).then((conflicting_request) => {
-              if (conflicting_request.associatedTrip !== null) {
+            VehicleRequest.findById(conflict.request).then((conflicting_request) => {
+              if (conflicting_request.associatedTrip != null) {
                 Trip.findById(conflicting_request.associatedTrip).then((conflicting_trip) => {
-                  const parseStartDate = conflicting_trip.startDate.toString().split(' ');
-                  const parseEndDate = conflicting_trip.endDate.toString().split(' ');
-                  const time = { start: `${parseStartDate[1]} ${parseStartDate[2]}, ${conflicting_trip.startTime}`, end: `${parseEndDate[1]} ${parseEndDate[2]}, ${conflicting_trip.endTime}` };
-                  resolve({ message: `Trip #${conflicting_trip.number}`, time, objectID: conflicting_trip._id });
+                  // const parseStartDate = conflicting_trip.startDate.toString().split(' ');
+                  // const parseEndDate = conflicting_trip.endDate.toString().split(' ');
+                  // const time = { start: `${parseStartDate[1]} ${parseStartDate[2]}, ${conflicting_trip.startTime}`, end: `${parseEndDate[1]} ${parseEndDate[2]}, ${conflicting_trip.endTime}` };
+                  resolve({
+                    message: `TRIP #${conflicting_trip.number}`, time: { start: conflict.start, end: conflict.end }, objectID: conflicting_request._id, type: 'TRIP',
+                  });
                 });
-              } else resolve({ message: `Request #${conflicting_request.number}`, time: 'N/A', objectID: conflicting_request._id });
+              } else {
+                resolve({
+                  message: `V-Req #${conflicting_request.number}`, time: { start: conflict.start, end: conflict.end }, objectID: conflicting_request._id, type: 'V_REQ',
+                });
+              }
             });
           });
         }))).then((conflicts_annotated) => {
@@ -347,6 +354,7 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
                   });
                 }),
               ).then(() => {
+                console.log(100);
                 savedAssignment.conflicts = conflicts;
                 savedAssignment.save().then((updatedSavedAssignment) => {
                   resolve(updatedSavedAssignment);
@@ -380,7 +388,9 @@ export const respondToVehicleRequest = async (req, res) => {
   try {
     VehicleRequest.findById(req.params.id).exec().then((vehicleRequest) => {
       const proposedAssignments = req.body.assignments;
+      console.log(1);
       processAllAssignments(proposedAssignments, vehicleRequest).then(async (processedAssignments) => {
+        console.log(2);
         const invalidAssignments = processedAssignments.filter((assignment) => {
           return assignment.error;
         });
@@ -388,6 +398,7 @@ export const respondToVehicleRequest = async (req, res) => {
         vehicleRequest.status = 'approved';
         const requester = await User.findById(vehicleRequest.requester).exec();
         const email = { address: [requester.email], subject: '', message: '' };
+        console.log(3);
         if (vehicleRequest.requestType === 'TRIP') {
           const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).populate('leaders').exec();
           associatedTrip.vehicleStatus = 'approved';
@@ -396,10 +407,13 @@ export const respondToVehicleRequest = async (req, res) => {
           email.subject = 'Trip Update: Your vehicle requests got approved';
           email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been approved by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
         }
+        console.log(4);
         email.subject = 'Your vehicle requests got approved';
         email.message = `Hello,\n\nYour vehicle request #${vehicleRequest.number} has been approved by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
         mailer.send(email);
+        console.log(5);
         vehicleRequest.save().then((savedVehicleRequest) => {
+          console.log(6);
           VehicleRequest.findById(savedVehicleRequest.id).populate('requester')
             .populate('associatedTrip')
             .populate('assignments')
@@ -419,6 +433,7 @@ export const respondToVehicleRequest = async (req, res) => {
             })
             .exec()
             .then((updatedVehicleRequest) => {
+              console.log(7);
               const output = (invalidAssignments.length === 0) ? { updatedVehicleRequest } : { updatedVehicleRequest, invalidAssignments };
               return res.json(output);
             });
