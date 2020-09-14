@@ -307,9 +307,6 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
           existingAssignment.assigned_key = proposedAssignment.assignedKey;
           existingAssignment.pickedUp = proposedAssignment.pickedUp;
           existingAssignment.returned = proposedAssignment.returned;
-          console.log('original', existingAssignment.assigned_vehicle.name);
-          console.log('after', proposedAssignment.assignedVehicle);
-          console.log(existingAssignment.assigned_vehicle.name !== proposedAssignment.assignedVehicle);
           if (existingAssignment.assigned_vehicle.name !== proposedAssignment.assignedVehicle) {
             vehicle.bookings.push(existingAssignment);
             vehicle.save().then(() => {
@@ -354,7 +351,6 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
                   });
                 }),
               ).then(() => {
-                console.log(100);
                 savedAssignment.conflicts = conflicts;
                 savedAssignment.save().then((updatedSavedAssignment) => {
                   resolve(updatedSavedAssignment);
@@ -388,9 +384,7 @@ export const respondToVehicleRequest = async (req, res) => {
   try {
     VehicleRequest.findById(req.params.id).exec().then((vehicleRequest) => {
       const proposedAssignments = req.body.assignments;
-      console.log(1);
       processAllAssignments(proposedAssignments, vehicleRequest).then(async (processedAssignments) => {
-        console.log(2);
         const invalidAssignments = processedAssignments.filter((assignment) => {
           return assignment.error;
         });
@@ -398,22 +392,18 @@ export const respondToVehicleRequest = async (req, res) => {
         vehicleRequest.status = 'approved';
         const requester = await User.findById(vehicleRequest.requester).exec();
         const email = { address: [requester.email], subject: '', message: '' };
-        console.log(3);
         if (vehicleRequest.requestType === 'TRIP') {
           const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).populate('leaders').exec();
           associatedTrip.vehicleStatus = 'approved';
           await associatedTrip.save(); // needs await because of multi-path async
           email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
-          email.subject = 'Trip Update: Your vehicle requests got approved';
-          email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been approved by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
+          email.subject = `Trip ${associatedTrip.number}: Important changes to your vehicle request`;
+          email.message = `Hello,\n\nYour [Trip #${associatedTrip.number}]'s vehicle request has been processed (or changed) by OPO staff. It may have been approved at your requested time, or at a different time assigned by OPO. Therefore, it is important for you to review the V-Req: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
         }
-        console.log(4);
-        email.subject = 'Your vehicle requests got approved';
-        email.message = `Hello,\n\nYour vehicle request #${vehicleRequest.number} has been approved by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
+        email.subject = 'V-Req Update: Important changes to your vehicle request';
+        email.message = `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been processed (or changed) by OPO staff. It may have been approved at your requested time, or at a different time assigned by OPO. Therefore, it is important for you to review the V-Req: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}.\n\nBest,\nDOC Planner`;
         mailer.send(email);
-        console.log(5);
         vehicleRequest.save().then((savedVehicleRequest) => {
-          console.log(6);
           VehicleRequest.findById(savedVehicleRequest.id).populate('requester')
             .populate('associatedTrip')
             .populate('assignments')
@@ -433,7 +423,6 @@ export const respondToVehicleRequest = async (req, res) => {
             })
             .exec()
             .then((updatedVehicleRequest) => {
-              console.log(7);
               const output = (invalidAssignments.length === 0) ? { updatedVehicleRequest } : { updatedVehicleRequest, invalidAssignments };
               return res.json(output);
             });
@@ -462,13 +451,13 @@ export const denyVehicleRequest = async (req, res) => {
       const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).populate('leaders').exec();
       associatedTrip.vehicleStatus = 'denied';
       email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
-      email.subject = 'Trip Update: Your vehicle requests got denied';
+      email.subject = `Trip ${associatedTrip.number}: Your vehicle requests got denied`;
       email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been denied by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
       await associatedTrip.save();
     }
     await vehicleRequest.save();
     email.subject = 'Your vehicle requests got denied';
-    email.message = `Hello,\n\nYour vehicle request #${vehicleRequest.number} has been denied by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
+    email.message = `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been denied by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
     mailer.send(email);
     const updatedVehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments')
       .populate({
@@ -520,13 +509,13 @@ export const cancelAssignments = async (req, res) => {
           const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).exec();
           associatedTrip.vehicleStatus = 'denied';
           email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
-          email.subject = 'Trip Update: Your vehicle requests have been cancelled';
-          email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been cancelled by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
+          email.subject = `Trip ${associatedTrip.number}: Your vehicle requests have been cancelled`;
+          email.message = `Hello,\n\nYour [Trip #${associatedTrip.number}]'s vehicle request has been cancelled by OPO staff. You can send the staff member who reviewed the request an email at mailto:${req.user.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
           await associatedTrip.save();
         }
       }
       email.subject = 'Your vehicle requests got cancelled';
-      email.message = `Hello,\n\nYour V-Req #${vehicleRequest.number}'s assignments have been cancelled by OPO staff.\n\nView the vehicle request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
+      email.message = `Hello,\n\nYour [V-Req #${vehicleRequest.number}]'s assignments have been cancelled by OPO staff. You can send the staff member who reviewed the request an email at mailto:${req.user.email}.\n\nView the vehicle request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Planner`;
       mailer.send(email);
       await vehicleRequest.save();
     }));

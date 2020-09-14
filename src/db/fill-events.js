@@ -231,6 +231,7 @@ Users.findOne({ role: 'Leader' }).then((user) => {
             pickupTime: day.startTime,
             returnTime: day.endTime,
             assignedKey: '33G',
+            responseIndex: 0,
           },
         ];
         Users.findOne({ role: 'OPO' }).then((OPOUser) => {

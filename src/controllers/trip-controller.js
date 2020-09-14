@@ -363,7 +363,7 @@ function calculateRequiredGear(trip) {
     } else {
       trip.trippeeGearStatus = 'pending';
       await trip.save();
-      sendLeadersEmail(trip._id, 'Trip Update: Trippee gear requests un-approved', `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner`);
+      sendLeadersEmail(trip._id, `Trip ${trip.number}: Trippee gear requests un-approved`, `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}]'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner`);
       mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number}'s gear request changed`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}'s gear requests had been originally approved, but they recently made changes to their trippee gear requests because a new trippee was admitted to the trip.\n\nPlease re-approve their request at: ${constants.frontendURL}/approve-trip/${trip._id}\n\nBest,\nDOC Planner` });
       resolve();
     }
@@ -388,7 +388,7 @@ export const editUserGear = (req, res) => {
           person.requestedGear = trippeeGear;
           if (isOnTrip) {
             User.findById(req.user._id).then((user) => {
-              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `Trip Update: ${user.name} changed gear requests`, message: `Hello,\n\nTrippee ${user.name} for Trip #${trip.number}: ${trip.title} changed their gear requests. You can reach them at ${user.email}.\n\nView the change here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `Trip ${trip.number}: ${user.name} changed gear requests`, message: `Hello,\n\nTrippee ${user.name} for [Trip #${trip.number}: ${trip.title}] changed their gear requests. You can reach them at ${user.email}.\n\nView the change here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
             });
           }
         }
@@ -419,9 +419,9 @@ export const addToPending = (tripID, joiningUserID, requestedGear) => {
         trip.pending.push({ user: joiningUserID, requestedGear });
         await trip.save();
         const foundUser = await User.findById(joiningUserID);
-        mailer.send({ address: foundUser.email, subject: 'Confirmation: You\'ve signed up for a trip', message: `Hello ${foundUser.name},\n\nYou've signed up for Trip #${trip.number}: ${trip.title}, awaiting leader approval.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
+        mailer.send({ address: foundUser.email, subject: 'Confirmation: You\'ve signed up for a trip', message: `Hello ${foundUser.name},\n\nYou've signed up for [Trip #${trip.number}: ${trip.title}], awaiting leader approval.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip Update: ${foundUser.name} applied to your trip`, message: `Hello,\n\nTrippee ${foundUser.name} has applied to join Trip #${trip.number}: ${trip.title}. Please use our platform to approve them. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+        mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: ${foundUser.name} applied to your trip`, message: `Hello,\n\nTrippee ${foundUser.name} has applied to join [Trip #${trip.number}: ${trip.title}]. Please use our platform to approve them. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
         resolve();
       })
       .catch((error) => { reject(error); });
@@ -455,9 +455,9 @@ export const reject = (tripID, leavingUserID) => {
         await calculateRequiredGear(trip);
         await trip.save();
         User.findById(leavingUserID).then((foundUser) => {
-          mailer.send({ address: foundUser.email, subject: 'Trip Update: You\'ve been un-admitted', message: `Hello ${foundUser.name},\n\nYou've were previously approved for Trip #${trip.number}: ${trip.title}, but the leader has put you back into pending status, which means you are NOT approved to attend this trip.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
+          mailer.send({ address: foundUser.email, subject: `Trip ${trip.number}: You've been un-admitted`, message: `Hello ${foundUser.name},\n\nYou've were previously approved for [Trip #${trip.number}: ${trip.title}], but the leader has put you back into pending status, which means you are NOT approved to attend this trip.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip Update: ${foundUser.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${foundUser.name} for Trip #${trip.number}: ${trip.title} has been moved from the approved list to the pending list. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+          mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: ${foundUser.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been moved from the approved list to the pending list. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
           resolve();
         });
       })
@@ -494,9 +494,9 @@ export const join = (tripID, joiningUserID) => {
         await calculateRequiredGear(trip);
         await trip.save();
         User.findById(joiningUserID).then((foundUser) => {
-          mailer.send({ address: foundUser.email, subject: 'Trip Update: You\'ve been approved!', message: `Hello ${foundUser.name},\n\nYou've been approved for Trip #${trip.number}: ${trip.title}!\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
+          mailer.send({ address: foundUser.email, subject: `Trip ${trip.number}: You've been approved!`, message: `Hello ${foundUser.name},\n\nYou've been approved for [Trip #${trip.number}: ${trip.title}]!\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip Update: ${foundUser.name} got approved!`, message: `Hello,\n\nYour pending trippee ${foundUser.name} for Trip #${trip.number}: ${trip.title} has been approved. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+          mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: ${foundUser.name} got approved!`, message: `Hello,\n\nYour pending trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been approved. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
         });
         resolve();
       })
@@ -516,7 +516,7 @@ export const leave = (tripID, leavingUserID) => {
       .then(async (trip) => {
         User.findById(leavingUserID).then((leavingUser) => {
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip Update: ${leavingUser.name} left your trip`, message: `Hello,\n\nYour approved trippee ${leavingUser.name} for Trip #${trip.number}: ${trip.title} cancelled for this trip. You can reach them at ${leavingUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+          mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: ${leavingUser.name} left your trip`, message: `Hello,\n\nYour approved trippee ${leavingUser.name} for [Trip #${trip.number}: ${trip.title}] cancelled for this trip. You can reach them at ${leavingUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
         });
         let userIdx = -1;
         if (trip.pending.some((pender, idx) => {
@@ -676,7 +676,7 @@ export const respondToGearRequest = (tripID, status) => {
           default:
             break;
         }
-        mailer.send({ address: leaderEmails, subject: `Trip Update: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s group gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Planner` });
+        mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s group gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Planner` });
         resolve(await getTrip(tripID));
       })
       .catch((error) => { reject(error); });
@@ -710,7 +710,7 @@ export const respondToTrippeeGearRequest = (tripID, status) => {
             break;
         }
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip Update: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s trippee (not group) gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Planner` });
+        mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s trippee (not group) gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Planner` });
         resolve(await getTrip(tripID));
       }).catch((error) => { console.log(error.message); reject(error); });
   });
@@ -730,7 +730,7 @@ export const respondToPCardRequest = (req, res) => {
       req.params.tripID = req.body.id;
       await trip.save();
       const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-      mailer.send({ address: leaderEmails, subject: `Trip Update: P-Card requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its P-Card requests ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+      mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: P-Card requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its P-Card requests ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
       res.json(await getTrip(req.body.id));
     }).catch((error) => {
       res.status(500).send(error);

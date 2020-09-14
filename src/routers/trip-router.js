@@ -9,7 +9,7 @@ tripsRouter.route('/')
   .post(requireAuth, (req, res) => {
     controllers.trips.createTrip(req.user, req.body).then((result) => {
       res.json(result);
-    }).catch((error) => { return res.status(500).json(error); });
+    }).catch((error) => { console.log(error); return res.status(500).json(error); });
   })
   .get(requireAuth, async (req, res) => {
     const filters = {};
