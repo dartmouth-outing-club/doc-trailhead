@@ -59,6 +59,7 @@ const TripSchema = new Schema({
   pcardAssigned: { type: String, default: 'None' },
   vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   vehicleRequest: { type: Schema.Types.ObjectId, ref: 'VehicleRequest' },
+  sentEmails: { type: Array, default: [] },
 });
 
 TripSchema.set('toJSON', {
