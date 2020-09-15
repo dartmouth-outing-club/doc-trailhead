@@ -18,8 +18,8 @@ export const createDateObject = (date, time) => {
 
 export const formatDateAndTime = (date, mode) => {
   if (mode === 'LONG') {
-    return dateFormat(date, 'ddd, m/d/yy @ h:mm TT');
+    return dateFormat(date, 'ddd, m/d/yy @ h:MM TT');
   } else {
-    return dateFormat(date, 'm/d/yy, h:mm TT');
+    return dateFormat(date, 'm/d/yy, h:MM TT');
   }
 };
