@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireAuth } from '../services/passport';
+import { logError } from '../services/error';
 import controllers from '../controllers';
 import models from '../models';
 
@@ -9,7 +10,7 @@ tripsRouter.route('/')
   .post(requireAuth, (req, res) => {
     controllers.trips.createTrip(req.user, req.body).then((result) => {
       res.json(result);
-    }).catch((error) => { return res.status(500).json(error); });
+    }).catch((error) => { console.log(error); logError({ type: 'createTrip', message: error.message }); return res.status(500).json(error); });
   })
   .get(requireAuth, async (req, res) => {
     const filters = {};
