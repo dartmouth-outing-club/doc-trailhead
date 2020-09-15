@@ -147,6 +147,7 @@ export const createTrip = (creator, data) => {
       trip.gearStatus = data.gearStatus;
       trip.trippeeGearStatus = data.trippeeGearStatus;
       trip.pcardStatus = data.pcardStatus;
+      if (data.pcardStatus === 'approved') trip.pcardAssigned = data.pcardAssigned;
     } else {
       if (data.gearRequests.length > 0) trip.gearStatus = 'pending';
       if (data.trippeeGear.length > 0) trip.trippeeGearStatus = 'pending';
@@ -723,15 +724,14 @@ export const respondToTrippeeGearRequest = (tripID, status) => {
  * @param {*} res
  */
 export const respondToPCardRequest = (req, res) => {
-  populateTripDocument(Trip.findById(req.body.id), ['leaders'])
+  populateTripDocument(Trip.findById(req.params.tripID), ['leaders'])
     .then(async (trip) => {
       trip.pcardStatus = req.body.pcardStatus;
       trip.pcardAssigned = req.body.pcardAssigned;
-      req.params.tripID = req.body.id;
       await trip.save();
       const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
       mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: P-Card requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its P-Card requests ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
-      res.json(await getTrip(req.body.id));
+      res.json(await getTrip(req.params.tripID));
     }).catch((error) => {
       res.status(500).send(error);
     });
