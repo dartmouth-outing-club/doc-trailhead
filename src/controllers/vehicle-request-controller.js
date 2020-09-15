@@ -293,7 +293,9 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
     Vehicle.findOne({ name: proposedAssignment.assignedVehicle }).populate('bookings').then((vehicle) => {
       if (proposedAssignment.existingAssignment) {
         Assignment.findById(proposedAssignment.id).populate('assigned_vehicle').then((existingAssignment) => {
-        // setting pickup times
+          const originalVehicleID = existingAssignment.assigned_vehicle._id.toString();
+          console.log(existingAssignment.assigned_vehicle.name);
+          // setting pickup times
           existingAssignment.assigned_pickupDate = proposedAssignment.pickupDate;
           existingAssignment.assigned_pickupTime = proposedAssignment.pickupTime;
           const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
@@ -310,12 +312,29 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
           if (existingAssignment.assigned_vehicle.name !== proposedAssignment.assignedVehicle) {
             vehicle.bookings.push(existingAssignment);
             vehicle.save().then(() => {
-              Vehicle.updateOne({ _id: existingAssignment.assigned_vehicle._id }, { $pull: { bookings: existingAssignment._id } }); // remove assignment from previously assigned vehicle
+              console.log(`Pull ${existingAssignment._id} from ${originalVehicleID}`);
+              Vehicle.updateOne({ _id: originalVehicleID }, { $pull: { bookings: existingAssignment._id } }).then((f) => { return console.log(f); }).catch((e) => { return console.log(e); }); // remove assignment from previously assigned vehicle
             });
           }
           existingAssignment.assigned_vehicle = vehicle;
           existingAssignment.save().then((updatedAssignment) => {
-            resolve(updatedAssignment);
+            checkForConflicts(updatedAssignment).then((conflicts) => {
+              Promise.all(
+                conflicts.map((conflict_id) => {
+                  return new Promise((resolve, reject) => {
+                    Assignment.findById(conflict_id).then((conflictingAssignment) => {
+                      conflictingAssignment.conflicts.push(updatedAssignment._id);
+                      conflictingAssignment.save().then(() => { return resolve(); });
+                    });
+                  });
+                }),
+              ).then(() => {
+                updatedAssignment.conflicts = conflicts;
+                updatedAssignment.save().then((updatedSavedAssignment) => {
+                  resolve(updatedSavedAssignment);
+                });
+              });
+            });
           });
         });
       } else {
