@@ -11,7 +11,7 @@ import Users from '../models/user-model';
 // import VehicleRequests from '../models/vehicle-request-model';
 // import Assignmnets from '../models/assignment-model';
 
-const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
+const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://admin:1NunitoSansDOC!@doc.a8di6.mongodb.net/main?retryWrites=true&w=majority';
 mongoose.set('useCreateIndex', true);
 mongoose.connect(mongoURI, { useNewUrlParser: true });
 // set mongoose promises to es6 default
@@ -104,16 +104,16 @@ const titles = [
   'Trip in a month',
 ];
 
-const experienceNeededs = [false, true, true, true, true, true, true, false, true, false];
+const experienceNeededs = [false, true, true, true, true, true, true, false, true, false, false];
 
-const statuses = ['approved', 'pending', 'pending', 'approved', 'approved', 'pending', 'denied', 'denied', 'approved', 'denied'];
+const statuses = ['approved', 'pending', 'pending', 'approved', 'approved', 'pending', 'denied', 'denied', 'approved', 'denied', 'approved'];
 
 const coleaders = ['ziray.hao.22@dartmouth.edu', 'zirui.hao@gmail.com', 'ziray.hao@dali.dartmouth.edu'];
 
 // create trips
 
 const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endTime, experienceNeeded, status) => {
-  return {
+  const trip = {
     injectingStatus: true,
     title,
     leaders: coleaders.slice(0, Math.floor(Math.random() * (coleaders.length - 1))),
@@ -167,6 +167,7 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
         numPeople: '8',
         snacks: '3',
         breakfast: '20',
+        lunch: '8',
         dinner: '10',
         otherCosts: {
           title: 'Life insurance',
@@ -206,6 +207,8 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
     vehicleStatus: status,
     vehicleReqId: null,
   };
+  if (status === 'approved') trip.pcardAssigned = '8892-9299-1109-2090';
+  return trip;
 };
 
 const wait = (timeout) => {
@@ -222,7 +225,6 @@ Users.findOne({ role: 'Leader' }).then((user) => {
       const trip = generateTripTemplate(titles[i], clubID, day.startDate, day.endDate, day.startTime, day.endTime, experienceNeededs[i], statuses[i]);
       axios.post(`${constants.backendURL}/trips`, trip, { headers: { Authorization: `Bearer ${tokenForUser(user, 'normal')}` } }).then((response) => {
         const vReqID = response.data.vehicleRequest._id;
-        console.log(response.data.vehicleRequest.requestedVehicles);
         const assignments = [
           {
             assignedVehicle: 'Van G',
@@ -235,12 +237,12 @@ Users.findOne({ role: 'Leader' }).then((user) => {
           },
         ];
         Users.findOne({ role: 'OPO' }).then((OPOUser) => {
-          axios.post(`${constants.backendURL}/opoVehicleRequest/${vReqID}`, { assignments }, { headers: { Authorization: `Bearer ${tokenForUser(OPOUser, 'normal')}` } });
+          axios.post(`${constants.backendURL}/opoVehicleRequest/${vReqID}`, { assignments }, { headers: { Authorization: `Bearer ${tokenForUser(OPOUser, 'normal')}` } }).catch((error) => { return console.log(error); });
         });
-      });
-      console.log('sent');
+      }).catch((error) => { return console.log(error); });
+      console.log('Trip created');
       // eslint-disable-next-line no-await-in-loop
-      await wait(500);
+      await wait(1000);
     }
   });
 });

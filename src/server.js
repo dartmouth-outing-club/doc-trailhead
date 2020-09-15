@@ -13,26 +13,24 @@ import Trip from './models/trip-model';
 import routers from './routers';
 
 
-const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
+const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://admin:1NunitoSansDOC!@doc.a8di6.mongodb.net/main?retryWrites=true&w=majority';
+
 mongoose.set('useCreateIndex', true);
 
-mongoose.connect(mongoURI, { useNewUrlParser: true });
+mongoose.connect(mongoURI, { useNewUrlParser: true })
+  .then((connection) => {
+    return console.log(`MongoDB connection established at ${connection.connections[0].host}:${connection.connections[0].port}`);
+  }).catch((error) => { return console.log(`Error connecting to MongoDB: ${error.message}`); });
+
 // set mongoose promises to es6 default
 mongoose.Promise = global.Promise;
 
-mongoose.model('Assignment');
-
 dotenv.config({ silent: true });
 
-// initialize
 const app = express();
 
-// enable/disable cross origin resource sharing if necessary
 app.use(cors());
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  next();
-});
+
 // enable/disable http request logging
 app.use(morgan('dev'));
 
@@ -66,10 +64,12 @@ const sendCheckOutEmail = () => {
   const today = new Date();
   Trip.find({}).populate('leaders').then((trips) => {
     trips.forEach((trip) => {
-      if ((trip.startDate > today) && (trip.startDate.getTime() - today.getTime() <= (48 * 3600000)) && (trip.startDate.getTime() - today.getTime() >= (24 * 3600000))) {
+      if ((today < trip.startDate) && (trip.startDateAndTime.getTime() - today.getTime() <= (48 * 3600000)) && (trip.startDateAndTime.getTime() - today.getTime() >= (24 * 3600000)) && !trip.sentEmails.includes('CHECK_OUT')) {
         console.log('[Mailer] Sending trip check-out email to leaders');
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} is happening soon`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.name} is happening in 48 hours!\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nIMPORTANT: on the day of the trip, you must mark all attendees here: ${constants.frontendURL}/trip-check-out/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Planner` });
+        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} is happening soon`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} is happening in 48 hours!\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nIMPORTANT: on the day of the trip, you must mark all attendees here: ${constants.frontendURL}/trip-check-out/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Planner` });
+        trip.sentEmails = [...trip.sentEmails, 'CHECK_OUT'];
+        trip.save();
       }
     });
   });
@@ -82,10 +82,12 @@ const sendCheckInEmail = () => {
   const today = new Date();
   Trip.find({}).populate('leaders').then((trips) => {
     trips.forEach((trip) => {
-      if ((trip.endDate > today) && (trip.endDate.getTime() - today.getTime() < (48 * 3600000)) && (trip.endDate.getTime() - today.getTime() > (24 * 3600000))) {
+      if ((today < trip.endDate) && (trip.endDateAndTime.getTime() - today.getTime() < (48 * 3600000)) && (trip.endDateAndTime.getTime() - today.getTime() > (24 * 3600000)) && !trip.sentEmails.includes('CHECK_IN')) {
         console.log('[Mailer] Sending trip check-in email to leaders');
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} should be returning soon`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.name} is should return soon. If an EMERGENCY occured, please get emergency help right away, and follow the link below to mark your status so OPO staff is informed.\n\nIMPORTANT: right after you return, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Planner` });
+        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} should be returning soon`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} is should return soon. If an EMERGENCY occured, please get emergency help right away, and follow the link below to mark your status so OPO staff is informed.\n\nIMPORTANT: right after you return, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Planner` });
+        trip.sentEmails = [...trip.sentEmails, 'CHECK_IN'];
+        trip.save();
       }
     });
   });
@@ -98,10 +100,14 @@ const send90MinuteLateEmail = () => {
   const today = new Date();
   Trip.find({}).populate('leaders').then((trips) => {
     trips.forEach((trip) => {
-      if ((!trip.returned) && (trip.endDate > today) && (trip.endDate.getTime() - today.getTime() < (48 * 3600000)) && (trip.endDate.getTime() - today.getTime() > (1.5 * 3600000))) {
+      if ((!trip.returned) && (today > trip.endDateAndTime) && (today.getTime() - trip.endDateAndTime.getTime() < (3 * 3600000)) && (today.getTime() - trip.endDateAndTime.getTime() > (1.5 * 3600000)) && !trip.sentEmails.includes('LATE_90')) {
         console.log('[Mailer] Sending 90 minute fail-to-return email to leaders');
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} late for return`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.name} is is now 90 minutes late. OPO will be notified in the next 90 minutes if your trip is not back in Hanover. If you are having difficulties getting back, please follow the DOC Emergency Protocols found here:\n\nhttps://docs.google.com/forms/u/1/d/e/1FAIpQLSeo9jIcTGNstZ1uADtovDjJT8kkPtS-YpRwzJC2MZkVkbH0hw/viewform.\n\nIMPORTANT: right after you return, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Planner` });
+        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} late for return`, message: `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}] is now 90 minutes late. It was scheduled to return at ${constants.formatDateAndTime(trip.endDateAndTime, 'SHORT')}. OPO will be notified in the next 90 minutes if your trip is not back in Hanover. If you are having difficulties getting back, please follow the DOC Emergency Protocols found here:\n\nhttps://docs.google.com/forms/u/1/d/e/1FAIpQLSeo9jIcTGNstZ1uADtovDjJT8kkPtS-YpRwzJC2MZkVkbH0hw/viewform.\n\nIMPORTANT: right after you return, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Planner` })
+          .then(() => {
+            trip.sentEmails = [...trip.sentEmails, 'LATE_90'];
+            trip.save();
+          }).catch((error) => { return console.log(error); });
       }
     });
   });
@@ -111,24 +117,32 @@ const send90MinuteLateEmail = () => {
  * If a trip has not returned within 3 hours of its designated return time, OPO is alerted.
  */
 const send3HourLateEmail = () => {
-  console.log('executing warning send');
   const today = new Date();
   Trip.find({}).populate('leaders').then((trips) => {
     trips.forEach((trip) => {
-      if ((!trip.returned) && (trip.endDate > today) && (trip.endDate.getTime() - today.getTime() < (3 * 3600000)) && (trip.endDate.getTime() - today.getTime() > (1.5 * 3600000))) {
+      if ((!trip.returned) && (today > trip.endDateAndTime) && (today.getTime() - trip.endDateAndTime.getTime() > (3 * 3600000)) && !trip.sentEmails.includes('LATE_180')) {
         console.log('[Mailer] Sending 3 hour fail-to-return notice leaders and OPO staff');
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} not returned`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, was due back at ${constants.formatDateAndTime(trip.endDateAndTime)} and has not yet checked back in from Hanover. We have informed OPO staff about your status. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
-        mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number} not returned`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}, was due back at ${constants.formatDateAndTime(trip.endDateAndTime)} and has not yet checked back in from Hanover. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+        Promise.all([
+          mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} not returned`, message: `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}], was due back at ${constants.formatDateAndTime(trip.endDateAndTime, 'SHORT')} and has not yet checked back in from Hanover. We have informed OPO staff about your status. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` }),
+          mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number} not returned`, message: `Hello,\n\n[Trip #${trip.number}: ${trip.title}], was due back at ${constants.formatDateAndTime(trip.endDateAndTime, 'SHORT')} and has not yet checked back in from Hanover. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` }),
+        ]).then(() => {
+          trip.sentEmails = [...trip.sentEmails, 'LATE_180'];
+          trip.save();
+        }).catch((error) => {
+          console.log(error);
+        });
       }
     });
   });
 };
 
+send90MinuteLateEmail();
+
 /**
  * Schedules time-based emails.
  */
-scheduler.schedule(sendCheckInEmail, 'daily');
-scheduler.schedule(sendCheckOutEmail, 'daily');
-scheduler.schedule(send90MinuteLateEmail, 'daily');
-scheduler.schedule(send3HourLateEmail, 'daily');
+scheduler.schedule(sendCheckInEmail, 'minutely');
+scheduler.schedule(sendCheckOutEmail, 'minutely');
+scheduler.schedule(send90MinuteLateEmail, 'minutely');
+scheduler.schedule(send3HourLateEmail, 'minutely');
