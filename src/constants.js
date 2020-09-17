@@ -3,8 +3,8 @@ import dateFormat from 'dateformat';
 
 dotenv.config({ silent: true });
 
-export const frontendURL = process.env.NODE_ENV === 'development' ? 'http://192.168.0.225:8080' : 'http://doc.dartmouth.edu';
-export const backendURL = process.env.NODE_ENV === 'development' ? 'http://192.168.0.225:9090' : 'https://doc-planner.herokuapp.com';
+export const frontendURL = process.env.NODE_ENV === 'development' ? 'http://localhost:8080' : 'http://doc.dartmouth.edu';
+export const backendURL = process.env.NODE_ENV === 'development' ? 'http://localhost:9090' : 'https://doc-planner.herokuapp.com';
 
 // export const OPOEmails = ['rory.c.gawler@dartmouth.edu', 'ziray.hao.22@dartmouth.edu'];
 export const OPOEmails = ['ziray.hao.22@dartmouth.edu'];
