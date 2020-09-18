@@ -25,7 +25,7 @@ const populateTripDocument = (tripQuery, fields) => {
 
 
 const sendLeadersEmail = (tripID, subject, message) => {
-  populateTripDocument(Trip.findById(tripID), ['leaders'])
+  populateTripDocument(Trip.findById(tripID), ['owner, leaders'])
     .then((trip) => {
       mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject, message });
     });
@@ -60,7 +60,7 @@ export const getOPOTrips = (req, res) => {
         { pcardStatus: { $ne: 'N/A' } },
         { vehicleStatus: { $ne: 'N/A' } },
       ],
-    }), ['leaders', 'club', 'membersUser', 'pendingUser', 'vehicleRequest', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'],
+    }), ['owner, leaders', 'club', 'membersUser', 'pendingUser', 'vehicleRequest', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'],
   )
     .then((trips) => {
       res.json(trips);
@@ -298,7 +298,6 @@ export const updateTrip = async (req, res) => {
 
       const coleaders = await User.find({ email: { $in: req.body.leaders } }).exec();
       const allLeaders = [];
-      allLeaders.push(trip.leaders[0]);
       coleaders.forEach((coleader) => {
         allLeaders.push(coleader._id);
       });
@@ -320,14 +319,14 @@ export const updateTrip = async (req, res) => {
  * @param {express.res} res
  */
 export const deleteTrip = (req, res) => {
-  populateTripDocument(Trip.findById(req.params.tripID), ['leaders', 'membersUser', 'pendingUser', 'vehicleRequest'])
+  populateTripDocument(Trip.findById(req.params.tripID), ['owner, leaders', 'membersUser', 'pendingUser', 'vehicleRequest'])
     .then((trip) => {
       if (trip.leaders.some((leader) => { return leader._id.equals(req.user._id); })) {
         Trip.deleteOne({ _id: req.params.tripID }, async (err) => {
           if (err) {
             res.json({ error: err });
           } else {
-            mailer.send({ address: trip.members.concat(trip.pending).map((person) => { return person.user.email; }), subject: `Trip #${trip.number} deleted`, message: `Hello,\n\nThe Trip #${trip.number}: ${trip.title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${trip.leaders[0].email}.\n\nReason: ${req.body.reason ? req.body.reason : 'no reason provided.'}\n\nBest,\nDOC Planner` });
+            mailer.send({ address: trip.members.concat(trip.pending).map((person) => { return person.user.email; }), subject: `Trip #${trip.number} deleted`, message: `Hello,\n\nThe Trip #${trip.number}: ${trip.title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${trip.leaders.owner.email}.\n\nReason: ${req.body.reason ? req.body.reason : 'no reason provided.'}\n\nBest,\nDOC Planner` });
             if (trip.vehicleRequest) {
               await deleteVehicleRequest(trip.vehicleRequest._id, 'Associated trip has been deleted');
               mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `re: Trip #${trip.number} deleted`, message: `Hello,\n\nThe associated vehicle request, V-Req #${trip.vehicleRequest.number}: ${trip.title} that is linked to your Trip #${trip.number} has also been deleted since your trip was deleted. We have informed OPO staff that you will no longer be needing this vehicle.\n\nBest,\nDOC Planner` });
@@ -389,7 +388,7 @@ function calculateRequiredGear(trip) {
 export const editUserGear = (req, res) => {
   const { tripID } = req.params;
   const { trippeeGear } = req.body;
-  populateTripDocument(Trip.findById(tripID), ['leaders', 'membersUser'])
+  populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'membersUser'])
     .then((trip) => {
       const isOnTrip = trip.members.some((member) => {
         return member.user.id === req.user._id.toString();
@@ -425,12 +424,12 @@ export const editUserGear = (req, res) => {
  */
 export const addToPending = (tripID, joiningUserID, requestedGear) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['leaders', 'membersUser', 'pendingUser'])
+    populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'membersUser', 'pendingUser'])
       .then(async (trip) => {
         trip.pending.push({ user: joiningUserID, requestedGear });
         await trip.save();
         const foundUser = await User.findById(joiningUserID);
-        mailer.send({ address: foundUser.email, subject: 'Confirmation: You\'ve signed up for a trip', message: `Hello ${foundUser.name},\n\nYou've signed up for [Trip #${trip.number}: ${trip.title}], awaiting leader approval.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
+        mailer.send({ address: foundUser.email, subject: 'Confirmation: You\'ve signed up for a trip', message: `Hello ${foundUser.name},\n\nYou've signed up for [Trip #${trip.number}: ${trip.title}], awaiting leader approval.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Planner` });
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
         mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: ${foundUser.name} applied to your trip`, message: `Hello,\n\nTrippee ${foundUser.name} has applied to join [Trip #${trip.number}: ${trip.title}]. Please use our platform to approve them. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
         resolve();
@@ -448,7 +447,7 @@ export const addToPending = (tripID, joiningUserID, requestedGear) => {
  */
 export const reject = (tripID, leavingUserID) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['leaders', 'membersUser', 'pendingUser'])
+    populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'membersUser', 'pendingUser'])
       .then(async (trip) => {
         let leavingUserPender;
         // Remove the trippee from the member list
@@ -466,7 +465,7 @@ export const reject = (tripID, leavingUserID) => {
         await calculateRequiredGear(trip);
         await trip.save();
         User.findById(leavingUserID).then((foundUser) => {
-          mailer.send({ address: foundUser.email, subject: `Trip ${trip.number}: You've been un-admitted`, message: `Hello ${foundUser.name},\n\nYou've were previously approved for [Trip #${trip.number}: ${trip.title}], but the leader has put you back into pending status, which means you are NOT approved to attend this trip.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
+          mailer.send({ address: foundUser.email, subject: `Trip ${trip.number}: You've been un-admitted`, message: `Hello ${foundUser.name},\n\nYou've were previously approved for [Trip #${trip.number}: ${trip.title}], but the leader has put you back into pending status, which means you are NOT approved to attend this trip.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Planner` });
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
           mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: ${foundUser.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been moved from the approved list to the pending list. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
           resolve();
@@ -484,7 +483,7 @@ export const reject = (tripID, leavingUserID) => {
  */
 export const join = (tripID, joiningUserID) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['leaders', 'membersUser', 'pendingUser'])
+    populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'membersUser', 'pendingUser'])
       .then(async (trip) => {
         let joiningUserPender = {};
         // Remove user from pending list
@@ -505,7 +504,7 @@ export const join = (tripID, joiningUserID) => {
         await calculateRequiredGear(trip);
         await trip.save();
         User.findById(joiningUserID).then((foundUser) => {
-          mailer.send({ address: foundUser.email, subject: `Trip ${trip.number}: You've been approved!`, message: `Hello ${foundUser.name},\n\nYou've been approved for [Trip #${trip.number}: ${trip.title}]!\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.leaders[0].email}.\n\nBest,\nDOC Planner` });
+          mailer.send({ address: foundUser.email, subject: `Trip ${trip.number}: You've been approved!`, message: `Hello ${foundUser.name},\n\nYou've been approved for [Trip #${trip.number}: ${trip.title}]!\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Planner` });
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
           mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: ${foundUser.name} got approved!`, message: `Hello,\n\nYour pending trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been approved. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
         });
@@ -523,7 +522,7 @@ export const join = (tripID, joiningUserID) => {
  */
 export const leave = (tripID, leavingUserID) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['leaders', 'membersUser'])
+    populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'membersUser'])
       .then(async (trip) => {
         User.findById(leavingUserID).then((leavingUser) => {
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
@@ -554,7 +553,7 @@ export const leave = (tripID, leavingUserID) => {
 };
 
 export const toggleTripLeadership = (req, res) => {
-  populateTripDocument(Trip.findById(req.params.tripID), ['leaders', 'membersUser', 'pendingUser'])
+  populateTripDocument(Trip.findById(req.params.tripID), ['owner, leaders', 'membersUser', 'pendingUser'])
     .then(async (trip) => {
       let demoted = false;
       trip.leaders.some((leader, index) => {
@@ -627,7 +626,7 @@ export const toggleTripLeftStatus = (req, res) => {
   const { tripID } = req.params;
   const { status } = req.body;
   const now = new Date();
-  populateTripDocument(Trip.findById(tripID), ['leaders', 'vehicleRequest'])
+  populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'vehicleRequest'])
     .then(async (trip) => {
       trip.left = status;
       await trip.save();
@@ -652,7 +651,7 @@ export const toggleTripReturnedStatus = (req, res) => {
   const { tripID } = req.params;
   const { status } = req.body;
   const now = new Date();
-  populateTripDocument(Trip.findById(tripID), ['leaders', 'vehicleRequest'])
+  populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'vehicleRequest'])
     .then(async (trip) => {
       trip.returned = status;
       await trip.save();
@@ -683,7 +682,7 @@ export const toggleTripReturnedStatus = (req, res) => {
  */
 export const respondToGearRequest = (tripID, status) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['leaders'])
+    populateTripDocument(Trip.findById(tripID), ['owner, leaders'])
       .then(async (trip) => {
         trip.gearStatus = status;
         await trip.save();
@@ -717,7 +716,7 @@ export const respondToGearRequest = (tripID, status) => {
  */
 export const respondToTrippeeGearRequest = (tripID, status) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['leaders'])
+    populateTripDocument(Trip.findById(tripID), ['owner, leaders'])
       .then(async (trip) => {
         trip.trippeeGearStatus = status;
         await trip.save();
@@ -749,7 +748,7 @@ export const respondToTrippeeGearRequest = (tripID, status) => {
  * @param {*} res
  */
 export const respondToPCardRequest = (req, res) => {
-  populateTripDocument(Trip.findById(req.params.tripID), ['leaders'])
+  populateTripDocument(Trip.findById(req.params.tripID), ['owner, leaders'])
     .then(async (trip) => {
       trip.pcardStatus = req.body.pcardStatus;
       trip.pcardAssigned = req.body.pcardAssigned;
