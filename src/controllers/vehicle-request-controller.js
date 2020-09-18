@@ -95,7 +95,7 @@ export const updateVehicleRequest = (req, res) => {
 
 export const deleteVehicleRequest = async (vehicleRequestID, reason) => {
   const request = await VehicleRequest.findById(vehicleRequestID)
-    .populate({ path: 'assignments', populate: { path: 'assigned_vehicle' } }).exec();
+    .populate({ path: 'assignments', populate: { path: 'assigned_vehicle' } }).populate('requester');
   if (request.assignments) {
     for (let i = 0; i < request.assignments.length; i += 1) {
       await Assignment.deleteOne({ _id: request.assignments[i]._id });
@@ -103,6 +103,7 @@ export const deleteVehicleRequest = async (vehicleRequestID, reason) => {
     mailer.send({ address: constants.OPOEmails, subject: `V-Req #${request.number} deleted`, message: `Hello,\n\nThe V-Req #${request.number} has been deleted.\n\nReason: ${reason || 'no reason provided.'}\n\nIt had ${request.assignments.length} approved vehicle assignments, all of which have been unscheduled so that the vehicles can be assigned to other trips.\n\nDeleted assignments:\n${request.assignments.map((assignment) => { return `\t-\t${assignment.assigned_vehicle.name}: ${assignment.assigned_pickupDateAndTime} to ${assignment.assigned_returnDateAndTime}\n`; })}\n\nBest, DOC Planner` });
   }
   await VehicleRequest.deleteOne({ _id: vehicleRequestID });
+  mailer.send({ address: [request.requester.email], subject: `V-Req #${request.number} deleted`, message: `Hello,\n\nYour [V-Req #${request.number}] has been deleted.\n\nReason: ${reason || 'no reason provided.'}\n\nBest, DOC Planner` });
   recomputeAllConflicts();
 };
 

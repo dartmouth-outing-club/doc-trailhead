@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import controllers from './controllers';
 import signS3 from './services/s3';
+import { logError } from './services/error';
 import { requireAuth } from './services/passport';
 
 import mailer from './services/emailing';
@@ -60,9 +61,17 @@ router.route('/trippeegearrequest/:tripID')
     controllers.trips.respondToTrippeeGearRequest(req.params.tripID, req.body.status).then((updatedTrip) => { res.json(updatedTrip); }).catch((error) => { return res.status(500).json(error); });
   });
 
-router.route('/vehiclerequest/:id')
+router.route('/vehicle-request/:id')
   .get(requireAuth, controllers.vehicleRequests.getVehicleRequest)
-  .put(requireAuth, controllers.vehicleRequests.updateVehicleRequest);
+  .put(requireAuth, controllers.vehicleRequests.updateVehicleRequest)
+  .delete(requireAuth, (req, res) => {
+    controllers.vehicleRequests.deleteVehicleRequest(req.params.id)
+      .then(() => { return res.sendStatus(200); })
+      .catch((error) => {
+        logError({ type: 'cancelVehicleRequest', message: error.message });
+        res.status(500).send(error.message);
+      });
+  });
 
 router.route('/vehicleRequests')
   .post(requireAuth, controllers.vehicleRequests.makeVehicleRequest)

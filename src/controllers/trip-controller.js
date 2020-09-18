@@ -11,6 +11,7 @@ import AssignmentModel from '../models/assignment-model';
 
 const populateTripDocument = (tripQuery, fields) => {
   const fieldsDirectory = {
+    owner: 'owner',
     club: 'club',
     leaders: 'leaders',
     vehicleRequest: 'vehicleRequest',
@@ -73,7 +74,7 @@ export const getOPOTrips = (req, res) => {
  */
 export const getTrip = (tripID, forUser) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
+    populateTripDocument(Trip.findById(tripID), ['owner', 'club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
       .then((trip) => {
         let userTripStatus;
         let isLeaderOnTrip;
@@ -95,7 +96,7 @@ export const getTrip = (tripID, forUser) => {
               return leader._id.equals(forUser.id);
             });
           } else {
-            isLeaderOnTrip = trip.leaders[0]._id.equals(forUser.id);
+            isLeaderOnTrip = trip.owner._id.equals(forUser.id);
           }
         }
 
@@ -328,7 +329,7 @@ export const deleteTrip = (req, res) => {
           } else {
             mailer.send({ address: trip.members.concat(trip.pending).map((person) => { return person.user.email; }), subject: `Trip #${trip.number} deleted`, message: `Hello,\n\nThe Trip #${trip.number}: ${trip.title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${trip.leaders[0].email}.\n\nReason: ${req.body.reason ? req.body.reason : 'no reason provided.'}\n\nBest,\nDOC Planner` });
             if (trip.vehicleRequest) {
-              await deleteVehicleRequest(trip.vehicleRequest._id);
+              await deleteVehicleRequest(trip.vehicleRequest._id, 'Associated trip has been deleted');
               mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `re: Trip #${trip.number} deleted`, message: `Hello,\n\nThe associated vehicle request, V-Req #${trip.vehicleRequest.number}: ${trip.title} that is linked to your Trip #${trip.number} has also been deleted since your trip was deleted. We have informed OPO staff that you will no longer be needing this vehicle.\n\nBest,\nDOC Planner` });
               res.json({ message: 'Trip and associated vehicle request successfully' });
             } else {
