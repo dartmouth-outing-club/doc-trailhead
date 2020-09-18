@@ -12,6 +12,7 @@ import { tokenForUser } from './controllers/user-controller';
 import Trip from './models/trip-model';
 import routers from './routers';
 
+process.env.TZ = 'America/New_York';
 
 const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://admin:1NunitoSansDOC!@doc.a8di6.mongodb.net/main?retryWrites=true&w=majority';
 
@@ -136,8 +137,6 @@ const send3HourLateEmail = () => {
     });
   });
 };
-
-send90MinuteLateEmail();
 
 /**
  * Schedules time-based emails.

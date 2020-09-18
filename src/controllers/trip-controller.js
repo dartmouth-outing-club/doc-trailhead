@@ -277,15 +277,24 @@ export const updateTrip = async (req, res) => {
         vehicleRequest.mileage = req.body.mileage;
         vehicleRequest.associatedTrip = trip;
         vehicleRequest.requestType = 'TRIP';
-        vehicleRequest.requestedVehicles = req.body.vehicles;
+        vehicleRequest.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime) }; });
         const savedVehicleRequest = await vehicleRequest.save();
         trip.vehicleStatus = 'pending';
         trip.vehicleRequest = savedVehicleRequest;
       }
-      if (trip.vehicleStatus === 'pending' && req.body.vehicles.length === 0) {
-        await VehicleRequest.deleteOne({ _id: req.body.vehicleReqId });
-        trip.vehicleStatus = 'N/A';
+      if (trip.vehicleStatus === 'pending') {
+        if (req.body.vehicles.length === 0) {
+          await VehicleRequest.deleteOne({ _id: req.body.vehicleReqId });
+          trip.vehicleStatus = 'N/A';
+        } else {
+          const updates = {};
+          if (req.body.mileage) updates.mileage = req.body.mileage;
+          if (req.body.description) updates.requestDetails = req.body.description;
+          if (req.body.vehicles.length > 0) updates.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime) }; });
+          await VehicleRequest.updateOne({ _id: req.body.vehicleReqId }, updates);
+        }
       }
+
       const coleaders = await User.find({ email: { $in: req.body.leaders } }).exec();
       const allLeaders = [];
       allLeaders.push(trip.leaders[0]);
