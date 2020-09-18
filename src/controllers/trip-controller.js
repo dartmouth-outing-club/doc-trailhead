@@ -552,16 +552,31 @@ export const leave = (tripID, leavingUserID) => {
   });
 };
 
-export const assignToLeader = (req, res) => {
+export const toggleTripLeadership = (req, res) => {
   populateTripDocument(Trip.findById(req.params.tripID), ['leaders', 'membersUser', 'pendingUser'])
     .then(async (trip) => {
-      trip.members.some((member, index) => {
-        if (member.user._id.equals(req.body.member.user._id)) {
-          trip.members.splice(index, 1); // remove the trippee from the member list
-          trip.members.splice(0, 0, member); // read trippee to become leader
+      let demoted = false;
+      trip.leaders.some((leader, index) => {
+        console.log(req.body.member.user);
+        if (req.body.member.user.id === leader.id) {
+          trip.leaders.splice(index, 1);
+          demoted = true;
+          sendLeadersEmail(req.params.tripID, `Trip #${trip.number}: co-leader change`, `Hello trip leaders and co-leaders,\n\n${req.body.member.user.name} has been removed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nEnjoy the outdoors,\nDOC Planner`);
+          mailer.send({ address: [req.body.member.user.email], subject: `Trip #${trip.number}: co-leader change`, message: `Hello,\n\nYou have been removed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nEnjoy the outdoors,\nDOC Planner` });
         }
-        return member.user.id === req.body.member.user.id;
+        return leader._id.equals(req.body.member.user._id);
       });
+      if (!demoted) {
+        trip.members.some((member) => {
+          if (member.user._id.equals(req.body.member.user._id)) {
+            trip.leaders.push(member.user);
+            sendLeadersEmail(req.params.tripID, `Trip #${trip.number}: new co-leader`, `Hello trip leaders and co-leaders,\n\n${req.body.member.user.name} has been appointed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nEnjoy the outdoors,\nDOC Planner`);
+          }
+          return member.user._id.equals(req.body.member.user._id);
+        });
+      }
+      trip.members.forEach((m) => { return console.log(m.user.name); });
+      trip.leaders.forEach((m) => { return console.log(m.name); });
       await trip.save();
       res.json(await getTrip(req.params.tripID));
     })
