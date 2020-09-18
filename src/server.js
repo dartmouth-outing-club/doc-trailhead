@@ -21,7 +21,12 @@ mongoose.set('useCreateIndex', true);
 mongoose.connect(mongoURI, { useNewUrlParser: true })
   .then((connection) => {
     return console.log(`MongoDB connection established at ${connection.connections[0].host}:${connection.connections[0].port}`);
-  }).catch((error) => { return console.log(`Error connecting to MongoDB: ${error.message}`); });
+  }).catch((error) => {
+    console.log(`Error connecting to MongoDB: ${error.message}`);
+    mongoose.connect('mongodb://localhost/doc-planner', { useNewUrlParser: true }).then((connection) => {
+      return console.log(`MongoDB connection established at ${connection.connections[0].host}:${connection.connections[0].port}`);
+    });
+  });
 
 // set mongoose promises to es6 default
 mongoose.Promise = global.Promise;
