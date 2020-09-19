@@ -43,7 +43,7 @@ tripsRouter.post('/apply/:tripID', requireAuth, (req, res) => {
     .then(() => {
       controllers.trips.getTrip(req.params.tripID, req.user).then((result) => { return res.json(result); });
     })
-    .catch((error) => { res.status(500).json(error); });
+    .catch((error) => { console.log(error); logError({ type: 'addToPending', message: error.message }); res.status(500).send(error.message); });
 });
 
 tripsRouter.post('/join/:tripID', requireAuth, (req, res) => {

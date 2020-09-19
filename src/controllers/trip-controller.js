@@ -25,7 +25,7 @@ const populateTripDocument = (tripQuery, fields) => {
 
 
 const sendLeadersEmail = (tripID, subject, message) => {
-  populateTripDocument(Trip.findById(tripID), ['owner, leaders'])
+  populateTripDocument(Trip.findById(tripID), ['owner', 'leaders'])
     .then((trip) => {
       mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject, message });
     });
@@ -60,7 +60,7 @@ export const getOPOTrips = (req, res) => {
         { pcardStatus: { $ne: 'N/A' } },
         { vehicleStatus: { $ne: 'N/A' } },
       ],
-    }), ['owner, leaders', 'club', 'membersUser', 'pendingUser', 'vehicleRequest', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'],
+    }), ['owner', 'leaders', 'club', 'membersUser', 'pendingUser', 'vehicleRequest', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'],
   )
     .then((trips) => {
       res.json(trips);
@@ -319,7 +319,7 @@ export const updateTrip = async (req, res) => {
  * @param {express.res} res
  */
 export const deleteTrip = (req, res) => {
-  populateTripDocument(Trip.findById(req.params.tripID), ['owner, leaders', 'membersUser', 'pendingUser', 'vehicleRequest'])
+  populateTripDocument(Trip.findById(req.params.tripID), ['owner', 'leaders', 'membersUser', 'pendingUser', 'vehicleRequest'])
     .then((trip) => {
       if (trip.leaders.some((leader) => { return leader._id.equals(req.user._id); })) {
         Trip.deleteOne({ _id: req.params.tripID }, async (err) => {
@@ -388,7 +388,7 @@ function calculateRequiredGear(trip) {
 export const editUserGear = (req, res) => {
   const { tripID } = req.params;
   const { trippeeGear } = req.body;
-  populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'membersUser'])
+  populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser'])
     .then((trip) => {
       const isOnTrip = trip.members.some((member) => {
         return member.user.id === req.user._id.toString();
@@ -424,7 +424,7 @@ export const editUserGear = (req, res) => {
  */
 export const addToPending = (tripID, joiningUserID, requestedGear) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'membersUser', 'pendingUser'])
+    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
       .then(async (trip) => {
         trip.pending.push({ user: joiningUserID, requestedGear });
         await trip.save();
@@ -447,7 +447,7 @@ export const addToPending = (tripID, joiningUserID, requestedGear) => {
  */
 export const reject = (tripID, leavingUserID) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'membersUser', 'pendingUser'])
+    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
       .then(async (trip) => {
         let leavingUserPender;
         // Remove the trippee from the member list
@@ -483,7 +483,7 @@ export const reject = (tripID, leavingUserID) => {
  */
 export const join = (tripID, joiningUserID) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'membersUser', 'pendingUser'])
+    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
       .then(async (trip) => {
         let joiningUserPender = {};
         // Remove user from pending list
@@ -522,7 +522,7 @@ export const join = (tripID, joiningUserID) => {
  */
 export const leave = (tripID, leavingUserID) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'membersUser'])
+    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser'])
       .then(async (trip) => {
         User.findById(leavingUserID).then((leavingUser) => {
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
@@ -553,7 +553,7 @@ export const leave = (tripID, leavingUserID) => {
 };
 
 export const toggleTripLeadership = (req, res) => {
-  populateTripDocument(Trip.findById(req.params.tripID), ['owner, leaders', 'membersUser', 'pendingUser'])
+  populateTripDocument(Trip.findById(req.params.tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
     .then(async (trip) => {
       let demoted = false;
       trip.leaders.some((leader, index) => {
@@ -626,7 +626,7 @@ export const toggleTripLeftStatus = (req, res) => {
   const { tripID } = req.params;
   const { status } = req.body;
   const now = new Date();
-  populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'vehicleRequest'])
+  populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'vehicleRequest'])
     .then(async (trip) => {
       trip.left = status;
       await trip.save();
@@ -651,7 +651,7 @@ export const toggleTripReturnedStatus = (req, res) => {
   const { tripID } = req.params;
   const { status } = req.body;
   const now = new Date();
-  populateTripDocument(Trip.findById(tripID), ['owner, leaders', 'vehicleRequest'])
+  populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'vehicleRequest'])
     .then(async (trip) => {
       trip.returned = status;
       await trip.save();
@@ -682,7 +682,7 @@ export const toggleTripReturnedStatus = (req, res) => {
  */
 export const respondToGearRequest = (tripID, status) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner, leaders'])
+    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders'])
       .then(async (trip) => {
         trip.gearStatus = status;
         await trip.save();
@@ -716,7 +716,7 @@ export const respondToGearRequest = (tripID, status) => {
  */
 export const respondToTrippeeGearRequest = (tripID, status) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner, leaders'])
+    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders'])
       .then(async (trip) => {
         trip.trippeeGearStatus = status;
         await trip.save();
@@ -748,7 +748,7 @@ export const respondToTrippeeGearRequest = (tripID, status) => {
  * @param {*} res
  */
 export const respondToPCardRequest = (req, res) => {
-  populateTripDocument(Trip.findById(req.params.tripID), ['owner, leaders'])
+  populateTripDocument(Trip.findById(req.params.tripID), ['owner', 'leaders'])
     .then(async (trip) => {
       trip.pcardStatus = req.body.pcardStatus;
       trip.pcardAssigned = req.body.pcardAssigned;
