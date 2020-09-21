@@ -6,7 +6,8 @@
   "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "NODE_ENV=development nodemon src/server.js --exec babel-node",
+    "dev1": "NODE_ENV=development MONGODB_URI=mongodb://localhost/doc-planner nodemon src/server.js --exec babel-node",
+    "dev2": "NODE_ENV=development nodemon src/server.js --exec babel-node",
     "start": "babel-node src/server.js",
     "build": "babel src -d dist",
     "prod": "yarn build; node dist/server.js",
