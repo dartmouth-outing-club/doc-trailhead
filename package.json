@@ -10,6 +10,7 @@
     "start": "babel-node src/server.js",
     "build": "babel src -d dist",
     "prod": "yarn build; node dist/server.js",
+    "monitor": "heroku logs --app doc-planner --tail",
     "seedDB": "babel-node src/db/seed.js",
     "fillEventsLocal": "NODE_ENV=development babel-node src/db/fill-events.js",
     "fillEventsProduction": "NODE_ENV=production babel-node src/db/fill-events.js",
