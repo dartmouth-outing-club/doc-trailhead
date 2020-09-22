@@ -13,7 +13,7 @@
     "prod": "yarn build; node dist/server.js",
     "monitor": "heroku logs --app doc-planner --tail",
     "seedDB": "babel-node src/db/seed.js",
-    "fillEventsLocal": "NODE_ENV=development babel-node src/db/fill-events.js",
+    "fillEventsLocal": "NODE_ENV=development MONGODB_URI=mongodb://localhost/doc-planner babel-node src/db/fill-events.js",
     "fillEventsProduction": "NODE_ENV=production babel-node src/db/fill-events.js",
     "migrateDB": "babel-node src/db/migrate.js"
   },
