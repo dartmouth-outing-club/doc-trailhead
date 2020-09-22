@@ -293,7 +293,7 @@ export const updateUser = (req, res, next) => {
           });
       })
       .catch((error) => {
-        console.log(error);
+        console.log(error.message);
         res.status(406).send(error.message);
       });
   });
