@@ -7,3 +7,6 @@ dist
 server.csr
 server.key
 server.pass.key
+all.crt
+DigiCertCA.crt
+doc_dartmouth_edu.crt
