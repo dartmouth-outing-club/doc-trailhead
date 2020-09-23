@@ -16,9 +16,10 @@ const transporter = nodemailer.createTransport({
 const send = (email) => {
   return new Promise((resolve, reject) => {
     const mailOptions = {
-      from: process.env.EMAIL_ADDRESS,
+      from: 'doc.signup.no.reply@dartmouth.edu',
       to: email.address,
       subject: email.subject,
+      bcc: ['ziray.hao@dali.dartmouth.edu'],
       text: email.message,
     };
     transporter.sendMail(mailOptions, (error, info) => {
