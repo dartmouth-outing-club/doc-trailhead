@@ -88,10 +88,10 @@ const sendCheckInEmail = () => {
   const today = new Date();
   Trip.find({}).populate('leaders').then((trips) => {
     trips.forEach((trip) => {
-      if ((today < trip.endDate) && (trip.endDateAndTime.getTime() - today.getTime() < (48 * 3600000)) && (trip.endDateAndTime.getTime() - today.getTime() > (24 * 3600000)) && !trip.sentEmails.includes('CHECK_IN')) {
+      if ((today < trip.endDate) && (trip.endDateAndTime.getTime() - today.getTime() < (2 * 3600000)) && !trip.sentEmails.includes('CHECK_IN')) {
         console.log('[Mailer] Sending trip check-in email to leaders');
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} should be returning soon`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} is should return soon. If an EMERGENCY occured, please get emergency help right away, and follow the link below to mark your status so OPO staff is informed.\n\nIMPORTANT: right after you return, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Planner` });
+        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} should be returning soon`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} should return within 2 hours. If an EMERGENCY occured, please get emergency help right away, and follow the link below to mark your status so OPO staff is informed.\n\nIMPORTANT: right after you return, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Planner` });
         trip.sentEmails = [...trip.sentEmails, 'CHECK_IN'];
         trip.save();
       }
