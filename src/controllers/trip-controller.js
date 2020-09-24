@@ -171,12 +171,12 @@ export const createTrip = (creator, data) => {
       }
     });
     trip.save().then(async (savedTrip) => {
-      mailer.send({ address: leaderEmails, subject: `New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've created a new Trip #${savedTrip.number}: ${savedTrip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nIMPORTANT: on the day of the trip, you must check-out all attendees here: ${constants.frontendURL}/trip-check-out/${savedTrip._id}?token=${tokenForUser(creator, 'mobile', savedTrip._id)}\n\nBest,\nDOC Planner` });
+      mailer.send({ address: leaderEmails, subject: `New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've created a new Trip #${savedTrip.number}: ${savedTrip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nIMPORTANT: on the day of the trip, you must check-out all attendees here: ${constants.frontendURL}/trip-check-out/${savedTrip._id}?token=${tokenForUser(creator, 'mobile', savedTrip._id)}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
       if (data.vehicles.length > 0) {
-      // Retrieves the current maximum vehicle request number and then updates it immediately
+        // Retrieves the current maximum vehicle request number and then updates it immediately
         const globalsForVehicleRequest = await Global.find({});
         globalsForVehicleRequest[0].vehicleRequestNumberMax += 1;
-        const nextVehicleRequestNumber = globals[0].vehicleRequestNumberMax;
+        const nextVehicleRequestNumber = globalsForVehicleRequest[0].vehicleRequestNumberMax;
         await globalsForVehicleRequest[0].save();
 
         // Creates a new vehicle request
@@ -189,7 +189,7 @@ export const createTrip = (creator, data) => {
         vehicleRequest.requestType = 'TRIP';
         vehicleRequest.requestedVehicles = data.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime) }; });
         vehicleRequest.save().then(async (savedVehicleRequest) => {
-          mailer.send({ address: leaderEmails, subject: `re: New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${savedVehicleRequest.number}: ${savedTrip.title} that is linked to your Trip #${savedTrip.number}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedVehicleRequest._id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Planner` });
+          mailer.send({ address: leaderEmails, subject: `re: New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${savedVehicleRequest.number}: ${savedTrip.title} that is linked to your Trip #${savedTrip.number}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedVehicleRequest._id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
           if (data.injectingStatus) savedTrip.vehicleStatus = data.vehicleStatus;
           else savedTrip.vehicleStatus = 'pending';
           savedTrip.vehicleRequest = savedVehicleRequest;
@@ -273,7 +273,16 @@ export const updateTrip = async (req, res) => {
       }
 
       if (trip.vehicleStatus === 'N/A' && req.body.vehicles.length > 0) {
+        // Retrieves the current maximum vehicle request number and then updates it immediately
+        const globalsForVehicleRequest = await Global.find({});
+        globalsForVehicleRequest[0].vehicleRequestNumberMax += 1;
+        const nextVehicleRequestNumber = globalsForVehicleRequest[0].vehicleRequestNumberMax;
+        await globalsForVehicleRequest[0].save();
+
+        // Creates a new vehicle request
         const vehicleRequest = new VehicleRequest();
+        vehicleRequest.number = nextVehicleRequestNumber;
+        vehicleRequest.requestDetails = req.body.description;
         vehicleRequest.requester = req.user._id;
         vehicleRequest.mileage = req.body.mileage;
         vehicleRequest.associatedTrip = trip;
@@ -321,15 +330,15 @@ export const updateTrip = async (req, res) => {
 export const deleteTrip = (req, res) => {
   populateTripDocument(Trip.findById(req.params.tripID), ['owner', 'leaders', 'membersUser', 'pendingUser', 'vehicleRequest'])
     .then((trip) => {
-      if (trip.leaders.some((leader) => { return leader._id.equals(req.user._id); })) {
+      if (trip.leaders.some((leader) => { return leader._id.equals(req.user._id); }) || req.user.role === 'OPO') {
         Trip.deleteOne({ _id: req.params.tripID }, async (err) => {
           if (err) {
             res.json({ error: err });
           } else {
-            mailer.send({ address: trip.members.concat(trip.pending).map((person) => { return person.user.email; }), subject: `Trip #${trip.number} deleted`, message: `Hello,\n\nThe Trip #${trip.number}: ${trip.title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${trip.owner.email}.\n\nReason: ${req.body.reason ? req.body.reason : 'no reason provided.'}\n\nBest,\nDOC Planner` });
+            mailer.send({ address: trip.members.concat(trip.pending).map((person) => { return person.user.email; }), subject: `Trip #${trip.number} deleted`, message: `Hello,\n\nThe Trip #${trip.number}: ${trip.title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${trip.owner.email}.\n\nReason: ${req.body.reason ? req.body.reason : 'no reason provided.'}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
             if (trip.vehicleRequest) {
               await deleteVehicleRequest(trip.vehicleRequest._id, 'Associated trip has been deleted');
-              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `re: Trip #${trip.number} deleted`, message: `Hello,\n\nThe associated vehicle request, V-Req #${trip.vehicleRequest.number}: ${trip.title} that is linked to your Trip #${trip.number} has also been deleted since your trip was deleted. We have informed OPO staff that you will no longer be needing this vehicle.\n\nBest,\nDOC Planner` });
+              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `re: Trip #${trip.number} deleted`, message: `Hello,\n\nThe associated vehicle request, V-Req #${trip.vehicleRequest.number}: ${trip.title} that is linked to your Trip #${trip.number} has also been deleted since your trip was deleted. We have informed OPO staff that you will no longer be needing this vehicle.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
               res.json({ message: 'Trip and associated vehicle request successfully' });
             } else {
               res.json({ message: 'Trip removed successfully' });
@@ -337,7 +346,7 @@ export const deleteTrip = (req, res) => {
           }
         });
       } else {
-        res.status(422).send('You must be a leader on the trip');
+        res.status(422).send('You must be a leader on the trip or OPO staff');
       }
     })
     .catch((error) => {
@@ -373,8 +382,8 @@ function calculateRequiredGear(trip) {
     } else {
       trip.trippeeGearStatus = 'pending';
       await trip.save();
-      sendLeadersEmail(trip._id, `Trip ${trip.number}: Trippee gear requests un-approved`, `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}]'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner`);
-      mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number}'s gear request changed`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}'s gear requests had been originally approved, but they recently made changes to their trippee gear requests because a new trippee was admitted to the trip.\n\nPlease re-approve their request at: ${constants.frontendURL}/approve-trip/${trip._id}\n\nBest,\nDOC Planner` });
+      sendLeadersEmail(trip._id, `Trip #${trip.number}: Trippee gear requests un-approved`, `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}]'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`);
+      mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number}'s gear request changed`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}'s gear requests had been originally approved, but they recently made changes to their trippee gear requests because a new trippee was admitted to the trip.\n\nPlease re-approve their request at: ${constants.frontendURL}/approve-trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
       resolve();
     }
   });
@@ -398,7 +407,7 @@ export const editUserGear = (req, res) => {
           person.requestedGear = trippeeGear;
           if (isOnTrip) {
             User.findById(req.user._id).then((user) => {
-              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `Trip ${trip.number}: ${user.name} changed gear requests`, message: `Hello,\n\nTrippee ${user.name} for [Trip #${trip.number}: ${trip.title}] changed their gear requests. You can reach them at ${user.email}.\n\nView the change here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `Trip #${trip.number}: ${user.name} changed gear requests`, message: `Hello,\n\nTrippee ${user.name} for [Trip #${trip.number}: ${trip.title}] changed their gear requests. You can reach them at ${user.email}.\n\nView the change here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
             });
           }
         }
@@ -429,9 +438,9 @@ export const addToPending = (tripID, joiningUserID, requestedGear) => {
         trip.pending.push({ user: joiningUserID, requestedGear });
         await trip.save();
         const foundUser = await User.findById(joiningUserID);
-        mailer.send({ address: foundUser.email, subject: 'Confirmation: You\'ve signed up for a trip', message: `Hello ${foundUser.name},\n\nYou've signed up for [Trip #${trip.number}: ${trip.title}], awaiting leader approval.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Planner` });
+        mailer.send({ address: foundUser.email, subject: 'Confirmation: You\'ve signed up for a trip', message: `Hello ${foundUser.name},\n\nYou've signed up for [Trip #${trip.number}: ${trip.title}], awaiting leader approval.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: ${foundUser.name} applied to your trip`, message: `Hello,\n\nTrippee ${foundUser.name} has applied to join [Trip #${trip.number}: ${trip.title}]. Please use our platform to approve them. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} applied to your trip`, message: `Hello,\n\nTrippee ${foundUser.name} has applied to join [Trip #${trip.number}: ${trip.title}]. Please use our platform to approve them. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
         resolve();
       })
       .catch((error) => { reject(error); });
@@ -465,9 +474,9 @@ export const reject = (tripID, leavingUserID) => {
         await calculateRequiredGear(trip);
         await trip.save();
         User.findById(leavingUserID).then((foundUser) => {
-          mailer.send({ address: foundUser.email, subject: `Trip ${trip.number}: You've been un-admitted`, message: `Hello ${foundUser.name},\n\nYou've were previously approved for [Trip #${trip.number}: ${trip.title}], but the leader has put you back into pending status, which means you are NOT approved to attend this trip.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Planner` });
+          mailer.send({ address: foundUser.email, subject: `Trip #${trip.number}: You've been un-admitted`, message: `Hello ${foundUser.name},\n\nYou've were previously approved for [Trip #${trip.number}: ${trip.title}], but the leader has put you back into pending status, which means you are NOT approved to attend this trip.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: ${foundUser.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been moved from the approved list to the pending list. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+          mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been moved from the approved list to the pending list. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
           resolve();
         });
       })
@@ -504,9 +513,9 @@ export const join = (tripID, joiningUserID) => {
         await calculateRequiredGear(trip);
         await trip.save();
         User.findById(joiningUserID).then((foundUser) => {
-          mailer.send({ address: foundUser.email, subject: `Trip ${trip.number}: You've been approved!`, message: `Hello ${foundUser.name},\n\nYou've been approved for [Trip #${trip.number}: ${trip.title}]!\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Planner` });
+          mailer.send({ address: foundUser.email, subject: `Trip #${trip.number}: You've been approved!`, message: `Hello ${foundUser.name},\n\nYou've been approved for [Trip #${trip.number}: ${trip.title}]!\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: ${foundUser.name} got approved!`, message: `Hello,\n\nYour pending trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been approved. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+          mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} got approved!`, message: `Hello,\n\nYour pending trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been approved. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
         });
         resolve();
       })
@@ -526,7 +535,7 @@ export const leave = (tripID, leavingUserID) => {
       .then(async (trip) => {
         User.findById(leavingUserID).then((leavingUser) => {
           const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: ${leavingUser.name} left your trip`, message: `Hello,\n\nYour approved trippee ${leavingUser.name} for [Trip #${trip.number}: ${trip.title}] cancelled for this trip. You can reach them at ${leavingUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+          mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${leavingUser.name} left your trip`, message: `Hello,\n\nYour approved trippee ${leavingUser.name} for [Trip #${trip.number}: ${trip.title}] cancelled for this trip. You can reach them at ${leavingUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
         });
         let userIdx = -1;
         if (trip.pending.some((pender, idx) => {
@@ -561,8 +570,8 @@ export const toggleTripLeadership = (req, res) => {
         if (req.body.member.user.id === leader.id) {
           trip.leaders.splice(index, 1);
           demoted = true;
-          sendLeadersEmail(req.params.tripID, `Trip #${trip.number}: co-leader change`, `Hello trip leaders and co-leaders,\n\n${req.body.member.user.name} has been removed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nEnjoy the outdoors,\nDOC Planner`);
-          mailer.send({ address: [req.body.member.user.email], subject: `Trip #${trip.number}: co-leader change`, message: `Hello,\n\nYou have been removed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nEnjoy the outdoors,\nDOC Planner` });
+          sendLeadersEmail(req.params.tripID, `Trip #${trip.number}: co-leader change`, `Hello trip leaders and co-leaders,\n\n${req.body.member.user.name} has been removed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nEnjoy the outdoors,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`);
+          mailer.send({ address: [req.body.member.user.email], subject: `Trip #${trip.number}: co-leader change`, message: `Hello,\n\nYou have been removed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nEnjoy the outdoors,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
         }
         return leader._id.equals(req.body.member.user._id);
       });
@@ -570,7 +579,7 @@ export const toggleTripLeadership = (req, res) => {
         trip.members.some((member) => {
           if (member.user._id.equals(req.body.member.user._id)) {
             trip.leaders.push(member.user);
-            sendLeadersEmail(req.params.tripID, `Trip #${trip.number}: new co-leader`, `Hello trip leaders and co-leaders,\n\n${req.body.member.user.name} has been appointed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nEnjoy the outdoors,\nDOC Planner`);
+            sendLeadersEmail(req.params.tripID, `Trip #${trip.number}: new co-leader`, `Hello trip leaders and co-leaders,\n\n${req.body.member.user.name} has been appointed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nEnjoy the outdoors,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`);
           }
           return member.user._id.equals(req.body.member.user._id);
         });
@@ -637,7 +646,7 @@ export const toggleTripLeftStatus = (req, res) => {
           assignment.save();
         });
       }
-      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}left`, `Hello,\n\nYou have marked your Trip #${trip.number}: ${trip.title} as just having ${!status ? 'NOT ' : ''}left ${trip.pickup} at ${constants.formatDateAndTime(now)}, and your trip is due for return at ${constants.formatDateAndTime(trip.endDateAndTime)}.\n\nIMPORTANT: within 90 minutes of returning from this trip, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(req.user, 'mobile', trip._id)}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Planner`);
+      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}left`, `Hello,\n\nYou have marked your Trip #${trip.number}: ${trip.title} as just having ${!status ? 'NOT ' : ''}left ${trip.pickup} at ${constants.formatDateAndTime(now)}, and your trip is due for return at ${constants.formatDateAndTime(trip.endDateAndTime)}.\n\nIMPORTANT: within 90 minutes of returning from this trip, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(req.user, 'mobile', trip._id)}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`);
       res.json(await getTrip(tripID));
     }).catch((error) => { return res.status(500).json(error); });
 };
@@ -662,9 +671,9 @@ export const toggleTripReturnedStatus = (req, res) => {
           assignment.save();
         });
       }
-      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT ' : ''}returned at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Planner`);
+      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT ' : ''}returned at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`);
       if (trip.markedLate) { // will inform OPO that the trip has been returned if it had been marked as late (3 hr) before
-        mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}, has was marked as LATE, has now been marked as ${!status ? 'NOT' : ''} returned by the leader at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Planner` });
+        mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}, has was marked as LATE, has now been marked as ${!status ? 'NOT' : ''} returned by the leader at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
       }
       res.json(await getTrip(tripID));
     }).catch((error) => { return res.status(500).json(error); });
@@ -701,7 +710,7 @@ export const respondToGearRequest = (tripID, status) => {
           default:
             break;
         }
-        mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s group gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Planner` });
+        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s group gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
         resolve(await getTrip(tripID));
       })
       .catch((error) => { reject(error); });
@@ -735,7 +744,7 @@ export const respondToTrippeeGearRequest = (tripID, status) => {
             break;
         }
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s trippee (not group) gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Planner` });
+        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s trippee (not group) gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
         resolve(await getTrip(tripID));
       }).catch((error) => { console.log(error.message); reject(error); });
   });
@@ -754,7 +763,7 @@ export const respondToPCardRequest = (req, res) => {
       trip.pcardAssigned = req.body.pcardAssigned;
       await trip.save();
       const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-      mailer.send({ address: leaderEmails, subject: `Trip ${trip.number}: P-Card requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its P-Card requests ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Planner` });
+      mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: P-Card requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its P-Card requests ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
       res.json(await getTrip(req.params.tripID));
     }).catch((error) => {
       res.status(500).send(error);
