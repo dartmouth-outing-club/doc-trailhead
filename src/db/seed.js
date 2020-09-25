@@ -7,13 +7,9 @@ import Vehicles from '../models/vehicle-model';
 import VehicleRequests from '../models/vehicle-request-model';
 import Assignmnets from '../models/assignment-model';
 
-const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://admin:1NunitoSansDOC!@doc.a8di6.mongodb.net/main?retryWrites=true&w=majority';
 mongoose.set('useCreateIndex', true);
-mongoose.connect(mongoURI, { useNewUrlParser: true }).catch((error) => {
+mongoose.connect('mongodb://localhost/doc-planner', { useNewUrlParser: true }).catch((error) => {
   console.log(`Error connecting to MongoDB: ${error.message}`);
-  mongoose.connect('mongodb://localhost/doc-planner', { useNewUrlParser: true }).then((connection) => {
-    return console.log(`MongoDB connection established at ${connection.connections[0].host}:${connection.connections[0].port}`);
-  });
 });
 // set mongoose promises to es6 default
 mongoose.Promise = global.Promise;
