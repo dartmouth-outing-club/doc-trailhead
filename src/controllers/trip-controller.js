@@ -91,7 +91,9 @@ export const getTrip = (tripID, forUser) => {
           else if (isOnTrip) userTripStatus = 'APPROVED';
           else userTripStatus = 'NONE';
 
-          if (trip.coLeaderCanEditTrip) {
+          if (forUser.role === 'OPO') {
+            isLeaderOnTrip = true;
+          } else if (trip.coLeaderCanEditTrip) {
             isLeaderOnTrip = trip.leaders.some((leader) => {
               return leader._id.equals(forUser.id);
             });
