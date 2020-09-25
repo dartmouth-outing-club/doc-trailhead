@@ -73,7 +73,7 @@ const sendCheckOutEmail = () => {
       if ((today < trip.startDate) && (trip.startDateAndTime.getTime() - today.getTime() <= (48 * 3600000)) && (trip.startDateAndTime.getTime() - today.getTime() >= (24 * 3600000)) && !trip.sentEmails.includes('CHECK_OUT')) {
         console.log('[Mailer] Sending trip check-out email to leaders');
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} is happening soon`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} is happening in 48 hours!\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nIMPORTANT: on the day of the trip, you must mark all attendees here: ${constants.frontendURL}/trip-check-out/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} is happening soon`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} is happening in 48 hours!\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave ${trip.pickup}: ${constants.frontendURL}/trip-check-out/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
         trip.sentEmails = [...trip.sentEmails, 'CHECK_OUT'];
         trip.save();
       }
@@ -91,7 +91,7 @@ const sendCheckInEmail = () => {
       if ((today < trip.endDate) && (trip.endDateAndTime.getTime() - today.getTime() < (2 * 3600000)) && !trip.sentEmails.includes('CHECK_IN')) {
         console.log('[Mailer] Sending trip check-in email to leaders');
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} should be returning soon`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} should return within 2 hours. If an EMERGENCY occured, please get emergency help right away, and follow the link below to mark your status so OPO staff is informed.\n\nIMPORTANT: right after you return, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number} should be returning soon`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} should return within 2 hours.\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark a successful return and check-in all trippees when you arrive at ${trip.dropoff}: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(trip.leaders[0], 'mobile', trip._id)}\n\nIf an EMERGENCY occured, please get emergency help right away, and follow the link above to mark your status so OPO staff is informed.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
         trip.sentEmails = [...trip.sentEmails, 'CHECK_IN'];
         trip.save();
       }
