@@ -24,7 +24,7 @@ export const makeVehicleRequest = (req, res) => {
       vehicleRequest.requestedVehicles = req.body.requestedVehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) }; });
       vehicleRequest.save().then(async (savedRequest) => {
         const requester = await User.findById(vehicleRequest.requester);
-        mailer.send({ address: [requester.email], subject: `New V-Req #${savedRequest.number} created`, message: `Hello,\n\nYou've created a new vehicle request, V-Req #${savedRequest.number}: ${savedRequest.requestDetails}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedRequest._id}\n\nThis request is not associated with any trip.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+        mailer.send({ address: [requester.email], subject: `New V-Req #${savedRequest.number} created`, message: `Hello,\n\nYou've created a new vehicle request, V-Req #${savedRequest.number}: ${savedRequest.requestDetails}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedRequest._id}\n\nThis request is not associated with any trip.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
         res.json(savedRequest);
       }).catch((error) => {
         res.status(500).send(error);
@@ -102,10 +102,10 @@ export const deleteVehicleRequest = async (vehicleRequestID, reason) => {
     for (let i = 0; i < request.assignments.length; i += 1) {
       await Assignment.deleteOne({ _id: request.assignments[i]._id });
     }
-    // mailer.send({ address: constants.OPOEmails, subject: `V-Req #${request.number} deleted`, message: `Hello,\n\nThe V-Req #${request.number} has been deleted.\n\nReason: ${reason || 'no reason provided.'}\n\nIt had ${request.assignments.length} approved vehicle assignments, all of which have been unscheduled so that the vehicles can be assigned to other trips.\n\nDeleted assignments:\n${request.assignments.map((assignment) => { return `\t-\t${assignment.assigned_vehicle.name}: ${constants.formatDateAndTime(assignment.assigned_pickupDateAndTime, 'LONG')} to ${constants.formatDateAndTime(assignment.assigned_returnDateAndTime, 'LONG')}\n`; })}\n\nBest, DOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+    // mailer.send({ address: constants.OPOEmails, subject: `V-Req #${request.number} deleted`, message: `Hello,\n\nThe V-Req #${request.number} has been deleted.\n\nReason: ${reason || 'no reason provided.'}\n\nIt had ${request.assignments.length} approved vehicle assignments, all of which have been unscheduled so that the vehicles can be assigned to other trips.\n\nDeleted assignments:\n${request.assignments.map((assignment) => { return `\t-\t${assignment.assigned_vehicle.name}: ${constants.formatDateAndTime(assignment.assigned_pickupDateAndTime, 'LONG')} to ${constants.formatDateAndTime(assignment.assigned_returnDateAndTime, 'LONG')}\n`; })}\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
   }
   await VehicleRequest.deleteOne({ _id: vehicleRequestID });
-  mailer.send({ address: [request.requester.email], subject: `V-Req #${request.number} deleted`, message: `Hello,\n\nYour [V-Req #${request.number}] has been deleted.\n\nReason: ${reason || 'no reason provided.'}\n\nBest, DOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+  mailer.send({ address: [request.requester.email], subject: `V-Req #${request.number} deleted`, message: `Hello,\n\nYour [V-Req #${request.number}] has been deleted.\n\nReason: ${reason || 'no reason provided.'}\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
   recomputeAllConflicts();
 };
 
@@ -420,10 +420,10 @@ export const respondToVehicleRequest = async (req, res) => {
           await associatedTrip.save(); // needs await because of multi-path async
           email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
           email.subject = `Trip ${associatedTrip.number}: Important changes to your vehicle request`;
-          email.message = `Hello,\n\nYour [Trip #${associatedTrip.number}]'s vehicle request has been processed (or changed) by OPO staff. It may have been approved at your requested time, or at a different time assigned by OPO. Therefore, it is important for you to review the V-Req: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`;
+          email.message = `Hello,\n\nYour [Trip #${associatedTrip.number}]'s vehicle request has been processed (or changed) by OPO staff. It may have been approved at your requested time, or at a different time assigned by OPO. Therefore, it is important for you to review the V-Req: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`;
         }
         email.subject = 'V-Req Update: Important changes to your vehicle request';
-        email.message = `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been processed (or changed) by OPO staff. It may have been approved at your requested time, or at a different time assigned by OPO. Therefore, it is important for you to review the V-Req: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`;
+        email.message = `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been processed (or changed) by OPO staff. It may have been approved at your requested time, or at a different time assigned by OPO. Therefore, it is important for you to review the V-Req: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`;
         mailer.send(email);
         vehicleRequest.save().then((savedVehicleRequest) => {
           VehicleRequest.findById(savedVehicleRequest.id).populate('requester')
@@ -474,12 +474,12 @@ export const denyVehicleRequest = async (req, res) => {
       associatedTrip.vehicleStatus = 'denied';
       email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
       email.subject = `Trip ${associatedTrip.number}: Your vehicle requests got denied`;
-      email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been denied by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`;
+      email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been denied by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`;
       await associatedTrip.save();
     }
     await vehicleRequest.save();
     email.subject = 'Your vehicle requests got denied';
-    email.message = `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been denied by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`;
+    email.message = `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been denied by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`;
     mailer.send(email);
     const updatedVehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments')
       .populate({
@@ -532,12 +532,12 @@ export const cancelAssignments = async (req, res) => {
           associatedTrip.vehicleStatus = 'denied';
           email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email; }));
           email.subject = `Trip ${associatedTrip.number}: Your vehicle requests have been cancelled`;
-          email.message = `Hello,\n\nYour [Trip #${associatedTrip.number}]'s vehicle request has been cancelled by OPO staff. You can send the staff member who reviewed the request an email at mailto:${req.user.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`;
+          email.message = `Hello,\n\nYour [Trip #${associatedTrip.number}]'s vehicle request has been cancelled by OPO staff. You can send the staff member who reviewed the request an email at mailto:${req.user.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`;
           await associatedTrip.save();
         }
       }
       email.subject = 'Your vehicle requests got cancelled';
-      email.message = `Hello,\n\nYour [V-Req #${vehicleRequest.number}]'s assignments have been cancelled by OPO staff. You can send the staff member who reviewed the request an email at mailto:${req.user.email}.\n\nView the vehicle request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`;
+      email.message = `Hello,\n\nYour [V-Req #${vehicleRequest.number}]'s assignments have been cancelled by OPO staff. You can send the staff member who reviewed the request an email at mailto:${req.user.email}.\n\nView the vehicle request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`;
       mailer.send(email);
       await vehicleRequest.save();
     }));

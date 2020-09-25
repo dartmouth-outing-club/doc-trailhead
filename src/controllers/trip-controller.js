@@ -171,7 +171,7 @@ export const createTrip = (creator, data) => {
       }
     });
     trip.save().then(async (savedTrip) => {
-      mailer.send({ address: leaderEmails, subject: `New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've created a new Trip #${savedTrip.number}: ${savedTrip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nIMPORTANT: on the day of the trip, you must check-out all attendees here: ${constants.frontendURL}/trip-check-out/${savedTrip._id}?token=${tokenForUser(creator, 'mobile', savedTrip._id)}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+      mailer.send({ address: leaderEmails, subject: `New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've created a new Trip #${savedTrip.number}: ${savedTrip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nIMPORTANT: on the day of the trip, you must check-out all attendees here: ${constants.frontendURL}/trip-check-out/${savedTrip._id}?token=${tokenForUser(creator, 'mobile', savedTrip._id)}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
       if (data.vehicles.length > 0) {
         // Retrieves the current maximum vehicle request number and then updates it immediately
         const globalsForVehicleRequest = await Global.find({});
@@ -189,7 +189,7 @@ export const createTrip = (creator, data) => {
         vehicleRequest.requestType = 'TRIP';
         vehicleRequest.requestedVehicles = data.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, data.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, data.timezone) }; });
         vehicleRequest.save().then(async (savedVehicleRequest) => {
-          mailer.send({ address: leaderEmails, subject: `re: New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${savedVehicleRequest.number}: ${savedTrip.title} that is linked to your Trip #${savedTrip.number}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedVehicleRequest._id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+          mailer.send({ address: leaderEmails, subject: `re: New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${savedVehicleRequest.number}: ${savedTrip.title} that is linked to your Trip #${savedTrip.number}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedVehicleRequest._id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
           if (data.injectingStatus) savedTrip.vehicleStatus = data.vehicleStatus;
           else savedTrip.vehicleStatus = 'pending';
           savedTrip.vehicleRequest = savedVehicleRequest;
@@ -335,10 +335,10 @@ export const deleteTrip = (req, res) => {
           if (err) {
             res.json({ error: err });
           } else {
-            mailer.send({ address: trip.members.concat(trip.pending).map((person) => { return person.user.email; }), subject: `Trip #${trip.number} deleted`, message: `Hello,\n\nThe Trip #${trip.number}: ${trip.title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${trip.owner.email}.\n\nReason: ${req.body.reason ? req.body.reason : 'no reason provided.'}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+            mailer.send({ address: trip.members.concat(trip.pending).map((person) => { return person.user.email; }), subject: `Trip #${trip.number} deleted`, message: `Hello,\n\nThe Trip #${trip.number}: ${trip.title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${trip.owner.email}.\n\nReason: ${req.body.reason ? req.body.reason : 'no reason provided.'}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
             if (trip.vehicleRequest) {
               await deleteVehicleRequest(trip.vehicleRequest._id, 'Associated trip has been deleted');
-              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `re: Trip #${trip.number} deleted`, message: `Hello,\n\nThe associated vehicle request, V-Req #${trip.vehicleRequest.number}: ${trip.title} that is linked to your Trip #${trip.number} has also been deleted since your trip was deleted. We have informed OPO staff that you will no longer be needing this vehicle.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `re: Trip #${trip.number} deleted`, message: `Hello,\n\nThe associated vehicle request, V-Req #${trip.vehicleRequest.number}: ${trip.title} that is linked to your Trip #${trip.number} has also been deleted since your trip was deleted. We have informed OPO staff that you will no longer be needing this vehicle.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
               res.json({ message: 'Trip and associated vehicle request successfully' });
             } else {
               res.json({ message: 'Trip removed successfully' });
@@ -382,8 +382,8 @@ function calculateRequiredGear(trip) {
     } else {
       trip.trippeeGearStatus = 'pending';
       await trip.save();
-      sendLeadersEmail(trip._id, `Trip #${trip.number}: Trippee gear requests un-approved`, `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}]'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`);
-      mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number}'s gear request changed`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}'s gear requests had been originally approved, but they recently made changes to their trippee gear requests because a new trippee was admitted to the trip.\n\nPlease re-approve their request at: ${constants.frontendURL}/approve-trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+      sendLeadersEmail(trip._id, `Trip #${trip.number}: Trippee gear requests un-approved`, `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}]'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`);
+      mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number}'s gear request changed`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}'s gear requests had been originally approved, but they recently made changes to their trippee gear requests because a new trippee was admitted to the trip.\n\nPlease re-approve their request at: ${constants.frontendURL}/approve-trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
       resolve();
     }
   });
@@ -407,7 +407,7 @@ export const editUserGear = (req, res) => {
           person.requestedGear = trippeeGear;
           if (isOnTrip) {
             User.findById(req.user._id).then((user) => {
-              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `Trip #${trip.number}: ${user.name} changed gear requests`, message: `Hello,\n\nTrippee ${user.name} for [Trip #${trip.number}: ${trip.title}] changed their gear requests. You can reach them at ${user.email}.\n\nView the change here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+              mailer.send({ address: trip.leaders.map((leader) => { return leader.email; }), subject: `Trip #${trip.number}: ${user.name} changed gear requests`, message: `Hello,\n\nTrippee ${user.name} for [Trip #${trip.number}: ${trip.title}] changed their gear requests. You can reach them at ${user.email}.\n\nView the change here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
             });
           }
         }
@@ -431,16 +431,55 @@ export const editUserGear = (req, res) => {
  * @param {String} joiningUserID
  * @param {} requestedGear
  */
-export const addToPending = (tripID, joiningUserID, requestedGear) => {
+export const apply = (tripID, joiningUserID, requestedGear) => {
   return new Promise((resolve, reject) => {
     populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
       .then(async (trip) => {
         trip.pending.push({ user: joiningUserID, requestedGear });
         await trip.save();
         const foundUser = await User.findById(joiningUserID);
-        mailer.send({ address: foundUser.email, subject: 'Confirmation: You\'ve signed up for a trip', message: `Hello ${foundUser.name},\n\nYou've signed up for [Trip #${trip.number}: ${trip.title}], awaiting leader approval.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+        mailer.send({ address: foundUser.email, subject: 'Confirmation: You\'ve signed up for a trip', message: `Hello ${foundUser.name},\n\nYou've signed up for [Trip #${trip.number}: ${trip.title}], awaiting leader approval.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
         // const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        // mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} applied to your trip`, message: `Hello,\n\nTrippee ${foundUser.name} has applied to join [Trip #${trip.number}: ${trip.title}]. Please use our platform to approve them. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+        // mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} applied to your trip`, message: `Hello,\n\nTrippee ${foundUser.name} has applied to join [Trip #${trip.number}: ${trip.title}]. Please use our platform to approve them. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
+        resolve();
+      })
+      .catch((error) => { reject(error); });
+  });
+};
+
+/**
+ * Moves a pending member to the approved list, while adding their gear requests to the trip's total.
+ * Sends approved notification email to the trippee and a notice to all leaders and co-leaders.
+ * @param {String} tripID The ID of the trip to join
+ * @param {String} admittedUserID The user ID who is requesting to join
+ */
+export const admit = (tripID, admittedUserID) => {
+  return new Promise((resolve, reject) => {
+    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
+      .then(async (trip) => {
+        let joiningUserPender = {};
+        // Remove user from pending list
+        trip.pending.forEach((pender, index) => {
+          if (pender.user._id.toString() === admittedUserID) {
+            // eslint-disable-next-line prefer-destructuring
+            joiningUserPender = trip.pending.splice(index, 1)[0];
+          }
+        });
+
+        if (joiningUserPender == null) reject(new Error('This user is not yet on the pending list for this trip'));
+
+        // Add user to member list
+        if (!trip.members.some((member) => { return member.user._id.toString() === admittedUserID; })) {
+          trip.members.push(joiningUserPender);
+        } else reject(new Error('This user is already approved to be on the trip'));
+
+        await calculateRequiredGear(trip);
+        await trip.save();
+        User.findById(admittedUserID).then((foundUser) => {
+          mailer.send({ address: foundUser.email, subject: `Trip #${trip.number}: You've been approved! 🙌`, message: `Hello ${foundUser.name},\n\nYou've been approved for [Trip #${trip.number}: ${trip.title}]! 🎉\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nStay Crunchy 🏔,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
+          // const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+          // mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} got approved!`, message: `Hello,\n\nYour pending trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been approved. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
+        });
         resolve();
       })
       .catch((error) => { reject(error); });
@@ -454,7 +493,7 @@ export const addToPending = (tripID, joiningUserID, requestedGear) => {
  * @param {String} tripID The ID of the trip to leave
  * @param {String} leavinUserID The user ID who is leaving
  */
-export const reject = (tripID, leavingUserID) => {
+export const unAdmit = (tripID, leavingUserID) => {
   return new Promise((resolve, reject) => {
     populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
       .then(async (trip) => {
@@ -466,6 +505,13 @@ export const reject = (tripID, leavingUserID) => {
             leavingUserPender = trip.members.splice(index, 1)[0];
           }
         });
+        // Remove the trippee from the leader list if they were co-leader
+        trip.leaders.forEach((leader, index) => {
+          if (leader._id.toString() === leavingUserID) {
+            // eslint-disable-next-line prefer-destructuring
+            trip.leaders.splice(index, 1);
+          }
+        });
         // Add user to pending list
         if (leavingUserPender == null) reject(new Error('This user was not on the approved list before'));
         if (!trip.pending.some((pender) => { return pender.user._id.toString() === leavingUserID; })) {
@@ -474,9 +520,9 @@ export const reject = (tripID, leavingUserID) => {
         await calculateRequiredGear(trip);
         await trip.save();
         User.findById(leavingUserID).then((foundUser) => {
-          mailer.send({ address: foundUser.email, subject: `Trip #${trip.number}: You've been un-admitted`, message: `Hello ${foundUser.name},\n\nYou've were previously approved for [Trip #${trip.number}: ${trip.title}], but the leader has put you back into pending status, which means you are NOT approved to attend this trip.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+          mailer.send({ address: foundUser.email, subject: `Trip #${trip.number}: You've been un-admitted`, message: `Hello ${foundUser.name},\n\nYou've were previously approved for [Trip #${trip.number}: ${trip.title}], but the leader has put you back into pending status, which means you are not approved to attend this trip 🥺.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nStay Crunchy 🚵‍♀️,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
           // const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          // mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been moved from the approved list to the pending list. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+          // mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been moved from the approved list to the pending list. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
           resolve();
         });
       })
@@ -485,41 +531,30 @@ export const reject = (tripID, leavingUserID) => {
 };
 
 /**
- * Moves a pending member to the approved list, while adding their gear requests to the trip's total.
- * Sends approved notification email to the trippee and a notice to all leaders and co-leaders.
- * @param {String} tripID The ID of the trip to join
- * @param {String} joiningUserID The user ID who is requesting to join
+ * Removes a currently pending trippee.
+ * Sends all trip leaders and co-leaders a notification email.
+ * @param {String} tripID The ID of the trip to leave
+ * @param {String} rejectedUserID The user ID who is leaving
  */
-export const join = (tripID, joiningUserID) => {
+export const reject = (tripID, rejectedUserID) => {
   return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
+    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'pendingUser'])
       .then(async (trip) => {
-        let joiningUserPender = {};
-        // Remove user from pending list
+        let rejectedUser;
+        // Remove the trippee from the member list
         trip.pending.forEach((pender, index) => {
-          if (pender.user._id.toString() === joiningUserID) {
+          if (pender.user._id.toString() === rejectedUserID) {
             // eslint-disable-next-line prefer-destructuring
-            joiningUserPender = trip.pending.splice(index, 1)[0];
+            rejectedUser = trip.pending.splice(index, 1)[0]?.user;
           }
         });
-
-        if (joiningUserPender == null) reject(new Error('This user is not yet on the pending list for this trip'));
-
-        // Add user to member list
-        if (!trip.members.some((member) => { return member.user._id.toString() === joiningUserID; })) {
-          trip.members.push(joiningUserPender);
-        } else reject(new Error('This user is already approved to be on the trip'));
-
-        await calculateRequiredGear(trip);
+        // Add user to pending list
+        if (rejectedUser == null) reject(new Error('This user was not on the waitlist'));
         await trip.save();
-        User.findById(joiningUserID).then((foundUser) => {
-          mailer.send({ address: foundUser.email, subject: `Trip #${trip.number}: You've been approved!`, message: `Hello ${foundUser.name},\n\nYou've been approved for [Trip #${trip.number}: ${trip.title}]!\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
-          // const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          // mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} got approved!`, message: `Hello,\n\nYour pending trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been approved. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
-        });
+        mailer.send({ address: rejectedUser.email, subject: `Trip #${trip.number}: it's too full`, message: `Hello ${rejectedUser.name},\n\nYou signed up for [Trip #${trip.number}: ${trip.title}], but unfortunately it's too full 😢. The leader wasn't able to admit you. \n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nStay Crunchy 🌲,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply 🤖.` });
         resolve();
       })
-      .catch((error) => { reject(error); });
+      .catch((error) => { console.log(error); reject(error); });
   });
 };
 
@@ -533,10 +568,6 @@ export const leave = (tripID, leavingUserID) => {
   return new Promise((resolve, reject) => {
     populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser'])
       .then(async (trip) => {
-        User.findById(leavingUserID).then((leavingUser) => {
-          const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${leavingUser.name} left your trip`, message: `Hello,\n\nYour approved trippee ${leavingUser.name} for [Trip #${trip.number}: ${trip.title}] cancelled for this trip. You can reach them at ${leavingUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
-        });
         let userIdx = -1;
         if (trip.pending.some((pender, idx) => {
           if (pender.user._id.toString() === leavingUserID) {
@@ -548,6 +579,10 @@ export const leave = (tripID, leavingUserID) => {
         } else if (trip.members.some((member, idx) => {
           if (member.user._id.toString() === leavingUserID) {
             userIdx = idx;
+            User.findById(leavingUserID).then((leavingUser) => {
+              const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
+              mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${leavingUser.name} left your trip`, message: `Hello,\n\nYour approved trippee ${leavingUser.name} for [Trip #${trip.number}: ${trip.title}] cancelled for this trip 🙁. You can reach them at ${leavingUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
+            });
             return true;
           } else return false;
         })) {
@@ -570,16 +605,17 @@ export const toggleTripLeadership = (req, res) => {
         if (req.body.member.user.id === leader.id) {
           trip.leaders.splice(index, 1);
           demoted = true;
-          sendLeadersEmail(req.params.tripID, `Trip #${trip.number}: co-leader change`, `Hello trip leaders and co-leaders,\n\n${req.body.member.user.name} has been removed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nEnjoy the outdoors,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`);
-          mailer.send({ address: [req.body.member.user.email], subject: `Trip #${trip.number}: co-leader change`, message: `Hello,\n\nYou have been removed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nEnjoy the outdoors,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+          sendLeadersEmail(req.params.tripID, `Trip #${trip.number}: co-leader change`, `Hello trip leaders and co-leaders,\n\n${req.body.member.user.name} has been removed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nStay Crunchy 🌳,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`);
+          mailer.send({ address: [req.body.member.user.email], subject: `Trip #${trip.number}: co-leader change`, message: `Hello,\n\nYou have been removed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nStay Crunchy ☀️,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
         }
         return leader._id.equals(req.body.member.user._id);
       });
       if (!demoted) {
         trip.members.some((member) => {
           if (member.user._id.equals(req.body.member.user._id)) {
+            mailer.send({ address: [req.body.member.user.email], subject: `Trip #${trip.number}: you're now a co-leader!`, message: `Hello ${req.body.member.user.name},\n\nCongrats - you've been made a co-leader for [Trip #${trip.number}: ${trip.title}] 👏. You can reach the trip leader at ${trip.owner.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nStay Crunchy 🏞,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
             trip.leaders.push(member.user);
-            sendLeadersEmail(req.params.tripID, `Trip #${trip.number}: new co-leader`, `Hello trip leaders and co-leaders,\n\n${req.body.member.user.name} has been appointed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nEnjoy the outdoors,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`);
+            sendLeadersEmail(req.params.tripID, `Trip #${trip.number}: new co-leader`, `Hello trip leaders and co-leaders,\n\n${req.body.member.user.name} has been appointed as a co-leader for [Trip #${trip.number}: ${trip.title}] 🎉. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nStay Crunchy 🏞,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`);
           }
           return member.user._id.equals(req.body.member.user._id);
         });
@@ -646,7 +682,7 @@ export const toggleTripLeftStatus = (req, res) => {
           assignment.save();
         });
       }
-      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}left`, `Hello,\n\nYou have marked your Trip #${trip.number}: ${trip.title} as just having ${!status ? 'NOT ' : ''}left ${trip.pickup} at ${constants.formatDateAndTime(now)}, and your trip is due for return at ${constants.formatDateAndTime(trip.endDateAndTime)}.\n\nIMPORTANT: within 90 minutes of returning from this trip, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(req.user, 'mobile', trip._id)}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`);
+      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}left`, `Hello,\n\nYou have marked your Trip #${trip.number}: ${trip.title} as just having ${!status ? 'NOT ' : ''}left ${trip.pickup} at ${constants.formatDateAndTime(now)}, and your trip is due for return at ${constants.formatDateAndTime(trip.endDateAndTime)}.\n\nIMPORTANT: within 90 minutes of returning from this trip, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${tokenForUser(req.user, 'mobile', trip._id)}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`);
       res.json(await getTrip(tripID));
     }).catch((error) => { return res.status(500).json(error); });
 };
@@ -671,9 +707,9 @@ export const toggleTripReturnedStatus = (req, res) => {
           assignment.save();
         });
       }
-      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT ' : ''}returned at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.`);
+      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT ' : ''}returned at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`);
       if (trip.markedLate) { // will inform OPO that the trip has been returned if it had been marked as late (3 hr) before
-        mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}, has was marked as LATE, has now been marked as ${!status ? 'NOT' : ''} returned by the leader at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+        mailer.send({ address: constants.OPOEmails, subject: `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}, has was marked as LATE, has now been marked as ${!status ? 'NOT' : ''} returned by the leader at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
       }
       res.json(await getTrip(tripID));
     }).catch((error) => { return res.status(500).json(error); });
@@ -710,7 +746,7 @@ export const respondToGearRequest = (tripID, status) => {
           default:
             break;
         }
-        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s group gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s group gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
         resolve(await getTrip(tripID));
       })
       .catch((error) => { reject(error); });
@@ -744,7 +780,7 @@ export const respondToTrippeeGearRequest = (tripID, status) => {
             break;
         }
         const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s trippee (not group) gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+        mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: Gear requests ${message}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s trippee (not group) gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
         resolve(await getTrip(tripID));
       }).catch((error) => { console.log(error.message); reject(error); });
   });
@@ -763,7 +799,7 @@ export const respondToPCardRequest = (req, res) => {
       trip.pcardAssigned = req.body.pcardAssigned;
       await trip.save();
       const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-      mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: P-Card requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its P-Card requests ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
+      mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: P-Card requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its P-Card requests ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
       res.json(await getTrip(req.params.tripID));
     }).catch((error) => {
       res.status(500).send(error);

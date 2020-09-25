@@ -39,18 +39,23 @@ tripsRouter.route('/:tripID')
  */
 
 tripsRouter.post('/apply/:tripID', requireAuth, (req, res) => {
-  controllers.trips.addToPending(req.params.tripID, req.user._id, req.body.trippeeGear)
+  controllers.trips.apply(req.params.tripID, req.user._id, req.body.trippeeGear)
     .then(() => {
       controllers.trips.getTrip(req.params.tripID, req.user).then((result) => { return res.json(result); });
     })
-    .catch((error) => { console.log(error); logError({ type: 'addToPending', message: error.message }); res.status(500).send(error.message); });
+    .catch((error) => { console.log(error); logError({ type: 'applyToTrip', message: error.message }); res.status(500).send(error.message); });
 });
 
-tripsRouter.post('/join/:tripID', requireAuth, (req, res) => {
-  controllers.trips.join(req.params.tripID, req.body.joiningUserID).then(() => { res.json(); }).catch((error) => { res.status(500).json(error); });
-});
 tripsRouter.post('/reject/:tripID', requireAuth, (req, res) => {
   controllers.trips.reject(req.params.tripID, req.body.rejectedUserID).then(() => { return res.json(); }).catch((error) => { res.status(500).json(error); });
+});
+
+tripsRouter.post('/admit/:tripID', requireAuth, (req, res) => {
+  controllers.trips.admit(req.params.tripID, req.body.admittedUserID).then(() => { res.json(); }).catch((error) => { res.status(500).json(error); });
+});
+
+tripsRouter.post('/unadmit/:tripID', requireAuth, (req, res) => {
+  controllers.trips.unAdmit(req.params.tripID, req.body.unAdmittedUserID).then(() => { return res.json(); }).catch((error) => { res.status(500).json(error); });
 });
 
 tripsRouter.post('/leave/:tripID', requireAuth, (req, res) => {
