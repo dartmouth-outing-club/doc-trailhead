@@ -8,11 +8,16 @@ export const backendURL = process.env.NODE_ENV === 'development' ? 'http://local
 
 export const OPOEmails = ['rory.c.gawler@dartmouth.edu', 'willow.nilsen@dartmouth.edu', 'coz.teplitz@dartmouth.edu', 'gunnar.w.johnson@dartmouth.edu'];
 
-export const createDateObject = (date, time) => {
+export const createDateObject = (date, time, timezone) => {
   // adapted from https://stackoverflow.com/questions/2488313/javascripts-getdate-returns-wrong-date
   const parts = date.toString().match(/(\d+)/g);
   const splitTime = time.split(':');
-  return new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
+  if (timezone) {
+    const dateUTC = new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
+    return new Date(`${dateFormat(dateUTC, 'mmm dd yyyy hh:MM:ss')} ${timezone}`);
+  } else {
+    return new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
+  }
 };
 
 export const formatDateAndTime = (date, mode) => {
