@@ -127,8 +127,8 @@ export const createTrip = (creator, data) => {
     trip.startDate = data.startDate;
     trip.endDate = data.endDate;
     trip.startTime = data.startTime;
-    trip.startDateAndTime = constants.createDateObject(data.startDate, data.startTime);
-    trip.endDateAndTime = constants.createDateObject(data.endDate, data.endTime);
+    trip.startDateAndTime = constants.createDateObject(data.startDate, data.startTime, data.timezone);
+    trip.endDateAndTime = constants.createDateObject(data.endDate, data.endTime, data.timezone);
     trip.endTime = data.endTime;
     trip.title = data.title;
     trip.description = data.description;
@@ -187,7 +187,7 @@ export const createTrip = (creator, data) => {
         vehicleRequest.requestDetails = data.description;
         vehicleRequest.associatedTrip = savedTrip._id;
         vehicleRequest.requestType = 'TRIP';
-        vehicleRequest.requestedVehicles = data.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime) }; });
+        vehicleRequest.requestedVehicles = data.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, data.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, data.timezone) }; });
         vehicleRequest.save().then(async (savedVehicleRequest) => {
           mailer.send({ address: leaderEmails, subject: `re: New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${savedVehicleRequest.number}: ${savedTrip.title} that is linked to your Trip #${savedTrip.number}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedVehicleRequest._id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
           if (data.injectingStatus) savedTrip.vehicleStatus = data.vehicleStatus;
@@ -213,8 +213,8 @@ export const updateTrip = async (req, res) => {
       trip.endDate = req.body.endDate;
       trip.startTime = req.body.startTime;
       trip.endTime = req.body.endTime;
-      trip.startDateAndTime = constants.createDateObject(req.body.startDate, req.body.startTime);
-      trip.endDateAndTime = constants.createDateObject(req.body.endDate, req.body.endTime);
+      trip.startDateAndTime = constants.createDateObject(req.body.startDate, req.body.startTime, req.body.timezone);
+      trip.endDateAndTime = constants.createDateObject(req.body.endDate, req.body.endTime, req.body.timezone);
       trip.title = req.body.title;
       trip.description = req.body.description;
       trip.coLeaderCanEditTrip = req.body.coLeaderCanEditTrip;
@@ -287,7 +287,7 @@ export const updateTrip = async (req, res) => {
         vehicleRequest.mileage = req.body.mileage;
         vehicleRequest.associatedTrip = trip;
         vehicleRequest.requestType = 'TRIP';
-        vehicleRequest.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime) }; });
+        vehicleRequest.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) }; });
         const savedVehicleRequest = await vehicleRequest.save();
         trip.vehicleStatus = 'pending';
         trip.vehicleRequest = savedVehicleRequest;
@@ -300,7 +300,7 @@ export const updateTrip = async (req, res) => {
           const updates = {};
           if (req.body.mileage) updates.mileage = req.body.mileage;
           if (req.body.description) updates.requestDetails = req.body.description;
-          if (req.body.vehicles.length > 0) updates.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime) }; });
+          if (req.body.vehicles.length > 0) updates.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) }; });
           await VehicleRequest.updateOne({ _id: req.body.vehicleReqId }, updates);
         }
       }

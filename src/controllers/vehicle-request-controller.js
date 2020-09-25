@@ -21,7 +21,7 @@ export const makeVehicleRequest = (req, res) => {
       vehicleRequest.mileage = req.body.mileage;
       vehicleRequest.noOfPeople = req.body.noOfPeople;
       vehicleRequest.requestType = req.body.requestType;
-      vehicleRequest.requestedVehicles = req.body.requestedVehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime) }; });
+      vehicleRequest.requestedVehicles = req.body.requestedVehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) }; });
       vehicleRequest.save().then(async (savedRequest) => {
         const requester = await User.findById(vehicleRequest.requester);
         mailer.send({ address: [requester.email], subject: `New V-Req #${savedRequest.number} created`, message: `Hello,\n\nYou've created a new vehicle request, V-Req #${savedRequest.number}: ${savedRequest.requestDetails}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedRequest._id}\n\nThis request is not associated with any trip.\n\nBest,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply.` });
@@ -79,8 +79,10 @@ export const updateVehicleRequest = (req, res) => {
       } else {
         vehicleRequest.requester = req.body.requester;
         vehicleRequest.requestDetails = req.body.requestDetails;
+        vehicleRequest.mileage = req.body.mileage;
         vehicleRequest.requestType = req.body.requestType;
-        vehicleRequest.requestedVehicles = req.body.requestedVehicles;
+        vehicleRequest.noOfPeople = req.body.noOfPeople;
+        vehicleRequest.requestedVehicles = req.body.requestedVehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) }; });
         vehicleRequest.save()
           .then((savedRequest) => {
             return res.json(savedRequest);
@@ -241,12 +243,12 @@ export const precheckAssignment = (req, res) => {
     // setting pickup times
     proposedAssignment.assigned_pickupDate = req.body.pickupDate;
     proposedAssignment.assigned_pickupTime = req.body.pickupTime;
-    const pickupDateAndTime = constants.createDateObject(req.body.pickupDate, req.body.pickupTime);
+    const pickupDateAndTime = constants.createDateObject(req.body.pickupDate, req.body.pickupTime, req.body.timezone);
     proposedAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
     // setting return times
     proposedAssignment.assigned_returnDate = req.body.returnDate;
     proposedAssignment.assigned_returnTime = req.body.returnTime;
-    const returnDateAndTime = constants.createDateObject(req.body.returnDate, req.body.returnTime);
+    const returnDateAndTime = constants.createDateObject(req.body.returnDate, req.body.returnTime, req.body.timezone);
     proposedAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
     checkForConflicts(proposedAssignment).then((conflictingAssignments) => {
@@ -299,12 +301,12 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
           // setting pickup times
           existingAssignment.assigned_pickupDate = proposedAssignment.pickupDate;
           existingAssignment.assigned_pickupTime = proposedAssignment.pickupTime;
-          const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
+          const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime, proposedAssignment.timezone);
           existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
           // setting return times
           existingAssignment.assigned_returnDate = proposedAssignment.returnDate;
           existingAssignment.assigned_returnTime = proposedAssignment.returnTime;
-          const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime);
+          const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime, proposedAssignment.timezone);
           existingAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
           existingAssignment.assigned_key = proposedAssignment.assignedKey;
@@ -349,12 +351,12 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
         // setting pickup times
         newAssignment.assigned_pickupDate = proposedAssignment.pickupDate;
         newAssignment.assigned_pickupTime = proposedAssignment.pickupTime;
-        const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime);
+        const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime, proposedAssignment.timezone);
         newAssignment.assigned_pickupDateAndTime = pickupDateAndTime;
         // setting return times
         newAssignment.assigned_returnDate = proposedAssignment.returnDate;
         newAssignment.assigned_returnTime = proposedAssignment.returnTime;
-        const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime);
+        const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime, proposedAssignment.timezone);
         newAssignment.assigned_returnDateAndTime = returnDateAndTime;
 
         newAssignment.save().then((savedAssignment) => {
