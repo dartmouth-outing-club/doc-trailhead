@@ -146,7 +146,10 @@ const send3HourLateEmail = () => {
 /**
  * Schedules time-based emails.
  */
-scheduler.schedule(sendCheckInEmail, 'minutely');
-scheduler.schedule(sendCheckOutEmail, 'minutely');
-scheduler.schedule(send90MinuteLateEmail, 'minutely');
-scheduler.schedule(send3HourLateEmail, 'minutely');
+if (process.env.NODE_ENV !== 'development') {
+  console.log('Scheduling');
+  scheduler.schedule(sendCheckInEmail, 'minutely');
+  scheduler.schedule(sendCheckOutEmail, 'minutely');
+  scheduler.schedule(send90MinuteLateEmail, 'minutely');
+  scheduler.schedule(send3HourLateEmail, 'minutely');
+}
