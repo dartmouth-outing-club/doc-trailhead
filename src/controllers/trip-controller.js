@@ -35,6 +35,7 @@ const sendLeadersEmail = (tripID, subject, message) => {
  Fetches all trips with all fields populated.
  */
 export const getTrips = (filters = {}) => {
+  filters.private = false;
   return new Promise((resolve, reject) => {
     populateTripDocument(Trip.find(filters), ['club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
       .then((trips) => {
@@ -126,13 +127,14 @@ export const createTrip = (creator, data) => {
     // Creates the new trip
     const trip = new Trip();
     trip.number = nextTripNumber;
+    trip.title = data.title;
+    trip.private = data.private;
     trip.startDate = data.startDate;
     trip.endDate = data.endDate;
     trip.startTime = data.startTime;
     trip.startDateAndTime = constants.createDateObject(data.startDate, data.startTime, data.timezone);
     trip.endDateAndTime = constants.createDateObject(data.endDate, data.endTime, data.timezone);
     trip.endTime = data.endTime;
-    trip.title = data.title;
     trip.description = data.description;
     trip.club = data.club;
     trip.cost = data.cost;
@@ -211,13 +213,14 @@ export const updateTrip = async (req, res) => {
   try {
     const trip = await Trip.findById(req.params.tripID);
     if (trip.leaders.some((leaderID) => { return leaderID.toString() === req.user._id.toString(); }) || req.user.role === 'OPO') {
+      trip.title = req.body.title;
+      trip.private = req.body.private;
       trip.startDate = req.body.startDate;
       trip.endDate = req.body.endDate;
       trip.startTime = req.body.startTime;
       trip.endTime = req.body.endTime;
       trip.startDateAndTime = constants.createDateObject(req.body.startDate, req.body.startTime, req.body.timezone);
       trip.endDateAndTime = constants.createDateObject(req.body.endDate, req.body.endTime, req.body.timezone);
-      trip.title = req.body.title;
       trip.description = req.body.description;
       trip.coLeaderCanEditTrip = req.body.coLeaderCanEditTrip;
       trip.club = req.body.club;
