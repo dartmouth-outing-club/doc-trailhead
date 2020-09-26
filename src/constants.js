@@ -14,7 +14,7 @@ export const createDateObject = (date, time, timezone) => {
   const splitTime = time.split(':');
   if (timezone) {
     const dateUTC = new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
-    return new Date(`${dateFormat(dateUTC, 'mmm dd yyyy hh:MM:ss')} ${timezone}`);
+    return new Date(`${dateFormat(dateUTC, 'mmm dd yyyy hh:MM:ss TT')} ${timezone}`);
   } else {
     return new Date(parts[0], parts[1] - 1, parts[2], splitTime[0], splitTime[1]);
   }
