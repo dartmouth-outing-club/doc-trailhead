@@ -606,7 +606,6 @@ export const toggleTripLeadership = (req, res) => {
     .then(async (trip) => {
       let demoted = false;
       trip.leaders.some((leader, index) => {
-        console.log(req.body.member.user);
         if (req.body.member.user.id === leader.id) {
           trip.leaders.splice(index, 1);
           demoted = true;
