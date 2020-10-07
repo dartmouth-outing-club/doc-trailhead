@@ -1,13 +1,12 @@
 {
-  "name": "example_express_with_es6",
-  "version": "2.0.0",
+  "name": "trailhead-backend",
+  "version": "1.0.0",
   "description": "",
-  "author": "",
+  "author": "Ziray Hao",
   "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev1": "NODE_ENV=development MONGODB_URI=mongodb://localhost/doc-planner nodemon src/server.js --exec babel-node",
-    "dev2": "NODE_ENV=development nodemon src/server.js --exec babel-node",
+    "dev-localDB": "NODE_ENV=development MONGODB_URI=mongodb://localhost/doc-planner nodemon src/server.js --exec babel-node",
+    "dev-prodDB": "NODE_ENV=development nodemon src/server.js --exec babel-node",
     "start": "babel-node src/server.js",
     "build": "babel src -d dist",
     "prod": "yarn build; node dist/server.js",
