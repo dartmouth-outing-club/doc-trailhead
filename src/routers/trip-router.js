@@ -24,6 +24,17 @@ tripsRouter.route('/')
     }).catch((error) => { return res.status(500).json(error); });
   });
 
+tripsRouter.route('/public')
+  .get(async (req, res) => {
+    controllers.trips.fetchPublicTrips()
+      .then((result) => { return res.json(result); })
+      .catch((error) => {
+        console.error(error);
+        logError({ type: 'fetchPublicTrips', message: error.message });
+        return res.status(500).send(error.message);
+      });
+  });
+
 tripsRouter.route('/:tripID')
   .get(requireAuth, async (req, res) => {
     controllers.trips.getTrip(req.params.tripID, req.user)

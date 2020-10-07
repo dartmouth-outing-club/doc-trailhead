@@ -47,6 +47,12 @@ export const getTrips = (filters = {}) => {
   });
 };
 
+export const fetchPublicTrips = (filters = {}) => {
+  filters.private = false;
+  filters.past = false;
+  return populateTripDocument(Trip.find(filters), ['club', 'leaders']);
+};
+
 /**
  * Fetches only trips that have gear, P-Card, or vehicle requests.
  * @param {express.req} req
