@@ -5,6 +5,7 @@ import path from 'path';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import * as dateMath from 'date-arithmetic';
 import apiRouter from './router';
 import { mailer, scheduler } from './services';
 import * as constants from './constants';
@@ -143,11 +144,25 @@ const send3HourLateEmail = () => {
   });
 };
 
+const markTripsAsPast = () => {
+  const now = new Date();
+  const yesterday = dateMath.subtract(now, 1, 'day');
+  Trip.find({ past: false }).sort({ startDateAndTime: 'ascending' }).then((trips) => {
+    trips.forEach((trip) => {
+      if (trip.startDateAndTime < yesterday) {
+        trip.past = true;
+        trip.save();
+      }
+    });
+  });
+};
+
 /**
  * Schedules time-based emails.
  */
 if (process.env.NODE_ENV !== 'development') {
   console.log('Scheduling');
+  scheduler.schedule(markTripsAsPast, 'daily');
   scheduler.schedule(sendCheckInEmail, 'minutely');
   scheduler.schedule(sendCheckOutEmail, 'minutely');
   scheduler.schedule(send90MinuteLateEmail, 'minutely');
