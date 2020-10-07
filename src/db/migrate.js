@@ -1,25 +1,34 @@
 /* eslint-disable no-unused-vars */
 import mongoose from 'mongoose';
-import Trip from '../models/trip-model';
-import Global from '../models/global-model';
-import VehicleRequest from '../models/vehicle-request-model';
-import UserModel from '../models/user-model';
+import models from '../models';
 
-const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost/doc-planner';
+const mongoURI = process.env.MONGODB_URI;
 mongoose.set('useCreateIndex', true);
 mongoose.connect(mongoURI, { useNewUrlParser: true }).then((connection) => {
   return console.log(`MongoDB connection established at ${connection.connections[0].host}:${connection.connections[0].port}`);
 });
 mongoose.Promise = global.Promise; // Set mongoose promises to es6 default
 
+let documentsModified = 0;
+let documentsFailed = 0;
 
-function migrateDB() {
-  Trip.find({}).then((trips) => {
-    trips.forEach((trip) => {
-      trip.private = false;
-      trip.save();
-    });
-  });
+async function migrateDB() {
+  await Promise.all(
+    (await models.trip.find({})).map(async (trip) => {
+      trip.past = false;
+      try {
+        await trip.save();
+        documentsModified += 1;
+      } catch (error) {
+        console.error(error);
+        documentsFailed += 1;
+      }
+    }),
+  );
 }
 
-migrateDB();
+migrateDB().then(() => {
+  console.log('Documents modified: ', documentsModified);
+  console.log('Documents failed: ', documentsFailed);
+  process.exit();
+});
