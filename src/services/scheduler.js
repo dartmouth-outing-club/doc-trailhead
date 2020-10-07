@@ -3,7 +3,7 @@ import cron from 'node-cron';
 const schedule = (task, frequency) => {
   switch (frequency) {
     case 'daily':
-      cron.schedule('0 0 * * *', task);
+      cron.schedule('0 1 * * *', task);
       break;
     case 'minutely':
       cron.schedule('* * * * *', task);
