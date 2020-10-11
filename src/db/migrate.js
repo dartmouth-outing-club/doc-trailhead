@@ -14,10 +14,10 @@ let documentsFailed = 0;
 
 async function migrateDB() {
   await Promise.all(
-    (await models.trip.find({})).map(async (trip) => {
-      trip.past = false;
+    (await models.club.find({})).map(async (doc) => {
+      doc.active = true;
       try {
-        await trip.save();
+        await doc.save();
         documentsModified += 1;
       } catch (error) {
         console.error(error);
