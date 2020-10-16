@@ -446,10 +446,12 @@ export const apply = (tripID, joiningUserID, requestedGear) => {
   return new Promise((resolve, reject) => {
     populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
       .then(async (trip) => {
-        trip.pending.push({ user: joiningUserID, requestedGear });
-        await trip.save();
-        const foundUser = await User.findById(joiningUserID);
-        mailer.send({ address: foundUser.email, subject: 'Confirmation: You\'ve applied to go on a trip', message: `Hello ${foundUser.name},\n\nYou've applied to go on [Trip #${trip.number}: ${trip.title}]. However, this does not mean you have been approved for the trip. If you chose to no longer go on the trip, you can still remove yourself from the waitlist. Only once you receive an email about getting approved for this trip can you attend. \n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
+        if (!trip.pending.some((pender) => { return pender.user._id.toString() !== joiningUserID; })) {
+          trip.pending.push({ user: joiningUserID, requestedGear });
+          await trip.save();
+          const foundUser = await User.findById(joiningUserID);
+          mailer.send({ address: foundUser.email, subject: 'Confirmation: You\'ve applied to go on a trip', message: `Hello ${foundUser.name},\n\nYou've applied to go on [Trip #${trip.number}: ${trip.title}]. However, this does not mean you have been approved for the trip. If you chose to no longer go on the trip, you can still remove yourself from the waitlist. Only once you receive an email about getting approved for this trip can you attend. \n\nView the trip here: ${constants.frontendURL}/trip/${tripID}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
+        }
         // const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
         // mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} applied to your trip`, message: `Hello,\n\nTrippee ${foundUser.name} has applied to join [Trip #${trip.number}: ${trip.title}]. Please use our platform to approve them. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
         resolve();
