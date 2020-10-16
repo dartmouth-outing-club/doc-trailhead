@@ -446,7 +446,7 @@ export const apply = (tripID, joiningUserID, requestedGear) => {
   return new Promise((resolve, reject) => {
     populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
       .then(async (trip) => {
-        if (!trip.pending.some((pender) => { return pender.user._id.toString() !== joiningUserID; })) {
+        if (!trip.pending.some((pender) => { return pender.user._id.toString() === joiningUserID; })) {
           trip.pending.push({ user: joiningUserID, requestedGear });
           await trip.save();
           const foundUser = await User.findById(joiningUserID);
