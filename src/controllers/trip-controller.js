@@ -320,6 +320,9 @@ export const updateTrip = async (req, res) => {
       const allLeaders = [];
       coleaders.forEach((coleader) => {
         allLeaders.push(coleader._id);
+        if (!trip.members.find((member) => { return member.user._id.toString() === coleader._id.toString(); })) {
+          trip.members.push({ user: coleader._id, requestedGear: [] });
+        }
       });
       trip.leaders = allLeaders;
       await trip.save();
