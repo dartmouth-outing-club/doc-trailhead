@@ -65,7 +65,7 @@ app.listen(port);
 console.log(`listening on: ${port}`);
 
 /**
- * Sends check-out link for trips on their return to leaders.
+ * Sends check-out link for trips upon leaving to leaders.
  */
 const sendCheckOutEmail = () => {
   const today = new Date();
