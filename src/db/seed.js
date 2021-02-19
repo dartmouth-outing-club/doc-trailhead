@@ -17,7 +17,7 @@ mongoose.Promise = global.Promise;
 const fakeUsers = [
   {
     casID: null,
-    email: 'zirui.hao@gmail.com',
+    email: 'ziray.hao@gmail.com',
     password: 'opo',
     name: 'OPO Person',
     role: 'OPO',

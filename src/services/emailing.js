@@ -18,7 +18,7 @@ const send = (email) => {
     const mailOptions = {
       from: 'doc.signup.no.reply@dartmouth.edu',
       to: email.address,
-      subject: email.subject,
+      subject: `${email.subject}${process.env.NODE_ENV === 'development' ? ' | DEV' : ''}`,
       bcc: ['ziray.hao@dali.dartmouth.edu'],
       text: email.message,
     };
