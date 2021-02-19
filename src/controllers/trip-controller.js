@@ -814,7 +814,7 @@ export const respondToPCardRequest = (req, res) => {
       trip.pcardAssigned = req.body.pcardAssigned;
       await trip.save();
       const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-      mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: P-Card requests got ${req.body.status ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its P-Card requests ${req.body.status ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
+      mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: P-Card requests got ${trip.pcardStatus === 'approved' ? 'approved!' : 'denied'}`, message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its P-Card requests ${trip.pcardStatus === 'approved' ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
       res.json(await getTrip(req.params.tripID));
     }).catch((error) => {
       res.status(500).send(error);
