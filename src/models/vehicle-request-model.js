@@ -10,7 +10,7 @@ const VehicleRequestSchema = new Schema({
   requestType: { type: String, enum: ['TRIP', 'SOLO'] },
   requestedVehicles: [
     {
-      vehicleType: { type: String, enum: ['Van', 'Microbus', 'Truck'] },
+      vehicleType: { type: String, enum: ['Van', 'Microbus', 'Truck', 'PersonalVehicle'] },
       vehicleDetails: String,
       pickupDate: Date,
       pickupTime: String,
