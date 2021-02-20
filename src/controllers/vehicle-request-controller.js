@@ -74,8 +74,8 @@ export const getVehicleRequests = (req, res) => {
 export const updateVehicleRequest = (req, res) => {
   VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip')
     .then((vehicleRequest) => {
-      if (vehicleRequest.status !== 'pending') {
-        res.status(400).send('Only pending requests can be updated');
+      if (vehicleRequest.status !== 'pending' && req.user.role !== 'OPO') {
+        res.status(401).send('Only OPO staff can update non-pending requests');
       } else {
         vehicleRequest.requester = req.body.requester;
         vehicleRequest.requestDetails = req.body.requestDetails;
