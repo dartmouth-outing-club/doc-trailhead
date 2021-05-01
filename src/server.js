@@ -62,7 +62,7 @@ app.use('/trips', routers.trips);
 // =============================================================================
 const port = process.env.PORT || 9090;
 app.listen(port);
-console.log(`listening on: ${port}`);
+console.log(`Server running at ${process.env.NODE_ENV !== 'development' ? `${process.env.HEROKU_APP_NAME}.herokuapp.com` : 'localhost'}:${port}`);
 
 /**
  * Sends check-out link for trips upon leaving to leaders.
