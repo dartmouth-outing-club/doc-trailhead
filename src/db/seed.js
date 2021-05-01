@@ -8,7 +8,7 @@ import VehicleRequests from '../models/vehicle-request-model';
 import Assignmnets from '../models/assignment-model';
 
 mongoose.set('useCreateIndex', true);
-mongoose.connect('mongodb://localhost/doc-planner', { useNewUrlParser: true }).catch((error) => {
+mongoose.connect('mongodb://localhost/trailhead', { useNewUrlParser: true }).catch((error) => {
   console.log(`Error connecting to MongoDB: ${error.message}`);
 });
 // set mongoose promises to es6 default

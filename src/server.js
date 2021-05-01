@@ -24,7 +24,7 @@ mongoose.connect(mongoURI, { useNewUrlParser: true })
     return console.log(`MongoDB connection established at ${connection.connections[0].host}:${connection.connections[0].port}`);
   }).catch((error) => {
     console.log(`Error connecting to MongoDB: ${error.message}`);
-    mongoose.connect('mongodb://localhost/doc-planner', { useNewUrlParser: true }).then((connection) => {
+    mongoose.connect('mongodb://localhost/trailhead', { useNewUrlParser: true }).then((connection) => {
       return console.log(`MongoDB connection established at ${connection.connections[0].host}:${connection.connections[0].port}`);
     });
   });
