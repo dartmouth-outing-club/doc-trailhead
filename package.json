@@ -5,12 +5,12 @@
   "author": "Ziray Hao",
   "main": "src/server.js",
   "scripts": {
-    "dev-localDB": "NODE_ENV=development MONGODB_URI=mongodb://localhost/doc-planner nodemon src/server.js --exec babel-node",
+    "dev-localDB": "NODE_ENV=development MONGODB_URI=mongodb://localhost/trailhead nodemon src/server.js --exec babel-node",
     "dev-prodDB": "NODE_ENV=development nodemon src/server.js --exec babel-node",
     "start": "babel-node src/server.js",
     "build": "babel src -d dist",
     "prod": "yarn build; node dist/server.js",
-    "monitor": "heroku logs --app doc-planner --tail",
+    "monitor": "heroku logs --app trailhead-server --tail",
     "resetDB": "NODE_ENV=development babel-node src/db/seed.js",
     "seedDB": "NODE_ENV=development babel-node src/db/fill-events.js",
     "migrateDB": "babel-node src/db/migrate.js"
