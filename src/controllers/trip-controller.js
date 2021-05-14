@@ -1,5 +1,6 @@
 import Trip from '../models/trip-model';
 import User from '../models/user-model';
+import Assignment from '../models/assignment-model';
 import Club from '../models/club-model';
 import Global from '../models/global-model';
 import VehicleRequest from '../models/vehicle-request-model';
@@ -283,35 +284,56 @@ export const updateTrip = async (req, res) => {
         trip.pcardStatus = 'N/A';
       }
 
-      if (trip.vehicleStatus === 'N/A' && req.body.vehicles.length > 0) {
-        // Retrieves the current maximum vehicle request number and then updates it immediately
-        const globalsForVehicleRequest = await Global.find({});
-        globalsForVehicleRequest[0].vehicleRequestNumberMax += 1;
-        const nextVehicleRequestNumber = globalsForVehicleRequest[0].vehicleRequestNumberMax;
-        await globalsForVehicleRequest[0].save();
-
-        // Creates a new vehicle request
-        const vehicleRequest = new VehicleRequest();
-        vehicleRequest.number = nextVehicleRequestNumber;
-        vehicleRequest.requestDetails = req.body.description;
-        vehicleRequest.requester = req.user._id;
-        vehicleRequest.mileage = req.body.mileage;
-        vehicleRequest.associatedTrip = trip;
-        vehicleRequest.requestType = 'TRIP';
-        vehicleRequest.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) }; });
-        const savedVehicleRequest = await vehicleRequest.save();
-        trip.vehicleStatus = 'pending';
-        trip.vehicleRequest = savedVehicleRequest;
-      }
-      if (trip.vehicleStatus === 'pending') {
-        if (req.body.vehicles.length === 0) {
-          await VehicleRequest.deleteOne({ _id: req.body.vehicleReqId });
-          trip.vehicleStatus = 'N/A';
+      if (req.body.changedVehicles) {
+        if (trip.vehicleStatus === 'N/A' && req.body.vehicles.length > 0) {
+          // Retrieves the current maximum vehicle request number and then updates it immediately
+          const globalsForVehicleRequest = await Global.find({});
+          globalsForVehicleRequest[0].vehicleRequestNumberMax += 1;
+          const nextVehicleRequestNumber = globalsForVehicleRequest[0].vehicleRequestNumberMax;
+          await globalsForVehicleRequest[0].save();
+  
+          // Creates a new vehicle request
+          const vehicleRequest = new VehicleRequest();
+          vehicleRequest.number = nextVehicleRequestNumber;
+          vehicleRequest.requestDetails = req.body.description;
+          vehicleRequest.requester = req.user._id;
+          vehicleRequest.mileage = req.body.mileage;
+          vehicleRequest.associatedTrip = trip;
+          vehicleRequest.requestType = 'TRIP';
+          vehicleRequest.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) }; });
+          const savedVehicleRequest = await vehicleRequest.save();
+          trip.vehicleStatus = 'pending';
+          trip.vehicleRequest = savedVehicleRequest;
+        } else if (trip.vehicleStatus === 'pending') {
+          if (req.body.vehicles.length === 0) {
+            await VehicleRequest.deleteOne({ _id: req.body.vehicleReqId });
+            trip.vehicleStatus = 'N/A';
+          } else {
+            const updates = {};
+            if (req.body.mileage) updates.mileage = req.body.mileage;
+            if (req.body.description) updates.requestDetails = req.body.description;
+            if (req.body.vehicles.length > 0) updates.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) }; });
+            await VehicleRequest.updateOne({ _id: req.body.vehicleReqId }, updates);
+          }
         } else {
           const updates = {};
+          if (trip.vehicleStatus === 'approved') {
+            const vReq = await VehicleRequest.findById(req.body.vehicleReqId);
+            const deletedAssignments = [];
+            await Promise.all(vReq.assignments.map(async assignmentId => {
+              deletedAssignments.push(await Assignment.findById(assignmentId).populate(['assigned_vehicle']));
+              await Assignment.deleteOne({ _id: assignmentId });
+            }));
+            updates.assignments = [];
+            if (deletedAssignments.length) {
+              mailer.send({ address: constants.OPOEmails, subject: `V-Req #${vReq.number} updated`, message: `Hello,\n\nThe leaders of V-Req #${vReq.number} (which was approved) just changed their requested vehicles.\n\nThe original ${vReq.assignments.length} vehicle assignment${vReq.assignments.length > 1 ? 's' : ''} now have all been unscheduled.\n\nDeleted assignments:\n${deletedAssignments.map((assignment) => { return `\t-\t${assignment.assigned_vehicle.name}: ${constants.formatDateAndTime(assignment.assigned_pickupDateAndTime, 'LONG')} to ${constants.formatDateAndTime(assignment.assigned_returnDateAndTime, 'LONG')}\n`; })}\n\nYou will have to approve this request again at ${constants.frontendURL}/opo-vehicle-request/${vReq._id.toString()}.\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
+            }
+          }
           if (req.body.mileage) updates.mileage = req.body.mileage;
           if (req.body.description) updates.requestDetails = req.body.description;
-          if (req.body.vehicles.length > 0) updates.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) }; });
+          updates.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) }; });
+          updates.status = 'pending';
+          trip.vehicleStatus === 'pending';
           await VehicleRequest.updateOne({ _id: req.body.vehicleReqId }, updates);
         }
       }
