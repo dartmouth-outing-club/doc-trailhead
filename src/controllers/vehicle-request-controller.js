@@ -7,6 +7,7 @@ import User from '../models/user-model';
 import Global from '../models/global-model';
 import * as constants from '../constants';
 import { mailer } from '../services';
+import { subtract } from 'date-arithmetic';
 
 export const makeVehicleRequest = (req, res) => {
   Global.find({}).then((globals) => {
@@ -505,8 +506,12 @@ export const denyVehicleRequest = async (req, res) => {
 };
 
 export const getVehicleAssignments = async (req, res) => {
+  const filters = {};
+  if (req.query.showPastAssignments === 'false') {
+    filters.assigned_pickupDateAndTime = { $gte: subtract(new Date(), 30, 'day') };
+  }
   try {
-    const assignments = await Assignment.find().populate('requester').populate({ path: 'request', populate: { path: 'associatedTrip', populate: { path: 'leaders' } } }).populate('assigned_vehicle')
+    const assignments = await Assignment.find(filters).populate('requester').populate({ path: 'request', populate: { path: 'associatedTrip', populate: { path: 'leaders' } } }).populate('assigned_vehicle')
       .exec();
     return res.json(assignments);
   } catch (error) {

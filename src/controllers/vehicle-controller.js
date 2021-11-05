@@ -1,3 +1,4 @@
+import { subtract } from 'date-arithmetic';
 import Vehicle from '../models/vehicle-model';
 
 export const createVehicle = (req, res) => {
@@ -52,14 +53,20 @@ export const getVehicle = (req, res) => {
 };
 
 export const getVehicles = (req, res) => {
+  const bookingsFilters = {};
+  if (req.query.showOldBookings === 'false') {
+    bookingsFilters.assigned_pickupDateAndTime = { $gte: subtract(new Date(), 30, 'day') };
+  }
   Vehicle.find().populate('bookings').populate({
     path: 'bookings',
+    match: bookingsFilters,
     populate: {
       path: 'request',
       model: 'VehicleRequest',
     },
   }).populate({
     path: 'bookings',
+    match: bookingsFilters,
     populate: {
       path: 'requester',
       model: 'User',
@@ -67,6 +74,7 @@ export const getVehicles = (req, res) => {
   })
     .populate({
       path: 'bookings',
+      match: bookingsFilters,
       populate: {
         path: 'request',
         populate: {
