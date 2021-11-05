@@ -19,6 +19,9 @@ tripsRouter.route('/')
       if (club) filters.club = club.id;
       else res.status(404).json(new Error('No club found with that name'));
     }
+    if (req.query.getPastTrips === 'false') {
+      filters.startDateAndTime = { $gte: new Date() };
+    }
     controllers.trips.getTrips(filters).then((result) => {
       res.json(result);
     }).catch((error) => { return res.status(500).json(error); });
