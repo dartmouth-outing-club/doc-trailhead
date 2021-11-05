@@ -9,6 +9,7 @@ import { deleteVehicleRequest } from './vehicle-request-controller';
 import * as constants from '../constants';
 import { mailer } from '../services';
 import AssignmentModel from '../models/assignment-model';
+import { add, subtract } from 'date-arithmetic';
 
 const populateTripDocument = (tripQuery, fields) => {
   const fieldsDirectory = {
@@ -60,6 +61,10 @@ export const fetchPublicTrips = (filters = {}) => {
  * @param {express.res} res
  */
 export const getOPOTrips = (req, res) => {
+  const filters = {};
+  if (req.query.getOldTrips === 'false') {
+    filters.startDateAndTime = { $gte: subtract(new Date(), 30, 'day') };
+  }
   populateTripDocument(
     Trip.find({
       $or: [
@@ -68,6 +73,7 @@ export const getOPOTrips = (req, res) => {
         { pcardStatus: { $ne: 'N/A' } },
         { vehicleStatus: { $ne: 'N/A' } },
       ],
+      ...filters,
     }), ['owner', 'leaders', 'club', 'membersUser', 'pendingUser', 'vehicleRequest', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'],
   )
     .then((trips) => {
