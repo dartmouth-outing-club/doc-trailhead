@@ -37,7 +37,6 @@ const sendLeadersEmail = (tripID, subject, message) => {
  Fetches all trips with all fields populated.
  */
 export const getTrips = (filters = {}) => {
-  filters.private = false;
   return new Promise((resolve, reject) => {
     populateTripDocument(Trip.find(filters), ['club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
       .then((trips) => {
