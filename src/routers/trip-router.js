@@ -21,6 +21,13 @@ tripsRouter.route('/')
     }
     if (req.query.getPastTrips === 'false') {
       filters.startDateAndTime = { $gte: new Date() };
+    } else {
+      filters.startDateAndTime = {
+        $gte: new Date(
+          process.env.ARCHIVE_START_YEAR || '2020',
+          process.env.ARCHIVE_START_MONTH || '0'
+        ),
+      };
     }
     controllers.trips.getTrips(filters).then((result) => {
       res.json(result);
