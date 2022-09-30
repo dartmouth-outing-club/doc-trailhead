@@ -1,12 +1,10 @@
 {
   "name": "trailhead-backend",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
-  "author": "Ziray Hao",
   "main": "src/server.js",
   "scripts": {
-    "dev-localDB": "NODE_ENV=development MONGODB_URI=mongodb://localhost/trailhead nodemon src/server.js",
-    "dev-prodDB": "NODE_ENV=development nodemon src/server.js",
+    "dev": "NODE_ENV=development MONGODB_URI=mongodb://localhost/trailhead nodemon src/server.js",
     "start": "node src/server.js",
     "prod": "node src/server.js",
     "monitor": "heroku logs --app trailhead-server --tail",
