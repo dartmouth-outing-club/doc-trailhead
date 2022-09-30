@@ -259,6 +259,7 @@ export const updateUser = (req, res, next) => {
           user.has_pending_leader_change = false;
           user.requested_clubs = [];
         }
+
         if (req.body.leader_for.length === 0 && user.role !== 'OPO') {
           user.role = 'Trippee';
         }
@@ -276,15 +277,19 @@ export const updateUser = (req, res, next) => {
           user.requested_certs = {};
         }
 
-        if (!req.body.trailer_cert) {
-          user.trailer_cert = req.body.trailer_cert;
-        }
-        if (req.body.driver_cert === null) {
-          user.driver_cert = req.body.driver_cert;
-        }
-
-        if (req.body.role) {
-          user.role = req.body.role;
+        // * All operations that require OPO privilege should be contained here
+        if (req.user.role === 'OPO') {
+          if (!req.body.trailer_cert) {
+            user.trailer_cert = req.body.trailer_cert;
+          }
+  
+          if (req.body.driver_cert === null) {
+            user.driver_cert = req.body.driver_cert;
+          }
+  
+          if (req.body.role) {
+            user.role = req.body.role;
+          }
         }
 
         user.save()
