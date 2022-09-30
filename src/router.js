@@ -23,7 +23,7 @@ router.route('/user')
   .get(requireAuth, controllers.users.getUser)
   .put(requireAuth, controllers.users.updateUser);
 
-router.route('/users').get(requireAuth, controllers.users.getUsers);
+router.route('/users').get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.users.getUsers);
 
 router.get('/myTrips', requireAuth, controllers.users.myTrips);
 
