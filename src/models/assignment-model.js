@@ -1,4 +1,5 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
 
 const AssignmentSchema = new Schema({
   request: { type: Schema.Types.ObjectId, ref: 'VehicleRequest' },

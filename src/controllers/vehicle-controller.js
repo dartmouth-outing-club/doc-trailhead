@@ -1,5 +1,5 @@
 import { subtract } from 'date-arithmetic';
-import Vehicle from '../models/vehicle-model';
+import Vehicle from '../models/vehicle-model.js';
 
 export const createVehicle = (req, res) => {
   const vehicle = new Vehicle();

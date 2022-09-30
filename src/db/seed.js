@@ -1,11 +1,12 @@
 import mongoose from 'mongoose';
-import Globals from '../models/global-model';
-import Clubs from '../models/club-model';
-import Users from '../models/user-model';
-import Trips from '../models/trip-model';
-import Vehicles from '../models/vehicle-model';
-import VehicleRequests from '../models/vehicle-request-model';
-import Assignmnets from '../models/assignment-model';
+
+import Globals from '../models/global-model.js';
+import Clubs from '../models/club-model.js';
+import Users from '../models/user-model.js';
+import Trips from '../models/trip-model.js';
+import Vehicles from '../models/vehicle-model.js';
+import VehicleRequests from '../models/vehicle-request-model.js';
+import Assignmnets from '../models/assignment-model.js';
 
 mongoose.set('useCreateIndex', true);
 mongoose.connect('mongodb://localhost/trailhead', { useNewUrlParser: true }).catch((error) => {

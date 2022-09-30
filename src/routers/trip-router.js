@@ -1,8 +1,9 @@
 import { Router } from 'express';
-import { requireAuth } from '../services/passport';
-import { logError } from '../services/error';
-import controllers from '../controllers';
-import models from '../models';
+
+import { requireAuth } from '../services/passport.js';
+import { logError } from '../services/error.js';
+import controllers from '../controllers/index.js';
+import models from '../models/index.js';
 
 const tripsRouter = Router();
 

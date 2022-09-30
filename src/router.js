@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import controllers from './controllers';
-import signS3 from './services/s3';
-import { logError } from './services/error';
-import { requireAuth } from './services/passport';
 
-import mailer from './services/emailing';
+import controllers from './controllers/index.js';
+import signS3 from './services/s3.js';
+import { logError } from './services/error.js';
+import { requireAuth } from './services/passport.js';
+
+import mailer from './services/emailing.js';
 
 const router = Router();
 

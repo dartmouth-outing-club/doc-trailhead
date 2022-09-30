@@ -5,13 +5,14 @@ import path from 'path';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import * as dateMath from 'date-arithmetic';
-import apiRouter from './router';
-import { mailer, scheduler } from './services';
-import * as constants from './constants';
-import { tokenForUser } from './controllers/user-controller';
-import Trip from './models/trip-model';
-import routers from './routers';
+import dateMath from 'date-arithmetic';
+
+import apiRouter from './router.js';
+import { mailer, scheduler } from './services/index.js';
+import * as constants from './constants.js';
+import { tokenForUser } from './controllers/user-controller.js';
+import Trip from './models/trip-model.js';
+import routers from './routers/index.js';
 
 process.env.TZ = 'America/New_York';
 
@@ -46,9 +47,6 @@ app.set('view engine', 'ejs');
 
 // enable only if you want static assets from folder static
 app.use(express.static('static'));
-
-// this just allows us to render ejs from the ../app/views directory
-app.set('views', path.join(__dirname, '../src/views'));
 
 // enable json message body for posting data to API
 app.use(bodyParser.urlencoded({ extended: true }));

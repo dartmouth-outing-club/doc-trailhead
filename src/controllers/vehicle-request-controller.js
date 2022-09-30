@@ -1,13 +1,14 @@
 /* eslint-disable no-unreachable */
-import VehicleRequest from '../models/vehicle-request-model';
-import Vehicle from '../models/vehicle-model';
-import Assignment from '../models/assignment-model';
-import Trip from '../models/trip-model';
-import User from '../models/user-model';
-import Global from '../models/global-model';
-import * as constants from '../constants';
-import { mailer } from '../services';
 import { subtract } from 'date-arithmetic';
+
+import VehicleRequest from '../models/vehicle-request-model.js';
+import Vehicle from '../models/vehicle-model.js';
+import Assignment from '../models/assignment-model.js';
+import Trip from '../models/trip-model.js';
+import User from '../models/user-model.js';
+import Global from '../models/global-model.js';
+import * as constants from '../constants.js';
+import { mailer } from '../services/index.js';
 
 export const makeVehicleRequest = (req, res) => {
   Global.find({}).then((globals) => {

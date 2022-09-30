@@ -5,25 +5,21 @@
   "author": "Ziray Hao",
   "main": "src/server.js",
   "scripts": {
-    "dev-localDB": "NODE_ENV=development MONGODB_URI=mongodb://localhost/trailhead nodemon src/server.js --exec babel-node",
-    "dev-prodDB": "NODE_ENV=development nodemon src/server.js --exec babel-node",
-    "start": "babel-node src/server.js",
-    "build": "babel src -d dist",
-    "prod": "yarn build; node dist/server.js",
+    "dev-localDB": "NODE_ENV=development MONGODB_URI=mongodb://localhost/trailhead nodemon src/server.js",
+    "dev-prodDB": "NODE_ENV=development nodemon src/server.js",
+    "start": "node src/server.js",
+    "prod": "node src/server.js",
     "monitor": "heroku logs --app trailhead-server --tail",
-    "resetDB": "NODE_ENV=development babel-node src/db/seed.js",
-    "seedDB": "NODE_ENV=development babel-node src/db/fill-events.js",
-    "migrateDB": "babel-node src/db/migrate.js"
+    "resetDB": "NODE_ENV=development node src/db/seed.js",
+    "seedDB": "NODE_ENV=development node src/db/fill-events.js",
+    "migrateDB": "node src/db/migrate.js"
   },
   "license": "ISC",
   "engines": {
-    "node": ">=9 <=16",
-    "npm": "^5.6.0",
-    "yarn": "^1.6.0"
+    "node": "18"
   },
-  "dependencies": {
-    "@babel/node": "^7.10.5",
-    "@babel/preset-env": "^7.11.5",
+	"type": "module",
+	"dependencies": {
     "aws-sdk": "^2.675.0",
     "axios": "^0.19.2",
     "bcryptjs": "^2.4.3",
@@ -45,9 +41,6 @@
     "passport-local": "^1.0.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.11.6",
-    "@babel/core": "^7.11.6",
-    "babel-eslint": "^10.0.1",
     "eslint": "^5.15.3",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-plugin-import": "^2.16.0",

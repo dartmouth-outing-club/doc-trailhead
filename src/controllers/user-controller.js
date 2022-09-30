@@ -1,12 +1,10 @@
 import jwt from 'jwt-simple';
-// import dotenv from 'dotenv';
-import passport from '../services/passport';
-import * as constants from '../constants';
-import User from '../models/user-model';
-import Trip from '../models/trip-model';
-import VehicleRequest from '../models/vehicle-request-model';
 
-// dotenv.config({ silent: true });
+import passport from '../services/passport.js';
+import * as constants from '../constants.js';
+import User from '../models/user-model.js';
+import Trip from '../models/trip-model.js';
+import VehicleRequest from '../models/vehicle-request-model.js';
 
 export const signinSimple = (req, res, next) => {
   passport.authenticate('local', (err, user) => {

@@ -1,4 +1,4 @@
-import Club from '../models/club-model';
+import Club from '../models/club-model.js';
 
 export const createClub = (req, res) => {
   const club = new Club();

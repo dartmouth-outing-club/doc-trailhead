@@ -1,8 +1,8 @@
-import * as trips from './trip-controller';
-import * as users from './user-controller';
-import * as clubs from './club-controller';
-import * as vehicleRequests from './vehicle-request-controller';
-import * as vehicles from './vehicle-controller';
+import * as trips from './trip-controller.js';
+import * as users from './user-controller.js';
+import * as clubs from './club-controller.js';
+import * as vehicleRequests from './vehicle-request-controller.js';
+import * as vehicles from './vehicle-controller.js';
 
 export default {
   trips, users, clubs, vehicleRequests, vehicles,

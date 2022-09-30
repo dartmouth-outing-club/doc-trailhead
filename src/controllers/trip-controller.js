@@ -1,15 +1,16 @@
-import Trip from '../models/trip-model';
-import User from '../models/user-model';
-import Assignment from '../models/assignment-model';
-import Club from '../models/club-model';
-import Global from '../models/global-model';
-import VehicleRequest from '../models/vehicle-request-model';
-import { tokenForUser } from './user-controller';
-import { deleteVehicleRequest } from './vehicle-request-controller';
-import * as constants from '../constants';
-import { mailer } from '../services';
-import AssignmentModel from '../models/assignment-model';
 import { add, subtract } from 'date-arithmetic';
+
+import Trip from '../models/trip-model.js';
+import User from '../models/user-model.js';
+import Assignment from '../models/assignment-model.js';
+import Club from '../models/club-model.js';
+import Global from '../models/global-model.js';
+import VehicleRequest from '../models/vehicle-request-model.js';
+import { tokenForUser } from './user-controller.js';
+import { deleteVehicleRequest } from './vehicle-request-controller.js';
+import * as constants from '../constants.js';
+import { mailer } from '../services/index.js';
+import AssignmentModel from '../models/assignment-model.js';
 
 const populateTripDocument = (tripQuery, fields) => {
   const fieldsDirectory = {

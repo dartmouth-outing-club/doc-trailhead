@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import mongoose from 'mongoose';
-import models from '../models';
+import models from '../models/index.js';
 
 const mongoURI = process.env.MONGODB_URI;
 mongoose.set('useCreateIndex', true);
