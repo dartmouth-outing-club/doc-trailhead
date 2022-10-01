@@ -125,8 +125,10 @@ export const getTrip = (tripID, forUser) => {
  * @param {Trip} data The trip parameters
  */
 export const createTrip = (creator, data) => {
+  // TODO restructure the parent function as an async function once there's a test in place
+  // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
-  // Retrieves the current maximum trip number and then updates it immediately.
+    // Retrieves the current maximum trip number and then updates it immediately.
     const globals = await Global.find({});
     globals[0].tripNumberMax += 1;
     const nextTripNumber = globals[0].tripNumberMax;
@@ -400,6 +402,8 @@ export const deleteTrip = (req, res) => {
  * @param {Trip} trip
  */
 function calculateRequiredGear(trip) {
+  // TODO restructure the parent function as an async function once there's a test in place
+  // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve) => {
     const originalGear = JSON.parse(JSON.stringify(trip.trippeeGear));
     trip.trippeeGear.forEach((gear) => { gear.quantity = 0; });

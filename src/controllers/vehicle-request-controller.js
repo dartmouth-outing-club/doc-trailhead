@@ -294,6 +294,8 @@ export const precheckAssignment = (req, res) => {
  * @param {Assignment} proposedAssignment
  */
 const processAssignment = (vehicleRequest, proposedAssignment) => {
+  // TODO restructure the parent function as an async function once there's a test in place
+  // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve) => {
     Vehicle.findOne({ name: proposedAssignment.assignedVehicle }).populate('bookings').then((vehicle) => {
       if (proposedAssignment.existingAssignment) {
