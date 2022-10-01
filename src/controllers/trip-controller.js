@@ -334,7 +334,7 @@ export const updateTrip = async (req, res) => {
           if (req.body.description) updates.requestDetails = req.body.description;
           updates.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) }; });
           updates.status = 'pending';
-          trip.vehicleStatus === 'pending';
+          trip.vehicleStatus = 'pending';
           await VehicleRequest.updateOne({ _id: req.body.vehicleReqId }, updates);
         }
       }

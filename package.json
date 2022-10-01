@@ -5,8 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "NODE_ENV=development MONGODB_URI=mongodb://localhost/trailhead nodemon src/server.js",
-		"format": "eslint src --fix",
-		"lint": "eslint src",
+    "format": "eslint src --fix",
+    "lint": "eslint src",
     "migrateDB": "node src/db/migrate.js",
     "monitor": "heroku logs --app trailhead-server --tail",
     "prod": "node src/server.js",
@@ -18,8 +18,8 @@
   "engines": {
     "node": "18"
   },
-	"type": "module",
-	"dependencies": {
+  "type": "module",
+  "dependencies": {
     "aws-sdk": "^2.675.0",
     "axios": "^0.19.2",
     "bcryptjs": "^2.4.3",
