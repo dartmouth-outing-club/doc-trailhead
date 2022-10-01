@@ -52,7 +52,7 @@ export const signinCAS = (req, res, next) => {
 };
 
 // how to route to signup instead?
-export const signup = (req, res, next) => {
+export const signup = (req, res) => {
   const { email } = req.body;
   const { password } = req.body;
   const { name } = req.body;
@@ -193,7 +193,7 @@ export const getUsers = (req, res) => {
   });
 };
 
-export const updateUser = (req, res, next) => {
+export const updateUser = (req, res) => {
   User.findById(req.user.id, (err, user) => { // this should see if name is in member
     User.find({ email: req.body.email })
       .then((existingUser) => {

@@ -358,7 +358,7 @@ function seedDB() {
                                         .then((insertedClubs) => {
                                           Promise.all(
                                             fakeUsers.map((fakeUser) => {
-                                              return new Promise((resolve, reject) => {
+                                              return new Promise((resolve) => {
                                                 const newUser = new Users();
                                                 newUser.casID = fakeUser.casID;
                                                 newUser.email = fakeUser.email;

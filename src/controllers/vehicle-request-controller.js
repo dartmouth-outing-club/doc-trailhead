@@ -62,7 +62,7 @@ export const getVehicleRequest = (req, res) => {
     });
 };
 
-export const getVehicleRequests = (req, res) => {
+export const getVehicleRequests = (_req, res) => {
   VehicleRequest.find({}).populate('requester').populate('associatedTrip').populate('assignments')
     .then((vehicleRequests) => {
       res.json(vehicleRequests);
@@ -156,7 +156,7 @@ const checkForConflicts = (proposedAssignment) => {
 * Cross-checks every assignment with every other assignment and updates the `conflict` parameter for each assignment.
 */
 function recomputeAllConflicts() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     Assignment.find({}).then((assignments) => {
       assignments.filter((assignment) => { return assignment.assignedVehicle !== 'Enterprise'; });
       assignments.sort((a1, a2) => {
@@ -166,7 +166,7 @@ function recomputeAllConflicts() {
       });
       Promise.all(
         assignments.map((assignment, index, array) => {
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             assignment.conflicts = [];
             // console.log('\tpivot', assignment._id);
             console.log('\tpivot index', index);
@@ -195,7 +195,7 @@ function recomputeAllConflicts() {
               }
               traverser += 1;
             }
-            assignment.save().then((savedAssignment) => {
+            assignment.save().then(() => {
               // console.log(savedAssignment.conflicts);
               resolve();
             });
@@ -205,10 +205,10 @@ function recomputeAllConflicts() {
         Assignment.find({}).then((assignmentsForBackChecking) => {
           Promise.all(
             assignmentsForBackChecking.map((pivot) => {
-              return new Promise((resolve, reject) => {
+              return new Promise((resolve) => {
                 Promise.all(
                   pivot.conflicts.map((compare_id) => {
-                    return new Promise((resolve, reject) => {
+                    return new Promise((resolve) => {
                       Assignment.findById(compare_id).then((compare) => {
                         if (!compare.conflicts.includes(pivot._id)) {
                           compare.conflicts.push(pivot._id);
@@ -326,7 +326,7 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
             checkForConflicts(updatedAssignment).then((conflicts) => {
               Promise.all(
                 conflicts.map((conflict_id) => {
-                  return new Promise((resolve, reject) => {
+                  return new Promise((resolve) => {
                     Assignment.findById(conflict_id).then((conflictingAssignment) => {
                       conflictingAssignment.conflicts.push(updatedAssignment._id);
                       conflictingAssignment.save().then(() => { return resolve(); });
@@ -367,7 +367,7 @@ const processAssignment = (vehicleRequest, proposedAssignment) => {
             checkForConflicts(savedAssignment).then((conflicts) => {
               Promise.all(
                 conflicts.map((conflict_id) => {
-                  return new Promise((resolve, reject) => {
+                  return new Promise((resolve) => {
                     Assignment.findById(conflict_id).then((conflictingAssignment) => {
                       conflictingAssignment.conflicts.push(savedAssignment._id);
                       conflictingAssignment.save().then(() => { return resolve(); });

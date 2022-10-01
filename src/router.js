@@ -96,7 +96,7 @@ router.route('/vehicle-assignments')
   .get(requireAuth, controllers.vehicleRequests.getVehicleAssignments);
 
 router.route('/debug')
-  .post((req, res) => {
+  .post((req) => {
     mailer.send(req.body);
   });
 
