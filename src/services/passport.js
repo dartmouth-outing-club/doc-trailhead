@@ -9,7 +9,6 @@ import * as constants from '../constants.js';
 import User from '../models/user-model.js';
 import Trip from '../models/trip-model.js';
 
-
 dotenv.config({ silent: true });
 
 const localOptions = { usernameField: 'email' };

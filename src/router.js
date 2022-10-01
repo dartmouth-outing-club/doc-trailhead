@@ -19,7 +19,6 @@ router.post('/signin-simple', controllers.users.signinSimple);
 router.get('/signin-cas', controllers.users.signinCAS);
 router.post('/signup', controllers.users.signup);
 
-
 router.route('/user')
   .get(requireAuth, controllers.users.getUser)
   .put(requireAuth, controllers.users.updateUser);
@@ -100,6 +99,5 @@ router.route('/debug')
   .post((req, res) => {
     mailer.send(req.body);
   });
-
 
 export default router;

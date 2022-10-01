@@ -69,7 +69,6 @@ TripSchema.set('toJSON', {
   virtuals: true,
 });
 
-
 const TripModel = mongoose.model('Trip', TripSchema);
 
 export default TripModel;

@@ -26,7 +26,7 @@ tripsRouter.route('/')
       filters.startDateAndTime = {
         $gte: new Date(
           process.env.ARCHIVE_START_YEAR || '2020',
-          process.env.ARCHIVE_START_MONTH || '0'
+          process.env.ARCHIVE_START_MONTH || '0',
         ),
       };
     }
@@ -54,7 +54,6 @@ tripsRouter.route('/:tripID')
   })
   .put(requireAuth, controllers.trips.updateTrip)
   .delete(requireAuth, controllers.trips.deleteTrip);
-
 
 /**
  * Trip membership functions

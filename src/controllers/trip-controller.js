@@ -26,7 +26,6 @@ const populateTripDocument = (tripQuery, fields) => {
   return tripQuery.populate(fields.map((field) => { return fieldsDirectory[field]; }));
 };
 
-
 const sendLeadersEmail = (tripID, subject, message) => {
   populateTripDocument(Trip.findById(tripID), ['owner', 'leaders'])
     .then((trip) => {
@@ -65,17 +64,15 @@ export const getOPOTrips = (req, res) => {
   if (req.query.getOldTrips === 'false') {
     filters.startDateAndTime = { $gte: subtract(new Date(), 30, 'day') };
   }
-  populateTripDocument(
-    Trip.find({
-      $or: [
-        { trippeeGearStatus: { $ne: 'N/A' } },
-        { gearStatus: { $ne: 'N/A' } },
-        { pcardStatus: { $ne: 'N/A' } },
-        { vehicleStatus: { $ne: 'N/A' } },
-      ],
-      ...filters,
-    }), ['owner', 'leaders', 'club', 'membersUser', 'pendingUser', 'vehicleRequest', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'],
-  )
+  populateTripDocument(Trip.find({
+    $or: [
+      { trippeeGearStatus: { $ne: 'N/A' } },
+      { gearStatus: { $ne: 'N/A' } },
+      { pcardStatus: { $ne: 'N/A' } },
+      { vehicleStatus: { $ne: 'N/A' } },
+    ],
+    ...filters,
+  }), ['owner', 'leaders', 'club', 'membersUser', 'pendingUser', 'vehicleRequest', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
     .then((trips) => {
       res.json(trips);
     });
@@ -297,7 +294,7 @@ export const updateTrip = async (req, res) => {
           globalsForVehicleRequest[0].vehicleRequestNumberMax += 1;
           const nextVehicleRequestNumber = globalsForVehicleRequest[0].vehicleRequestNumberMax;
           await globalsForVehicleRequest[0].save();
-  
+
           // Creates a new vehicle request
           const vehicleRequest = new VehicleRequest();
           vehicleRequest.number = nextVehicleRequestNumber;
@@ -326,7 +323,7 @@ export const updateTrip = async (req, res) => {
           if (trip.vehicleStatus === 'approved') {
             const vReq = await VehicleRequest.findById(req.body.vehicleReqId);
             const deletedAssignments = [];
-            await Promise.all(vReq.assignments.map(async assignmentId => {
+            await Promise.all(vReq.assignments.map(async (assignmentId) => {
               deletedAssignments.push(await Assignment.findById(assignmentId).populate(['assigned_vehicle']));
               await Assignment.deleteOne({ _id: assignmentId });
             }));

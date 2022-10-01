@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
-
 const VehicleSchema = new Schema({
   name: { type: String, unique: true },
   type: { type: String, enum: ['Van', 'Microbus', 'Truck', 'Enterprise', 'PersonalVehicle'] },
@@ -12,7 +11,6 @@ const VehicleSchema = new Schema({
 VehicleSchema.set('toJSON', {
   virtuals: true,
 });
-
 
 const VehicleModel = mongoose.model('Vehicle', VehicleSchema);
 

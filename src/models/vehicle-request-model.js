@@ -32,7 +32,6 @@ VehicleRequestSchema.set('toJSON', {
   virtuals: true,
 });
 
-
 const VehicleRequestModel = mongoose.model('VehicleRequest', VehicleRequestSchema);
 
 export default VehicleRequestModel;

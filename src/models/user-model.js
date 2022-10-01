@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
-const { Schema } = mongoose;
 import bcrypt from 'bcryptjs';
-
+const { Schema } = mongoose;
 
 const UserSchema = new Schema({
   casID: String,
