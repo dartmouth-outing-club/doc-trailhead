@@ -247,13 +247,16 @@ export const updateUser = (req, res, next) => {
           user.height = height;
         }
 
-        // Determine if approval is required. Approval is not required if user drops club.
-        if (req.body.leader_for.length > user.leader_for.length) {
+        const newClubs = req.body.leader_for || [];
+        const currentClubs = user.leader_for;
+        // Approval is required if user is adding a new club
+        if (newClubs.length > currentClubs.length) {
           user.has_pending_leader_change = true;
-          user.requested_clubs = req.body.leader_for;
-          // res.locals.leaderReq = true;
-        } else {
-          user.leader_for = req.body.leader_for;
+          user.requested_clubs = newClubs;
+        // If user is dropping a club, make sure that every club they're claiming is one they're currently a leader for
+        // This is a little kludgy - a more granular API surface would not require this
+        } else if (newClubs.every((club) => { return currentClubs.includes(club); })) {
+          user.leader_for = newClubs;
           user.has_pending_leader_change = false;
           user.requested_clubs = [];
         }
@@ -280,11 +283,11 @@ export const updateUser = (req, res, next) => {
           if (!req.body.trailer_cert) {
             user.trailer_cert = req.body.trailer_cert;
           }
-  
+
           if (req.body.driver_cert === null) {
             user.driver_cert = req.body.driver_cert;
           }
-  
+
           if (req.body.role) {
             user.role = req.body.role;
           }
