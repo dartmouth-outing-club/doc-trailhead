@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-const { Schema } = mongoose;
+import mongoose from 'mongoose'
+const { Schema } = mongoose
 
 const VehicleRequestSchema = new Schema({
   number: { type: Number, unique: true },
@@ -21,17 +21,17 @@ const VehicleRequestSchema = new Schema({
       returnTime: String,
       trailerNeeded: Boolean,
       passNeeded: Boolean,
-      recurringVehicle: Boolean,
-    },
+      recurringVehicle: Boolean
+    }
   ],
   status: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
-  assignments: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }],
-});
+  assignments: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }]
+})
 
 VehicleRequestSchema.set('toJSON', {
-  virtuals: true,
-});
+  virtuals: true
+})
 
-const VehicleRequestModel = mongoose.model('VehicleRequest', VehicleRequestSchema);
+const VehicleRequestModel = mongoose.model('VehicleRequest', VehicleRequestSchema)
 
-export default VehicleRequestModel;
+export default VehicleRequestModel

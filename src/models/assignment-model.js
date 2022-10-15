@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-const { Schema } = mongoose;
+import mongoose from 'mongoose'
+const { Schema } = mongoose
 
 const AssignmentSchema = new Schema({
   request: { type: Schema.Types.ObjectId, ref: 'VehicleRequest' },
@@ -15,13 +15,13 @@ const AssignmentSchema = new Schema({
   assigned_vehicle: { type: Schema.Types.ObjectId, ref: 'Vehicle' },
   pickedUp: { type: Boolean, default: false },
   returned: { type: Boolean, default: false },
-  conflicts: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }],
-});
+  conflicts: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }]
+})
 
 AssignmentSchema.set('toJSON', {
-  virtuals: true,
-});
+  virtuals: true
+})
 
-const AssignmentModel = mongoose.model('Assignment', AssignmentSchema);
+const AssignmentModel = mongoose.model('Assignment', AssignmentSchema)
 
-export default AssignmentModel;
+export default AssignmentModel

@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
-const { Schema } = mongoose;
+import mongoose from 'mongoose'
+import bcrypt from 'bcryptjs'
+const { Schema } = mongoose
 
 const UserSchema = new Schema({
   casID: String,
@@ -24,42 +24,42 @@ const UserSchema = new Schema({
   requested_clubs: { type: [{ type: Schema.Types.ObjectId, ref: 'Club' }], default: [] },
   requested_certs: {
     driver_cert: { type: String, enum: ['MICROBUS', 'VAN', null], default: null },
-    trailer_cert: { type: Boolean, default: false },
+    trailer_cert: { type: Boolean, default: false }
   },
-  completedProfile: { type: Boolean, default: false },
-});
+  completedProfile: { type: Boolean, default: false }
+})
 
 UserSchema.set('toJSON', {
-  virtuals: true,
-});
+  virtuals: true
+})
 
-UserSchema.pre('save', function beforeYourModelSave(next) {
-  const user = this;
+UserSchema.pre('save', function beforeYourModelSave (next) {
+  const user = this
 
   // checks whether the user has a completed profile
   if (user.email && user.name && user.pronoun && user.dash_number && user.allergies_dietary_restrictions && user.medical_conditions && user.clothe_size && user.shoe_size && user.height) {
-    user.completedProfile = true;
+    user.completedProfile = true
   } else {
-    user.completedProfile = false;
+    user.completedProfile = false
   }
 
   if (!user.isModified('password')) {
-    return next();
+    return next()
   }
 
-  const salt = bcrypt.genSaltSync(10);
-  const hash = bcrypt.hashSync(user.password, salt);
-  user.password = hash;
+  const salt = bcrypt.genSaltSync(10)
+  const hash = bcrypt.hashSync(user.password, salt)
+  user.password = hash
 
-  return next();
-});
+  return next()
+})
 
-UserSchema.methods.comparePassword = function comparePassword(candidatePassword, callback) {
-  const user = this;
-  const comparisonResult = bcrypt.compareSync(candidatePassword, user.password);
-  return callback(null, comparisonResult);
-};
+UserSchema.methods.comparePassword = function comparePassword (candidatePassword, callback) {
+  const user = this
+  const comparisonResult = bcrypt.compareSync(candidatePassword, user.password)
+  return callback(null, comparisonResult)
+}
 
-const UserModel = mongoose.model('User', UserSchema);
+const UserModel = mongoose.model('User', UserSchema)
 
-export default UserModel;
+export default UserModel

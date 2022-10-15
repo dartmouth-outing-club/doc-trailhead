@@ -1,19 +1,19 @@
-import cron from 'node-cron';
+import cron from 'node-cron'
 
 const schedule = (task, frequency) => {
   switch (frequency) {
     case 'daily':
-      cron.schedule('0 1 * * *', task);
-      break;
+      cron.schedule('0 1 * * *', task)
+      break
     case 'minutely':
-      cron.schedule('* * * * *', task);
-      break;
+      cron.schedule('* * * * *', task)
+      break
     default:
       cron.schedule('* * * * *', () => {
-        console.log('minute has passed');
-      });
-      break;
+        console.log('minute has passed')
+      })
+      break
   }
-};
+}
 
-export default { schedule };
+export default { schedule }

@@ -1,26 +1,26 @@
 /* eslint-disable no-loop-func */
-import mongoose from 'mongoose';
-import { startOf, add, subtract } from 'date-arithmetic';
-import axios from 'axios';
+import mongoose from 'mongoose'
+import { startOf, add, subtract } from 'date-arithmetic'
+import axios from 'axios'
 
-import * as constants from '../constants.js';
-import { tokenForUser } from '../controllers/user-controller.js';
-import Clubs from '../models/club-model.js';
-import Users from '../models/user-model.js';
+import * as constants from '../constants.js'
+import { tokenForUser } from '../controllers/user-controller.js'
+import Clubs from '../models/club-model.js'
+import Users from '../models/user-model.js'
 // import Trips from '../models/trip-model';
 // import Vehicles from '../models/vehicle-model';
 // import VehicleRequests from '../models/vehicle-request-model';
 // import Assignmnets from '../models/assignment-model';
 
-mongoose.set('useCreateIndex', true);
+mongoose.set('useCreateIndex', true)
 mongoose.connect('mongodb://localhost/trailhead', { useNewUrlParser: true }).catch((error) => {
-  console.log(`Error connecting to MongoDB: ${error.message}`);
-});
+  console.log(`Error connecting to MongoDB: ${error.message}`)
+})
 // set mongoose promises to es6 default
-mongoose.Promise = global.Promise;
+mongoose.Promise = global.Promise
 
-const today = new Date();
-const weekStart = startOf(today, 'week');
+const today = new Date()
+const weekStart = startOf(today, 'week')
 // const formatForModel = (d) => { return `${d.getFullYear().toString()}-${(d.getMonth() + 1).toString()}-${(today.getDate() + 1).toString()}`; };
 
 const days = [
@@ -28,69 +28,69 @@ const days = [
     startDate: subtract(weekStart, 3, 'day'),
     endDate: subtract(weekStart, 3, 'day'),
     startTime: '09:00',
-    endTime: '20:00',
+    endTime: '20:00'
   },
   {
     startDate: weekStart,
     endDate: weekStart,
     startTime: '08:00',
-    endTime: '16:00',
+    endTime: '16:00'
   },
   {
     startDate: add(weekStart, 2, 'day'),
     endDate: add(weekStart, 2, 'day'),
     startTime: '06:00',
-    endTime: '14:00',
+    endTime: '14:00'
   },
   {
     startDate: add(weekStart, 2, 'day'),
     endDate: add(weekStart, 2, 'day'),
     startTime: '16:00',
-    endTime: '20:00',
+    endTime: '20:00'
   },
   {
     startDate: add(weekStart, 3, 'day'),
     endDate: add(weekStart, 4, 'day'),
     startTime: '10:00',
-    endTime: '17:00',
+    endTime: '17:00'
   },
   {
     startDate: add(weekStart, 5, 'day'),
     endDate: add(weekStart, 5, 'day'),
     startTime: '11:00',
-    endTime: '16:00',
+    endTime: '16:00'
   },
   {
     startDate: add(weekStart, 5, 'day'),
     endDate: add(weekStart, 5, 'day'),
     startTime: '13:00',
-    endTime: '19:00',
+    endTime: '19:00'
   },
   {
     startDate: add(weekStart, 6, 'day'),
     endDate: add(weekStart, 6, 'day'),
     startTime: '07:00',
-    endTime: '19:00',
+    endTime: '19:00'
   },
   {
     startDate: add(weekStart, 6, 'day'),
     endDate: add(weekStart, 6, 'day'),
     startTime: '19:30',
-    endTime: '23:00',
+    endTime: '23:00'
   },
   {
     startDate: add(weekStart, 7, 'day'),
     endDate: add(weekStart, 7, 'day'),
     startTime: '15:00',
-    endTime: '22:00',
+    endTime: '22:00'
   },
   {
     startDate: add(weekStart, 25, 'day'),
     endDate: add(weekStart, 25, 'day'),
     startTime: '11:00',
-    endTime: '22:00',
-  },
-];
+    endTime: '22:00'
+  }
+]
 
 const titles = [
   'A trip in the past!',
@@ -103,14 +103,14 @@ const titles = [
   'Learn to fly club',
   'For beginners - chill',
   'Parachute-less skydiving',
-  'Trip in a month',
-];
+  'Trip in a month'
+]
 
-const experienceNeededs = [false, true, true, true, true, true, true, false, true, false, false];
+const experienceNeededs = [false, true, true, true, true, true, true, false, true, false, false]
 
-const statuses = ['approved', 'pending', 'pending', 'approved', 'approved', 'pending', 'denied', 'denied', 'approved', 'denied', 'approved'];
+const statuses = ['approved', 'pending', 'pending', 'approved', 'approved', 'pending', 'denied', 'denied', 'approved', 'denied', 'approved']
 
-const coleaders = ['ziray.hao.22@dartmouth.edu', 'zirui.hao@gmail.com', 'ziray.hao@dali.dartmouth.edu'];
+const coleaders = ['ziray.hao.22@dartmouth.edu', 'zirui.hao@gmail.com', 'ziray.hao@dali.dartmouth.edu']
 
 // create trips
 
@@ -133,7 +133,7 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
     dropoff: 'We don\'t come back',
     coLeaderCanEditTrip: true,
     gearRequests: [
-      { name: 'Tent', quantity: 1 }, { name: 'GPS', quantity: 3 }, { name: 'Phones', quantity: 10 },
+      { name: 'Tent', quantity: 1 }, { name: 'GPS', quantity: 3 }, { name: 'Phones', quantity: 10 }
     ],
     gearStatus: status,
     trippeeGearStatus: status,
@@ -141,28 +141,28 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
       {
         name: 'Hiking boots',
         sizeType: 'Shoe',
-        quantity: 0,
+        quantity: 0
       },
       {
         name: 'Raincoat',
         sizeType: 'Clothe',
-        quantity: 0,
+        quantity: 0
       },
       {
         name: 'Underlayers',
         sizeType: 'Clothe',
-        quantity: 0,
+        quantity: 0
       },
       {
         name: 'Head lamp',
         sizeType: 'N/A',
-        quantity: 0,
+        quantity: 0
       },
       {
         name: 'Skis',
         sizeType: 'Height',
-        quantity: 0,
-      },
+        quantity: 0
+      }
     ],
     pcard: [
       {
@@ -173,7 +173,7 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
         dinner: '10',
         otherCosts: {
           title: 'Life insurance',
-          cost: '300',
+          cost: '300'
         },
         errorFields: {
           title: false,
@@ -188,9 +188,9 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
           dropoff: false,
           description: false,
           leaders: false,
-          dinner: false,
-        },
-      },
+          dinner: false
+        }
+      }
     ],
     pcardStatus: status,
     vehicles: [
@@ -203,30 +203,30 @@ const generateTripTemplate = (title, clubID, startDate, endDate, startTime, endT
         pickupTime: startTime,
         returnTime: endTime,
         passNeeded: true,
-        trailerNeeded: true,
-      },
+        trailerNeeded: true
+      }
     ],
     vehicleStatus: status,
-    vehicleReqId: null,
-  };
-  if (status === 'approved') trip.pcardAssigned = '8892-9299-1109-2090';
-  return trip;
-};
+    vehicleReqId: null
+  }
+  if (status === 'approved') trip.pcardAssigned = '8892-9299-1109-2090'
+  return trip
+}
 
 const wait = (timeout) => {
   return new Promise((resolve) => {
-    setTimeout(resolve, timeout);
-  });
-};
+    setTimeout(resolve, timeout)
+  })
+}
 
 Users.findOne({ role: 'Leader' }).then((user) => {
   Clubs.find({}).then(async (clubs) => {
     for (let i = 0; i < titles.length; i += 1) {
-      const clubID = clubs[Math.floor(Math.random() * clubs.length)];
-      const day = days[i];
-      const trip = generateTripTemplate(titles[i], clubID, day.startDate, day.endDate, day.startTime, day.endTime, experienceNeededs[i], statuses[i]);
+      const clubID = clubs[Math.floor(Math.random() * clubs.length)]
+      const day = days[i]
+      const trip = generateTripTemplate(titles[i], clubID, day.startDate, day.endDate, day.startTime, day.endTime, experienceNeededs[i], statuses[i])
       axios.post(`${constants.backendURL}/trips`, trip, { headers: { Authorization: `Bearer ${tokenForUser(user, 'normal')}` } }).then((response) => {
-        const vReqID = response.data.vehicleRequest._id;
+        const vReqID = response.data.vehicleRequest._id
         const assignments = [
           {
             assignedVehicle: 'Van G',
@@ -235,16 +235,16 @@ Users.findOne({ role: 'Leader' }).then((user) => {
             pickupTime: day.startTime,
             returnTime: day.endTime,
             assignedKey: '33G',
-            responseIndex: 0,
-          },
-        ];
+            responseIndex: 0
+          }
+        ]
         Users.findOne({ role: 'OPO' }).then((OPOUser) => {
-          axios.post(`${constants.backendURL}/opoVehicleRequest/${vReqID}`, { assignments }, { headers: { Authorization: `Bearer ${tokenForUser(OPOUser, 'normal')}` } }).catch((error) => { return console.log(error); });
-        });
-      }).catch((error) => { return console.log(error); });
-      console.log('Trip created');
+          axios.post(`${constants.backendURL}/opoVehicleRequest/${vReqID}`, { assignments }, { headers: { Authorization: `Bearer ${tokenForUser(OPOUser, 'normal')}` } }).catch((error) => { return console.log(error) })
+        })
+      }).catch((error) => { return console.log(error) })
+      console.log('Trip created')
       // eslint-disable-next-line no-await-in-loop
-      await wait(1000);
+      await wait(1000)
     }
-  });
-});
+  })
+})

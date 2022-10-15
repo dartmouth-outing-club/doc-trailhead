@@ -1,15 +1,15 @@
-import mongoose from 'mongoose';
-const { Schema } = mongoose;
+import mongoose from 'mongoose'
+const { Schema } = mongoose
 
 const ClubSchema = new Schema({
   name: { type: String, unique: true },
-  active: { type: Boolean, default: true },
-});
+  active: { type: Boolean, default: true }
+})
 
 ClubSchema.set('toJSON', {
-  virtuals: true,
-});
+  virtuals: true
+})
 
-const ClubModel = mongoose.model('Club', ClubSchema);
+const ClubModel = mongoose.model('Club', ClubSchema)
 
-export default ClubModel;
+export default ClubModel

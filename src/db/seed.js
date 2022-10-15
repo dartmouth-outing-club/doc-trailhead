@@ -1,19 +1,19 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 
-import Globals from '../models/global-model.js';
-import Clubs from '../models/club-model.js';
-import Users from '../models/user-model.js';
-import Trips from '../models/trip-model.js';
-import Vehicles from '../models/vehicle-model.js';
-import VehicleRequests from '../models/vehicle-request-model.js';
-import Assignmnets from '../models/assignment-model.js';
+import Globals from '../models/global-model.js'
+import Clubs from '../models/club-model.js'
+import Users from '../models/user-model.js'
+import Trips from '../models/trip-model.js'
+import Vehicles from '../models/vehicle-model.js'
+import VehicleRequests from '../models/vehicle-request-model.js'
+import Assignmnets from '../models/assignment-model.js'
 
-mongoose.set('useCreateIndex', true);
+mongoose.set('useCreateIndex', true)
 mongoose.connect('mongodb://localhost/trailhead', { useNewUrlParser: true }).catch((error) => {
-  console.log(`Error connecting to MongoDB: ${error.message}`);
-});
+  console.log(`Error connecting to MongoDB: ${error.message}`)
+})
 // set mongoose promises to es6 default
-mongoose.Promise = global.Promise;
+mongoose.Promise = global.Promise
 
 const fakeUsers = [
   {
@@ -27,7 +27,7 @@ const fakeUsers = [
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: 'MICROBUS',
-    trailer_cert: true,
+    trailer_cert: true
   },
   {
     casID: null,
@@ -40,7 +40,7 @@ const fakeUsers = [
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: 'MICROBUS',
-    trailer_cert: true,
+    trailer_cert: true
   },
   {
     casID: null,
@@ -53,7 +53,7 @@ const fakeUsers = [
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: 'MICROBUS',
-    trailer_cert: true,
+    trailer_cert: true
   },
   {
     casID: null,
@@ -66,7 +66,7 @@ const fakeUsers = [
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: 'VAN',
-    trailer_cert: false,
+    trailer_cert: false
   },
   {
     casID: null,
@@ -79,8 +79,8 @@ const fakeUsers = [
     has_pending_leader_change: false,
     has_pending_cert_change: false,
     driver_cert: null,
-    trailer_cert: true,
-  },
+    trailer_cert: true
+  }
   // {
   //   casID: 'Emma P. Rafkin@DARTMOUTH.EDU',
   //   email: 'Emma.P.Rafkin.21@darmouth.edu',
@@ -212,127 +212,127 @@ const fakeUsers = [
   //   driver_cert: null,
   //   trailer_cert: false,
   // },
-];
+]
 
 const clubs = [
   {
-    name: 'Mountaineering',
+    name: 'Mountaineering'
   },
   {
-    name: 'Ledyard',
+    name: 'Ledyard'
   },
   {
-    name: 'Cabin and Trail',
+    name: 'Cabin and Trail'
   },
   {
-    name: 'Bait and Bullet',
+    name: 'Bait and Bullet'
   },
   {
-    name: 'Women in the Wilderness',
+    name: 'Women in the Wilderness'
   },
   {
-    name: 'Timber Team',
+    name: 'Timber Team'
   },
   {
-    name: 'Surf Club',
+    name: 'Surf Club'
   },
   {
-    name: 'Mountain Biking',
+    name: 'Mountain Biking'
   },
   {
-    name: 'Winter Sports',
+    name: 'Winter Sports'
   },
   {
-    name: 'Alpine Club Ski Team',
+    name: 'Alpine Club Ski Team'
   },
   {
-    name: 'Archery Club',
+    name: 'Archery Club'
   },
   {
-    name: 'Biathlon Club',
+    name: 'Biathlon Club'
   },
   {
-    name: 'Climbing Team',
+    name: 'Climbing Team'
   },
   {
-    name: 'Environmental Stewardship',
+    name: 'Environmental Stewardship'
   },
   {
-    name: 'Farm Club',
+    name: 'Farm Club'
   },
   {
-    name: 'Graduate Outing Club',
+    name: 'Graduate Outing Club'
   },
   {
-    name: 'Nordic Club Ski Team',
+    name: 'Nordic Club Ski Team'
   },
   {
-    name: 'People of Color Outdoors',
+    name: 'People of Color Outdoors'
   },
   {
-    name: 'Snowboard Club',
+    name: 'Snowboard Club'
   },
   {
-    name: 'Other',
-  },
-];
+    name: 'Other'
+  }
+]
 
 const vehicles = [
   {
     name: 'Van A',
-    type: 'Van',
+    type: 'Van'
   },
   {
     name: 'Van D',
-    type: 'Van',
+    type: 'Van'
   },
   {
     name: 'Van E',
-    type: 'Van',
+    type: 'Van'
   },
   {
     name: 'Van F',
-    type: 'Van',
+    type: 'Van'
   },
   {
     name: 'Van G',
-    type: 'Van',
+    type: 'Van'
   },
   {
     name: 'Bus B',
-    type: 'Microbus',
+    type: 'Microbus'
   },
   {
     name: 'Bus C',
-    type: 'Microbus',
+    type: 'Microbus'
   },
   {
     name: 'State Truck',
-    type: 'Truck',
+    type: 'Truck'
   },
   {
     name: 'Red Truck',
-    type: 'Truck',
+    type: 'Truck'
   },
   {
     name: 'Minivan',
-    type: 'Van',
+    type: 'Van'
   },
   {
     name: 'Van 100',
-    type: 'Van',
+    type: 'Van'
   },
   {
     name: 'Van 101',
-    type: 'Van',
+    type: 'Van'
   },
   {
     name: 'Enterprise',
-    type: 'Enterprise',
-  },
-];
+    type: 'Enterprise'
+  }
+]
 
-function seedDB() {
+function seedDB () {
   Globals.deleteMany({}).then(() => {
     VehicleRequests.deleteMany({})
       .then(() => {
@@ -348,9 +348,9 @@ function seedDB() {
                           .then(() => {
                             Users.deleteMany({})
                               .then(() => {
-                                const global = new Globals();
-                                global.tripNumberMax = 0;
-                                global.vehicleRequestNumberMax = 0;
+                                const global = new Globals()
+                                global.tripNumberMax = 0
+                                global.vehicleRequestNumberMax = 0
                                 global.save().then(() => {
                                   Vehicles.insertMany(vehicles)
                                     .then(() => {
@@ -359,53 +359,53 @@ function seedDB() {
                                           Promise.all(
                                             fakeUsers.map((fakeUser) => {
                                               return new Promise((resolve) => {
-                                                const newUser = new Users();
-                                                newUser.casID = fakeUser.casID;
-                                                newUser.email = fakeUser.email;
-                                                newUser.password = fakeUser.password;
-                                                newUser.name = fakeUser.name;
-                                                newUser.role = fakeUser.role;
-                                                newUser.dash_number = fakeUser.dash_number;
-                                                newUser.driver_cert = fakeUser.driver_cert;
-                                                newUser.trailer_cert = fakeUser.trailer_cert;
+                                                const newUser = new Users()
+                                                newUser.casID = fakeUser.casID
+                                                newUser.email = fakeUser.email
+                                                newUser.password = fakeUser.password
+                                                newUser.name = fakeUser.name
+                                                newUser.role = fakeUser.role
+                                                newUser.dash_number = fakeUser.dash_number
+                                                newUser.driver_cert = fakeUser.driver_cert
+                                                newUser.trailer_cert = fakeUser.trailer_cert
 
-                                                newUser.photo_url = 'https://i.pinimg.com/originals/aa/05/23/aa05237847e53e19a5d0deef64c33b79.jpg';
-                                                newUser.pronoun = 'they/them/their';
-                                                newUser.clothe_size = 'Men-S';
-                                                newUser.shoe_size = 'Women-2';
-                                                newUser.height = '6';
+                                                newUser.photo_url = 'https://i.pinimg.com/originals/aa/05/23/aa05237847e53e19a5d0deef64c33b79.jpg'
+                                                newUser.pronoun = 'they/them/their'
+                                                newUser.clothe_size = 'Men-S'
+                                                newUser.shoe_size = 'Women-2'
+                                                newUser.height = '6'
 
-                                                newUser.allergies_dietary_restrictions = 'none';
-                                                newUser.medical_conditions = 'Not a real human';
+                                                newUser.allergies_dietary_restrictions = 'none'
+                                                newUser.medical_conditions = 'Not a real human'
                                                 if (fakeUser.role === 'Leader' || fakeUser.role === 'OPO') {
-                                                  const clubIds = [];
+                                                  const clubIds = []
                                                   insertedClubs.forEach((insertedClub) => {
-                                                    clubIds.push(insertedClub._id);
-                                                  });
-                                                  newUser.leader_for = clubIds;
+                                                    clubIds.push(insertedClub._id)
+                                                  })
+                                                  newUser.leader_for = clubIds
                                                 } else {
-                                                  newUser.leader_for = fakeUser.leader_for;
+                                                  newUser.leader_for = fakeUser.leader_for
                                                 }
-                                                newUser.save().then(() => { return resolve(); });
-                                              });
-                                            }),
+                                                newUser.save().then(() => { return resolve() })
+                                              })
+                                            })
                                           ).then(() => {
-                                            console.log('seeded db. Press control+c to exit');
+                                            console.log('seeded db. Press control+c to exit')
                                             // process.exit();
-                                          });
-                                        });
-                                    });
-                                });
-                              });
-                          });
-                      });
-                  });
-              });
-          });
+                                          })
+                                        })
+                                    })
+                                })
+                              })
+                          })
+                      })
+                  })
+              })
+          })
       }).catch((error) => {
-        console.log(error);
-      });
-  });
+        console.log(error)
+      })
+  })
 }
 
-seedDB();
+seedDB()

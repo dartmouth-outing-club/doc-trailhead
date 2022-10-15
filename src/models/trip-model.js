@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-const { Schema } = mongoose;
+import mongoose from 'mongoose'
+const { Schema } = mongoose
 
 const TripSchema = new Schema({
   number: { type: Number, unique: true },
@@ -15,11 +15,11 @@ const TripSchema = new Schema({
   members: [{
     user: { type: Schema.Types.ObjectId, ref: 'User' },
     attended: { type: Boolean, default: false },
-    requestedGear: [{ gearId: String, name: String }],
+    requestedGear: [{ gearId: String, name: String }]
   }],
   pending: [{
     user: { type: Schema.Types.ObjectId, ref: 'User' },
-    requestedGear: [{ gearId: String, name: String }],
+    requestedGear: [{ gearId: String, name: String }]
   }],
   startDateAndTime: { type: Date },
   endDateAndTime: { type: Date },
@@ -37,8 +37,8 @@ const TripSchema = new Schema({
   OPOGearRequests: [
     {
       name: { type: String },
-      quantity: { type: Number },
-    },
+      quantity: { type: Number }
+    }
   ],
   trippeeGear: [{ name: String, sizeType: { type: String, enum: ['N/A', 'Clothe', 'Shoe', 'Height'], default: 'N/A' }, quantity: Number }],
   gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
@@ -53,22 +53,22 @@ const TripSchema = new Schema({
       otherCosts: [
         {
           title: String,
-          cost: Number,
-        },
-      ],
-    },
+          cost: Number
+        }
+      ]
+    }
   ], // will actually only have one entry
   pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   pcardAssigned: { type: String, default: 'None' },
   vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
   vehicleRequest: { type: Schema.Types.ObjectId, ref: 'VehicleRequest' },
-  sentEmails: { type: Array, default: [] },
-});
+  sentEmails: { type: Array, default: [] }
+})
 
 TripSchema.set('toJSON', {
-  virtuals: true,
-});
+  virtuals: true
+})
 
-const TripModel = mongoose.model('Trip', TripSchema);
+const TripModel = mongoose.model('Trip', TripSchema)
 
-export default TripModel;
+export default TripModel

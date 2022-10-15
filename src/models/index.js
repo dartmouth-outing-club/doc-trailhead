@@ -1,4 +1,4 @@
-import trip from './trip-model.js';
-import club from './club-model.js';
+import trip from './trip-model.js'
+import club from './club-model.js'
 
-export default { trip, club };
+export default { trip, club }

@@ -1,3 +1,3 @@
-import trips from './trip-router.js';
+import trips from './trip-router.js'
 
-export default { trips };
+export default { trips }
