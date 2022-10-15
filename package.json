@@ -9,7 +9,7 @@
     "lint": "eslint src",
     "migrateDB": "node src/db/migrate.js",
     "monitor": "heroku logs --app trailhead-server --tail",
-    "prod": "node src/server.js",
+    "prod": "nodemon src/server.js",
     "resetDB": "NODE_ENV=development node src/db/seed.js",
     "seedDB": "NODE_ENV=development node src/db/fill-events.js",
     "start": "node src/server.js"
@@ -31,6 +31,7 @@
     "ejs": "^2.6.1",
     "express": "^4.16.4",
     "jwt-simple": "^0.5.5",
+    "mongodb": "4.10",
     "mongoose": "^5.4.19",
     "morgan": "^1.9.1",
     "node-cron": "^2.0.3",
