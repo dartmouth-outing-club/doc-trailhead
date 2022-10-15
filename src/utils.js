@@ -10,7 +10,7 @@ export function clubsListToMap(clubsList) {
   const map = {};
   clubsList.forEach((club) => {
     const id = club._id.toString();
-    map[id] = club.name;
-  })
+    map[id] = { name: club.name, active: club.active };
+  });
   return map;
 }

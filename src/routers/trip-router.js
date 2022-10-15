@@ -2,8 +2,8 @@ import { Router } from 'express';
 
 import { requireAuth } from '../services/passport.js';
 import { logError } from '../services/error.js';
-import { trips, clubs } from '../services/mongo.js'
-import * as utils from '../utils.js'
+import { trips, clubs } from '../services/mongo.js';
+import * as utils from '../utils.js';
 import controllers from '../controllers/index.js';
 import models from '../models/index.js';
 
