@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import mongoose from 'mongoose'
-import models from '../models/index.js'
+import * as clubs from '../models/club-model.js'
 
 const mongoURI = process.env.MONGODB_URI
 mongoose.set('useCreateIndex', true)
@@ -14,7 +14,7 @@ let documentsFailed = 0
 
 async function migrateDB () {
   await Promise.all(
-    (await models.club.find({})).map(async (doc) => {
+    (await clubs.find({})).map(async (doc) => {
       doc.active = true
       try {
         await doc.save()

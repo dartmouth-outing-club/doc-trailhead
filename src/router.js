@@ -1,73 +1,75 @@
 import { Router } from 'express'
 
-import controllers from './controllers/index.js'
+import * as users from './controllers/user-controller.js'
+import * as clubs from './controllers/club-controller.js'
+import * as trips from './controllers/trip-controller.js'
+import * as vehicleRequests from './controllers/vehicle-request-controller.js'
+import * as vehicles from './controllers/vehicle-controller.js'
 import signS3 from './services/s3.js'
 import { logError } from './services/error.js'
 import { requireAuth } from './services/passport.js'
 
-import mailer from './services/emailing.js'
+import * as mailer from './services/emailing.js'
 
 const router = Router()
 
 router.get('/sign-s3', signS3)
 
-router.get('/', (req, res) => {
+router.get('/', (_req, res) => {
   res.json({ message: 'welcome to our doc app!' })
 })
 
-router.post('/signin-simple', controllers.users.signinSimple)
-router.get('/signin-cas', controllers.users.signinCAS)
-router.post('/signup', controllers.users.signup)
+router.post('/signin-simple', users.signinSimple)
+router.get('/signin-cas', users.signinCAS)
+router.post('/signup', users.signup)
 
 router.route('/user')
-  .get(requireAuth, controllers.users.getUser)
-  .put(requireAuth, controllers.users.updateUser)
+  .get(requireAuth, users.getUser)
+  .put(requireAuth, users.updateUser)
 
-router.route('/users').get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.users.getUsers)
+router.route('/users').get(requireAuth, users.roleAuthorization(['OPO']), users.getUsers)
 
-router.route('/leaders').get(requireAuth, controllers.users.getLeaders)
+router.route('/leaders').get(requireAuth, users.getLeaders)
 
-router.get('/myTrips', requireAuth, controllers.users.myTrips)
+router.get('/myTrips', requireAuth, users.myTrips)
 
-router.get('/userTrips', requireAuth, controllers.users.userTrips)
-
-// router.get('/isOnTrip/:tripID', requireAuth, controllers.trips.isOnTrip);
+router.get('/userTrips', requireAuth, users.userTrips)
 
 router.route('/club')
-  .post(controllers.clubs.createClub)
-  .get(controllers.clubs.allClubs)
+  .post(clubs.createClub)
+  .get(clubs.allClubs)
 
 router.route('/leaderapprovals')
-  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.users.getLeaderRequests)
-  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.users.respondToLeaderRequest)
+  .get(requireAuth, users.roleAuthorization(['OPO']), users.getLeaderRequests)
+  .put(requireAuth, users.roleAuthorization(['OPO']), users.respondToLeaderRequest)
 
 router.route('/certapprovals')
-  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.users.getCertRequests)
-  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.users.respondToCertRequest)
+  .get(requireAuth, users.roleAuthorization(['OPO']), users.getCertRequests)
+  .put(requireAuth, users.roleAuthorization(['OPO']), users.respondToCertRequest)
 
 router.route('/opotrips')
-  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getOPOTrips)
+  .get(requireAuth, users.roleAuthorization(['OPO']), trips.getOPOTrips)
 
 router.route('/gearrequest/:tripID')
-  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getTrip)
-  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), (req, res) => {
-    controllers.trips.respondToGearRequest(req.params.tripID, req.body.status).then((updatedTrip) => { return res.json(updatedTrip) }).catch((error) => { return res.status(500).json(error) })
+  .get(requireAuth, users.roleAuthorization(['OPO']), trips.getTrip)
+  .put(requireAuth, users.roleAuthorization(['OPO']), (req, res) => {
+    trips.respondToGearRequest(req.params.tripID, req.body.status).then((updatedTrip) => { return res.json(updatedTrip) }).catch((error) => { return res.status(500).json(error) })
   })
 
 router.route('/pcardrequest/:tripID')
-  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.respondToPCardRequest)
+  .put(requireAuth, users.roleAuthorization(['OPO']), trips.respondToPCardRequest)
 
 router.route('/trippeegearrequest/:tripID')
-  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.trips.getTrip)
-  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), (req, res) => {
-    controllers.trips.respondToTrippeeGearRequest(req.params.tripID, req.body.status).then((updatedTrip) => { res.json(updatedTrip) }).catch((error) => { return res.status(500).json(error) })
+  .get(requireAuth, users.roleAuthorization(['OPO']), trips.getTrip)
+  .put(requireAuth, users.roleAuthorization(['OPO']), (req, res) => {
+    trips.respondToTrippeeGearRequest(req.params.tripID, req.body.status).then((updatedTrip) => { res.json(updatedTrip) }).catch((error) => { return res.status(500).json(error) })
   })
 
 router.route('/vehicle-request/:id')
-  .get(requireAuth, controllers.vehicleRequests.getVehicleRequest)
-  .put(requireAuth, controllers.vehicleRequests.updateVehicleRequest)
+  .get(requireAuth, vehicleRequests.getVehicleRequest)
+  .put(requireAuth, vehicleRequests.updateVehicleRequest)
   .delete(requireAuth, (req, res) => {
-    controllers.vehicleRequests.deleteVehicleRequest(req.params.id)
+    vehicleRequests.deleteVehicleRequest(req.params.id)
       .then(() => { return res.sendStatus(200) })
       .catch((error) => {
         logError({ type: 'cancelVehicleRequest', message: error.message })
@@ -76,26 +78,26 @@ router.route('/vehicle-request/:id')
   })
 
 router.route('/vehicleRequests')
-  .post(requireAuth, controllers.vehicleRequests.makeVehicleRequest)
-  .get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicleRequests.getVehicleRequests)
+  .post(requireAuth, vehicleRequests.makeVehicleRequest)
+  .get(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.getVehicleRequests)
 
 router.route('/vehicles')
-  .get(requireAuth, controllers.vehicles.getVehicles)
-  .post(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicles.createVehicle)
+  .get(requireAuth, vehicles.getVehicles)
+  .post(requireAuth, users.roleAuthorization(['OPO']), vehicles.createVehicle)
 
 router.route('/vehicles/:id')
-  .delete(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicles.deleteVehicle)
+  .delete(requireAuth, users.roleAuthorization(['OPO']), vehicles.deleteVehicle)
 
 router.route('/opoVehicleRequest/:id')
-  .post(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicleRequests.respondToVehicleRequest)
-  .delete(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicleRequests.cancelAssignments)
-  .put(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicleRequests.denyVehicleRequest)
+  .post(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.respondToVehicleRequest)
+  .delete(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.cancelAssignments)
+  .put(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.denyVehicleRequest)
 
 router.route('/vehicle-requests/check-conflict')
-  .post(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.vehicleRequests.precheckAssignment)
+  .post(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.precheckAssignment)
 
 router.route('/vehicle-assignments')
-  .get(requireAuth, controllers.vehicleRequests.getVehicleAssignments)
+  .get(requireAuth, vehicleRequests.getVehicleAssignments)
 
 router.route('/debug')
   .post((req) => {

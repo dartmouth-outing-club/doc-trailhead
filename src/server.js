@@ -7,11 +7,12 @@ import dotenv from 'dotenv'
 import dateMath from 'date-arithmetic'
 
 import apiRouter from './router.js'
-import { mailer, scheduler } from './services/index.js'
+import * as mailer from './services/emailing.js'
+import * as scheduler from './services/scheduler.js'
 import * as constants from './constants.js'
 import { tokenForUser } from './controllers/user-controller.js'
 import Trip from './models/trip-model.js'
-import routers from './routers/index.js'
+import TripRouter from './routers/trip-router.js'
 
 process.env.TZ = 'America/New_York'
 
@@ -51,8 +52,8 @@ app.use(express.static('static'))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
-app.use('/', (req, res, next) => { next() }, apiRouter)
-app.use('/trips', routers.trips)
+app.use('/', (_req, _res, next) => { next() }, apiRouter)
+app.use('/trips', TripRouter)
 
 // START THE SERVER
 // =============================================================================

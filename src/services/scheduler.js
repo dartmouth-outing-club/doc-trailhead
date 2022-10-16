@@ -1,6 +1,6 @@
 import cron from 'node-cron'
 
-const schedule = (task, frequency) => {
+export function schedule (task, frequency) {
   switch (frequency) {
     case 'daily':
       cron.schedule('0 1 * * *', task)
@@ -15,5 +15,3 @@ const schedule = (task, frequency) => {
       break
   }
 }
-
-export default { schedule }

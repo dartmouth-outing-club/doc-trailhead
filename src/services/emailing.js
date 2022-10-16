@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
   }
 })
 
-const send = (email) => {
+export function send (email) {
   return new Promise((resolve, reject) => {
     const mailOptions = {
       from: 'doc.signup.no.reply@dartmouth.edu',
@@ -33,5 +33,3 @@ const send = (email) => {
     })
   })
 }
-
-export default { send }
