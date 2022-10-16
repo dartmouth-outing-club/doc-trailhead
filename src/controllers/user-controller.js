@@ -5,6 +5,8 @@ import * as constants from '../constants.js'
 import User from '../models/user-model.js'
 import Trip from '../models/trip-model.js'
 import VehicleRequest from '../models/vehicle-request-model.js'
+import { users } from '../services/mongo.js'
+import * as utils from '../utils.js'
 
 export const signinSimple = (req, res, next) => {
   passport.authenticate('local', (err, user) => {
@@ -178,6 +180,16 @@ export const getUser = (req, res) => {
       console.log(error)
       res.status(406).send(error.message)
     })
+}
+
+export async function getLeaders (_req, res) {
+  try {
+    const leaders = await users.find({ role: 'Leader' }).toArray()
+    const leaderInfo = leaders.map(leader => utils.pick(leader, ['_id', 'name', 'email']))
+    res.json(leaderInfo)
+  } catch {
+    res.error(500)
+  }
 }
 
 /**

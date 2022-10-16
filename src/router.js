@@ -25,6 +25,8 @@ router.route('/user')
 
 router.route('/users').get(requireAuth, controllers.users.roleAuthorization(['OPO']), controllers.users.getUsers)
 
+router.route('/leaders').get(requireAuth, controllers.users.getLeaders)
+
 router.get('/myTrips', requireAuth, controllers.users.myTrips)
 
 router.get('/userTrips', requireAuth, controllers.users.userTrips)
