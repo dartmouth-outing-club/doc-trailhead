@@ -4,9 +4,10 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 import cas from 'passport-cas'
 import dotenv from 'dotenv'
 import { add } from 'date-arithmetic'
+import bcrypt from 'bcryptjs'
 
 import * as constants from '../constants.js'
-import User from '../models/user-model.js'
+import * as users from '../controllers/user-controller.js'
 import Trip from '../models/trip-model.js'
 
 dotenv.config({ silent: true })
@@ -18,50 +19,41 @@ const jwtOptions = {
   secretOrKey: process.env.AUTH_SECRET
 }
 
-const localLogin = new LocalStrategy(localOptions, (email, password, done) => {
-  User.findOne({ email }, ['username', 'password'], (err, user) => {
-    if (err) {
-      return done(err)
-    } else if (!user) {
-      return done(null, false)
-    }
+const localLogin = new LocalStrategy(localOptions, async (email, password, done) => {
+  try {
+    const user = await users.getUserByEmail(email)
+    if (!user) throw new Error(`User with email ${email} not found`)
 
-    user.comparePassword(password, (err, isMatch) => {
-      if (err) {
-        done(err)
-      } else if (!isMatch) {
-        done(null, false)
-      } else {
-        done(null, user)
-      }
-    })
-  })
+    const comparisonResult = await bcrypt.compare(password, user.password)
+    if (comparisonResult === true) {
+      console.log(`Comparison succeeded, logging in ${email}`)
+      done(null, user)
+    }
+    throw new Error(`Password comparison failed for user ${email}`)
+  } catch (err) {
+    done(err)
+  }
 })
 
-const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
-  User.findById(payload.sub, (err, user) => {
-    if (err) {
-      done(err, false)
-    } else if (user) {
-      if (payload.purpose === 'mobile') {
-        Trip.findById(payload.tripID).then((trip) => {
-          const today = new Date()
-
-          if (today.getTime() <= add(trip.endDateAndTime, 24, 'hours').getTime()) {
-            console.log('Mobile token is time valid')
-            done(null, user)
-          } else {
-            done(err, false)
-            console.log('Mobile token expired')
-          }
-        })
-      } else {
-        done(null, user)
-      }
+const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
+  try {
+    const user = await users.getUserById(payload.sub)
+    if (payload.purpose === 'mobile') {
+      Trip.findById(payload.tripID).then((trip) => {
+        const today = new Date()
+        if (today.getTime() <= add(trip.endDateAndTime, 24, 'hours').getTime()) {
+          console.log('Mobile token is time valid')
+          done(null, user)
+        } else {
+          throw new Error('Mobile token expired')
+        }
+      })
     } else {
-      done(null, false)
+      done(null, user)
     }
-  })
+  } catch (err) {
+    done(err, false)
+  }
 })
 
 const casOptions = {

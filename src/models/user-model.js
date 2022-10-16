@@ -54,12 +54,6 @@ UserSchema.pre('save', function beforeYourModelSave (next) {
   return next()
 })
 
-UserSchema.methods.comparePassword = function comparePassword (candidatePassword, callback) {
-  const user = this
-  const comparisonResult = bcrypt.compareSync(candidatePassword, user.password)
-  return callback(null, comparisonResult)
-}
-
 const UserModel = mongoose.model('User', UserSchema)
 
 export default UserModel

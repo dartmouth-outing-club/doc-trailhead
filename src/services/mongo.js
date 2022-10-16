@@ -6,4 +6,4 @@ const database = client.db()
 
 export const trips = database.collection('trips')
 export const clubs = database.collection('clubs')
-export const users = database.collection('users')
+export const Users = database.collection('users')

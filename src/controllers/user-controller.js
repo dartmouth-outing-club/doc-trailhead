@@ -1,20 +1,22 @@
 import jwt from 'jwt-simple'
+import { ObjectId } from 'mongodb'
 
 import passport from '../services/passport.js'
 import * as constants from '../constants.js'
 import User from '../models/user-model.js'
 import Trip from '../models/trip-model.js'
 import VehicleRequest from '../models/vehicle-request-model.js'
-import { users } from '../services/mongo.js'
+import { Users } from '../services/mongo.js'
 import * as utils from '../utils.js'
 
 export const signinSimple = (req, res, next) => {
   passport.authenticate('local', (err, user) => {
     if (err) { return err }
     if (!user) {
+      console.log('No user found, rejecting')
       res.status(500).send('rejected')
     } else {
-      User.findById(user.id).populate('leader_for').exec()
+      User.findById(user._id).populate('leader_for').exec()
         .then((foundUser) => {
           res.json({ token: tokenForUser(foundUser, 'normal'), user: foundUser })
         })
@@ -164,7 +166,7 @@ const isInfoEmpty = (string) => {
 }
 
 export const getUser = (req, res) => {
-  User.findById(req.user.id).populate('leader_for').populate('requested_clubs').exec()
+  User.findById(req.user._id).populate('leader_for').populate('requested_clubs').exec()
     .then((user) => {
       let hasCompleteProfile = true
       if (!user.email || !user.name || !user.pronoun || !user.dash_number || !user.allergies_dietary_restrictions ||
@@ -182,9 +184,17 @@ export const getUser = (req, res) => {
     })
 }
 
+export async function getUserById (id) {
+  return Users.findOne({ _id: ObjectId(id) })
+}
+
+export async function getUserByEmail (email) {
+  return Users.findOne({ email })
+}
+
 export async function getLeaders (_req, res) {
   try {
-    const leaders = await users.find({ role: 'Leader' }).toArray()
+    const leaders = await Users.find({ role: 'Leader' }).toArray()
     const leaderInfo = leaders.map(leader => utils.pick(leader, ['_id', 'name', 'email']))
     res.json(leaderInfo)
   } catch {
