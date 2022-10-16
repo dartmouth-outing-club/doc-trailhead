@@ -9,6 +9,9 @@ import { tokenForUser } from './user-controller.js'
 import { deleteVehicleRequest } from './vehicle-request-controller.js'
 import * as constants from '../constants.js'
 import { mailer } from '../services/index.js'
+import { trips, clubs } from '../services/mongo.js'
+import * as utils from '../utils.js'
+import { logError } from '../services/error.js'
 
 const populateTripDocument = (tripQuery, fields) => {
   const fieldsDirectory = {
@@ -29,6 +32,32 @@ const sendLeadersEmail = (tripID, subject, message) => {
     .then((trip) => {
       mailer.send({ address: trip.leaders.map((leader) => { return leader.email }), subject, message })
     })
+}
+
+export async function getPublicTrips (_req, res) {
+  const clubsPromise = clubs.find().toArray()
+  const tripsPromise = trips
+    .find({ startDateAndTime: { $gte: new Date() }, private: false })
+    .sort({ startDateAndTime: 1 })
+    .limit(15)
+    .toArray()
+
+  try {
+    const [tripsList, clubsList] = await Promise.all([tripsPromise, clubsPromise])
+    const clubsMap = utils.clubsListToMap(clubsList)
+
+    const filteredList = tripsList
+      .map((trip) => (
+        utils.pick(trip, ['location', 'club', 'title', 'description', 'startDateAndTime', 'endDateAndTime'])
+      ))
+      .map((trip) => ({ ...trip, club: clubsMap[trip.club] }))
+
+    return res.json(filteredList)
+  } catch (error) {
+    console.error(error)
+    logError({ type: 'fetchPublicTrips', message: error.message })
+    return res.status(500).send(error.message)
+  }
 }
 
 /**

@@ -2,8 +2,6 @@ import { Router } from 'express'
 
 import { requireAuth } from '../services/passport.js'
 import { logError } from '../services/error.js'
-import { trips, clubs } from '../services/mongo.js'
-import * as utils from '../utils.js'
 import controllers from '../controllers/index.js'
 import models from '../models/index.js'
 
@@ -38,31 +36,7 @@ tripsRouter.route('/')
   })
 
 tripsRouter.route('/public')
-  .get(async (_req, res) => {
-    const clubsPromise = clubs.find().toArray()
-    const tripsPromise = trips
-      .find({ startDateAndTime: { $gte: new Date() }, private: false })
-      .sort({ startDateAndTime: 1 })
-      .limit(15)
-      .toArray()
-
-    try {
-      const [tripsList, clubsList] = await Promise.all([tripsPromise, clubsPromise])
-      const clubsMap = utils.clubsListToMap(clubsList)
-
-      const filteredList = tripsList
-        .map((trip) => (
-          utils.pick(trip, ['location', 'club', 'title', 'description', 'startDateAndTime', 'endDateAndTime'])
-        ))
-        .map((trip) => ({ ...trip, club: clubsMap[trip.club] }))
-
-      return res.json(filteredList)
-    } catch (error) {
-      console.error(error)
-      logError({ type: 'fetchPublicTrips', message: error.message })
-      return res.status(500).send(error.message)
-    }
-  })
+  .get(controllers.trips.getPublicTrips)
 
 tripsRouter.route('/:tripID')
   .get(requireAuth, async (req, res) => {
