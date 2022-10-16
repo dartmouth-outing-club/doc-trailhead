@@ -38,16 +38,17 @@ const localLogin = new LocalStrategy(localOptions, async (email, password, done)
 const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
   try {
     const user = await users.getUserById(payload.sub)
+    if (!user) throw new Error(`User with id ${payload.sub} not found`)
+
     if (payload.purpose === 'mobile') {
-      Trip.findById(payload.tripID).then((trip) => {
-        const today = new Date()
-        if (today.getTime() <= add(trip.endDateAndTime, 24, 'hours').getTime()) {
-          console.log('Mobile token is time valid')
-          done(null, user)
-        } else {
-          throw new Error('Mobile token expired')
-        }
-      })
+      const trip = await Trip.findById(payload.tripID)
+      const today = new Date()
+      if (today.getTime() <= add(trip.endDateAndTime, 24, 'hours').getTime()) {
+        console.log('Mobile token is valid')
+        done(null, user)
+      } else {
+        throw new Error('Mobile token expired')
+      }
     } else {
       done(null, user)
     }
