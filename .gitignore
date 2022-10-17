@@ -9,3 +9,6 @@ server.pass.key
 all.crt
 DigiCertCA.crt
 doc_dartmouth_edu.crt
+dump/
+tables/
+data/

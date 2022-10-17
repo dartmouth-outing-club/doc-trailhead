@@ -77,8 +77,6 @@ export const getTrips = (filters = {}) => {
 
 /**
  * Fetches only trips that have gear, P-Card, or vehicle requests.
- * @param {express.req} req
- * @param {express.res} res
  */
 export const getOPOTrips = (req, res) => {
   const filters = {}
@@ -101,8 +99,6 @@ export const getOPOTrips = (req, res) => {
 
 /**
  * Fetches a single trip with all fields populated.
- * @param {express.req} req
- * @param {express.res} res
  */
 export const getTrip = (tripID, forUser) => {
   return new Promise((resolve, reject) => {
@@ -147,69 +143,168 @@ export const getTrip = (tripID, forUser) => {
  * @param {User} creator The user document returned from passport.js for the user who intiated this trip
  * @param {Trip} data The trip parameters
  */
-export const createTrip = (creator, data) => {
-  // TODO restructure the parent function as an async function once there's a test in place
-  // eslint-disable-next-line no-async-promise-executor
-  return new Promise(async (resolve, reject) => {
-    // Retrieves the current maximum trip number and then updates it immediately.
-    const globals = await Global.find({})
-    globals[0].tripNumberMax += 1
-    const nextTripNumber = globals[0].tripNumberMax
-    await globals[0].save()
+export async function createTrip (creator, data) {
+  // Retrieves the current maximum trip number and then updates it immediately.
+  const globals = await Global.find({})
+  globals[0].tripNumberMax += 1
+  const nextTripNumber = globals[0].tripNumberMax
+  await globals[0].save()
 
-    // Creates the new trip
-    const trip = new Trip()
-    trip.number = nextTripNumber
-    trip.title = data.title
-    trip.private = data.private
-    trip.startDate = data.startDate
-    trip.endDate = data.endDate
-    trip.startTime = data.startTime
-    trip.startDateAndTime = constants.createDateObject(data.startDate, data.startTime, data.timezone)
-    trip.endDateAndTime = constants.createDateObject(data.endDate, data.endTime, data.timezone)
-    trip.endTime = data.endTime
-    trip.description = data.description
-    trip.club = data.club
-    trip.cost = data.cost
-    trip.experienceNeeded = data.experienceNeeded
-    trip.location = data.location
-    trip.pickup = data.pickup
-    trip.dropoff = data.dropoff
-    trip.mileage = data.mileage
-    trip.coLeaderCanEditTrip = data.coLeaderCanEditTrip
-    trip.OPOGearRequests = data.gearRequests
-    trip.trippeeGear = data.trippeeGear
-    trip.pcard = data.pcard
+  // Creates the new trip
+  const trip = new Trip()
+  trip.number = nextTripNumber
+  trip.title = data.title
+  trip.private = data.private
+  trip.startDate = data.startDate
+  trip.endDate = data.endDate
+  trip.startTime = data.startTime
+  trip.startDateAndTime = constants.createDateObject(data.startDate, data.startTime, data.timezone)
+  trip.endDateAndTime = constants.createDateObject(data.endDate, data.endTime, data.timezone)
+  trip.endTime = data.endTime
+  trip.description = data.description
+  trip.club = data.club
+  trip.cost = data.cost
+  trip.experienceNeeded = data.experienceNeeded
+  trip.location = data.location
+  trip.pickup = data.pickup
+  trip.dropoff = data.dropoff
+  trip.mileage = data.mileage
+  trip.coLeaderCanEditTrip = data.coLeaderCanEditTrip
+  trip.OPOGearRequests = data.gearRequests
+  trip.trippeeGear = data.trippeeGear
+  trip.pcard = data.pcard
 
-    if (data.injectingStatus) { // TO-DELETE was used for debugging
-      trip.gearStatus = data.gearStatus
-      trip.trippeeGearStatus = data.trippeeGearStatus
-      trip.pcardStatus = data.pcardStatus
-      if (data.pcardStatus === 'approved') trip.pcardAssigned = data.pcardAssigned
-    } else {
-      if (data.gearRequests.length > 0) trip.gearStatus = 'pending'
-      if (data.trippeeGear.length > 0) trip.trippeeGearStatus = 'pending'
-      if (data.pcard.length > 0) trip.pcardStatus = 'pending'
+  if (data.injectingStatus) { // TO-DELETE was used for debugging
+    trip.gearStatus = data.gearStatus
+    trip.trippeeGearStatus = data.trippeeGearStatus
+    trip.pcardStatus = data.pcardStatus
+    if (data.pcardStatus === 'approved') trip.pcardAssigned = data.pcardAssigned
+  } else {
+    if (data.gearRequests.length > 0) trip.gearStatus = 'pending'
+    if (data.trippeeGear.length > 0) trip.trippeeGearStatus = 'pending'
+    if (data.pcard.length > 0) trip.pcardStatus = 'pending'
+  }
+
+  // Add the trip creator to the trip
+  trip.members = [{ user: creator._id, requestedGear: [] }]
+  trip.owner = creator._id
+  trip.leaders = [creator._id]
+  trip.pending = []
+
+  const leaderEmails = [creator.email] // Used to send out initial email
+  const foundUsers = await User.find({ email: { $in: data.leaders } })
+  foundUsers.forEach((foundUser) => {
+    if (!foundUser._id.equals(creator._id)) {
+      trip.leaders.push(foundUser._id)
+      trip.members.push({ user: foundUser._id, requestedGear: [] })
+      leaderEmails.push(foundUser.email)
+    }
+  })
+  const savedTrip = await trip.save()
+  mailer.send({ address: leaderEmails, subject: `New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've created a new Trip #${savedTrip.number}: ${savedTrip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave ${trip.pickup}:: ${constants.frontendURL}/trip-check-out/${savedTrip._id}?token=${tokenForUser(creator, 'mobile', savedTrip._id)}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
+  if (data.vehicles.length > 0) {
+    // Retrieves the current maximum vehicle request number and then updates it immediately
+    const globalsForVehicleRequest = await Global.find({})
+    globalsForVehicleRequest[0].vehicleRequestNumberMax += 1
+    const nextVehicleRequestNumber = globalsForVehicleRequest[0].vehicleRequestNumberMax
+    await globalsForVehicleRequest[0].save()
+
+    // Creates a new vehicle request
+    const vehicleRequest = new VehicleRequest()
+    vehicleRequest.number = nextVehicleRequestNumber
+    vehicleRequest.requester = creator._id
+    vehicleRequest.mileage = data.mileage
+    vehicleRequest.requestDetails = data.description
+    vehicleRequest.associatedTrip = savedTrip._id
+    vehicleRequest.requestType = 'TRIP'
+    vehicleRequest.requestedVehicles = data.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, data.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, data.timezone) } })
+    try {
+      const savedVehicleRequest = await vehicleRequest.save()
+      mailer.send({ address: leaderEmails, subject: `re: New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${savedVehicleRequest.number}: ${savedTrip.title} that is linked to your Trip #${savedTrip.number}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedVehicleRequest._id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
+      if (data.injectingStatus) savedTrip.vehicleStatus = data.vehicleStatus
+      else savedTrip.vehicleStatus = 'pending'
+      savedTrip.vehicleRequest = savedVehicleRequest
+      const tripWithVechicleRequest = await savedTrip.save()
+      return tripWithVechicleRequest
+    } catch (error) {
+      throw new Error(`${'Trip successfully created, but error creating associated vehicle request for trip:'} ${error.toString()}`)
+    }
+  } else {
+    return savedTrip
+  }
+}
+
+export async function updateTrip (req, res) {
+  const trip = await Trip.findById(req.params.tripID)
+  const isTripLeaderOrOPO = trip.leaders.some((leaderID) => leaderID.toString() === req.user._id.toString()) || req.user.role === 'OPO'
+  if (isTripLeaderOrOPO) {
+    trip.title = req.body.title
+    trip.private = req.body.private
+    trip.startDate = req.body.startDate
+    trip.endDate = req.body.endDate
+    trip.startTime = req.body.startTime
+    trip.endTime = req.body.endTime
+    trip.startDateAndTime = constants.createDateObject(req.body.startDate, req.body.startTime, req.body.timezone)
+    trip.endDateAndTime = constants.createDateObject(req.body.endDate, req.body.endTime, req.body.timezone)
+    trip.description = req.body.description
+    trip.coLeaderCanEditTrip = req.body.coLeaderCanEditTrip
+    trip.club = req.body.club
+    trip.location = req.body.location
+    trip.pickup = req.body.pickup
+    trip.dropoff = req.body.dropoff
+    trip.cost = req.body.cost
+    trip.experienceNeeded = req.body.experienceNeeded
+    trip.OPOGearRequests = req.body.gearRequests
+    trip.trippeeGear = req.body.trippeeGear
+    trip.pcard = req.body.pcard
+    trip.returned = req.body.returned
+
+    /**
+     * Updates each member's gear requests based on the new gear.
+     */
+    trip.members.concat(trip.pending).forEach((person) => {
+      const markToRemove = []
+      person.requestedGear.forEach((gear, idx) => {
+        let found = false
+        trip.trippeeGear.forEach((newGear) => {
+          if (gear.gearId === newGear._id.toString()) {
+            gear.gearId = newGear._id
+            found = true
+          }
+        })
+        if (!found) {
+          markToRemove.push(idx)
+        }
+      })
+      for (let i = 0; i < markToRemove.length; i += 1) person.requestedGear.splice(markToRemove[i], 1)
+    })
+
+    await calculateRequiredGear(trip)
+
+    if (trip.gearStatus === 'N/A' && req.body.gearRequests.length > 0) {
+      trip.gearStatus = 'pending'
     }
 
-    // Add the trip creator to the trip
-    trip.members = [{ user: creator._id, requestedGear: [] }]
-    trip.owner = creator._id
-    trip.leaders = [creator._id]
-    trip.pending = []
+    if (trip.gearStatus === 'pending' && req.body.gearRequests.length === 0) {
+      trip.gearStatus = 'N/A'
+    }
 
-    const leaderEmails = [creator.email] // Used to send out initial email
-    const foundUsers = await User.find({ email: { $in: data.leaders } })
-    foundUsers.forEach((foundUser) => {
-      if (!foundUser._id.equals(creator._id)) {
-        trip.leaders.push(foundUser._id)
-        trip.members.push({ user: foundUser._id, requestedGear: [] })
-        leaderEmails.push(foundUser.email)
-      }
-    })
-    trip.save().then(async (savedTrip) => {
-      mailer.send({ address: leaderEmails, subject: `New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've created a new Trip #${savedTrip.number}: ${savedTrip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave ${trip.pickup}:: ${constants.frontendURL}/trip-check-out/${savedTrip._id}?token=${tokenForUser(creator, 'mobile', savedTrip._id)}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
-      if (data.vehicles.length > 0) {
+    if (trip.trippeeGearStatus === 'N/A' && req.body.trippeeGear.length > 0) {
+      trip.trippeeGearStatus = 'pending'
+    }
+    if (trip.trippeeGearStatus === 'pending' && req.body.trippeeGear.length === 0) {
+      trip.trippeeGearStatus = 'N/A'
+    }
+
+    if (trip.pcardStatus === 'N/A' && req.body.pcard.length > 0) {
+      trip.pcardStatus = 'pending'
+    }
+    if (trip.pcardStatus === 'pending' && req.body.pcard.length === 0) {
+      trip.pcardStatus = 'N/A'
+    }
+
+    if (req.body.changedVehicles) {
+      if (trip.vehicleStatus === 'N/A' && req.body.vehicles.length > 0) {
         // Retrieves the current maximum vehicle request number and then updates it immediately
         const globalsForVehicleRequest = await Global.find({})
         globalsForVehicleRequest[0].vehicleRequestNumberMax += 1
@@ -219,175 +314,74 @@ export const createTrip = (creator, data) => {
         // Creates a new vehicle request
         const vehicleRequest = new VehicleRequest()
         vehicleRequest.number = nextVehicleRequestNumber
-        vehicleRequest.requester = creator._id
-        vehicleRequest.mileage = data.mileage
-        vehicleRequest.requestDetails = data.description
-        vehicleRequest.associatedTrip = savedTrip._id
+        vehicleRequest.requestDetails = req.body.description
+        vehicleRequest.requester = req.user._id
+        vehicleRequest.mileage = req.body.mileage
+        vehicleRequest.associatedTrip = trip
         vehicleRequest.requestType = 'TRIP'
-        vehicleRequest.requestedVehicles = data.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, data.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, data.timezone) } })
-        vehicleRequest.save().then(async (savedVehicleRequest) => {
-          mailer.send({ address: leaderEmails, subject: `re: New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${savedVehicleRequest.number}: ${savedTrip.title} that is linked to your Trip #${savedTrip.number}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedVehicleRequest._id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
-          if (data.injectingStatus) savedTrip.vehicleStatus = data.vehicleStatus
-          else savedTrip.vehicleStatus = 'pending'
-          savedTrip.vehicleRequest = savedVehicleRequest
-          resolve(await savedTrip.save())
-        }).catch((error) => { reject(new Error(`${'Trip successfully created, but error creating associated vehicle request for trip:'} ${error.toString()}`)) })
-      } else resolve(savedTrip)
-    }).catch((error) => { reject(error) })
-  })
-}
-
-/**
- * Updates a trip.
- * @param {express.req} req
- * @param {express.res} res
- */
-export const updateTrip = async (req, res) => {
-  try {
-    const trip = await Trip.findById(req.params.tripID)
-    if (trip.leaders.some((leaderID) => { return leaderID.toString() === req.user._id.toString() }) || req.user.role === 'OPO') {
-      trip.title = req.body.title
-      trip.private = req.body.private
-      trip.startDate = req.body.startDate
-      trip.endDate = req.body.endDate
-      trip.startTime = req.body.startTime
-      trip.endTime = req.body.endTime
-      trip.startDateAndTime = constants.createDateObject(req.body.startDate, req.body.startTime, req.body.timezone)
-      trip.endDateAndTime = constants.createDateObject(req.body.endDate, req.body.endTime, req.body.timezone)
-      trip.description = req.body.description
-      trip.coLeaderCanEditTrip = req.body.coLeaderCanEditTrip
-      trip.club = req.body.club
-      trip.location = req.body.location
-      trip.pickup = req.body.pickup
-      trip.dropoff = req.body.dropoff
-      trip.cost = req.body.cost
-      trip.experienceNeeded = req.body.experienceNeeded
-      trip.OPOGearRequests = req.body.gearRequests
-      trip.trippeeGear = req.body.trippeeGear
-      trip.pcard = req.body.pcard
-      trip.returned = req.body.returned
-
-      /**
-       * Updates each member's gear requests based on the new gear.
-       */
-      trip.members.concat(trip.pending).forEach((person) => {
-        const markToRemove = []
-        person.requestedGear.forEach((gear, idx) => {
-          let found = false
-          trip.trippeeGear.forEach((newGear) => {
-            if (gear.gearId === newGear._id.toString()) {
-              gear.gearId = newGear._id
-              found = true
-            }
-          })
-          if (!found) {
-            markToRemove.push(idx)
-          }
-        })
-        for (let i = 0; i < markToRemove.length; i += 1) person.requestedGear.splice(markToRemove[i], 1)
-      })
-
-      await calculateRequiredGear(trip)
-
-      if (trip.gearStatus === 'N/A' && req.body.gearRequests.length > 0) {
-        trip.gearStatus = 'pending'
-      }
-      if (trip.gearStatus === 'pending' && req.body.gearRequests.length === 0) {
-        trip.gearStatus = 'N/A'
-      }
-
-      if (trip.trippeeGearStatus === 'N/A' && req.body.trippeeGear.length > 0) {
-        trip.trippeeGearStatus = 'pending'
-      }
-      if (trip.trippeeGearStatus === 'pending' && req.body.trippeeGear.length === 0) {
-        trip.trippeeGearStatus = 'N/A'
-      }
-
-      if (trip.pcardStatus === 'N/A' && req.body.pcard.length > 0) {
-        trip.pcardStatus = 'pending'
-      }
-      if (trip.pcardStatus === 'pending' && req.body.pcard.length === 0) {
-        trip.pcardStatus = 'N/A'
-      }
-
-      if (req.body.changedVehicles) {
-        if (trip.vehicleStatus === 'N/A' && req.body.vehicles.length > 0) {
-          // Retrieves the current maximum vehicle request number and then updates it immediately
-          const globalsForVehicleRequest = await Global.find({})
-          globalsForVehicleRequest[0].vehicleRequestNumberMax += 1
-          const nextVehicleRequestNumber = globalsForVehicleRequest[0].vehicleRequestNumberMax
-          await globalsForVehicleRequest[0].save()
-
-          // Creates a new vehicle request
-          const vehicleRequest = new VehicleRequest()
-          vehicleRequest.number = nextVehicleRequestNumber
-          vehicleRequest.requestDetails = req.body.description
-          vehicleRequest.requester = req.user._id
-          vehicleRequest.mileage = req.body.mileage
-          vehicleRequest.associatedTrip = trip
-          vehicleRequest.requestType = 'TRIP'
-          vehicleRequest.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) } })
-          const savedVehicleRequest = await vehicleRequest.save()
-          trip.vehicleStatus = 'pending'
-          trip.vehicleRequest = savedVehicleRequest
-        } else if (trip.vehicleStatus === 'pending') {
-          if (req.body.vehicles.length === 0) {
-            await VehicleRequest.deleteOne({ _id: req.body.vehicleReqId })
-            trip.vehicleStatus = 'N/A'
-          } else {
-            const updates = {}
-            if (req.body.mileage) updates.mileage = req.body.mileage
-            if (req.body.description) updates.requestDetails = req.body.description
-            if (req.body.vehicles.length > 0) updates.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) } })
-            await VehicleRequest.updateOne({ _id: req.body.vehicleReqId }, updates)
-          }
+        vehicleRequest.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) } })
+        const savedVehicleRequest = await vehicleRequest.save()
+        trip.vehicleStatus = 'pending'
+        trip.vehicleRequest = savedVehicleRequest
+      } else if (trip.vehicleStatus === 'pending') {
+        if (req.body.vehicles.length === 0) {
+          await VehicleRequest.deleteOne({ _id: req.body.vehicleReqId })
+          trip.vehicleStatus = 'N/A'
         } else {
           const updates = {}
-          if (trip.vehicleStatus === 'approved') {
-            const vReq = await VehicleRequest.findById(req.body.vehicleReqId)
-            const deletedAssignments = []
-            await Promise.all(vReq.assignments.map(async (assignmentId) => {
-              deletedAssignments.push(await Assignment.findById(assignmentId).populate(['assigned_vehicle']))
-              await Assignment.deleteOne({ _id: assignmentId })
-            }))
-            updates.assignments = []
-            if (deletedAssignments.length) {
-              mailer.send({ address: constants.OPOEmails, subject: `V-Req #${vReq.number} updated`, message: `Hello,\n\nThe leaders of V-Req #${vReq.number} (which was approved) just changed their requested vehicles.\n\nThe original ${vReq.assignments.length} vehicle assignment${vReq.assignments.length > 1 ? 's' : ''} now have all been unscheduled.\n\nDeleted assignments:\n${deletedAssignments.map((assignment) => { return `\t-\t${assignment.assigned_vehicle.name}: ${constants.formatDateAndTime(assignment.assigned_pickupDateAndTime, 'LONG')} to ${constants.formatDateAndTime(assignment.assigned_returnDateAndTime, 'LONG')}\n` })}\n\nYou will have to approve this request again at ${constants.frontendURL}/opo-vehicle-request/${vReq._id.toString()}.\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
-            }
-          }
           if (req.body.mileage) updates.mileage = req.body.mileage
           if (req.body.description) updates.requestDetails = req.body.description
-          updates.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) } })
-          updates.status = 'pending'
-          trip.vehicleStatus = 'pending'
+          if (req.body.vehicles.length > 0) {
+            const requestedVehicles = req.body.vehicles.map((requestedVehicle) => ({
+              ...requestedVehicle,
+              pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone),
+              returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone)
+            }))
+            updates.requestedVehicles = requestedVehicles
+          }
           await VehicleRequest.updateOne({ _id: req.body.vehicleReqId }, updates)
         }
-      }
-
-      const coleaders = await User.find({ email: { $in: req.body.leaders } }).exec()
-      const allLeaders = []
-      coleaders.forEach((coleader) => {
-        allLeaders.push(coleader._id)
-        if (!trip.members.find((member) => { return member.user._id.toString() === coleader._id.toString() })) {
-          trip.members.push({ user: coleader._id, requestedGear: [] })
+      } else {
+        const updates = {}
+        if (trip.vehicleStatus === 'approved') {
+          const vReq = await VehicleRequest.findById(req.body.vehicleReqId)
+          const deletedAssignments = []
+          await Promise.all(vReq.assignments.map(async (assignmentId) => {
+            deletedAssignments.push(await Assignment.findById(assignmentId).populate(['assigned_vehicle']))
+            await Assignment.deleteOne({ _id: assignmentId })
+          }))
+          updates.assignments = []
+          if (deletedAssignments.length) {
+            mailer.send({ address: constants.OPOEmails, subject: `V-Req #${vReq.number} updated`, message: `Hello,\n\nThe leaders of V-Req #${vReq.number} (which was approved) just changed their requested vehicles.\n\nThe original ${vReq.assignments.length} vehicle assignment${vReq.assignments.length > 1 ? 's' : ''} now have all been unscheduled.\n\nDeleted assignments:\n${deletedAssignments.map((assignment) => { return `\t-\t${assignment.assigned_vehicle.name}: ${constants.formatDateAndTime(assignment.assigned_pickupDateAndTime, 'LONG')} to ${constants.formatDateAndTime(assignment.assigned_returnDateAndTime, 'LONG')}\n` })}\n\nYou will have to approve this request again at ${constants.frontendURL}/opo-vehicle-request/${vReq._id.toString()}.\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
+          }
         }
-      })
-      trip.leaders = allLeaders
-      await trip.save()
-      res.json(await getTrip(trip.id))
-    } else {
-      res.status(422).send('You must be a leader on the trip')
+        if (req.body.mileage) updates.mileage = req.body.mileage
+        if (req.body.description) updates.requestDetails = req.body.description
+        updates.requestedVehicles = req.body.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) } })
+        updates.status = 'pending'
+        trip.vehicleStatus = 'pending'
+        await VehicleRequest.updateOne({ _id: req.body.vehicleReqId }, updates)
+      }
     }
-  } catch (error) {
-    console.log(error)
-    return res.status(500).send(error)
+
+    const coleaders = await User.find({ email: { $in: req.body.leaders } }).exec()
+    const allLeaders = []
+    coleaders.forEach((coleader) => {
+      allLeaders.push(coleader._id)
+      if (!trip.members.find((member) => { return member.user._id.toString() === coleader._id.toString() })) {
+        trip.members.push({ user: coleader._id, requestedGear: [] })
+      }
+    })
+    trip.leaders = allLeaders
+    const finalTrip = await trip.save()
+    res.json(finalTrip)
+  } else {
+    res.status(422).send('You must be a leader on the trip to update it.')
   }
 }
 
 /**
  * Deletes a trip.
- * @param {express.req} req
- * @param {express.res} res
  */
 export const deleteTrip = (req, res) => {
   populateTripDocument(Trip.findById(req.params.tripID), ['owner', 'leaders', 'membersUser', 'pendingUser', 'vehicleRequest'])
@@ -455,8 +449,6 @@ function calculateRequiredGear (trip) {
 
 /**
  * Allows a user - both pending and approved - to edit their gear requests.
- * @param {express.req} req
- * @param {express.res} res
  */
 export const editUserGear = (req, res) => {
   const { tripID } = req.params
@@ -698,8 +690,6 @@ export const toggleTripLeadership = (req, res) => {
 
 /**
  * Sets the attending status for each member of trip.
- * @param {express.req} req
- * @param {express.res} res
  */
 export const setMemberAttendance = (req, res) => {
   const { tripID } = req.params
@@ -729,8 +719,6 @@ export const setMemberAttendance = (req, res) => {
 
 /**
  * Sets the returned status for the trip.
- * @param {express.req} req
- * @param {express.res} res
  */
 export const toggleTripLeftStatus = (req, res) => {
   const { tripID } = req.params
@@ -754,8 +742,6 @@ export const toggleTripLeftStatus = (req, res) => {
 
 /**
  * Sets the returned status for the trip.
- * @param {express.req} req
- * @param {express.res} res
  */
 export const toggleTripReturnedStatus = (req, res) => {
   const { tripID } = req.params

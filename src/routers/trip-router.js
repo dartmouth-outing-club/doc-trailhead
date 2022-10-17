@@ -8,10 +8,15 @@ import * as clubs from '../models/club-model.js'
 const tripsRouter = Router()
 
 tripsRouter.route('/')
-  .post(requireAuth, (req, res) => {
-    trips.createTrip(req.user, req.body).then((result) => {
+  .post(requireAuth, async (req, res) => {
+    try {
+      const result = await trips.createTrip(req.user, req.body)
       res.json(result)
-    }).catch((error) => { console.log(error); logError({ type: 'createTrip', message: error.message }); return res.status(500).json(error) })
+    } catch (error) {
+      console.log(error)
+      logError({ type: 'createTrip', message: error.message })
+      res.status(500).send('Something went wrong creating the trip.')
+    }
   })
   .get(requireAuth, async (req, res) => {
     const filters = {}
