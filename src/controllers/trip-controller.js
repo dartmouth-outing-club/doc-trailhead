@@ -1,7 +1,7 @@
 import { subtract } from 'date-arithmetic'
 
-import Trip from '../models/trip-model.js'
 import User from '../models/user-model.js'
+import Trip from '../models/trip-model.js'
 import Assignment from '../models/assignment-model.js'
 import Global from '../models/global-model.js'
 import VehicleRequest from '../models/vehicle-request-model.js'
@@ -10,6 +10,7 @@ import { deleteVehicleRequest } from './vehicle-request-controller.js'
 import * as constants from '../constants.js'
 import * as mailer from '../services/emailing.js'
 import { trips, clubs } from '../services/mongo.js'
+import * as Users from '../controllers/user-controller.js'
 import * as utils from '../utils.js'
 import { logError } from '../services/error.js'
 
@@ -418,33 +419,35 @@ export const deleteTrip = (req, res) => {
  * Recalculates the sum of trippee gear requests from the current list of members.
  * @param {Trip} trip
  */
-function calculateRequiredGear (trip) {
-  // TODO restructure the parent function as an async function once there's a test in place
-  // eslint-disable-next-line no-async-promise-executor
-  return new Promise(async (resolve) => {
-    const originalGear = JSON.parse(JSON.stringify(trip.trippeeGear))
-    trip.trippeeGear.forEach((gear) => { gear.quantity = 0 })
-    trip.members.forEach((member) => {
-      member.requestedGear.forEach((g) => {
-        trip.trippeeGear.forEach((gear) => {
-          if (g.gearId === gear._id.toString()) {
-            gear.quantity += 1
-          }
-        })
+async function calculateRequiredGear (trip) {
+  const originalGear = JSON.parse(JSON.stringify(trip.trippeeGear)) // Presumably because of mongo but lol
+  trip.trippeeGear.forEach((gear) => { gear.quantity = 0 })
+  trip.members.forEach((member) => {
+    member.requestedGear.forEach((g) => {
+      trip.trippeeGear.forEach((gear) => {
+        if (g.gearId === gear._id.toString()) {
+          gear.quantity += 1
+        }
       })
     })
-    if ((trip.trippeeGearStatus !== 'approved') || (trip.trippeeGearStatus === 'approved' && originalGear.length === trip.trippeeGear.length && originalGear.map((o, i) => { return [o, trip.trippeeGear[i]] }).every((combined) => {
-      return (combined[0].name === combined[1].name && combined[0].quantity >= combined[1].quantity && combined[0].sizeType === combined[1].sizeType)
-    }))) {
-      resolve()
-    } else {
-      trip.trippeeGearStatus = 'pending'
-      await trip.save()
-      sendLeadersEmail(trip._id, `Trip #${trip.number}: Trippee gear requests un-approved`, `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}]'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
-      mailer.send({ address: constants.gearAdminEmails, subject: `Trip #${trip.number}'s gear request changed`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}'s gear requests had been originally approved, but they recently made changes to their trippee gear requests because a new trippee was admitted to the trip.\n\nPlease re-approve their request at: ${constants.frontendURL}/approve-trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
-      resolve()
-    }
   })
+
+  if (requiresReapproval(trip, originalGear)) {
+    trip.trippeeGearStatus = 'pending'
+    sendLeadersEmail(trip._id, `Trip #${trip.number}: Trippee gear requests un-approved`, `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}]'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
+    mailer.send({ address: constants.gearAdminEmails, subject: `Trip #${trip.number}'s gear request changed`, message: `Hello,\n\nTrip #${trip.number}: ${trip.title}'s gear requests had been originally approved, but they recently made changes to their trippee gear requests because a new trippee was admitted to the trip.\n\nPlease re-approve their request at: ${constants.frontendURL}/approve-trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
+  }
+
+  return trip.save()
+}
+
+function requiresReapproval (trip, originalGear) {
+  const wasApproved = trip.trippeeGearStatus === 'approved'
+  const hasChanged = originalGear.length !== trip.trippeeGear.length ||
+    !originalGear
+      .map((o, i) => [o, trip.trippeeGear[i]])
+      .every((combined) => (combined[0].name === combined[1].name && combined[0].quantity >= combined[1].quantity && combined[0].sizeType === combined[1].sizeType))
+  return wasApproved && hasChanged
 }
 
 /**
@@ -622,36 +625,24 @@ export const reject = (tripID, rejectedUserID) => {
  * @param {String} tripID The ID of the trip to leave from
  * @param {String} leavingUserID The ID of the user leaving
  */
-export const leave = (tripID, leavingUserID) => {
-  return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser'])
-      .then(async (trip) => {
-        let userIdx = -1
-        if (trip.pending.some((pender, idx) => {
-          if (pender.user._id.toString() === leavingUserID) {
-            userIdx = idx
-            return true
-          } else return false
-        })) {
-          trip.pending.splice(userIdx, 1)
-        } else if (trip.members.some((member, idx) => {
-          if (member.user._id.toString() === leavingUserID) {
-            userIdx = idx
-            User.findById(leavingUserID).then((leavingUser) => {
-              const leaderEmails = trip.leaders.map((leader) => { return leader.email })
-              mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${leavingUser.name} left your trip`, message: `Hello,\n\nYour approved trippee ${leavingUser.name} for [Trip #${trip.number}: ${trip.title}] cancelled for this trip 🙁. You can reach them at ${leavingUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
-            })
-            return true
-          } else return false
-        })) {
-          trip.members.splice(userIdx, 1)
-        }
-        await calculateRequiredGear(trip)
-        await trip.save()
-        resolve()
-      })
-      .catch((error) => { console.log(error); reject(error) })
-  })
+export async function leave (tripID, leavingUserID) {
+  const trip = await populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser'])
+
+  // If user is in the list of pending tripees, remove them
+  const pendingIndex = trip.pending.find((tripee) => tripee.user._id.toString() === leavingUserID)
+  if (pendingIndex > -1) trip.pending.splice(pendingIndex, 1)
+
+  // If user is in the list of accepted tripees, remove them
+  // Should be mutually exclusive with pending tripees, but you never know
+  const memberIndex = trip.members.find((tripee) => tripee.user._id.toString() === leavingUserID)
+  if (memberIndex > -1) {
+    const leavingUser = await Users.getUserById(leavingUserID)
+    const leaderEmails = trip.leaders.map((leader) => { return leader.email })
+    mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${leavingUser.name} left your trip`, message: `Hello,\n\nYour approved trippee ${leavingUser.name} for [Trip #${trip.number}: ${trip.title}] cancelled for this trip 🙁. You can reach them at ${leavingUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
+    trip.members.splice(memberIndex, 1)
+  }
+
+  return calculateRequiredGear(trip)
 }
 
 export const toggleTripLeadership = (req, res) => {
