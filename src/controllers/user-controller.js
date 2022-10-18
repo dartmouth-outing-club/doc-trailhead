@@ -47,7 +47,7 @@ export const signinCAS = (req, res, next) => {
         }
 
         console.log(`Logging in user ${casID}`)
-        res.redirect(`${constants.frontendURL}?token=${tokenForUser(casID, 'normal')}&userId=${casID}`)
+        res.redirect(`${constants.frontendURL}?token=${tokenForUser(user._id, 'normal')}&userId=${casID}`)
       }
     } catch (error) {
       res.status(500).send(error.message)
