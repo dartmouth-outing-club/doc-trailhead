@@ -203,16 +203,17 @@ export async function getLeaders (_req, res) {
 }
 
 /**
- * Returns all users in the database void of the requester.
- * @param {*} req
- * @param {*} res
+ * Returns all users in the database.
+ * TODO: Make some users inactive.
  */
-export const getUsers = (req, res) => {
-  User.find({}).then((foundUsers) => {
-    res.send(foundUsers.filter((user) => {
-      return !user._id.equals(req.user._id)
-    }))
-  })
+export async function getUsers (_req, res) {
+  try {
+    const users = await Users.find({}).toArray()
+    const userInfo = users.map(leader => utils.pick(leader, ['_id', 'name', 'email']))
+    res.json(userInfo)
+  } catch (error) {
+    res.error(500)
+  }
 }
 
 export const updateUser = (req, res) => {
