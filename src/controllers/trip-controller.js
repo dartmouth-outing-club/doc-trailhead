@@ -124,10 +124,10 @@ export const getTrip = (tripID, forUser) => {
             isLeaderOnTrip = true
           } else if (trip.coLeaderCanEditTrip) {
             isLeaderOnTrip = trip.leaders.some((leader) => {
-              return leader._id.equals(forUser.id)
+              return leader._id.equals(forUser._id)
             })
           } else {
-            isLeaderOnTrip = trip.owner._id.equals(forUser.id)
+            isLeaderOnTrip = trip.owner._id.equals(forUser._id)
           }
         }
 
