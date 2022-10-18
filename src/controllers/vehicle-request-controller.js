@@ -169,20 +169,20 @@ function recomputeAllConflicts () {
           return new Promise((resolve) => {
             assignment.conflicts = []
             // console.log('\tpivot', assignment._id);
-            console.log('\tpivot index', index)
-            console.log('\tmax length', array.length)
+            // console.log('\tpivot index', index)
+            // console.log('\tmax length', array.length)
             let traverser = index + 1
             while (traverser < array.length) {
-              console.log('\t\tcompare index', traverser)
+              // console.log('\t\tcompare index', traverser)
               // console.log('\t\ttraverser', array[traverser]._id);
               // console.log('\t\t\tcompareFrom', assignment.assigned_returnDateAndTime);
               // console.log('\t\t\tcompareTo', array[traverser].assigned_pickupDateAndTime);
-              console.log('\t\t\tdecision', assignment.assigned_returnDateAndTime > array[traverser].assigned_pickupDateAndTime)
+              // console.log('\t\t\tdecision', assignment.assigned_returnDateAndTime > array[traverser].assigned_pickupDateAndTime)
               if (assignment.assigned_returnDateAndTime > array[traverser].assigned_pickupDateAndTime) {
                 // console.log('\t\t\t\t', array[traverser]._id);
 
                 // Array.from(new Set(conflicts)) instead
-                console.log('\t\t\t\tincludes', !assignment.conflicts.includes(array[traverser]._id))
+                // console.log('\t\t\t\tincludes', !assignment.conflicts.includes(array[traverser]._id))
                 if (!assignment.conflicts.includes(array[traverser]._id)) {
                   assignment.conflicts.push(array[traverser]._id)
                 }
