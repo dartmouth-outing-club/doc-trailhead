@@ -10,48 +10,48 @@ import { Users } from '../services/mongo.js'
 import * as utils from '../utils.js'
 
 export const signinSimple = (req, res, next) => {
-  passport.authenticate('local', (err, user) => {
+  passport.authenticate('local', async (err, user) => {
     if (err) { return err }
     if (!user) {
       console.log('No user found, rejecting')
-      res.status(500).send('rejected')
-    } else {
-      User.findById(user._id).populate('leader_for').exec()
-        .then((foundUser) => {
-          res.json({ token: tokenForUser(foundUser, 'normal'), user: foundUser })
-        })
-        .catch((error) => {
-          res.status(500).send(error.message)
-        })
+      return res.status(500).send('rejected')
+    }
+    try {
+      const foundUser = await Users.findOne({ _id: user._id })
+      res.json({ token: tokenForUser(user._id, 'normal'), user: foundUser })
+    } catch (error) {
+      res.status(500).send(error.message)
     }
   })(req, res, next)
 }
 
 export const signinCAS = (req, res, next) => {
-  passport.authenticate('cas', (error, user) => {
+  passport.authenticate('cas', async (error, casID) => {
     if (error) { return error }
-    if (!user) {
-      res.redirect(constants.frontendURL)
-    }
-    User.find({ casID: user }).populate('leader_for').exec()
-      .then((userFromDB) => {
-        if (userFromDB.length === 0) {
-          const newUser = new User()
-          newUser.casID = user
-          newUser.completedProfile = false
-          newUser.save()
-            .then((savedUser) => {
-              console.log('cas new user', savedUser)
-              res.redirect(`${constants.frontendURL}?token=${tokenForUser(savedUser, 'normal')}&userId=${savedUser.id}&new?=yes`)
-            })
-        } else {
-          console.log('cas user', userFromDB[0])
-          res.redirect(`${constants.frontendURL}?token=${tokenForUser(userFromDB[0], 'normal')}&userId=${userFromDB[0].id}&new?=${userFromDB[0]}.casID`)
+    if (!casID) { return res.redirect(constants.frontendURL) }
+
+    try {
+      const user = await Users.findOne({ casID })
+
+      if (!user) {
+        const newUser = { casID, completedProfile: false }
+        const { insertedId } = await Users.insertOne(newUser)
+        console.log(`Created new user ${insertedId} for ${casID}`)
+        res.redirect(`${constants.frontendURL}?token=${tokenForUser(insertedId, 'normal')}&userId=${insertedId}&new?=yes`)
+      } else {
+        if (!user.isActive) {
+          console.log(`User ${casID} logged in but isn't active, marking them active.`)
+          user.isActive = true
+          // No need to wait for this to finish, just log em in
+          Users.updateOne({ _id: casID }, { $set: { isActive: true } })
         }
-      })
-      .catch((errorInFindingUser) => {
-        res.status(500).send(errorInFindingUser.message)
-      })
+
+        console.log(`Logging in user ${casID}`)
+        res.redirect(`${constants.frontendURL}?token=${tokenForUser(casID, 'normal')}&userId=${casID}`)
+      }
+    } catch (error) {
+      res.status(500).send(error.message)
+    }
   })(req, res, next)
 }
 
@@ -75,7 +75,7 @@ export const signup = (req, res) => {
       newUser.leader_for = []
       newUser.save()
         .then((result) => {
-          res.send({ token: tokenForUser(result, 'normal'), user: result })
+          res.send({ token: tokenForUser(result.id, 'normal'), user: result })
         })
         .catch((error) => {
           res.status(500).send(error.message)
@@ -417,10 +417,10 @@ export const respondToCertRequest = (req, res) => {
     })
 }
 
-export function tokenForUser (user, purpose, tripID) {
+export function tokenForUser (userId, purpose, tripID) {
   const timestamp = new Date().getTime()
   return jwt.encode({
-    sub: user.id, iat: timestamp, purpose, tripID
+    sub: userId, iat: timestamp, purpose, tripID
   }, process.env.AUTH_SECRET)
 }
 

@@ -225,7 +225,7 @@ Users.findOne({ role: 'Leader' }).then((user) => {
       const clubID = clubs[Math.floor(Math.random() * clubs.length)]
       const day = days[i]
       const trip = generateTripTemplate(titles[i], clubID, day.startDate, day.endDate, day.startTime, day.endTime, experienceNeededs[i], statuses[i])
-      axios.post(`${constants.backendURL}/trips`, trip, { headers: { Authorization: `Bearer ${tokenForUser(user, 'normal')}` } }).then((response) => {
+      axios.post(`${constants.backendURL}/trips`, trip, { headers: { Authorization: `Bearer ${tokenForUser(user.id, 'normal')}` } }).then((response) => {
         const vReqID = response.data.vehicleRequest._id
         const assignments = [
           {
@@ -239,7 +239,7 @@ Users.findOne({ role: 'Leader' }).then((user) => {
           }
         ]
         Users.findOne({ role: 'OPO' }).then((OPOUser) => {
-          axios.post(`${constants.backendURL}/opoVehicleRequest/${vReqID}`, { assignments }, { headers: { Authorization: `Bearer ${tokenForUser(OPOUser, 'normal')}` } }).catch((error) => { return console.log(error) })
+          axios.post(`${constants.backendURL}/opoVehicleRequest/${vReqID}`, { assignments }, { headers: { Authorization: `Bearer ${tokenForUser(OPOUser.id, 'normal')}` } }).catch((error) => { return console.log(error) })
         })
       }).catch((error) => { return console.log(error) })
       console.log('Trip created')
