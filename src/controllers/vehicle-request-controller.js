@@ -156,6 +156,7 @@ const checkForConflicts = (proposedAssignment) => {
 * Cross-checks every assignment with every other assignment and updates the `conflict` parameter for each assignment.
 */
 function recomputeAllConflicts () {
+  const startTime = new Date()
   return new Promise((resolve) => {
     Assignment.find({}).then((assignments) => {
       assignments.filter((assignment) => { return assignment.assignedVehicle !== 'Enterprise' })
@@ -223,6 +224,8 @@ function recomputeAllConflicts () {
               })
             })
           ).then(() => {
+            const finishTime = new Date()
+            console.log(`Finished recalculating in ${finishTime - startTime}ms`)
             resolve()
           })
         })
