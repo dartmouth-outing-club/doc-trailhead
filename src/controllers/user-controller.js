@@ -215,9 +215,7 @@ export async function getUsers (_req, res) {
 export async function updateUser (req, res) {
   try {
     const userWithEmail = await Users.findOne({ email: req.body.email })
-    console.log(userWithEmail)
-    console.log(req.user)
-    if (userWithEmail && userWithEmail._id !== req.user._id) {
+    if (userWithEmail && userWithEmail._id.toString() !== req.user._id.toString()) {
       throw new Error('This email is already associated with a different user')
     }
 
