@@ -157,19 +157,17 @@ export const myTrips = (req, res) => {
     })
 }
 
-const isInfoEmpty = (string) => {
-  return !string || string.length === 0 || !string.toString().trim()
-}
-
 export const getUser = (req, res) => {
   User.findById(req.user._id).populate('leader_for').populate('requested_clubs').exec()
     .then((user) => {
-      let hasCompleteProfile = true
-      if (!user.email || !user.name || !user.pronoun || !user.dash_number || !user.allergies_dietary_restrictions ||
-        !user.medical_conditions || !user.clothe_size || !user.shoe_size || !user.height ||
-        isInfoEmpty(user.email) || isInfoEmpty(user.name) || isInfoEmpty(user.pronoun) || isInfoEmpty(user.dash_number) ||
-        isInfoEmpty(user.allergies_dietary_restrictions) || isInfoEmpty(user.medical_conditions) ||
-        isInfoEmpty(user.clothe_size) || isInfoEmpty(user.height)) {
+      let hasCompleteProfile
+
+      // Obviously these are redundant, but that will require a frontend change to fix
+      if (user.email && user.name && user.pronoun && user.dash_number && user.allergies_dietary_restrictions && user.medical_conditions && user.clothe_size && user.shoe_size && user.height) {
+        user.completedProfile = true
+        hasCompleteProfile = true
+      } else {
+        user.completedProfile = false
         hasCompleteProfile = false
       }
       res.json({ user, hasCompleteProfile })
