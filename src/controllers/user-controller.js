@@ -282,8 +282,8 @@ export async function updateUser (req, res) {
   }
 
   try {
-    const savedUser = await Users.updateOne({ _id: req.user._id }, { $set: newUser })
-    res.json(savedUser)
+    await Users.updateOne({ _id: req.user._id }, { $set: newUser })
+    getUser(req, res)
   } catch (error) {
     console.error(error)
     res.status(500).send('Something went wrong while saving your changes - contact OPO')
