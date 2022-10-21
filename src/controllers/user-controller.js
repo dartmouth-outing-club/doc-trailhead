@@ -157,10 +157,6 @@ export const myTrips = (req, res) => {
     })
 }
 
-const isStringEmpty = (string) => {
-  return (!string || string.length === 0)
-}
-
 const isInfoEmpty = (string) => {
   return !string || string.length === 0 || !string.toString().trim()
 }
@@ -216,116 +212,82 @@ export async function getUsers (_req, res) {
   }
 }
 
-export const updateUser = (req, res) => {
-  User.findById(req.user.id, (err, user) => { // this should see if name is in member
-    User.find({ email: req.body.email })
-      .then((existingUser) => {
-        if (existingUser[0] && existingUser[0].id !== req.user.id) {
-          throw new Error('This email already exists in the database.')
-        }
+export async function updateUser (req, res) {
+  const userWithEmail = await Users.findOne({ email: req.body.email })
+  if (userWithEmail && userWithEmail.id !== req.user.id) {
+    throw new Error('This email is already associated with a different user')
+  }
 
-        return existingUser
-      })
-      .then(() => {
-        if (!req.body.name) {
-          throw new Error('You must have a name')
-        }
-        if (!req.body.email) {
-          throw new Error('You must have an email')
-        }
-        // if (!req.body.email.endsWith('@dartmouth.edu')) {
-        //   throw new Error('You must have a Dartmouth email');
-        // }
-        if (user.dash_number !== '' && req.body.dash_number === '') {
-          throw new Error('You must have a dash number')
-        }
+  if (!req.body.name) {
+    throw new Error('You must have a name')
+  }
+  if (!req.body.email) {
+    throw new Error('You must have an email')
+  }
 
-        user.email = req.body.email
-        user.name = req.body.name
-        const {
-          pronoun, dash_number, allergies_dietary_restrictions, medical_conditions, clothe_size, shoe_size, height, photo_url
-        } = req.body
-        if (!isStringEmpty(photo_url)) {
-          user.photo_url = photo_url
-        }
-        if (!isStringEmpty(dash_number)) {
-          user.dash_number = dash_number
-        }
-        if (!isStringEmpty(pronoun)) {
-          user.pronoun = pronoun
-        }
-        if (!isStringEmpty(allergies_dietary_restrictions)) {
-          user.allergies_dietary_restrictions = allergies_dietary_restrictions
-        }
-        if (!isStringEmpty(medical_conditions)) {
-          user.medical_conditions = medical_conditions
-        }
-        if (!isStringEmpty(clothe_size)) {
-          user.clothe_size = clothe_size
-        }
-        if (!isStringEmpty(shoe_size)) {
-          user.shoe_size = shoe_size
-        }
-        if (!isStringEmpty(height)) {
-          user.height = height
-        }
+  const existingUser = Users.findOne({ _id: req.user._id })
+  if (!existingUser.dash_number && !req.body.dash_number) {
+    throw new Error('You must have a dash number')
+  }
 
-        const newClubs = req.body.leader_for || []
-        const currentClubs = user.leader_for
-        // Approval is required if user is adding a new club
-        if (newClubs.length > currentClubs.length) {
-          user.has_pending_leader_change = true
-          user.requested_clubs = newClubs
-        // If user is dropping a club, make sure that every club they're claiming is one they're currently a leader for
-        // This is a little kludgy - a more granular API surface would not require this
-        } else if (newClubs.every((club) => { return currentClubs.includes(club) })) {
-          user.leader_for = newClubs
-          user.has_pending_leader_change = false
-          user.requested_clubs = []
-        }
+  const newUser = utils.pick(req.body,
+    ['pronoun', 'dash_number', 'allergies_dietary_restrictions', 'medical_conditions', 'clothe_size', 'shoe_size', 'height', 'photo_url'])
+  newUser.email = req.body.email
+  newUser.name = req.body.name
 
-        if (req.body.leader_for.length === 0 && user.role !== 'OPO') {
-          user.role = 'Trippee'
-        }
+  const newClubs = req.body.leader_for || []
+  const currentClubs = existingUser.leader_for
+  // Approval is required if user is adding a new club
+  if (newClubs.length > currentClubs.length) {
+    newUser.has_pending_leader_change = true
+    newUser.requested_clubs = newClubs
+    // If user is dropping a club, make sure that every club they're claiming is one they're currently a leader for
+    // This is a little kludgy - a more granular API surface would not require this
+  } else if (newClubs.every((club) => currentClubs.includes(club))) {
+    newUser.leader_for = newClubs
+    newUser.has_pending_leader_change = false
+    newUser.requested_clubs = []
+  }
 
-        if ((!user.trailer_cert && req.body.trailer_cert) ||
-          ((req.body.driver_cert !== null) && (user.driver_cert !== req.body.driver_cert))) {
-          user.has_pending_cert_change = true
-          const requestedCerts = {}
-          requestedCerts.driver_cert = req.body.driver_cert
-          requestedCerts.trailer_cert = req.body.trailer_cert
-          user.requested_certs = requestedCerts
-          // res.locals.certReq = true;
-        } else {
-          user.has_pending_cert_change = false
-          user.requested_certs = {}
-        }
+  if (req.body.leader_for.length === 0 && existingUser.role !== 'OPO') {
+    newUser.role = 'Trippee'
+  }
 
-        // * All operations that require OPO privilege should be contained here
-        if (req.user.role === 'OPO') {
-          if (!req.body.trailer_cert) {
-            user.trailer_cert = req.body.trailer_cert
-          }
+  const hasNewTrailerCert = !existingUser.trailer_cert && req.body.trailer_cert
+  const hasNewDriverCert = req.body.driver_cert !== null && existingUser.driver_cert !== req.body.driver_cert
+  if (hasNewTrailerCert || hasNewDriverCert) {
+    newUser.has_pending_cert_change = true
+    const requestedCerts = {}
+    requestedCerts.driver_cert = req.body.driver_cert
+    requestedCerts.trailer_cert = req.body.trailer_cert
+    newUser.requested_certs = requestedCerts
+  } else {
+    newUser.has_pending_cert_change = false
+    newUser.requested_certs = {}
+  }
 
-          if (req.body.driver_cert === null) {
-            user.driver_cert = req.body.driver_cert
-          }
+  // These user changes can only be performed by OPO
+  if (req.user.role === 'OPO') {
+    if (!req.body.trailer_cert) {
+      newUser.trailer_cert = req.body.trailer_cert
+    }
 
-          if (req.body.role) {
-            user.role = req.body.role
-          }
-        }
+    if (req.body.driver_cert === null) {
+      newUser.driver_cert = req.body.driver_cert
+    }
 
-        user.save()
-          .then(() => {
-            getUser(req, res)
-          })
-      })
-      .catch((error) => {
-        console.log(error.message)
-        res.status(406).send(error.message)
-      })
-  })
+    if (req.body.role) {
+      newUser.role = req.body.role
+    }
+  }
+
+  try {
+    const savedUser = await Users.updateOne({ _id: req.user._id }, { $set: newUser })
+    res.json(savedUser)
+  } catch (error) {
+    console.error(error)
+    res.status(500).send('Something went wrong while saving your changes - contact OPO')
+  }
 }
 
 export const userTrips = (req, res) => {
