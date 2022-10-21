@@ -213,75 +213,76 @@ export async function getUsers (_req, res) {
 }
 
 export async function updateUser (req, res) {
-  const userWithEmail = await Users.findOne({ email: req.body.email })
-  if (userWithEmail && userWithEmail._id !== req.user._id) {
-    throw new Error('This email is already associated with a different user')
-  }
-
-  if (!req.body.name) {
-    throw new Error('You must have a name')
-  }
-  if (!req.body.email) {
-    throw new Error('You must have an email')
-  }
-
-  const existingUser = Users.findOne({ _id: req.user._id })
-  if (!existingUser.dash_number && !req.body.dash_number) {
-    throw new Error('You must have a dash number')
-  }
-
-  const newUser = utils.pick(req.body,
-    ['pronoun', 'dash_number', 'allergies_dietary_restrictions', 'medical_conditions', 'clothe_size', 'shoe_size', 'height', 'photo_url'])
-  newUser.email = req.body.email
-  newUser.name = req.body.name
-
-  const newClubs = req.body.leader_for || []
-  const currentClubs = existingUser.leader_for || []
-  // Approval is required if user is adding a new club
-  if (newClubs.length > currentClubs.length) {
-    newUser.has_pending_leader_change = true
-    newUser.requested_clubs = newClubs
-    // If user is dropping a club, make sure that every club they're claiming is one they're currently a leader for
-    // This is a little kludgy - a more granular API surface would not require this
-  } else if (newClubs.every((club) => currentClubs.includes(club))) {
-    newUser.leader_for = newClubs
-    newUser.has_pending_leader_change = false
-    newUser.requested_clubs = []
-  }
-
-  if (req.body.leader_for.length === 0 && existingUser.role !== 'OPO') {
-    newUser.role = 'Trippee'
-  }
-
-  const hasNewTrailerCert = !existingUser.trailer_cert && req.body.trailer_cert
-  const hasNewDriverCert = req.body.driver_cert !== null && existingUser.driver_cert !== req.body.driver_cert
-  if (hasNewTrailerCert || hasNewDriverCert) {
-    newUser.has_pending_cert_change = true
-    const requestedCerts = {}
-    requestedCerts.driver_cert = req.body.driver_cert
-    requestedCerts.trailer_cert = req.body.trailer_cert
-    newUser.requested_certs = requestedCerts
-  } else {
-    newUser.has_pending_cert_change = false
-    newUser.requested_certs = {}
-  }
-
-  // These user changes can only be performed by OPO
-  if (req.user.role === 'OPO') {
-    if (!req.body.trailer_cert) {
-      newUser.trailer_cert = req.body.trailer_cert
-    }
-
-    if (req.body.driver_cert === null) {
-      newUser.driver_cert = req.body.driver_cert
-    }
-
-    if (req.body.role) {
-      newUser.role = req.body.role
-    }
-  }
-
   try {
+    const userWithEmail = await Users.findOne({ email: req.body.email })
+    console.log(userWithEmail)
+    console.log(req.user)
+    if (userWithEmail && userWithEmail._id !== req.user._id) {
+      throw new Error('This email is already associated with a different user')
+    }
+
+    if (!req.body.name) {
+      throw new Error('You must have a name')
+    }
+    if (!req.body.email) {
+      throw new Error('You must have an email')
+    }
+
+    const existingUser = Users.findOne({ _id: req.user._id })
+    if (!existingUser.dash_number && !req.body.dash_number) {
+      throw new Error('You must have a dash number')
+    }
+
+    const newUser = utils.pick(req.body,
+      ['pronoun', 'dash_number', 'allergies_dietary_restrictions', 'medical_conditions', 'clothe_size', 'shoe_size', 'height', 'photo_url'])
+    newUser.email = req.body.email
+    newUser.name = req.body.name
+
+    const newClubs = req.body.leader_for || []
+    const currentClubs = existingUser.leader_for || []
+    // Approval is required if user is adding a new club
+    if (newClubs.length > currentClubs.length) {
+      newUser.has_pending_leader_change = true
+      newUser.requested_clubs = newClubs
+      // If user is dropping a club, make sure that every club they're claiming is one they're currently a leader for
+      // This is a little kludgy - a more granular API surface would not require this
+    } else if (newClubs.every((club) => currentClubs.includes(club))) {
+      newUser.leader_for = newClubs
+      newUser.has_pending_leader_change = false
+      newUser.requested_clubs = []
+    }
+
+    if (req.body.leader_for.length === 0 && existingUser.role !== 'OPO') {
+      newUser.role = 'Trippee'
+    }
+
+    const hasNewTrailerCert = !existingUser.trailer_cert && req.body.trailer_cert
+    const hasNewDriverCert = req.body.driver_cert !== null && existingUser.driver_cert !== req.body.driver_cert
+    if (hasNewTrailerCert || hasNewDriverCert) {
+      newUser.has_pending_cert_change = true
+      const requestedCerts = {}
+      requestedCerts.driver_cert = req.body.driver_cert
+      requestedCerts.trailer_cert = req.body.trailer_cert
+      newUser.requested_certs = requestedCerts
+    } else {
+      newUser.has_pending_cert_change = false
+      newUser.requested_certs = {}
+    }
+
+    // These user changes can only be performed by OPO
+    if (req.user.role === 'OPO') {
+      if (!req.body.trailer_cert) {
+        newUser.trailer_cert = req.body.trailer_cert
+      }
+
+      if (req.body.driver_cert === null) {
+        newUser.driver_cert = req.body.driver_cert
+      }
+
+      if (req.body.role) {
+        newUser.role = req.body.role
+      }
+    }
     await Users.updateOne({ _id: req.user._id }, { $set: newUser })
     getUser(req, res)
   } catch (error) {
