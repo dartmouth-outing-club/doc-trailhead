@@ -236,7 +236,7 @@ export async function updateUser (req, res) {
   newUser.name = req.body.name
 
   const newClubs = req.body.leader_for || []
-  const currentClubs = existingUser.leader_for
+  const currentClubs = existingUser.leader_for || []
   // Approval is required if user is adding a new club
   if (newClubs.length > currentClubs.length) {
     newUser.has_pending_leader_change = true
