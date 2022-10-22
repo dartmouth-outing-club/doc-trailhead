@@ -35,8 +35,8 @@ router.get('/myTrips', requireAuth, users.myTrips)
 router.get('/userTrips', requireAuth, users.userTrips)
 
 router.route('/club')
-  .post(clubs.createClub)
   .get(clubs.allClubs)
+  .post(requireAuth, clubs.createClub)
 
 router.route('/leaderapprovals')
   .get(requireAuth, users.roleAuthorization(['OPO']), users.getLeaderRequests)

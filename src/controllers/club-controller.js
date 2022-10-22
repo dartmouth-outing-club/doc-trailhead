@@ -1,35 +1,20 @@
 import { clubs } from '../services/mongo.js'
-import Club from '../models/club-model.js'
 
-export const createClub = (req, res) => {
-  const club = new Club()
-  club.name = req.body.name
-  club.save()
-    .then(() => {
-      res.json({ message: 'Club Created' })
-    })
-    .catch((error) => {
-      res.status(500).json({ error })
-    })
+export async function createClub (req, res) {
+  const club = { name: req.body.name }
+  await clubs.insertOne(club)
+  res.json({ message: 'Club Created' })
 }
 
-export const allClubs = (req, res) => {
-  Club.find({}, (err, clubs) => {
-    if (err) {
-      res.json(err)
-    } else {
-      clubs.sort((a, b) => {
-        if (a.name > b.name) return 1
-        else if (b.name > a.name) return -1
-        else return 0
-      })
-      res.json(clubs)
-    }
-  })
+export async function allClubs (_req, res) {
+  const clubs = await getAll()
+  res.json(clubs)
 }
 
 export async function getAll () {
-  return clubs.find().toArray()
+  const clubList = await clubs.find().toArray()
+  clubList.sort((a, b) => a.name > b.name ? 1 : -1) // Sort by name, alphabetically
+  return clubList
 }
 
 export async function getClubsMap () {
