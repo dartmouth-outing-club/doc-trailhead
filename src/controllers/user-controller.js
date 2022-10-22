@@ -6,7 +6,7 @@ import * as constants from '../constants.js'
 import User from '../models/user-model.js'
 import Trip from '../models/trip-model.js'
 import VehicleRequest from '../models/vehicle-request-model.js'
-import { Users } from '../services/mongo.js'
+import { users } from '../services/mongo.js'
 import * as utils from '../utils.js'
 
 export const signinSimple = (req, res, next) => {
@@ -17,7 +17,7 @@ export const signinSimple = (req, res, next) => {
       return res.status(500).send('rejected')
     }
     try {
-      const foundUser = await Users.findOne({ _id: user._id })
+      const foundUser = await users.findOne({ _id: user._id })
       res.json({ token: tokenForUser(user._id, 'normal'), user: foundUser })
     } catch (error) {
       res.status(500).send(error.message)
@@ -31,11 +31,11 @@ export const signinCAS = (req, res, next) => {
     if (!casID) { return res.redirect(constants.frontendURL) }
 
     try {
-      const user = await Users.findOne({ casID })
+      const user = await users.findOne({ casID })
 
       if (!user) {
         const newUser = { casID, completedProfile: false }
-        const { insertedId } = await Users.insertOne(newUser)
+        const { insertedId } = await users.insertOne(newUser)
         console.log(`Created new user ${insertedId} for ${casID}`)
         res.redirect(`${constants.frontendURL}?token=${tokenForUser(insertedId, 'normal')}&userId=${insertedId}&new?=yes`)
       } else {
@@ -43,7 +43,7 @@ export const signinCAS = (req, res, next) => {
           console.log(`User ${casID} logged in but isn't active, marking them active.`)
           user.isActive = true
           // No need to wait for this to finish, just log em in
-          Users.updateOne({ _id: casID }, { $set: { isActive: true } })
+          users.updateOne({ _id: casID }, { $set: { isActive: true } })
         }
 
         console.log(`Logging in user ${casID}`)
@@ -58,7 +58,7 @@ export const signinCAS = (req, res, next) => {
 export function roleAuthorization (roles) {
   return async (req, res, next) => {
     try {
-      const user = await Users.findOne({ _id: req.user._id })
+      const user = await users.findOne({ _id: req.user._id })
       if (!user) throw new Error('User not found')
 
       if (roles.includes(user.role)) {
@@ -135,16 +135,16 @@ export const getUser = (req, res) => {
 }
 
 export async function getUserById (id) {
-  return Users.findOne({ _id: ObjectId(id) })
+  return users.findOne({ _id: ObjectId(id) })
 }
 
 export async function getUserByEmail (email) {
-  return Users.findOne({ email })
+  return users.findOne({ email })
 }
 
 export async function getLeaders (_req, res) {
   try {
-    const leaders = await Users.find({ role: 'Leader' }).toArray()
+    const leaders = await users.find({ role: 'Leader' }).toArray()
     const leaderInfo = leaders.map(leader => utils.pick(leader, ['_id', 'name', 'email']))
     res.json(leaderInfo)
   } catch {
@@ -158,8 +158,8 @@ export async function getLeaders (_req, res) {
  */
 export async function getUsers (_req, res) {
   try {
-    const users = await Users.find({}).toArray()
-    const userInfo = users.map(leader => utils.pick(leader, ['_id', 'name', 'email']))
+    const allUsers = await users.find({}).toArray()
+    const userInfo = allUsers.map(leader => utils.pick(leader, ['_id', 'name', 'email']))
     res.json(userInfo)
   } catch (error) {
     res.error(500)
@@ -168,7 +168,7 @@ export async function getUsers (_req, res) {
 
 export async function updateUser (req, res) {
   try {
-    const userWithEmail = await Users.findOne({ email: req.body.email })
+    const userWithEmail = await users.findOne({ email: req.body.email })
     if (userWithEmail && userWithEmail._id.toString() !== req.user._id.toString()) {
       throw new Error('This email is already associated with a different user')
     }
@@ -180,7 +180,7 @@ export async function updateUser (req, res) {
       throw new Error('You must have an email')
     }
 
-    const existingUser = Users.findOne({ _id: req.user._id })
+    const existingUser = users.findOne({ _id: req.user._id })
     if (!existingUser.dash_number && !req.body.dash_number) {
       throw new Error('You must have a dash number')
     }
@@ -235,7 +235,7 @@ export async function updateUser (req, res) {
         newUser.role = req.body.role
       }
     }
-    await Users.updateOne({ _id: req.user._id }, { $set: newUser })
+    await users.updateOne({ _id: req.user._id }, { $set: newUser })
     getUser(req, res)
   } catch (error) {
     console.error(error)

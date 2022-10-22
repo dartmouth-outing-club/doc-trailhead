@@ -7,7 +7,7 @@ import { add } from 'date-arithmetic'
 import bcrypt from 'bcryptjs'
 
 import * as constants from '../constants.js'
-import * as users from '../controllers/user-controller.js'
+import * as Users from '../controllers/user-controller.js'
 import Trip from '../models/trip-model.js'
 
 dotenv.config({ silent: true })
@@ -21,7 +21,7 @@ const jwtOptions = {
 
 const localLogin = new LocalStrategy(localOptions, async (email, password, done) => {
   try {
-    const user = await users.getUserByEmail(email)
+    const user = await Users.getUserByEmail(email)
     if (!user) throw new Error(`User with email ${email} not found`)
 
     const comparisonResult = await bcrypt.compare(password, user.password)
@@ -37,7 +37,7 @@ const localLogin = new LocalStrategy(localOptions, async (email, password, done)
 
 const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
   try {
-    const user = await users.getUserById(payload.sub)
+    const user = await Users.getUserById(payload.sub)
     if (!user) throw new Error(`User with id ${payload.sub} not found`)
 
     if (payload.purpose === 'mobile') {
