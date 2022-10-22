@@ -26,7 +26,7 @@ router.route('/user')
   .get(requireAuth, users.getUser)
   .put(requireAuth, users.updateUser)
 
-router.route('/users').get(requireAuth, users.roleAuthorization(['Leader']), users.getUsers)
+router.route('/users').get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), users.getUsers)
 
 router.route('/leaders').get(requireAuth, users.getLeaders)
 
