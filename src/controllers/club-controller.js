@@ -2,8 +2,8 @@ import { clubs } from '../services/mongo.js'
 
 export async function createClub (req, res) {
   const club = { name: req.body.name }
-  await clubs.insertOne(club)
-  res.json({ message: 'Club Created' })
+  const { insertedId } = await clubs.insertOne(club)
+  res.json({ message: `Created new club ${club.name} with ID ${insertedId}` })
 }
 
 export async function allClubs (_req, res) {
