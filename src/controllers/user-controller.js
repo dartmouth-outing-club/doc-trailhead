@@ -55,20 +55,21 @@ export const signinCAS = (req, res, next) => {
   })(req, res, next)
 }
 
-export const roleAuthorization = (roles) => {
-  return function authorize (req, res, next) {
-    const { user } = req
-    User.findById(user._id, (err, foundUser) => {
-      if (err) {
-        res.status(422).send('No user found.')
-        return next(err)
-      }
-      if (roles.indexOf(foundUser.role) > -1) {
+export function roleAuthorization (roles) {
+  return async (req, res, next) => {
+    try {
+      const user = await Users.findOne({ _id: req.user._id })
+      if (!user) throw new Error('User not found')
+
+      if (roles.includes(user.role)) {
         return next()
       }
-      res.status(401).send('You are not authorized to view this content')
-      return next('Unauthorized')
-    })
+
+      throw new Error(`User ${user.email} with role ${user.role} is not authorized to make this request`)
+    } catch (error) {
+      console.log(error)
+      return res.status(401).send('You are not authorized to view this content')
+    }
   }
 }
 

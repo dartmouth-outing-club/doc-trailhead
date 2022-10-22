@@ -21,7 +21,6 @@ router.get('/', (_req, res) => {
 
 router.post('/signin-simple', users.signinSimple)
 router.get('/signin-cas', users.signinCAS)
-router.post('/signup', users.signup)
 
 router.route('/user')
   .get(requireAuth, users.getUser)
