@@ -7,12 +7,3 @@ export function pick (object, keys) {
   })
   return res
 }
-
-export function clubsListToMap (clubsList) {
-  const map = {}
-  clubsList.forEach((club) => {
-    const id = club._id.toString()
-    map[id] = { name: club.name, active: club.active }
-  })
-  return map
-}

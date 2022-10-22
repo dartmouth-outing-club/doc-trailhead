@@ -9,8 +9,9 @@ import { tokenForUser } from './user-controller.js'
 import { deleteVehicleRequest } from './vehicle-request-controller.js'
 import * as constants from '../constants.js'
 import * as mailer from '../services/emailing.js'
-import { trips, clubs } from '../services/mongo.js'
+import { trips } from '../services/mongo.js'
 import * as Users from '../controllers/user-controller.js'
+import * as Clubs from '../controllers/club-controller.js'
 import * as utils from '../utils.js'
 import { logError } from '../services/error.js'
 
@@ -36,7 +37,7 @@ const sendLeadersEmail = (tripID, subject, message) => {
 }
 
 export async function getPublicTrips (_req, res) {
-  const clubsPromise = clubs.find().toArray()
+  const clubsPromise = Clubs.getClubsMap()
   const tripsPromise = trips
     .find({ startDateAndTime: { $gte: new Date() }, private: false })
     .sort({ startDateAndTime: 1 })
@@ -44,8 +45,7 @@ export async function getPublicTrips (_req, res) {
     .toArray()
 
   try {
-    const [tripsList, clubsList] = await Promise.all([tripsPromise, clubsPromise])
-    const clubsMap = utils.clubsListToMap(clubsList)
+    const [tripsList, clubsMap] = await Promise.all([tripsPromise, clubsPromise])
 
     const filteredList = tripsList
       .map((trip) => (

@@ -1,3 +1,4 @@
+import { clubs } from '../services/mongo.js'
 import Club from '../models/club-model.js'
 
 export const createClub = (req, res) => {
@@ -25,4 +26,18 @@ export const allClubs = (req, res) => {
       res.json(clubs)
     }
   })
+}
+
+export async function getAll () {
+  return clubs.find().toArray()
+}
+
+export async function getClubsMap () {
+  const clubsList = await getAll()
+  const map = {}
+  clubsList.forEach((club) => {
+    const id = club._id.toString()
+    map[id] = { name: club.name, active: club.active }
+  })
+  return map
 }
