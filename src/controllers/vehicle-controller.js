@@ -8,7 +8,7 @@ export async function createVehicle (req, res) {
   res.json({ ...vehicle, _id: insertedId })
 }
 
-export async function getVehicles (req, res) {
+export async function getBookings (req, res) {
   const bookingsFilters = {}
   if (req.query.showOldBookings === 'false') {
     bookingsFilters.assigned_pickupDateAndTime = { $gte: subtract(new Date(), 30, 'day') }

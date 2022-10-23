@@ -80,8 +80,11 @@ router.route('/vehicleRequests')
   .post(requireAuth, vehicleRequests.makeVehicleRequest)
   .get(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.getVehicleRequests)
 
+router.route('/bookings')
+  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), vehicles.getBookings)
+
 router.route('/vehicles')
-  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), vehicles.getVehicles)
+  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), vehicles.getBookings)
   .post(requireAuth, users.roleAuthorization(['OPO']), vehicles.createVehicle)
 
 router.route('/vehicles/:id')
