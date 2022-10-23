@@ -8,43 +8,6 @@ export async function createVehicle (req, res) {
   res.json({ ...vehicle, _id: insertedId })
 }
 
-export async function getVehicle (req, res) {
-  Vehicle.findById(req.params.id).populate('bookings').populate({
-    path: 'bookings',
-    populate: {
-      path: 'request',
-      model: 'VehicleRequest'
-    }
-  }).populate({
-    path: 'bookings',
-    populate: {
-      path: 'requester',
-      model: 'User'
-    }
-  })
-    .populate({
-      path: 'bookings',
-      populate: {
-        path: 'request',
-        populate: {
-          path: 'associatedTrip',
-          model: 'Trip',
-          populate: {
-            path: 'leaders'
-          }
-        }
-      }
-    })
-    .exec()
-    .then((vehicle) => {
-      res.json(vehicle)
-    })
-    .catch((error) => {
-      res.status(500).send(error)
-      console.log(error)
-    })
-}
-
 export async function getVehicles (req, res) {
   const bookingsFilters = {}
   if (req.query.showOldBookings === 'false') {
