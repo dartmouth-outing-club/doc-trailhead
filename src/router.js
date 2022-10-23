@@ -81,7 +81,7 @@ router.route('/vehicleRequests')
   .get(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.getVehicleRequests)
 
 router.route('/vehicles')
-  .get(requireAuth, vehicles.getVehicles)
+  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), vehicles.getVehicles)
   .post(requireAuth, users.roleAuthorization(['OPO']), vehicles.createVehicle)
 
 router.route('/vehicles/:id')
