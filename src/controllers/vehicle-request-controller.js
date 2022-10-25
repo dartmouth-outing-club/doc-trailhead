@@ -8,7 +8,7 @@ import Trip from '../models/trip-model.js'
 import User from '../models/user-model.js'
 import Global from '../models/global-model.js'
 import * as constants from '../constants.js'
-import * as mailer from '../services/emailing.js'
+import * as mailer from '../services/mailer.js'
 
 export const makeVehicleRequest = (req, res) => {
   Global.find({}).then((globals) => {

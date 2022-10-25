@@ -9,7 +9,7 @@ import signS3 from './services/s3.js'
 import { logError } from './services/error.js'
 import { requireAuth } from './services/passport.js'
 
-import * as mailer from './services/emailing.js'
+import * as mailer from './services/mailer.js'
 
 const router = Router()
 

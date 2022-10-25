@@ -8,7 +8,7 @@ import VehicleRequest from '../models/vehicle-request-model.js'
 import { tokenForUser } from './user-controller.js'
 import { deleteVehicleRequest } from './vehicle-request-controller.js'
 import * as constants from '../constants.js'
-import * as mailer from '../services/emailing.js'
+import * as mailer from '../services/mailer.js'
 import { trips } from '../services/mongo.js'
 import * as Users from '../controllers/user-controller.js'
 import * as Clubs from '../controllers/club-controller.js'
@@ -847,3 +847,57 @@ export const respondToPCardRequest = (req, res) => {
       res.status(500).send(error)
     })
 }
+
+const _48_HOURS_IN_MS = 172800000
+const _2_HOURS_IN_MS = 7200000
+const _90_MINS_IN_MS = 5400000
+const _3_HOURS_IN_MS = 10800000
+
+export async function getTripsPendingCheckOutEmail () {
+  const now = new Date()
+  const emailWindow = new Date(now.getTime() + _48_HOURS_IN_MS)
+  const tripsInWindow = await trips.find({ startDateAndTime: { $lt: emailWindow, $gt: now } }).toArray()
+  return tripsInWindow.filter(trip => !trip.sentEmails.includes('CHECK_OUT'))
+}
+
+export async function getTripsPendingCheckInEmail () {
+  const now = new Date()
+  const emailWindow = new Date(now.getTime() + _2_HOURS_IN_MS)
+  const tripsInWindow = await trips.find({ endDateAndTime: { $lt: emailWindow, $gt: now } }).toArray()
+  return tripsInWindow.filter(trip => !trip.sentEmails.includes('CHECK_IN'))
+}
+
+export async function getTripsPending90MinEmail () {
+  const now = new Date()
+  const returnWindow = new Date(now.getTime() - _90_MINS_IN_MS)
+  const tripsInWindow = await trips.find({
+    endDateAndTime: { $lt: returnWindow }, // The endDateAndTime is earlier than 90 minutes ago
+    returned: false
+  }).toArray()
+  return tripsInWindow.filter(trip => !trip.sentEmails.includes('LATE_90'))
+}
+
+export async function getTripsPending3HourEmail () {
+  const now = new Date()
+  const returnWindow = new Date(now.getTime() - _3_HOURS_IN_MS)
+  const tripsInWindow = await trips.find({
+    endDateAndTime: { $lt: returnWindow }, // The endDateAndTime is earlier than 3 hours ago
+    returned: false
+  }).toArray()
+  return tripsInWindow.filter(trip => !trip.sentEmails.includes('LATE_180'))
+}
+
+async function markEmailSent (trip, emailName) {
+  try {
+    const sentEmails = [...trip.sentEmails, emailName]
+    return trips.updateOne({ _id: trip._id }, { $set: { sentEmails } })
+  } catch (error) {
+    console.error('trip:', trip)
+    console.error(`Error updating email status ${emailName} for trip ${trip._id}:`, error)
+  }
+}
+
+export const markCheckOutEmail = (trip) => markEmailSent(trip, 'CHECK_OUT')
+export const markCheckInEmail = (trip) => markEmailSent(trip, 'CHECK_IN')
+export const mark90MinEmail = (trip) => markEmailSent(trip, 'LATE_90')
+export const mark3HourEmail = (trip) => markEmailSent(trip, 'LATE_180')
