@@ -1,6 +1,7 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
+import cron from 'node-cron'
 import morgan from 'morgan'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
@@ -8,7 +9,6 @@ import dateMath from 'date-arithmetic'
 
 import apiRouter from './router.js'
 import * as mailer from './services/emailing.js'
-import * as scheduler from './services/scheduler.js'
 import * as constants from './constants.js'
 import { tokenForUser } from './controllers/user-controller.js'
 import Trip from './models/trip-model.js'
@@ -158,12 +158,14 @@ const markTripsAsPast = () => {
  * Schedules time-based emails.
  */
 if (process.env.NODE_ENV !== 'development') {
+  // These wacky times are a stopgap to mitigate the connection limit throttling
+  // I'll batch these properly (with precise queries) soon
   console.log('Scheduling')
-  scheduler.schedule(markTripsAsPast, 'daily')
-  scheduler.schedule(sendCheckInEmail, 'minutely')
-  scheduler.schedule(sendCheckOutEmail, 'minutely')
-  scheduler.schedule(send90MinuteLateEmail, 'minutely')
-  scheduler.schedule(send3HourLateEmail, 'minutely')
+  cron.schedule('0 1 * * *', markTripsAsPast)
+  cron.schedule('10 * * * *', sendCheckInEmail)
+  cron.schedule('20 * * * *', sendCheckOutEmail)
+  cron.schedule('5,15,25,35,45,55 * * * *', send90MinuteLateEmail)
+  cron.schedule('7,17,27,37,47,57 * * * *', send3HourLateEmail)
 }
 
 function handleError (err, _req, res, _next) {
