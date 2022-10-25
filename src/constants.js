@@ -6,7 +6,7 @@ dotenv.config({ silent: true })
 export const frontendURL = process.env.NODE_ENV === 'development' ? 'http://localhost:8080' : 'http://doc.dartmouth.edu'
 export const backendURL = process.env.NODE_ENV === 'development' ? 'http://localhost:9090' : `https://${process.env.APP_URL}`
 
-export const OPOEmails = process.env.NODE_ENV === 'development' ? ['ziray.hao@dali.dartmouth.edu'] : ['rory.c.gawler@dartmouth.edu', 'willow.nilsen@dartmouth.edu', 'coz.teplitz@dartmouth.edu', 'kellen.t.appleton@dartmouth.edu', 'f00324r@dartmouth.edu']
+export const OPOEmails = process.env.NODE_ENV === 'development' ? ['ziray.hao@dali.dartmouth.edu'] : ['rory.c.gawler@dartmouth.edu', 'willow.nilsen@dartmouth.edu', 'kellen.t.appleton@dartmouth.edu', 'bradley.r.geismar@dartmouth.edu', 'yong.sheng.ng@dartmouth.edu', 'Elizabeth.U.Keeley@dartmouth.edu', 'Robert.D.Caldwell@dartmouth.edu']
 export const gearAdminEmails = process.env.NODE_ENV === 'development' ? ['ziray.hao@dali.dartmouth.edu'] : ['Dartmouth.Outdoor.Rentals@Dartmouth.EDU', 'Michael.Silverman@Dartmouth.EDU']
 
 export const createDateObject = (date, time, timezone) => {
