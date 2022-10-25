@@ -8,7 +8,7 @@ import * as users from '../controllers/user-controller.js'
 dotenv.config({ silent: true })
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.office365.com',
+  host: process.env.EMAIL_HOST,
   port: 587,
   secure: false,
   auth: {
