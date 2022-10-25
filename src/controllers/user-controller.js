@@ -67,7 +67,7 @@ export function roleAuthorization (roles) {
 
       throw new Error(`User ${user.email} with role ${user.role} is not authorized to make this request`)
     } catch (error) {
-      console.log(error)
+      console.error(error)
       return res.status(401).send('You are not authorized to view this content')
     }
   }
