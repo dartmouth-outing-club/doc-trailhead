@@ -28,7 +28,10 @@ router.route('/user')
 
 router.route('/users').get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), users.getUsers)
 
-router.route('/leaders').get(requireAuth, users.getLeaders)
+// This route is used to populate co-leader dropdowns
+// The way trailhead functions, anyone is a potential leader
+// TODO slim this down to only active users
+router.route('/leaders').get(requireAuth, users.getUsers)
 
 router.get('/myTrips', requireAuth, users.myTrips)
 
