@@ -165,7 +165,7 @@ if (process.env.NODE_ENV !== 'development') {
   cron.schedule('10 * * * *', sendCheckInEmail)
   cron.schedule('20 * * * *', sendCheckOutEmail)
   cron.schedule('5,15,25,35,45,55 * * * *', send90MinuteLateEmail)
-  cron.schedule('7,17,27,37,47,57 * * * *', send3HourLateEmail)
+  cron.schedule('17,37,57 * * * *', send3HourLateEmail)
 }
 
 function handleError (err, _req, res, _next) {
