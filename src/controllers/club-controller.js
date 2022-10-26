@@ -7,22 +7,22 @@ export async function createClub (req, res) {
 }
 
 export async function allClubs (_req, res) {
-  const clubs = await getAll()
+  const clubs = await getClubsList()
   res.json(clubs)
 }
 
-export async function getAll () {
-  const clubList = await clubs.find().toArray()
-  clubList.sort((a, b) => a.name > b.name ? 1 : -1) // Sort by name, alphabetically
-  return clubList
-}
-
 export async function getClubsMap () {
-  const clubsList = await getAll()
+  const clubsList = await getClubsList()
   const map = {}
   clubsList.forEach((club) => {
     const id = club._id.toString()
     map[id] = { name: club.name, active: club.active }
   })
   return map
+}
+
+async function getClubsList () {
+  const clubList = await clubs.find().toArray()
+  clubList.sort((a, b) => a.name > b.name ? 1 : -1) // Sort by name, alphabetically
+  return clubList
 }

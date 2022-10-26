@@ -8,6 +8,7 @@ import Trip from '../models/trip-model.js'
 import VehicleRequest from '../models/vehicle-request-model.js'
 import { users } from '../services/mongo.js'
 import * as utils from '../utils.js'
+import * as clubs from '../controllers/club-controller.js'
 
 export const signinSimple = (req, res, next) => {
   passport.authenticate('local', async (err, user) => {
@@ -268,15 +269,13 @@ export const userTrips = (req, res) => {
   })
 }
 
-export const getLeaderRequests = (req, res) => {
-  User.find({ has_pending_leader_change: true }).populate('leader_for').populate('requested_clubs').exec()
-    .then((users) => {
-      return res.json(users)
-    })
-    .catch((error) => {
-      console.log(error)
-      res.status(500).send(error.message)
-    })
+export async function getLeaderRequests (_req, res) {
+  const usersWithLeaderRequests = await users.find({ has_pending_leader_change: true }).toArray()
+
+  // Leader requests need to have a populated clubs object, and the user's name and ID
+  const leaderRequests = usersWithLeaderRequests
+    .map(user => utils.pick(user, ['_id', 'name', 'requested_clubs']))
+  res.json(leaderRequests)
 }
 
 export const respondToLeaderRequest = (req, res) => {
@@ -308,11 +307,10 @@ export const respondToLeaderRequest = (req, res) => {
     })
 }
 
-export const getCertRequests = (req, res) => {
-  User.find({ has_pending_cert_change: true }).populate('leader_for').populate('requested_clubs').exec()
-    .then((users) => {
-      return res.json(users)
-    })
+export async function getCertRequests (_req, res) {
+  const usersWithPendingCerts = await users.find({ has_pending_cert_change: true }).toArray()
+  const certRequests = usersWithPendingCerts.map(user => utils.pick(user, ['_id', 'name', 'requested_certs']))
+  return res.json(certRequests)
 }
 
 export const respondToCertRequest = (req, res) => {
