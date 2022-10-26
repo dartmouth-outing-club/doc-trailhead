@@ -38,7 +38,10 @@ const localLogin = new LocalStrategy(localOptions, async (email, password, done)
 const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
   try {
     const user = await Users.getUserById(payload.sub)
-    if (!user) throw new Error(`User with id ${payload.sub} not found`)
+    if (!user) {
+      console.error(payload)
+      throw new Error(`User not found for id ${payload.sub}`)
+    }
 
     if (payload.purpose === 'mobile') {
       const trip = await Trip.findById(payload.tripID)
