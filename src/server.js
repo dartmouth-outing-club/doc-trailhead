@@ -86,15 +86,17 @@ const markTripsAsPast = () => {
 /**
  * Schedules time-based emails.
  */
-if (process.env.NODE_ENV !== 'development') {
+if (process.env.NODE_ENV !== 'development' && process.env.SCHEDULER_STATUS !== 'disabled') {
   // These wacky times are a stopgap to mitigate the connection limit throttling
   // I'll batch these properly (with precise queries) soon
-  console.log('Scheduling')
+  console.log('Starting scheduler')
   cron.schedule('0 1 * * *', markTripsAsPast)
   cron.schedule('10 * * * *', checkOutEmails)
   cron.schedule('20 * * * *', checkInEmails)
   cron.schedule('5,15,25,35,45,55 * * * *', late90MinEmails)
   cron.schedule('17,37,57 * * * *', late3HourEmails)
+} else {
+  console.log('Scheduler disabled')
 }
 
 function handleError (err, _req, res, _next) {
