@@ -196,8 +196,12 @@ export async function updateUser (req, res) {
     newUser.email = req.body.email
     newUser.name = req.body.name
 
-    const newClubs = req.body.leader_for || []
+    // The frontend sends us club objects, but the database stores club IDs
+    // This is not a pattern that we will replicated with a new frontend
+    const requestedLeaderFor = req.body.leader_for || []
+    const newClubs = requestedLeaderFor.map(club => club._id)
     const currentClubs = existingUser.leader_for || []
+
     // Approval is required if user is adding a new club
     if (newClubs.length > currentClubs.length) {
       newUser.has_pending_leader_change = true
