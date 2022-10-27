@@ -202,7 +202,7 @@ export async function createTrip (creator, data) {
     }
   })
   const savedTrip = await trip.save()
-  mailer.send({ address: leaderEmails, subject: `New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've created a new Trip #${savedTrip.number}: ${savedTrip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave ${trip.pickup}:: ${constants.frontendURL}/trip-check-out/${savedTrip._id}?token=${tokenForUser(creator._id, 'mobile', savedTrip._id)}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
+  await mailer.sendNewTripEmail(savedTrip, leaderEmails, creator)
   if (data.vehicles.length > 0) {
     // Retrieves the current maximum vehicle request number and then updates it immediately
     const globalsForVehicleRequest = await Global.find({})
@@ -221,7 +221,7 @@ export async function createTrip (creator, data) {
     vehicleRequest.requestedVehicles = data.vehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, data.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, data.timezone) } })
     try {
       const savedVehicleRequest = await vehicleRequest.save()
-      mailer.send({ address: leaderEmails, subject: `re: New Trip #${savedTrip.number} created`, message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${savedVehicleRequest.number}: ${savedTrip.title} that is linked to your Trip #${savedTrip.number}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedVehicleRequest._id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
+      await mailer.sendNewVehicleRequestEmail(trip, leaderEmails, vehicleRequest)
       if (data.injectingStatus) savedTrip.vehicleStatus = data.vehicleStatus
       else savedTrip.vehicleStatus = 'pending'
       savedTrip.vehicleRequest = savedVehicleRequest
@@ -392,10 +392,14 @@ export const deleteTrip = (req, res) => {
           if (err) {
             res.json({ error: err })
           } else {
-            mailer.send({ address: trip.members.concat(trip.pending).map((person) => { return person.user.email }), subject: `Trip #${trip.number} deleted`, message: `Hello,\n\nThe Trip #${trip.number}: ${trip.title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${trip.owner.email}.\n\nReason: ${req.body.reason ? req.body.reason : 'no reason provided.'}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
+            const trippeeEmails = trip.members
+              .concat(trip.pending)
+              .map(person => person.user.email)
+            await mailer.sendTripDeletedEmail(trip, trip.owner.email, trippeeEmails, req.body.reason)
             if (trip.vehicleRequest) {
               await deleteVehicleRequest(trip.vehicleRequest._id, 'Associated trip has been deleted')
-              mailer.send({ address: trip.leaders.map((leader) => { return leader.email }), subject: `re: Trip #${trip.number} deleted`, message: `Hello,\n\nThe associated vehicle request, V-Req #${trip.vehicleRequest.number}: ${trip.title} that is linked to your Trip #${trip.number} has also been deleted since your trip was deleted. We have informed OPO staff that you will no longer be needing this vehicle.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
+              const leaderEmails = trip.leaders.map(leader => leader.email)
+              await mailer.sendVehicleRequestDeletedEmail(trip, leaderEmails, trip.vehicleRequest.number)
               res.json({ message: 'Trip and associated vehicle request successfully' })
             } else {
               res.json({ message: 'Trip removed successfully' })
