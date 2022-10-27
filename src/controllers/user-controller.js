@@ -341,7 +341,7 @@ export const respondToCertRequest = (req, res) => {
 
 export function tokenForUser (userId, purpose, tripID) {
   const timestamp = new Date().getTime()
-  return jwt.encode({
-    sub: userId, iat: timestamp, purpose, tripID
-  }, process.env.AUTH_SECRET)
+  const sub = userId.toString()
+  console.log(`Encoding token for user ${sub}`)
+  return jwt.encode({ sub, iat: timestamp, purpose, tripID }, process.env.AUTH_SECRET)
 }
