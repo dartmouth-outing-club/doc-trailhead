@@ -8,7 +8,6 @@ import Trip from '../models/trip-model.js'
 import VehicleRequest from '../models/vehicle-request-model.js'
 import { users } from '../services/mongo.js'
 import * as utils from '../utils.js'
-import * as clubs from '../controllers/club-controller.js'
 
 export const signinSimple = (req, res, next) => {
   passport.authenticate('local', async (err, user) => {
