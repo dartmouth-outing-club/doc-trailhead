@@ -76,8 +76,9 @@ tripsRouter.post('/unadmit/:tripID', requireAuth, (req, res) => {
   trips.unAdmit(req.params.tripID, req.body.unAdmittedUserID).then(() => { return res.json() }).catch((error) => { res.status(500).json(error) })
 })
 
-tripsRouter.post('/leave/:tripID', requireAuth, (req, res) => {
-  trips.leave(req.params.tripID, req.body.leavingUserID).then(() => { res.json() }).catch((error) => { return res.status(500).json(error) })
+tripsRouter.post('/leave/:tripID', requireAuth, async (req, res) => {
+  await trips.leave(req.params.tripID, req.body.leavingUserID)
+  res.status(200).send()
 })
 
 tripsRouter.put('/set-attendence/:tripID', requireAuth, trips.setMemberAttendance)

@@ -635,20 +635,19 @@ export async function leave (tripID, leavingUserID) {
   const trip = await populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser'])
 
   // If user is in the list of pending tripees, remove them
-  const pendingIndex = trip.pending.find((tripee) => tripee.user._id.toString() === leavingUserID)
-  if (pendingIndex > -1) trip.pending.splice(pendingIndex, 1)
+  trip.pending = trip.pending.filter((tripee) => tripee.user.toString() !== leavingUserID)
 
   // If user is in the list of accepted tripees, remove them
   // Should be mutually exclusive with pending tripees, but you never know
-  const memberIndex = trip.members.find((tripee) => tripee.user._id.toString() === leavingUserID)
+  const memberIndex = trip.members.findIndex((tripee) => tripee.user.toString() === leavingUserID)
   if (memberIndex > -1) {
     const leaderEmails = trip.leaders.map(leader => leader.email)
     const leavingUser = await Users.getUserById(leavingUserID)
     mailer.sendUserLeftEmail(trip, leaderEmails, leavingUser)
-    trip.members.splice(memberIndex, 1)
+    trip.members = trip.members.slice(memberIndex)
   }
-
-  return calculateRequiredGear(trip)
+  const newTrip = await trip.save()
+  calculateRequiredGear(newTrip)
 }
 
 export const toggleTripLeadership = (req, res) => {
