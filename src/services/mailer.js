@@ -34,15 +34,14 @@ const transporter = nodemailer.createTransport({
  */
 export function createRecurringEmailSender (name, tripsFunc, emailFunc, markFunc) {
   return async () => {
-    console.log(`[Mailer] Sending ${name} email`)
     const tripsInWindow = await tripsFunc()
     console.log(`[Mailer] Sending emails for ${tripsInWindow.length} trips`)
 
     // Doing this as a for loop so that it happens entirely sychrnously
     // Otherwise we'll create too many simultaneous connections
     for (const trip of tripsInWindow) {
-      const leaderEmails = await users.getLeaderEmails(trip)
-      console.log('[Mailer] Sending email to: ' + leaderEmails.join(', '))
+      const leaderEmails = await users.getUserEmails(trip.leaders)
+      console.log(`[Mailer] Sending ${name} email to: ` + leaderEmails.join(', '))
       const token = tokenForUser(trip.leaders[0], 'mobile', trip._id)
       try {
         await emailFunc(trip, leaderEmails, token)
