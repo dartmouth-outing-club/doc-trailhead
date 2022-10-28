@@ -124,7 +124,7 @@ export async function sendVehicleRequestDeletedEmail (trip, leaderEmails, vehicl
     subject: `re: Trip #${trip.number} deleted`,
     message: `Hello,\n\nThe associated vehicle request, V-Req #${vehicleRequestNum}: ${trip.title} that is linked to your Trip #${trip.number} has also been deleted since your trip was deleted. We have informed OPO staff that you will no longer be needing this vehicle.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
-  send(email, 'Vehicle requested deleted')
+  return send(email, 'Vehicle requested deleted')
 }
 
 export async function sendNewTripEmail (trip, leaderEmails, creator) {
@@ -134,7 +134,7 @@ export async function sendNewTripEmail (trip, leaderEmails, creator) {
     message: `Hello,\n\nYou've created a new Trip #${trip.number}: ${trip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave ${trip.pickup}:: ${constants.frontendURL}/trip-check-out/${trip._id}?token=${tokenForUser(creator._id, 'mobile', trip._id)}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
-  send(email, 'New trip')
+  return send(email, 'New trip')
 }
 
 export async function sendNewVehicleRequestEmail (trip, leaderEmails, vehicleRequest) {
@@ -144,5 +144,144 @@ export async function sendNewVehicleRequestEmail (trip, leaderEmails, vehicleReq
     message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${vehicleRequest.number}: ${trip.title} that is linked to your Trip #${trip.number}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
-  send(email, 'New vehicle request')
+  return send(email, 'New vehicle request')
+}
+
+export async function sendVehicleRequestChangedEmail (vehicleRequest, deletedAssignments) {
+  const email = {
+    address: constants.OPOEmails,
+    subject: `V-Req #${vehicleRequest.number} updated`,
+    message: `Hello,\n\nThe leaders of V-Req #${vehicleRequest.number} (which was approved) just changed their requested vehicles.\n\nThe original ${vehicleRequest.assignments.length} vehicle assignment${vehicleRequest.assignments.length > 1 ? 's' : ''} now have all been unscheduled.\n\nDeleted assignments:\n${deletedAssignments.map((assignment) => { return `\t-\t${assignment.assigned_vehicle.name}: ${constants.formatDateAndTime(assignment.assigned_pickupDateAndTime, 'LONG')} to ${constants.formatDateAndTime(assignment.assigned_returnDateAndTime, 'LONG')}\n` })}\n\nYou will have to approve this request again at ${constants.frontendURL}/opo-vehicle-request/${vehicleRequest._id.toString()}.\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'Vehicle request changed')
+}
+
+export async function sendGearRequestChangedEmail (trip, leaderEmails, user) {
+  const email = {
+    address: leaderEmails,
+    subject: `Trip #${trip.number}: ${user.name} changed gear requests`,
+    message: `Hello,\n\nTrippee ${user.name} for [Trip #${trip.number}: ${trip.title}] changed their gear requests. You can reach them at ${user.email}.\n\nView the change here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'Gear request changed')
+}
+
+export async function sendTripApplicationConfirmation (trip, joiningUser, tripOwnerEmail) {
+  const email = {
+    address: joiningUser.email,
+    subject: 'Confirmation: You\'ve applied to go on a trip',
+    message: `Hello ${joiningUser.name},\n\nYou've applied to go on [Trip #${trip.number}: ${trip.title}]. However, this does not mean you have been approved for the trip. If you chose to no longer go on the trip, you can still remove yourself from the waitlist. Only once you receive an email about getting approved for this trip can you attend. \n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nYou can reach the trip leader at ${tripOwnerEmail}.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'Trip application confirmation')
+}
+
+export async function sendTripApprovalEmail (trip, user) {
+  const email = {
+    address: user.email,
+    subject: `Trip #${trip.number}: You've been approved! 🙌`,
+    message: `Hello ${user.name},\n\nYou've been approved for [Trip #${trip.number}: ${trip.title}]! 🎉\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nStay Crunchy 🏔,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'Trip approval')
+}
+
+export async function sendTripRemovalEmail (trip, user) {
+  const email = {
+    address: user.email,
+    subject: `Trip #${trip.number}: You've been un-admitted`,
+    message: `Hello ${user.name},\n\nYou've were previously approved for [Trip #${trip.number}: ${trip.title}], but the leader has put you back into pending status, which means you are not approved to attend this trip 🥺.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nStay Crunchy 🚵‍♀️,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'Trip removal')
+}
+
+export async function sendTripTooFullEmail (trip, user) {
+  const email = {
+    address: user.email,
+    subject: `Trip #${trip.number}: it's too full`,
+    message: `Hello ${user.name},\n\nYou signed up for [Trip #${trip.number}: ${trip.title}], but unfortunately it's too full 😢. The leader wasn't able to admit you. \n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nYou can reach the trip leader at ${trip.owner.email}.\n\nStay Crunchy 🌲,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply 🤖.`
+  }
+
+  return send(email, 'Trip too full')
+}
+
+export async function sendUserLeftEmail (trip, leaderEmails, user) {
+  const email = {
+    address: leaderEmails,
+    subject: `Trip #${trip.number}: ${user.name} left your trip`,
+    message: `Hello,\n\nYour approved trippee ${user.name} for [Trip #${trip.number}: ${trip.title}] cancelled for this trip 🙁. You can reach them at ${user.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'User left')
+}
+
+export async function sendCoLeaderConfirmation (trip, user) {
+  const email = {
+    address: [user.email],
+    subject: `Trip #${trip.number}: you're now a co-leader!`,
+    message: `Hello ${user.name},\n\nCongrats - you've been made a co-leader for [Trip #${trip.number}: ${trip.title}] 👏. You can reach the trip leader at ${trip.owner.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${trip._id}\n\nStay Crunchy 🏞,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'Co-leader confirmation')
+}
+
+export async function sendCoLeaderRemovalNotice (trip, user) {
+  const email = {
+    address: [user.email],
+    subject: `Trip #${trip.number}: co-leader change`,
+    message: `Hello,\n\nYou have been removed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${trip._id}\n\nStay Crunchy ☀️,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'Co-leader removal')
+}
+
+export async function sendLateTripBackAnnouncement (trip, status, time) {
+  const email = {
+    address: constants.OPOEmails,
+    subject: `Trip #${trip.number} ${!status ? 'un-' : ''}returned`,
+    message: `Hello,\n\nTrip #${trip.number}: ${trip.title}, has was marked as LATE, has now been marked as ${!status ? 'NOT' : ''} returned by the leader at ${constants.formatDateAndTime(time)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'Late trip returned')
+}
+
+export async function sendGroupGearStatusUpdate (trip, leaderEmails, message) {
+  const email = {
+    address: leaderEmails,
+    subject: `Trip #${trip.number}: Gear requests ${message}`,
+    message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s group gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'Group gear status update')
+}
+
+export async function sendGearRequiresReapprovalNotice (trip) {
+  const email = {
+    address: constants.gearAdminEmails,
+    subject: `Trip #${trip.number}'s gear request changed`,
+    message: `Hello,\n\nTrip #${trip.number}: ${trip.title}'s gear requests had been originally approved, but they recently made changes to their trippee gear requests because a new trippee was admitted to the trip.\n\nPlease re-approve their request at: ${constants.frontendURL}/approve-trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'Individual gear changed notice')
+}
+
+export async function sendIndividualGearStatusUpdate (trip, leaderEmails, message) {
+  const email = {
+    address: leaderEmails,
+    subject: `Trip #${trip.number}: Gear requests ${message}`,
+    message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title}'s trippee (not group) gear requests ${message} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'Individual gear status update')
+}
+export async function sendPCardStatusUpdate (trip, leaderEmails) {
+  const email = {
+    address: leaderEmails,
+    subject: `Trip #${trip.number}: P-Card requests got ${trip.pcardStatus === 'approved' ? 'approved!' : 'denied'}`,
+    message: `Hello,\n\nYour Trip #${trip.number}: ${trip.title} has gotten its P-Card requests ${trip.pcardStatus === 'approved' ? 'approved' : 'denied'} by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email)
 }
