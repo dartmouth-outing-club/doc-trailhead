@@ -338,8 +338,8 @@ export const respondToCertRequest = (req, res) => {
     })
 }
 
-export function tokenForUser (userId, purpose, tripID) {
+export function tokenForUser (userId, purpose, tripId) {
   const timestamp = new Date().getTime()
-  console.log(`Encoding token for user ${userId}`)
-  return jwt.encode({ sub: userId, iat: timestamp, purpose, tripID }, process.env.AUTH_SECRET)
+  if (!userId || !tripId) throw new Error('Tried to encode a JWT but the userId was undefined')
+  return jwt.encode({ sub: userId, iat: timestamp, purpose, tripId }, process.env.AUTH_SECRET)
 }
