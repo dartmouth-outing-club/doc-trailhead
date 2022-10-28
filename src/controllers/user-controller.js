@@ -143,8 +143,7 @@ export async function getUserByEmail (email) {
 }
 
 export async function getLeaderEmails (trip) {
-  const ids = trip.leaders.map(leader => leader._id)
-  const leaders = await users.find({ _id: { $in: ids } }).toArray()
+  const leaders = await users.find({ _id: { $in: trip.leaders } }).toArray()
   return leaders.map(leader => leader.email)
 }
 
