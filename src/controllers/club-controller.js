@@ -15,8 +15,8 @@ export async function getClubsMap () {
   const clubsList = await getClubsList()
   const map = {}
   clubsList.forEach((club) => {
-    const id = club._id.toString()
-    map[id] = { name: club.name, active: club.active }
+    const _id = club._id.toString()
+    map[_id] = { _id, name: club.name, active: club.active }
   })
   return map
 }
