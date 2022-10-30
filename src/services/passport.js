@@ -44,7 +44,12 @@ const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
     }
 
     if (payload.purpose === 'mobile') {
-      const trip = await Trip.findById(payload.tripID)
+      const trip = await Trip.findById(payload.tripId)
+      if (!trip) {
+        console.error(payload)
+        throw new Error(`Trip not found for id ${payload.tripId}`)
+      }
+
       const today = new Date()
       if (today.getTime() <= add(trip.endDateAndTime, 24, 'hours').getTime()) {
         console.log('Mobile token is valid')
