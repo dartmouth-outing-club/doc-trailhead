@@ -266,11 +266,16 @@ export const userTrips = (req, res) => {
 
 export async function getLeaderRequests (_req, res) {
   const usersWithLeaderRequests = await users.find({ has_pending_leader_change: true }).toArray()
+  const clubsMap = await Clubs.getClubsMap()
 
   // Leader requests need to have a populated clubs object, and the user's name and ID
   const leaderRequests = usersWithLeaderRequests
     .map(user => utils.pick(user, ['_id', 'name', 'requested_clubs']))
-  res.json(leaderRequests)
+    .map(user => ({
+      ...user,
+      requested_clubs: Clubs.enhanceClubList(user.requested_clubs, clubsMap)
+    }))
+  return res.json(leaderRequests)
 }
 
 export async function respondToLeaderRequest (req, res) {

@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongodb'
 import { clubs } from '../services/mongo.js'
 
 export async function createClub (req, res) {
@@ -19,6 +20,29 @@ export async function getClubsMap () {
     map[_id] = { _id, name: club.name, active: club.active }
   })
   return map
+}
+
+/**
+ * Replace a list of string or club objects with club objects.
+ *
+ * This function exists to paper over an annoying aspect of our current data
+ * setup where sometimes it will store the entire club object as a list of either:
+ *  a) string IDs
+ *  b) ObjectId IDs
+ *  c) full objects
+ *
+ *  Can be removed once we have better-structured data.
+ */
+export function enhanceClubList (clubsList, clubsMap) {
+  return clubsList.map((club) => {
+    if (typeof club === 'string') {
+      return clubsMap[club]
+    } else if (ObjectId.isValid(club)) {
+      return clubsMap[club.toString()]
+    } else {
+      return club
+    }
+  })
 }
 
 async function getClubsList () {
