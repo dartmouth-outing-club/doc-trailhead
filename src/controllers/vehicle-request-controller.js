@@ -5,7 +5,7 @@ import VehicleRequest from '../models/vehicle-request-model.js'
 import Vehicle from '../models/vehicle-model.js'
 import Assignment from '../models/assignment-model.js'
 import Trip from '../models/trip-model.js'
-import User from '../models/user-model.js'
+import * as Users from '../controllers/user-controller.js'
 import Global from '../models/global-model.js'
 import * as constants from '../constants.js'
 import * as mailer from '../services/mailer.js'
@@ -25,7 +25,7 @@ export const makeVehicleRequest = (req, res) => {
       vehicleRequest.requestType = req.body.requestType
       vehicleRequest.requestedVehicles = req.body.requestedVehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) } })
       vehicleRequest.save().then(async (savedRequest) => {
-        const requester = await User.findById(vehicleRequest.requester)
+        const requester = await Users.getUserById(vehicleRequest.requester)
         mailer.send({ address: [requester.email], subject: `New V-Req #${savedRequest.number} created`, message: `Hello,\n\nYou've created a new vehicle request, V-Req #${savedRequest.number}: ${savedRequest.requestDetails}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedRequest._id}\n\nThis request is not associated with any trip.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
         res.json(savedRequest)
       }).catch((error) => {
@@ -419,7 +419,7 @@ export const respondToVehicleRequest = async (req, res) => {
         })
         vehicleRequest.assignments = processedAssignments
         vehicleRequest.status = 'approved'
-        const requester = await User.findById(vehicleRequest.requester).exec()
+        const requester = await Users.findById(vehicleRequest.requester).exec()
         const email = { address: [requester.email], subject: '', message: '' }
         if (vehicleRequest.requestType === 'TRIP') {
           const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).populate('leaders').exec()
@@ -473,7 +473,7 @@ export const respondToVehicleRequest = async (req, res) => {
 export const denyVehicleRequest = async (req, res) => {
   try {
     const vehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').exec()
-    const requester = await User.findById(vehicleRequest.requester).exec()
+    const requester = await Users.getUserById(vehicleRequest.requester).exec()
     const email = { address: [requester.email], subject: '', message: '' }
     vehicleRequest.status = 'denied'
     if (vehicleRequest.requestType === 'TRIP') {
@@ -534,7 +534,7 @@ export const cancelAssignments = async (req, res) => {
       await Vehicle.updateOne({ _id: assignment.assigned_vehicle }, { $pull: { bookings: assignment._id } }) // remove from vehicle bookings
       await VehicleRequest.updateOne({ _id: assignment.request }, { $pull: { assignments: assignment._id } }) // remove from vehicle request assignments
       const vehicleRequest = await VehicleRequest.findById(assignment.request)
-      const requester = await User.findById(vehicleRequest.requester).exec()
+      const requester = await Users.getUserById(vehicleRequest.requester).exec()
       const email = { address: [requester.email], subject: '', message: '' }
       if (vehicleRequest.assignments.length === 0) {
         vehicleRequest.status = 'denied'
