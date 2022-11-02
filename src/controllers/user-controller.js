@@ -139,6 +139,10 @@ export async function getUserByEmail (email) {
   return users.findOne({ email })
 }
 
+export async function getUsersFromEmailList (emailList) {
+  return users.find({ email: { $in: emailList } }).toArray()
+}
+
 export async function getUserEmails (userIds) {
   const leaders = await users.find({ _id: { $in: userIds } }).toArray()
   return leaders.map(leader => leader.email)

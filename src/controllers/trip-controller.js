@@ -193,7 +193,7 @@ export async function createTrip (creator, data) {
   trip.pending = []
 
   const leaderEmails = [creator.email] // Used to send out initial email
-  const foundUsers = await User.find({ email: { $in: data.leaders } })
+  const foundUsers = await Users.getUsersFromEmailList(data.leaders)
   foundUsers.forEach((foundUser) => {
     if (!foundUser._id.equals(creator._id)) {
       trip.leaders.push(foundUser._id)
@@ -365,7 +365,7 @@ export async function updateTrip (req, res) {
       }
     }
 
-    const coleaders = await User.find({ email: { $in: req.body.leaders } }).exec()
+    const coleaders = await Users.getUsersFromEmailList(req.body.leaders)
     const allLeaders = []
     coleaders.forEach((coleader) => {
       allLeaders.push(coleader._id)
@@ -502,7 +502,7 @@ export const apply = (tripID, joiningUserID, requestedGear) => {
         if (!trip.pending.some((pender) => { return pender.user._id.toString() === joiningUserID.toString() })) {
           trip.pending.push({ user: joiningUserID, requestedGear })
           await trip.save()
-          const joiningUser = await User.findById(joiningUserID)
+          const joiningUser = await Users.getUserById(joiningUserID.toString())
           const tripOwnerEmail = trip.owner.email
           mailer.sendTripApplicationConfirmation(trip, joiningUser, tripOwnerEmail)
         }
