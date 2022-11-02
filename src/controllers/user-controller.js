@@ -280,17 +280,18 @@ export async function getLeaderRequests (_req, res) {
 
 export async function respondToLeaderRequest (req, res) {
   let newUser = {}
+  const userId = new ObjectId(req.body.userId)
   if (req.body.status !== 'approved') {
     newUser = { has_pending_leader_change: false, requestedClubs: [] }
   } else {
-    const user = await users.findOne({ _id: req.body.userId })
+    const user = await users.findOne({ _id: userId })
     newUser.role = user.role === 'OPO' ? 'OPO' : 'Leader'
     newUser.leader_for = user.requested_clubs
     newUser.requested_clubs = []
     newUser.has_pending_leader_change = false
   }
 
-  await users.updateOne({ _id: req.body.userId }, { $set: newUser })
+  await users.updateOne({ _id: userId }, { $set: newUser })
   return getLeaderRequests(req, res)
 }
 
@@ -302,10 +303,11 @@ export async function getCertRequests (_req, res) {
 
 export async function respondToCertRequest (req, res) {
   let newUser = {}
+  const userId = new ObjectId(req.body.userId)
   if (req.body.status !== 'approved') {
     newUser = { has_pending_cert_change: false, requestedCerts: {} }
   } else {
-    const user = await users.findOne({ _id: req.body.userId })
+    const user = await users.findOne({ _id: userId })
     newUser = {
       driver_cert: user.requested_certs.driver_cert,
       trailer_cert: user.requested_certs.trailer_cert,
@@ -314,7 +316,7 @@ export async function respondToCertRequest (req, res) {
     }
   }
 
-  await users.updateOne({ _id: req.body.userId }, { $set: newUser })
+  await users.updateOne({ _id: userId }, { $set: newUser })
   return getCertRequests(req, res)
 }
 
