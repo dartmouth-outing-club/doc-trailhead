@@ -1,6 +1,5 @@
 import { subtract } from 'date-arithmetic'
 
-import User from '../models/user-model.js'
 import Trip from '../models/trip-model.js'
 import Assignment from '../models/assignment-model.js'
 import Global from '../models/global-model.js'
@@ -457,33 +456,27 @@ function requiresReapproval (trip, originalGear) {
 /**
  * Allows a user - both pending and approved - to edit their gear requests.
  */
-export const editUserGear = (req, res) => {
+export async function editUserGear (req, res) {
   const { tripID } = req.params
   const { trippeeGear } = req.body
-  populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser'])
-    .then((trip) => {
-      const isOnTrip = trip.members.some((member) => {
-        return member.user.id === req.user._id.toString()
-      })
-      trip.pending.concat(trip.members).forEach((person) => {
-        if (person.user._id.equals(req.user._id)) {
-          person.requestedGear = trippeeGear
-          if (isOnTrip) {
-            User.findById(req.user._id).then((user) => {
-              const leaderEmails = trip.leaders.map(leader => leader.email)
-              mailer.sendGearRequestChangedEmail(trip, leaderEmails, user)
-            })
-          }
-        }
-      })
-      calculateRequiredGear(trip).then(() => {
-        trip.save().then(() => {
-          res.send()
-        })
-      })
-    }).catch((error) => {
-      res.status(500).json(error)
+  const trip = await populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser'])
+  const isOnTrip = trip.members.some(member => member.user.id === req.user._id.toString())
+  const allPotentialMembers = trip.pending.concat(trip.members)
+  allPotentialMembers.forEach(async (person) => {
+    if (person.user._id.equals(req.user._id)) {
+      person.requestedGear = trippeeGear
+      if (isOnTrip) {
+        const user = await Users.getUserById(req.user._id)
+        const leaderEmails = trip.leaders.map(leader => leader.email)
+        mailer.sendGearRequestChangedEmail(trip, leaderEmails, user)
+      }
+    }
+  })
+  calculateRequiredGear(trip).then(() => {
+    trip.save().then(() => {
+      res.send()
     })
+  })
 }
 
 // JOINING AND LEAVING TRIPS
@@ -542,11 +535,8 @@ export const admit = (tripID, admittedUserID) => {
 
         await calculateRequiredGear(trip)
         await trip.save()
-        User.findById(admittedUserID).then((foundUser) => {
-          mailer.sendTripApprovalEmail(trip, foundUser)
-          // const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          // mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} got approved!`, message: `Hello,\n\nYour pending trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been approved. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
-        })
+        const foundUser = await Users.getUserById(admittedUserID)
+        mailer.sendTripApprovalEmail(trip, foundUser)
         resolve()
       })
       .catch((error) => { reject(error) })
@@ -586,12 +576,9 @@ export const unAdmit = (tripID, leavingUserID) => {
         }
         await calculateRequiredGear(trip)
         await trip.save()
-        User.findById(leavingUserID).then((foundUser) => {
-          mailer.sendTripRemovalEmail(trip, foundUser)
-          // const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-          // mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} moved back to pending`, message: `Hello,\n\nYour approved trippee ${foundUser.name} for [Trip #${trip.number}: ${trip.title}] has been moved from the approved list to the pending list. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
-          resolve()
-        })
+        const foundUser = await Users.getUserById(leavingUserID)
+        mailer.sendTripRemovalEmail(trip, foundUser)
+        resolve()
       })
       .catch((error) => { console.log(error); reject(error) })
   })

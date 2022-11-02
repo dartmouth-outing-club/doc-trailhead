@@ -132,7 +132,8 @@ export async function getUser (req, res) {
 }
 
 export async function getUserById (id) {
-  return users.findOne({ _id: ObjectId(id) })
+  const _id = typeof id === 'string' ? new ObjectId(id) : id
+  return users.findOne({ _id })
 }
 
 export async function getUserByEmail (email) {
