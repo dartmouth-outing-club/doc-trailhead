@@ -419,7 +419,7 @@ export const respondToVehicleRequest = async (req, res) => {
         })
         vehicleRequest.assignments = processedAssignments
         vehicleRequest.status = 'approved'
-        const requester = await Users.findById(vehicleRequest.requester).exec()
+        const requester = await Users.getUserById(vehicleRequest.requester).exec()
         const email = { address: [requester.email], subject: '', message: '' }
         if (vehicleRequest.requestType === 'TRIP') {
           const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).populate('leaders').exec()
