@@ -419,7 +419,7 @@ export const respondToVehicleRequest = async (req, res) => {
         })
         vehicleRequest.assignments = processedAssignments
         vehicleRequest.status = 'approved'
-        const requester = await Users.getUserById(vehicleRequest.requester).exec()
+        const requester = await Users.getUserById(vehicleRequest.requester)
         const email = { address: [requester.email], subject: '', message: '' }
         if (vehicleRequest.requestType === 'TRIP') {
           const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).populate('leaders').exec()
@@ -473,7 +473,7 @@ export const respondToVehicleRequest = async (req, res) => {
 export const denyVehicleRequest = async (req, res) => {
   try {
     const vehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').exec()
-    const requester = await Users.getUserById(vehicleRequest.requester).exec()
+    const requester = await Users.getUserById(vehicleRequest.requester)
     const email = { address: [requester.email], subject: '', message: '' }
     vehicleRequest.status = 'denied'
     if (vehicleRequest.requestType === 'TRIP') {
@@ -534,7 +534,7 @@ export const cancelAssignments = async (req, res) => {
       await Vehicle.updateOne({ _id: assignment.assigned_vehicle }, { $pull: { bookings: assignment._id } }) // remove from vehicle bookings
       await VehicleRequest.updateOne({ _id: assignment.request }, { $pull: { assignments: assignment._id } }) // remove from vehicle request assignments
       const vehicleRequest = await VehicleRequest.findById(assignment.request)
-      const requester = await Users.getUserById(vehicleRequest.requester).exec()
+      const requester = await Users.getUserById(vehicleRequest.requester)
       const email = { address: [requester.email], subject: '', message: '' }
       if (vehicleRequest.assignments.length === 0) {
         vehicleRequest.status = 'denied'
