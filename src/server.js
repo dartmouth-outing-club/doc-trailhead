@@ -68,7 +68,7 @@ const late90MinEmails = mailer.createRecurringEmailSender('trip late 90 minutes'
   trips.getTripsPending90MinEmail, mailer.send90MinuteLateEmail, trips.mark90MinEmail)
 
 const late3HourEmails = mailer.createRecurringEmailSender('trip late 3 hours',
-  trips.getTripsPending3HourEmail, mailer.send3HourLateEmail, trips.mark3HourEmail)
+  trips.getTripsPending3HourEmail, mailer.send3HourLateEmail, trips.markTripLate)
 
 const markTripsAsPast = () => {
   const now = new Date()

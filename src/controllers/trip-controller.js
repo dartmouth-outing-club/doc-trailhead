@@ -889,7 +889,19 @@ async function markEmailSent (trip, emailName) {
   }
 }
 
+/**
+ * Trips are officially marked late after 3 hours.
+ */
+export async function markTripLate (trip) {
+  const sentEmails = [...trip.sentEmails, 'LATE_180']
+  try {
+    await trips.updateOne({ _id: trip._id }, { $set: { sentEmails, markedLate: true } })
+  } catch (error) {
+    console.error('trip:', trip)
+    console.error(`Error updating marking trip ${trip._id} late:`, error)
+  }
+}
+
 export const markCheckOutEmail = (trip) => markEmailSent(trip, 'CHECK_OUT')
 export const markCheckInEmail = (trip) => markEmailSent(trip, 'CHECK_IN')
 export const mark90MinEmail = (trip) => markEmailSent(trip, 'LATE_90')
-export const mark3HourEmail = (trip) => markEmailSent(trip, 'LATE_180')
