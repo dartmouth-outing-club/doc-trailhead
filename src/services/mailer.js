@@ -100,7 +100,7 @@ export async function send90MinuteLateEmail (trip, leaderEmails, token) {
 
 export async function send3HourLateEmail (trip, leaderEmails) {
   const email = {
-    address: leaderEmails,
+    address: constants.OPOEmails.concat(leaderEmails),
     subject: `Trip #${trip.number} not returned`,
     message: `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}], was due back at ${constants.formatDateAndTime(trip.endDateAndTime, 'SHORT')} and has not yet checked back in from Hanover. We have informed OPO staff about your status. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
