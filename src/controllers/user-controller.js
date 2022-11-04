@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import jwt from 'jwt-simple'
 import { ObjectId } from 'mongodb'
 
@@ -8,6 +9,10 @@ import VehicleRequest from '../models/vehicle-request-model.js'
 import * as Clubs from '../controllers/club-controller.js'
 import { users } from '../services/mongo.js'
 import * as utils from '../utils.js'
+
+// We have to import these at least once so they "register"
+// These can be removed once all the models get removed.
+import User from '../models/user-model.js'
 
 export const signinSimple = (req, res, next) => {
   passport.authenticate('local', async (err, user) => {
@@ -116,8 +121,8 @@ export const myTrips = (req, res) => {
 export async function getUser (req, res) {
   const user = await users.findOne({ _id: req.user._id })
   const clubsMap = await Clubs.getClubsMap()
-  user.leader_for = user.leader_for.map(clubId => clubsMap[clubId])
-  user.requested_clubs = user.requested_clubs.map(clubId => clubsMap[clubId])
+  user.leader_for = user?.leader_for.map(clubId => clubsMap[clubId])
+  user.requested_clubs = user?.requested_clubs.map(clubId => clubsMap[clubId])
 
   let hasCompleteProfile
   // Obviously these are redundant, but that will require a frontend change to fix
