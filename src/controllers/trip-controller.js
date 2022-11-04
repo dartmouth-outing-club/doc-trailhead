@@ -368,7 +368,7 @@ export async function updateTrip (req, res) {
     const allLeaders = []
     coleaders.forEach((coleader) => {
       allLeaders.push(coleader._id)
-      if (!trip.members.find((member) => { return member.user._id.toString() === coleader._id.toString() })) {
+      if (!trip.members.find((member) => member._id.toString() === coleader._id.toString())) {
         trip.members.push({ user: coleader._id, requestedGear: [] })
       }
     })
