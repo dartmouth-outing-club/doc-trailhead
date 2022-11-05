@@ -22,6 +22,10 @@ export async function getClubsMap () {
   return map
 }
 
+export async function getClubByName (name) {
+  return clubs.findOne({ name })
+}
+
 /**
  * Replace a list of string or club objects with club objects.
  *

@@ -3,7 +3,7 @@ import { Router } from 'express'
 import { requireAuth } from '../services/passport.js'
 import { logError } from '../services/error.js'
 import * as trips from '../controllers/trip-controller.js'
-import * as clubs from '../models/club-model.js'
+import * as Clubs from '../controllers/club-controller.js'
 
 const tripsRouter = Router()
 
@@ -21,7 +21,7 @@ tripsRouter.route('/')
   .get(requireAuth, async (req, res) => {
     const filters = {}
     if (req.query.club) {
-      const club = await clubs.findOne({ name: req.query.club })
+      const club = await Clubs.getClubByName(req.query.club)
       if (club) filters.club = club.id
       else res.status(404).json(new Error('No club found with that name'))
     }

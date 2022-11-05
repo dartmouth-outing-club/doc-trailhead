@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
@@ -13,6 +14,11 @@ import * as constants from './constants.js'
 import Trip from './models/trip-model.js'
 import TripRouter from './routers/trip-router.js'
 import * as trips from './controllers/trip-controller.js'
+
+// We have to import these at least once so they "register"
+// These can be removed once all the models get removed.
+import User from './models/user-model.js'
+import Club from './models/club-model.js'
 
 process.env.TZ = 'America/New_York'
 

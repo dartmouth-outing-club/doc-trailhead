@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import jwt from 'jwt-simple'
 import { ObjectId } from 'mongodb'
 
@@ -9,10 +8,6 @@ import VehicleRequest from '../models/vehicle-request-model.js'
 import * as Clubs from '../controllers/club-controller.js'
 import { users } from '../services/mongo.js'
 import * as utils from '../utils.js'
-
-// We have to import these at least once so they "register"
-// These can be removed once all the models get removed.
-import User from '../models/user-model.js'
 
 export const signinSimple = (req, res, next) => {
   passport.authenticate('local', async (err, user) => {
