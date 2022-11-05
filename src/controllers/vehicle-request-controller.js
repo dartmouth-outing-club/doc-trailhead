@@ -6,12 +6,12 @@ import Vehicle from '../models/vehicle-model.js'
 import Assignment from '../models/assignment-model.js'
 import Trip from '../models/trip-model.js'
 import * as Users from '../controllers/user-controller.js'
-import Global from '../models/global-model.js'
+import * as Globals from '../controllers/global-controller.js'
 import * as constants from '../constants.js'
 import * as mailer from '../services/mailer.js'
 
 export const makeVehicleRequest = (req, res) => {
-  Global.find({}).then((globals) => {
+  Globals.getAll().then((globals) => {
     // Retrieves the current maximum vehicle request number and then updates it immediately.
     const currentMaxVehicleRequestNumberglobals = globals[0].vehicleRequestNumberMax + 1
     globals[0].vehicleRequestNumberMax += 1

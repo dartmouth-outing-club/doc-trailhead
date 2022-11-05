@@ -2,7 +2,7 @@ import { subtract } from 'date-arithmetic'
 
 import Trip from '../models/trip-model.js'
 import Assignment from '../models/assignment-model.js'
-import Global from '../models/global-model.js'
+import * as Globals from '../controllers/global-controller.js'
 import VehicleRequest from '../models/vehicle-request-model.js'
 import { tokenForUser } from './user-controller.js'
 import { deleteVehicleRequest } from './vehicle-request-controller.js'
@@ -145,7 +145,7 @@ export const getTrip = (tripID, forUser) => {
  */
 export async function createTrip (creator, data) {
   // Retrieves the current maximum trip number and then updates it immediately.
-  const globals = await Global.find({})
+  const globals = await Globals.getAll()
   globals[0].tripNumberMax += 1
   const nextTripNumber = globals[0].tripNumberMax
   await globals[0].save()
@@ -204,7 +204,7 @@ export async function createTrip (creator, data) {
   await mailer.sendNewTripEmail(savedTrip, leaderEmails, creator)
   if (data.vehicles.length > 0) {
     // Retrieves the current maximum vehicle request number and then updates it immediately
-    const globalsForVehicleRequest = await Global.find({})
+    const globalsForVehicleRequest = await Globals.getAll()
     globalsForVehicleRequest[0].vehicleRequestNumberMax += 1
     const nextVehicleRequestNumber = globalsForVehicleRequest[0].vehicleRequestNumberMax
     await globalsForVehicleRequest[0].save()
@@ -306,7 +306,7 @@ export async function updateTrip (req, res) {
     if (req.body.changedVehicles) {
       if (trip.vehicleStatus === 'N/A' && req.body.vehicles.length > 0) {
         // Retrieves the current maximum vehicle request number and then updates it immediately
-        const globalsForVehicleRequest = await Global.find({})
+        const globalsForVehicleRequest = await Globals.getAll()
         globalsForVehicleRequest[0].vehicleRequestNumberMax += 1
         const nextVehicleRequestNumber = globalsForVehicleRequest[0].vehicleRequestNumberMax
         await globalsForVehicleRequest[0].save()

@@ -19,6 +19,7 @@ import * as trips from './controllers/trip-controller.js'
 // These can be removed once all the models get removed.
 import User from './models/user-model.js'
 import Club from './models/club-model.js'
+import Global from './models/global-model.js'
 
 process.env.TZ = 'America/New_York'
 
