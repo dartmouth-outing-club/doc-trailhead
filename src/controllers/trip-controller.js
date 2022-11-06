@@ -144,11 +144,7 @@ export const getTrip = (tripID, forUser) => {
  * @param {Trip} data The trip parameters
  */
 export async function createTrip (creator, data) {
-  // Retrieves the current maximum trip number and then updates it immediately.
-  const globals = await Globals.getAll()
-  globals[0].tripNumberMax += 1
-  const nextTripNumber = globals[0].tripNumberMax
-  await globals[0].save()
+  const nextTripNumber = await Globals.incrementTripNumber()
 
   // Creates the new trip
   const trip = new Trip()
@@ -203,11 +199,7 @@ export async function createTrip (creator, data) {
   const savedTrip = await trip.save()
   await mailer.sendNewTripEmail(savedTrip, leaderEmails, creator)
   if (data.vehicles.length > 0) {
-    // Retrieves the current maximum vehicle request number and then updates it immediately
-    const globalsForVehicleRequest = await Globals.getAll()
-    globalsForVehicleRequest[0].vehicleRequestNumberMax += 1
-    const nextVehicleRequestNumber = globalsForVehicleRequest[0].vehicleRequestNumberMax
-    await globalsForVehicleRequest[0].save()
+    const nextVehicleRequestNumber = await Globals.incrementVehicleRequestNumber()
 
     // Creates a new vehicle request
     const vehicleRequest = new VehicleRequest()
@@ -306,10 +298,7 @@ export async function updateTrip (req, res) {
     if (req.body.changedVehicles) {
       if (trip.vehicleStatus === 'N/A' && req.body.vehicles.length > 0) {
         // Retrieves the current maximum vehicle request number and then updates it immediately
-        const globalsForVehicleRequest = await Globals.getAll()
-        globalsForVehicleRequest[0].vehicleRequestNumberMax += 1
-        const nextVehicleRequestNumber = globalsForVehicleRequest[0].vehicleRequestNumberMax
-        await globalsForVehicleRequest[0].save()
+        const nextVehicleRequestNumber = await Globals.incrementVehicleRequestNumber()
 
         // Creates a new vehicle request
         const vehicleRequest = new VehicleRequest()
