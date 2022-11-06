@@ -111,7 +111,7 @@ export const deleteVehicleRequest = async (vehicleRequestID, reason) => {
  */
 const checkForConflicts = (proposedAssignment) => {
   return new Promise((resolve) => {
-    Assignment.find({}).then((assignments) => {
+    Assignment.find({ assigned_returnDateAndTime: { $gt: proposedAssignment.assigned_pickupDateAndTime } }).then((assignments) => {
       assignments = assignments.filter((assignment) => {
         const conflictingVehicles = proposedAssignment.assigned_vehicle._id.equals(assignment.assigned_vehicle._id)
         if (proposedAssignment._id) {
@@ -163,35 +163,16 @@ function recomputeAllConflicts () {
         assignments.map((assignment, index, array) => {
           return new Promise((resolve) => {
             assignment.conflicts = []
-            // console.log('\tpivot', assignment._id);
-            // console.log('\tpivot index', index)
-            // console.log('\tmax length', array.length)
             let traverser = index + 1
             while (traverser < array.length) {
-              // console.log('\t\tcompare index', traverser)
-              // console.log('\t\ttraverser', array[traverser]._id);
-              // console.log('\t\t\tcompareFrom', assignment.assigned_returnDateAndTime);
-              // console.log('\t\t\tcompareTo', array[traverser].assigned_pickupDateAndTime);
-              // console.log('\t\t\tdecision', assignment.assigned_returnDateAndTime > array[traverser].assigned_pickupDateAndTime)
               if (assignment.assigned_returnDateAndTime > array[traverser].assigned_pickupDateAndTime) {
-                // console.log('\t\t\t\t', array[traverser]._id);
-
-                // Array.from(new Set(conflicts)) instead
-                // console.log('\t\t\t\tincludes', !assignment.conflicts.includes(array[traverser]._id))
                 if (!assignment.conflicts.includes(array[traverser]._id)) {
                   assignment.conflicts.push(array[traverser]._id)
                 }
-                // Assignment.findById(array[traverser]._id).then((conflictingAssignment) => {
-                //   if (!conflictingAssignment.conflicts.includes(assignment._id)) {
-                //     conflictingAssignment.conflicts.push(assignment._id);
-                //     conflictingAssignment.save();
-                //   }
-                // });
               }
               traverser += 1
             }
             assignment.save().then(() => {
-              // console.log(savedAssignment.conflicts);
               resolve()
             })
           })
