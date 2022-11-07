@@ -354,14 +354,17 @@ export async function updateTrip (req, res) {
     }
 
     const coleaders = await Users.getUsersFromEmailList(req.body.leaders)
-    const allLeaders = []
-    coleaders.forEach((coleader) => {
-      allLeaders.push(coleader._id)
-      if (!trip.members.find((member) => member._id.toString() === coleader._id.toString())) {
-        trip.members.push({ user: coleader._id, requestedGear: [] })
+    trip.leaders = coleaders.map(user => user._id)
+
+    // The updateTrip method is responsible for adding trip leaders as members
+    // This is very silly! It duplicates the data inside the object
+    trip.leaders.forEach((leaderId) => {
+      const containsLeader = trip.members.some(member => member.user.toString() === leaderId.toString())
+      if (!containsLeader) {
+        trip.members.push({ user: leaderId, requestedGear: [] })
       }
     })
-    trip.leaders = allLeaders
+
     const finalTrip = await trip.save()
     res.json(finalTrip)
   } else {
