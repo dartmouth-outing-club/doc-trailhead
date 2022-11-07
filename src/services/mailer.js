@@ -40,10 +40,10 @@ export function createRecurringEmailSender (name, tripsFunc, emailFunc, markFunc
     // Doing this as a for loop so that it happens entirely sychrnously
     // Otherwise we'll create too many simultaneous connections
     for (const trip of tripsInWindow) {
-      const leaderEmails = await users.getUserEmails(trip.leaders)
-      console.log(`[Mailer] Sending ${name} email to: ` + leaderEmails.join(', '))
-      const token = tokenForUser(trip.leaders[0], 'mobile', trip._id)
       try {
+        const leaderEmails = await users.getUserEmails(trip.leaders)
+        console.log(`[Mailer] Sending ${name} email to: ` + leaderEmails.join(', '))
+        const token = tokenForUser(trip.leaders[0], 'mobile', trip._id)
         await emailFunc(trip, leaderEmails, token)
         markFunc(trip)
       } catch (error) {
