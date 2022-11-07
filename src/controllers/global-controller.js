@@ -12,7 +12,7 @@ export async function incrementVehicleRequestNumber () {
     { $inc: { vehicleRequestNumberMax: 1 } },
     { returnDocument: 'after' }
   )
-  return global.vehicleRequestNumberMax
+  return global.value.vehicleRequestNumberMax
 }
 
 /**
@@ -27,5 +27,5 @@ export async function incrementTripNumber () {
     { $inc: { tripNumberMax: 1 } },
     { returnDocument: 'after' }
   )
-  return global.tripNumberMax
+  return global.value.tripNumberMax
 }
