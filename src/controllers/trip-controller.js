@@ -5,7 +5,7 @@ import Assignment from '../models/assignment-model.js'
 import * as Globals from '../controllers/global-controller.js'
 import VehicleRequest from '../models/vehicle-request-model.js'
 import { tokenForUser } from './user-controller.js'
-import { deleteVehicleRequest } from './vehicle-request-controller.js'
+import * as VehicleRequests from './vehicle-request-controller.js'
 import * as constants from '../constants.js'
 import * as mailer from '../services/mailer.js'
 import { trips } from '../services/mongo.js'
@@ -385,9 +385,9 @@ export const deleteTrip = (req, res) => {
               .map(person => person.user.email)
             await mailer.sendTripDeletedEmail(trip, trip.owner.email, trippeeEmails, req.body.reason)
             if (trip.vehicleRequest) {
-              await deleteVehicleRequest(trip.vehicleRequest._id, 'Associated trip has been deleted')
+              await VehicleRequests.deleteVehicle(trip.vehicleRequest._id, 'Associated trip has been deleted')
               const leaderEmails = trip.leaders.map(leader => leader.email)
-              await mailer.sendVehicleRequestDeletedEmail(trip, leaderEmails, trip.vehicleRequest.number)
+              await mailer.sendTripVehicleRequestDeletedEmail(trip, leaderEmails, trip.vehicleRequest.number)
               res.json({ message: 'Trip and associated vehicle request successfully' })
             } else {
               res.json({ message: 'Trip removed successfully' })

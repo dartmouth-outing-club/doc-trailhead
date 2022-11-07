@@ -1,9 +1,12 @@
 import { subtract } from 'date-arithmetic'
+import { ObjectId } from 'mongodb'
 
 import VehicleRequest from '../models/vehicle-request-model.js'
 import Vehicle from '../models/vehicle-model.js'
 import Assignment from '../models/assignment-model.js'
 import Trip from '../models/trip-model.js'
+import { vehicleRequests } from '../services/mongo.js'
+import * as Assignments from '../controllers/assignment-controller.js'
 import * as Users from '../controllers/user-controller.js'
 import * as Globals from '../controllers/global-controller.js'
 import * as constants from '../constants.js'
@@ -91,18 +94,19 @@ export const updateVehicleRequest = (req, res) => {
     })
 }
 
-export const deleteVehicleRequest = async (vehicleRequestID, reason) => {
-  const request = await VehicleRequest.findById(vehicleRequestID)
-    .populate({ path: 'assignments', populate: { path: 'assigned_vehicle' } }).populate('requester')
-  if (request.assignments) {
-    for (let i = 0; i < request.assignments.length; i += 1) {
-      await Assignment.deleteOne({ _id: request.assignments[i]._id })
-    }
-    // mailer.send({ address: constants.OPOEmails, subject: `V-Req #${request.number} deleted`, message: `Hello,\n\nThe V-Req #${request.number} has been deleted.\n\nReason: ${reason || 'no reason provided.'}\n\nIt had ${request.assignments.length} approved vehicle assignments, all of which have been unscheduled so that the vehicles can be assigned to other trips.\n\nDeleted assignments:\n${request.assignments.map((assignment) => { return `\t-\t${assignment.assigned_vehicle.name}: ${constants.formatDateAndTime(assignment.assigned_pickupDateAndTime, 'LONG')} to ${constants.formatDateAndTime(assignment.assigned_returnDateAndTime, 'LONG')}\n`; })}\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
-  }
-  await VehicleRequest.deleteOne({ _id: vehicleRequestID })
-  mailer.send({ address: [request.requester.email], subject: `V-Req #${request.number} deleted`, message: `Hello,\n\nYour [V-Req #${request.number}] has been deleted.\n\nReason: ${reason || 'no reason provided.'}\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
-  recomputeAllConflicts()
+export async function deleteVehicleRequest (req, res) {
+  await deleteVehicle(req.params.id, 'no reason provided')
+  return res.sendStatus(200)
+}
+
+export async function deleteVehicle (vehicleRequestID, reason) {
+  const vehicleRequest = await getVehicleRequestById(vehicleRequestID)
+  await Assignments.deleteAssignments(vehicleRequest.assignments)
+  await vehicleRequests.deleteOne({ _id: vehicleRequestID })
+  const leaderEmail = await Users.getUserById(vehicleRequest.requester)
+  mailer.sendVehicleRequestDeletedEmail(vehicleRequest, leaderEmail, reason)
+  // Remove the ID from any of the other assignments' conflicts
+  return vehicleRequests.updateMany({}, { $pull: { conflicts: vehicleRequestID } })
 }
 
 /**
@@ -141,70 +145,6 @@ const checkForConflicts = (proposedAssignment) => {
         })
       ).then(() => {
         resolve(conflicts)
-      })
-    })
-  })
-}
-
-/**
-* Cross-checks every assignment with every other assignment and updates the `conflict` parameter for each assignment.
-*/
-function recomputeAllConflicts () {
-  const startTime = new Date()
-  return new Promise((resolve) => {
-    Assignment.find({}).then((assignments) => {
-      assignments.filter((assignment) => { return assignment.assignedVehicle !== 'Enterprise' })
-      assignments.sort((a1, a2) => {
-        if (a1.assigned_pickupDateAndTime < a2.assigned_pickupDateAndTime) return -1
-        else if (a1.assigned_pickupDateAndTime > a2.assigned_pickupDateAndTime) return 1
-        else return 0
-      })
-      Promise.all(
-        assignments.map((assignment, index, array) => {
-          return new Promise((resolve) => {
-            assignment.conflicts = []
-            let traverser = index + 1
-            while (traverser < array.length) {
-              if (assignment.assigned_returnDateAndTime > array[traverser].assigned_pickupDateAndTime) {
-                if (!assignment.conflicts.includes(array[traverser]._id)) {
-                  assignment.conflicts.push(array[traverser]._id)
-                }
-              }
-              traverser += 1
-            }
-            assignment.save().then(() => {
-              resolve()
-            })
-          })
-        })
-      ).then(() => {
-        Assignment.find({}).then((assignmentsForBackChecking) => {
-          Promise.all(
-            assignmentsForBackChecking.map((pivot) => {
-              return new Promise((resolve) => {
-                Promise.all(
-                  pivot.conflicts.map((compare_id) => {
-                    return new Promise((resolve) => {
-                      Assignment.findById(compare_id).then((compare) => {
-                        if (!compare.conflicts.includes(pivot._id)) {
-                          compare.conflicts.push(pivot._id)
-                        }
-                        compare.save(() => {
-                          resolve()
-                        })
-                      })
-                    })
-                  })
-                ).then(() => { return resolve() })
-              })
-            })
-          ).then(() => {
-            const finishTime = new Date()
-            console.log(`Finished recalculating in ${finishTime - startTime}ms`)
-            resolve()
-          })
-        })
-        // resolve();
       })
     })
   })
@@ -549,4 +489,9 @@ export const cancelAssignments = async (req, res) => {
     console.log(error)
     return res.status(500).send(error)
   }
+}
+
+async function getVehicleRequestById (id) {
+  const _id = typeof id === 'string' ? new ObjectId(id) : id
+  return vehicleRequests.findOne({ _id })
 }

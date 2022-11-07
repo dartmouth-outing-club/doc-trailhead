@@ -6,7 +6,6 @@ import * as trips from './controllers/trip-controller.js'
 import * as vehicleRequests from './controllers/vehicle-request-controller.js'
 import * as vehicles from './controllers/vehicle-controller.js'
 import signS3 from './services/s3.js'
-import { logError } from './services/error.js'
 import { requireAuth } from './services/passport.js'
 
 import * as mailer from './services/mailer.js'
@@ -70,14 +69,7 @@ router.route('/trippeegearrequest/:tripID')
 router.route('/vehicle-request/:id')
   .get(requireAuth, vehicleRequests.getVehicleRequest)
   .put(requireAuth, vehicleRequests.updateVehicleRequest)
-  .delete(requireAuth, (req, res) => {
-    vehicleRequests.deleteVehicleRequest(req.params.id)
-      .then(() => { return res.sendStatus(200) })
-      .catch((error) => {
-        logError({ type: 'cancelVehicleRequest', message: error.message })
-        res.status(500).send(error.message)
-      })
-  })
+  .delete(requireAuth, vehicleRequests.deleteVehicleRequest)
 
 router.route('/vehicleRequests')
   .post(requireAuth, vehicleRequests.makeVehicleRequest)

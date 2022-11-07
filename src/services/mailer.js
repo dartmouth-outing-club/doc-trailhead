@@ -120,13 +120,13 @@ export async function sendTripDeletedEmail (trip, ownerEmail, trippeeEmails, rea
   return send(email, 'Trip deleted')
 }
 
-export async function sendVehicleRequestDeletedEmail (trip, leaderEmails, vehicleRequestNum) {
+export async function sendTripVehicleRequestDeletedEmail (trip, leaderEmails, vehicleRequestNum) {
   const email = {
     address: leaderEmails,
     subject: `re: Trip #${trip.number} deleted`,
     message: `Hello,\n\nThe associated vehicle request, V-Req #${vehicleRequestNum}: ${trip.title} that is linked to your Trip #${trip.number} has also been deleted since your trip was deleted. We have informed OPO staff that you will no longer be needing this vehicle.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
-  return send(email, 'Vehicle requested deleted')
+  return send(email, 'Vehicle request deleted')
 }
 
 export async function sendNewTripEmail (trip, leaderEmails, creator) {
@@ -157,6 +157,16 @@ export async function sendVehicleRequestChangedEmail (vehicleRequest, deletedAss
   }
 
   return send(email, 'Vehicle request changed')
+}
+
+export async function sendVehicleRequestDeletedEmail (vehicleRequest, leaderEmail, reason) {
+  const email = {
+    address: [leaderEmail],
+    subject: `V-Req #${vehicleRequest.number} deleted`,
+    message: `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been deleted.\n\nReason: ${reason}\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'Vehicle request deleted')
 }
 
 export async function sendGearRequestChangedEmail (trip, leaderEmails, user) {
