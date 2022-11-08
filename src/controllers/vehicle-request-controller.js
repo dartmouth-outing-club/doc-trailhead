@@ -37,15 +37,21 @@ export async function createVehicleRequest (req, res) {
 
 export async function getVehicleWithAssignments (id) {
   const vehicleRequest = await vehicleRequests.findOne({ _id: new ObjectId(id) })
-  const requester = await Users.getUserById(vehicleRequest.requester)
-  const assignments = await Assignments.getAssignmentByIds(vehicleRequest.assignments)
+  const associations = Promise.all([
+    Users.getUserById(vehicleRequest.requester),
+    Assignments.getAssignmentByIds(vehicleRequest.assignments),
+    Trips.getTripById(vehicleRequest.associatedTrip)
+  ])
+  const [requester, assignments, associatedTrip] = await associations
 
   const assignmentPromises = assignments.map(async (assignment) => {
     const assigned_vehicle = await Vehicles.getVehicle(assignment.assigned_vehicle)
     return { ...assignment, assigned_vehicle }
   })
+
   vehicleRequest.assignments = await Promise.all(assignmentPromises)
   vehicleRequest.requester = requester
+  vehicleRequest.associatedTrip = associatedTrip
   return vehicleRequest
 }
 
@@ -54,15 +60,13 @@ export async function getVehicleRequest (req, res) {
   return res.json(vehicleRequest)
 }
 
-export const getVehicleRequests = (_req, res) => {
-  VehicleRequest.find({}).populate('requester').populate('associatedTrip').populate('assignments')
-    .then((vehicleRequests) => {
-      res.json(vehicleRequests)
-    })
-    .catch((error) => {
-      res.status(500).send(error)
-      console.log(error)
-    })
+export async function getAllCurrentVehicleRequests (_req, res) {
+  const vehicleRequests = await VehicleRequest.find({})
+    .populate('requester')
+    .populate('associatedTrip')
+    .populate('assignments')
+
+  return res.json(vehicleRequests)
 }
 
 export const updateVehicleRequest = (req, res) => {

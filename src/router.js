@@ -73,7 +73,7 @@ router.route('/vehicle-request/:id')
 
 router.route('/vehicleRequests')
   .post(requireAuth, vehicleRequests.createVehicleRequest)
-  .get(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.getVehicleRequests)
+  .get(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.getAllCurrentVehicleRequests)
 
 router.route('/bookings')
   .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), vehicles.getBookings)
