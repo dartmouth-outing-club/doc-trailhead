@@ -2,6 +2,10 @@ import { subtract } from 'date-arithmetic'
 import { vehicles } from '../services/mongo.js'
 import Vehicle from '../models/vehicle-model.js'
 
+export async function getVehicle (id) {
+  return vehicles.findOne({ _id: id })
+}
+
 export async function createVehicle (req, res) {
   const vehicle = { name: req.body.name, body: req.body.type }
   const { insertedId } = await vehicles.insertOne(vehicle)

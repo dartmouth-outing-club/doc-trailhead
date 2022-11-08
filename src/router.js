@@ -72,7 +72,7 @@ router.route('/vehicle-request/:id')
   .delete(requireAuth, vehicleRequests.deleteVehicleRequest)
 
 router.route('/vehicleRequests')
-  .post(requireAuth, vehicleRequests.makeVehicleRequest)
+  .post(requireAuth, vehicleRequests.createVehicleRequest)
   .get(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.getVehicleRequests)
 
 router.route('/bookings')
@@ -89,9 +89,6 @@ router.route('/opoVehicleRequest/:id')
   .post(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.respondToVehicleRequest)
   .delete(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.cancelAssignments)
   .put(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.denyVehicleRequest)
-
-router.route('/vehicle-requests/check-conflict')
-  .post(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.precheckAssignment)
 
 router.route('/vehicle-assignments')
   .get(requireAuth, vehicleRequests.getVehicleAssignments)

@@ -1,5 +1,9 @@
 import { assignments } from '../services/mongo.js'
 
+export async function getAssignmentByIds (ids) {
+  return assignments.find({ _id: { $in: ids } }).toArray()
+}
+
 export async function deleteAssignments (assignmentsList) {
   await assignments.deleteMany({ _id: { $in: assignmentsList } })
   // For each assignment, delete any conflicts it had

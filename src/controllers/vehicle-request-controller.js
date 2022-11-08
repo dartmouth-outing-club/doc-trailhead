@@ -8,11 +8,13 @@ import Trip from '../models/trip-model.js'
 import { vehicleRequests } from '../services/mongo.js'
 import * as Assignments from '../controllers/assignment-controller.js'
 import * as Users from '../controllers/user-controller.js'
+import * as Vehicles from '../controllers/vehicle-controller.js'
 import * as Globals from '../controllers/global-controller.js'
+import * as Trips from '../controllers/trip-controller.js'
 import * as constants from '../constants.js'
 import * as mailer from '../services/mailer.js'
 
-export async function makeVehicleRequest (req, res) {
+export async function createVehicleRequest (req, res) {
   // Retrieves the current maximum vehicle request number and then updates it immediately.
   const vehicleRequestNumberMax = await Globals.incrementVehicleRequestNumber()
   const vehicleRequest = new VehicleRequest()
@@ -33,30 +35,23 @@ export async function makeVehicleRequest (req, res) {
   return res.json(savedRequest)
 }
 
-export const getVehicleRequest = (req, res) => {
-  VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments')
-    .populate({
-      path: 'requester',
-      populate: {
-        path: 'leader_for',
-        model: 'Club'
-      }
-    })
-    .populate({
-      path: 'assignments',
-      populate: {
-        path: 'assigned_vehicle',
-        model: 'Vehicle'
-      }
-    })
-    .exec()
-    .then((vehicleRequest) => {
-      res.json(vehicleRequest)
-    })
-    .catch((error) => {
-      res.status(500).send(error)
-      console.log(error)
-    })
+export async function getVehicleWithAssignments (id) {
+  const vehicleRequest = await vehicleRequests.findOne({ _id: new ObjectId(id) })
+  const requester = await Users.getUserById(vehicleRequest.requester)
+  const assignments = await Assignments.getAssignmentByIds(vehicleRequest.assignments)
+
+  const assignmentPromises = assignments.map(async (assignment) => {
+    const assigned_vehicle = await Vehicles.getVehicle(assignment.assigned_vehicle)
+    return { ...assignment, assigned_vehicle }
+  })
+  vehicleRequest.assignments = await Promise.all(assignmentPromises)
+  vehicleRequest.requester = requester
+  return vehicleRequest
+}
+
+export async function getVehicleRequest (req, res) {
+  const vehicleRequest = await getVehicleWithAssignments(req.params.id)
+  return res.json(vehicleRequest)
 }
 
 export const getVehicleRequests = (_req, res) => {
@@ -108,250 +103,83 @@ export async function deleteVehicle (vehicleRequestID, reason) {
 }
 
 /**
- * Checks a given `proposedAssignment` against the current database of assignments for conflicts, return the `_id`s of those conflicts.
- * @param {Assignment} proposedAssignment
- */
-async function checkForConflicts (proposedAssignment) {
-  const assignments = await Assignment.find({ assigned_returnDateAndTime: { $gt: proposedAssignment.assigned_pickupDateAndTime } })
-
-  const vehicleId = proposedAssignment.assigned_vehicle._id.toString()
-  const assignmentsWithSameVehicle = assignments
-    .filter(assignment => proposedAssignment._id !== assignment._id)
-    .filter(assignment => vehicleId === assignment.assigned_vehicle.toString())
-
-  const conflicts = assignmentsWithSameVehicle.filter((existingAssignment) => {
-    const existingFinishesFirst = existingAssignment.assigned_returnDateAndTime <= proposedAssignment.assigned_pickupDateAndTime
-    const proposedFinishesFirst = existingAssignment.assigned_pickupDateAndTime >= proposedAssignment.assigned_returnDateAndTime
-    return !existingFinishesFirst && !proposedFinishesFirst
-  })
-  return conflicts
-}
-
-/**
- * Router-connected function that prepares a `proposedAssignment` not yet assigned to be checked for potential conflicts.
- * @param {*} req
- * @param {*} res
- */
-export const precheckAssignment = (req, res) => {
-  Vehicle.findOne({ name: req.body.assignedVehicle }).populate('bookings').exec().then((vehicle) => {
-    const proposedAssignment = {}
-
-    proposedAssignment.assigned_vehicle = vehicle
-    // setting pickup times
-    proposedAssignment.assigned_pickupDate = req.body.pickupDate
-    proposedAssignment.assigned_pickupTime = req.body.pickupTime
-    const pickupDateAndTime = constants.createDateObject(req.body.pickupDate, req.body.pickupTime, req.body.timezone)
-    proposedAssignment.assigned_pickupDateAndTime = pickupDateAndTime
-    // setting return times
-    proposedAssignment.assigned_returnDate = req.body.returnDate
-    proposedAssignment.assigned_returnTime = req.body.returnTime
-    const returnDateAndTime = constants.createDateObject(req.body.returnDate, req.body.returnTime, req.body.timezone)
-    proposedAssignment.assigned_returnDateAndTime = returnDateAndTime
-
-    checkForConflicts(proposedAssignment).then((conflictingAssignments) => {
-      Promise.all(conflictingAssignments.map((conflicting_assignment_id) => {
-        return new Promise((resolve) => {
-          Assignment.findById(conflicting_assignment_id).then((conflicting_assignment) => {
-            resolve({ request: conflicting_assignment.request, start: conflicting_assignment.assigned_pickupDateAndTime, end: conflicting_assignment.assigned_returnDateAndTime })
-          })
-        })
-      })).then((conflicts) => {
-        Promise.all(conflicts.map((conflict) => {
-          return new Promise((resolve) => {
-            VehicleRequest.findById(conflict.request).then((conflicting_request) => {
-              if (conflicting_request.associatedTrip != null) {
-                Trip.findById(conflicting_request.associatedTrip).then((conflicting_trip) => {
-                  // const parseStartDate = conflicting_trip.startDate.toString().split(' ');
-                  // const parseEndDate = conflicting_trip.endDate.toString().split(' ');
-                  // const time = { start: `${parseStartDate[1]} ${parseStartDate[2]}, ${conflicting_trip.startTime}`, end: `${parseEndDate[1]} ${parseEndDate[2]}, ${conflicting_trip.endTime}` };
-                  resolve({
-                    message: `TRIP #${conflicting_trip.number}`, time: { start: conflict.start, end: conflict.end }, objectID: conflicting_request._id, type: 'TRIP'
-                  })
-                })
-              } else {
-                resolve({
-                  message: `V-Req #${conflicting_request.number}`, time: { start: conflict.start, end: conflict.end }, objectID: conflicting_request._id, type: 'V_REQ'
-                })
-              }
-            })
-          })
-        })).then((conflicts_annotated) => {
-          res.json(conflicts_annotated)
-        })
-      })
-    })
-  })
-}
-
-/**
  * Saves a single `proposedAssignment` to the database.
  * @param {String} vehicleRequest
  * @param {Assignment} proposedAssignment
  */
-const processAssignment = (vehicleRequest, proposedAssignment) => {
-  // TODO restructure the parent function as an async function once there's a test in place
-  // eslint-disable-next-line no-async-promise-executor
-  return new Promise(async (resolve) => {
-    const vehicle = await Vehicle.findOne({ name: proposedAssignment.assignedVehicle }).populate('bookings')
-    if (proposedAssignment.existingAssignment) {
-      const existingAssignment = await Assignment.findById(proposedAssignment.id).populate('assigned_vehicle')
-      const originalVehicleID = existingAssignment.assigned_vehicle._id.toString()
-      console.log(existingAssignment.assigned_vehicle.name)
-      // setting pickup times
-      existingAssignment.assigned_pickupDate = proposedAssignment.pickupDate
-      existingAssignment.assigned_pickupTime = proposedAssignment.pickupTime
-      const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime, proposedAssignment.timezone)
-      existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime
-      // setting return times
-      existingAssignment.assigned_returnDate = proposedAssignment.returnDate
-      existingAssignment.assigned_returnTime = proposedAssignment.returnTime
-      const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime, proposedAssignment.timezone)
-      existingAssignment.assigned_returnDateAndTime = returnDateAndTime
+export async function processAssignment (vehicleRequest, proposedAssignment) {
+  const vehicle = await Vehicle.findOne({ name: proposedAssignment.assignedVehicle }).populate('bookings')
+  if (proposedAssignment.existingAssignment) {
+    console.log('Updating existing vehicle assignment')
+    const existingAssignment = await Assignment.findById(proposedAssignment.id).populate('assigned_vehicle')
+    // setting pickup times
+    existingAssignment.assigned_pickupDate = proposedAssignment.pickupDate
+    existingAssignment.assigned_pickupTime = proposedAssignment.pickupTime
+    const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime, proposedAssignment.timezone)
+    existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime
+    // setting return times
+    existingAssignment.assigned_returnDate = proposedAssignment.returnDate
+    existingAssignment.assigned_returnTime = proposedAssignment.returnTime
+    const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime, proposedAssignment.timezone)
+    existingAssignment.assigned_returnDateAndTime = returnDateAndTime
 
-      existingAssignment.assigned_key = proposedAssignment.assignedKey
-      existingAssignment.pickedUp = proposedAssignment.pickedUp
-      existingAssignment.returned = proposedAssignment.returned
-      if (existingAssignment.assigned_vehicle.name !== proposedAssignment.assignedVehicle) {
-        vehicle.bookings.push(existingAssignment)
-        vehicle.save().then(() => {
-          console.log(`Pull ${existingAssignment._id} from ${originalVehicleID}`)
-          Vehicle.updateOne({ _id: originalVehicleID }, { $pull: { bookings: existingAssignment._id } }).then((f) => { return console.log(f) }).catch((e) => { return console.log(e) }) // remove assignment from previously assigned vehicle
-        })
-      }
-      existingAssignment.assigned_vehicle = vehicle
-      const conflicts = await checkForConflicts(existingAssignment)
-      await Assignments.removeAssignmentFromConflicts(existingAssignment)
-      const updatedAssignment = await existingAssignment.save()
+    existingAssignment.assigned_key = proposedAssignment.assignedKey
+    existingAssignment.pickedUp = proposedAssignment.pickedUp
+    existingAssignment.returned = proposedAssignment.returned
+    existingAssignment.assigned_vehicle = vehicle
+    return existingAssignment.save()
+  } else {
+    console.log('Saving new vehicle assignment')
+    const newAssignment = new Assignment()
+    // setting basic info
+    newAssignment.request = vehicleRequest
+    newAssignment.assigned_vehicle = vehicle
+    newAssignment.requester = vehicleRequest.requester
+    newAssignment.assigned_key = proposedAssignment.assignedKey
+    newAssignment.responseIndex = proposedAssignment.responseIndex
+    // setting pickup times
+    newAssignment.assigned_pickupDate = proposedAssignment.pickupDate
+    newAssignment.assigned_pickupTime = proposedAssignment.pickupTime
+    const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime, proposedAssignment.timezone)
+    newAssignment.assigned_pickupDateAndTime = pickupDateAndTime
+    // setting return times
+    newAssignment.assigned_returnDate = proposedAssignment.returnDate
+    newAssignment.assigned_returnTime = proposedAssignment.returnTime
+    const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime, proposedAssignment.timezone)
+    newAssignment.assigned_returnDateAndTime = returnDateAndTime
 
-      Promise.all(
-        conflicts.map((conflict_id) => {
-          return new Promise((resolve) => {
-            Assignment.findById(conflict_id).then((conflictingAssignment) => {
-              conflictingAssignment.conflicts.push(new ObjectId(updatedAssignment._id))
-              conflictingAssignment.save().then(() => { return resolve() })
-            })
-          })
-        })
-      ).then(() => {
-        updatedAssignment.conflicts = conflicts
-        updatedAssignment.save().then((updatedSavedAssignment) => {
-          resolve(updatedSavedAssignment)
-        })
-      })
-    } else {
-      const newAssignment = new Assignment()
-      // setting basic info
-      newAssignment.request = vehicleRequest
-      newAssignment.assigned_vehicle = vehicle
-      newAssignment.requester = vehicleRequest.requester
-      newAssignment.assigned_key = proposedAssignment.assignedKey
-      newAssignment.responseIndex = proposedAssignment.responseIndex
-      // setting pickup times
-      newAssignment.assigned_pickupDate = proposedAssignment.pickupDate
-      newAssignment.assigned_pickupTime = proposedAssignment.pickupTime
-      const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime, proposedAssignment.timezone)
-      newAssignment.assigned_pickupDateAndTime = pickupDateAndTime
-      // setting return times
-      newAssignment.assigned_returnDate = proposedAssignment.returnDate
-      newAssignment.assigned_returnTime = proposedAssignment.returnTime
-      const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime, proposedAssignment.timezone)
-      newAssignment.assigned_returnDateAndTime = returnDateAndTime
-
-      newAssignment.save().then((savedAssignment) => {
-        vehicle.bookings.push(savedAssignment)
-        vehicle.save().then(() => {
-          checkForConflicts(savedAssignment).then((conflicts) => {
-            Promise.all(
-              conflicts.map((conflict_id) => {
-                return new Promise((resolve) => {
-                  Assignment.findById(conflict_id).then((conflictingAssignment) => {
-                    conflictingAssignment.conflicts.push(savedAssignment._id)
-                    conflictingAssignment.save().then(() => { return resolve() })
-                  })
-                })
-              })
-            ).then(() => {
-              savedAssignment.conflicts = conflicts
-              savedAssignment.save().then((updatedSavedAssignment) => {
-                resolve(updatedSavedAssignment)
-              })
-            })
-          })
-        })
-      })
-    }
-  })
+    return newAssignment.save()
+  }
 }
 
-/**
- * Asynchronously processes all `proposedAssignments`.
- * @param {Assignment} proposedAssignments
- * @param {String} vehicleRequest
- */
-const processAllAssignments = async (proposedAssignments, vehicleRequest) => {
+export async function respondToVehicleRequest (req, res) {
+  const vehicleRequest = await getVehicleRequestById(req.params.id)
+  const proposedAssignments = req.body.assignments || []
+  //
+  // This used to be synchronous, keeping it that way because I don't want to mess with it right now
   const processedAssignments = []
-  for (let i = 0; i < proposedAssignments.length; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    await processAssignment(vehicleRequest, proposedAssignments[i], i).then((processedAssignment) => {
-      processedAssignments.push(processedAssignment)
-    })
+  for (const assignment of proposedAssignments) {
+    const result = await processAssignment(vehicleRequest, assignment)
+    processedAssignments.push(result)
   }
-  return processedAssignments
-}
 
-export const respondToVehicleRequest = async (req, res) => {
-  try {
-    VehicleRequest.findById(req.params.id).exec().then((vehicleRequest) => {
-      const proposedAssignments = req.body.assignments
-      processAllAssignments(proposedAssignments, vehicleRequest).then(async (processedAssignments) => {
-        const invalidAssignments = processedAssignments.filter((assignment) => {
-          return assignment.error
-        })
-        vehicleRequest.assignments = processedAssignments
-        vehicleRequest.status = 'approved'
-        const requester = await Users.getUserById(vehicleRequest.requester)
-        const email = { address: [requester.email], subject: '', message: '' }
-        if (vehicleRequest.requestType === 'TRIP') {
-          const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).populate('leaders').exec()
-          associatedTrip.vehicleStatus = 'approved'
-          await associatedTrip.save() // needs await because of multi-path async
-          email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email }))
-          email.subject = `Trip ${associatedTrip.number}: Important changes to your vehicle request`
-          email.message = `Hello,\n\nYour [Trip #${associatedTrip.number}]'s vehicle request has been processed (or changed) by OPO staff. It may have been approved at your requested time, or at a different time assigned by OPO. Therefore, it is important for you to review the V-Req: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
-        }
-        email.subject = 'V-Req Update: Important changes to your vehicle request'
-        email.message = `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been processed (or changed) by OPO staff. It may have been approved at your requested time, or at a different time assigned by OPO. Therefore, it is important for you to review the V-Req: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
-        mailer.send(email)
-        vehicleRequest.save().then((savedVehicleRequest) => {
-          VehicleRequest.findById(savedVehicleRequest.id).populate('requester')
-            .populate('associatedTrip')
-            .populate('assignments')
-            .populate({
-              path: 'requester',
-              populate: {
-                path: 'leader_for',
-                model: 'Club'
-              }
-            })
-            .populate({
-              path: 'assignments',
-              populate: {
-                path: 'assigned_vehicle',
-                model: 'Vehicle'
-              }
-            })
-            .exec()
-            .then((updatedVehicleRequest) => {
-              const output = (invalidAssignments.length === 0) ? { updatedVehicleRequest } : { updatedVehicleRequest, invalidAssignments }
-              return res.json(output)
-            })
-        })
-      })
-    })
-  } catch (error) {
-    console.log(error)
-    return res.status(500).send(error)
+  const assignmentIds = processedAssignments.map(assignment => new ObjectId(assignment._id))
+  vehicleRequest.assignments = assignmentIds
+  vehicleRequest.status = 'approved'
+  const requester = await Users.getUserById(vehicleRequest.requester)
+
+  if (vehicleRequest.requestType === 'TRIP') {
+    const associatedTrip = await Trips.getTripById(vehicleRequest.associatedTrip)
+    const leaderEmails = await Users.getUserEmails(associatedTrip.leaders)
+    await Trips.markVehicleStatusApproved(associatedTrip._id)
+    mailer.sendTripVehicleRequestProcessedEmail(vehicleRequest, [requester, ...leaderEmails], associatedTrip)
+  } else {
+    mailer.sendVehicleRequestProcessedEmail(vehicleRequest, [requester])
   }
+
+  const savedVehicleRequest = await vehicleRequests.findOneAndUpdate({ _id: vehicleRequest._id }, { $set: vehicleRequest }, { returnDocument: 'after' })
+  const updatedVehicleRequest = await getVehicleWithAssignments(savedVehicleRequest.value._id)
+  return res.json({ updatedVehicleRequest })
 }
 
 /**

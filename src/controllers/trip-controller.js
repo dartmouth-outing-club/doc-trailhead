@@ -1,4 +1,5 @@
 import { subtract } from 'date-arithmetic'
+import { ObjectId } from 'mongodb'
 
 import Trip from '../models/trip-model.js'
 import Assignment from '../models/assignment-model.js'
@@ -13,6 +14,15 @@ import * as Users from '../controllers/user-controller.js'
 import * as Clubs from '../controllers/club-controller.js'
 import * as utils from '../utils.js'
 import { logError } from '../services/error.js'
+
+export async function getTripById (id) {
+  const _id = typeof id === 'string' ? new ObjectId(id) : id
+  return trips.findOne({ _id })
+}
+
+export async function markVehicleStatusApproved (_id) {
+  return trips.updateOne({ _id }, { $set: { vehicleStatus: 'approved' } })
+}
 
 const populateTripDocument = (tripQuery, fields) => {
   const fieldsDirectory = {
