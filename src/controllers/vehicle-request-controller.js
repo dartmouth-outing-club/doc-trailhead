@@ -69,28 +69,32 @@ export async function getAllCurrentVehicleRequests (_req, res) {
   return res.json(vehicleRequests)
 }
 
-export const updateVehicleRequest = (req, res) => {
-  VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip')
-    .then((vehicleRequest) => {
-      if (vehicleRequest.status !== 'pending' && req.user.role !== 'OPO') {
-        res.status(401).send('Only OPO staff can update non-pending requests')
-      } else {
-        vehicleRequest.requester = req.body.requester
-        vehicleRequest.requestDetails = req.body.requestDetails
-        vehicleRequest.mileage = req.body.mileage
-        vehicleRequest.requestType = req.body.requestType
-        vehicleRequest.noOfPeople = req.body.noOfPeople
-        vehicleRequest.requestedVehicles = req.body.requestedVehicles.map((requestedVehicle) => { return { ...requestedVehicle, pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone), returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone) } })
-        vehicleRequest.save()
-          .then((savedRequest) => {
-            return res.json(savedRequest)
-          })
-          .catch((error) => {
-            res.status(500).send(error)
-            console.log(error)
-          })
-      }
-    })
+export async function updateVehicleRequest (req, res) {
+  const existingRequest = await getVehicleRequestById(req.body._id)
+  if (existingRequest.status !== 'pending' && req.user.role !== 'OPO') {
+    return res.status(401).send('Only OPO staff can update non-pending requests')
+  }
+
+  // Get new vehicle request and add date objects to it
+  const { requestDetails, mileage, requestType, noOfPeople, timezone } = req.body
+  const requestedVehicles = req.body.requestedVehicles.map((vehicle) => {
+    const { pickupDate, pickupTime, returnDate, returnTime } = vehicle
+    const pickupDateAndTime = constants.createDateObject(pickupDate, pickupTime, timezone)
+    const returnDateAndTime = constants.createDateObject(returnDate, returnTime, timezone)
+    return { ...vehicle, pickupDateAndTime, returnDateAndTime }
+  })
+
+  const vehicleRequest = { requestDetails, mileage, requestType, noOfPeople, requestedVehicles }
+  // The frontend sometimes send back the entire requester object, not just the ID
+  const requester = req.body.requester._id || req.body.requester
+  if (requester) vehicleRequest.requester = new ObjectId(requester)
+
+  const saveResult = await vehicleRequests.findOneAndUpdate(
+    { _id: new ObjectId(req.body._id) },
+    { $set: vehicleRequest },
+    { returnDocument: 'after' }
+  )
+  return res.json(saveResult.value)
 }
 
 export async function deleteVehicleRequest (req, res) {
