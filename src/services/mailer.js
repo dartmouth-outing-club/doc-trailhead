@@ -148,6 +148,16 @@ export async function sendVehicleRequestProcessedEmail (vehicleRequest, emails) 
   send(email, 'Vehicle Request Processed')
 }
 
+export async function sendVehicleRequestDeniedEmail (vehicleRequest, emails) {
+  const email = {
+    address: emails,
+    subject: 'Your vehicle requests got denied',
+    message: `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been denied by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  send(email, 'Vehicle Request Denied Email')
+}
+
 export async function sendNewTripEmail (trip, leaderEmails, creator) {
   const email = {
     address: leaderEmails,

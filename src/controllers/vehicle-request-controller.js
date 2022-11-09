@@ -14,6 +14,17 @@ import * as Trips from '../controllers/trip-controller.js'
 import * as constants from '../constants.js'
 import * as mailer from '../services/mailer.js'
 
+async function getVehicleRequestById (id) {
+  const _id = typeof id === 'string' ? new ObjectId(id) : id
+  return vehicleRequests.findOne({ _id })
+}
+
+async function markVehicleRequestDenied (id) {
+  const _id = typeof id === 'string' ? new ObjectId(id) : id
+  const res = await vehicleRequests.findOneAndUpdate({ _id }, { $set: { status: 'denied' } })
+  return res.value
+}
+
 export async function createVehicleRequest (req, res) {
   // Retrieves the current maximum vehicle request number and then updates it immediately.
   const vehicleRequestNumberMax = await Globals.incrementVehicleRequestNumber()
@@ -191,50 +202,17 @@ export async function respondToVehicleRequest (req, res) {
 }
 
 /**
- * OPO denies a vehicle request.
- * Sends notice to trip leaders and co-leaders.
- * @param {*} req
- * @param {*} res
+ * Deny vehicle requet and inform requester
  */
 export const denyVehicleRequest = async (req, res) => {
-  try {
-    const vehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').exec()
-    const requester = await Users.getUserById(vehicleRequest.requester)
-    const email = { address: [requester.email], subject: '', message: '' }
-    vehicleRequest.status = 'denied'
-    if (vehicleRequest.requestType === 'TRIP') {
-      const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).populate('leaders').exec()
-      associatedTrip.vehicleStatus = 'denied'
-      email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email }))
-      email.subject = `Trip ${associatedTrip.number}: Your vehicle requests got denied`
-      email.message = `Hello,\n\nYour Trip #${associatedTrip.number}'s vehicle request has been denied by OPO staff.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
-      await associatedTrip.save()
-    }
-    await vehicleRequest.save()
-    email.subject = 'Your vehicle requests got denied'
-    email.message = `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been denied by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
-    mailer.send(email)
-    const updatedVehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments')
-      .populate({
-        path: 'requester',
-        populate: {
-          path: 'leader_for',
-          model: 'Club'
-        }
-      })
-      .populate({
-        path: 'assignments',
-        populate: {
-          path: 'assigned_vehicle',
-          model: 'Vehicle'
-        }
-      })
-      .exec()
-    return res.json({ updatedVehicleRequest })
-  } catch (error) {
-    console.log(error)
-    return res.status(500).send(error)
+  const vehicleRequest = await markVehicleRequestDenied(req.params.id)
+  if (vehicleRequest.requestType === 'TRIP') {
+    Trips.markVehicleStatusDenied(vehicleRequest.associatedTrip)
   }
+
+  const { email } = await Users.getUserById(vehicleRequest.requester)
+  mailer.sendVehicleRequestDeniedEmail(vehicleRequest, [email])
+  res.sendStatus(200)
 }
 
 export const getVehicleAssignments = async (req, res) => {
@@ -300,9 +278,4 @@ export const cancelAssignments = async (req, res) => {
     console.log(error)
     return res.status(500).send(error)
   }
-}
-
-async function getVehicleRequestById (id) {
-  const _id = typeof id === 'string' ? new ObjectId(id) : id
-  return vehicleRequests.findOne({ _id })
 }

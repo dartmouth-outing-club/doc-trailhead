@@ -24,6 +24,10 @@ export async function markVehicleStatusApproved (_id) {
   return trips.updateOne({ _id }, { $set: { vehicleStatus: 'approved' } })
 }
 
+export async function markVehicleStatusDenied (_id) {
+  return trips.updateOne({ _id }, { $set: { vehicleStatus: 'denied' } })
+}
+
 const populateTripDocument = (tripQuery, fields) => {
   const fieldsDirectory = {
     owner: 'owner',
