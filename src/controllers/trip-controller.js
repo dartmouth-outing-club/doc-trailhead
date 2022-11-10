@@ -369,6 +369,10 @@ export async function updateTrip (req, res) {
 
     const coleaders = await Users.getUsersFromEmailList(req.body.leaders)
     trip.leaders = coleaders.map(user => user._id)
+    if (trip.leaders.length < 1) {
+      console.warn(`WARNING: saving a trip without a leader for trip ${req.params.tripID}`)
+      console.warn(req.body)
+    }
 
     // The updateTrip method is responsible for adding trip leaders as members
     // This is very silly! It duplicates the data inside the object
