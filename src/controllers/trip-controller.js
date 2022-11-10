@@ -665,7 +665,6 @@ export const toggleTripLeadership = (req, res) => {
           if (member.user._id.equals(req.body.member.user._id)) {
             mailer.sendCoLeaderConfirmation(trip, req.body.member.user)
             trip.leaders.push(member.user)
-            mailer.sendCoLeaderAnnouncement(trip, req.body.member.user)
           }
           return member.user._id.equals(req.body.member.user._id)
         })
