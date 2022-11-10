@@ -5,6 +5,7 @@ import * as clubs from './controllers/club-controller.js'
 import * as trips from './controllers/trip-controller.js'
 import * as vehicleRequests from './controllers/vehicle-request-controller.js'
 import * as vehicles from './controllers/vehicle-controller.js'
+import * as assignments from './controllers/assignment-controller.js'
 import signS3 from './services/s3.js'
 import { requireAuth } from './services/passport.js'
 
@@ -75,11 +76,11 @@ router.route('/vehicleRequests')
   .post(requireAuth, vehicleRequests.createVehicleRequest)
   .get(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.getAllCurrentVehicleRequests)
 
-router.route('/bookings')
-  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), vehicles.getBookings)
+router.route('/assignments')
+  .get(requireAuth, users.roleAuthorization(['OPO']), assignments.getAssignmentsForCalendar)
 
 router.route('/vehicles')
-  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), vehicles.getBookings)
+  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), vehicles.getActiveVehicles)
   .post(requireAuth, users.roleAuthorization(['OPO']), vehicles.createVehicle)
 
 router.route('/vehicles/:id')

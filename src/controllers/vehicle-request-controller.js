@@ -14,7 +14,7 @@ import * as Trips from '../controllers/trip-controller.js'
 import * as constants from '../constants.js'
 import * as mailer from '../services/mailer.js'
 
-async function getVehicleRequestById (id) {
+export async function getVehicleRequestById (id) {
   const _id = typeof id === 'string' ? new ObjectId(id) : id
   return vehicleRequests.findOne({ _id })
 }
