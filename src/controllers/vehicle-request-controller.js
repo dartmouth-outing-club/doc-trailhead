@@ -2,7 +2,6 @@ import { subtract } from 'date-arithmetic'
 import { ObjectId } from 'mongodb'
 
 import VehicleRequest from '../models/vehicle-request-model.js'
-import Vehicle from '../models/vehicle-model.js'
 import Assignment from '../models/assignment-model.js'
 import Trip from '../models/trip-model.js'
 import { vehicleRequests } from '../services/mongo.js'
@@ -127,7 +126,7 @@ export async function deleteVehicle (vehicleRequestID, reason) {
  * @param {Assignment} proposedAssignment
  */
 export async function processAssignment (vehicleRequest, proposedAssignment) {
-  const vehicle = await Vehicle.findOne({ name: proposedAssignment.assignedVehicle }).populate('bookings')
+  const vehicle = await Vehicles.getVehicleByName(proposedAssignment.assignedVehicle)
   if (proposedAssignment.existingAssignment) {
     console.log('Updating existing vehicle assignment')
     const existingAssignment = await Assignment.findById(proposedAssignment.id).populate('assigned_vehicle')
@@ -235,7 +234,6 @@ export const cancelAssignments = async (req, res) => {
     const { toBeDeleted } = req.body.deleteInfo
     await Promise.all(toBeDeleted.map(async (id) => {
       const assignment = await Assignment.findById(id)
-      await Vehicle.updateOne({ _id: assignment.assigned_vehicle }, { $pull: { bookings: assignment._id } }) // remove from vehicle bookings
       await VehicleRequest.updateOne({ _id: assignment.request }, { $pull: { assignments: assignment._id } }) // remove from vehicle request assignments
       const vehicleRequest = await VehicleRequest.findById(assignment.request)
       const requester = await Users.getUserById(vehicleRequest.requester)

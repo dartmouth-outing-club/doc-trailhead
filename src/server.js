@@ -20,6 +20,7 @@ import * as trips from './controllers/trip-controller.js'
 import User from './models/user-model.js'
 import Club from './models/club-model.js'
 import Global from './models/global-model.js'
+import Vehicle from './models/vehicle-model.js'
 
 process.env.TZ = 'America/New_York'
 

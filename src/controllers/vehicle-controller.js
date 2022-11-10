@@ -1,7 +1,13 @@
+import { ObjectId } from 'mongodb'
 import { vehicles } from '../services/mongo.js'
 
 export async function getVehicle (id) {
-  return vehicles.findOne({ _id: id })
+  const _id = typeof id === 'string' ? new ObjectId(id) : id
+  return vehicles.findOne({ _id })
+}
+
+export async function getVehicleByName (name) {
+  return vehicles.findOne({ name })
 }
 
 export async function getActiveVehicles (_req, res) {
