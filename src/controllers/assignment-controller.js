@@ -25,6 +25,21 @@ export async function removeAssignmentFromConflicts (assignmentId) {
   return assignments.updateMany({}, { $pull: { conflicts: assignmentId } })
 }
 
+export async function matchAssignmentsToVehicleRequests (vehicleRequests) {
+  const vehicleRequestIds = vehicleRequests.map(request => request._id)
+  const matchableAssignments = await assignments.find({ request: { $in: vehicleRequestIds } }).toArray()
+  const assignmentsMap = matchableAssignments.reduce((map, assignment) => {
+    map[assignment._id] = assignment
+    return map
+  }, {})
+
+  vehicleRequests.forEach(request => {
+    request.assignments = request.assignments.map(assignment => assignmentsMap[assignment])
+  })
+
+  return vehicleRequests
+}
+
 export async function getAssignmentsForCalendar (_req, res) {
   const timeWindow = subtract(new Date(), 30, 'day')
   const vehicleMap = await Vehicles.getVehicleMap()

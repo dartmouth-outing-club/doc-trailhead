@@ -9,6 +9,27 @@ import * as Clubs from '../controllers/club-controller.js'
 import { users } from '../services/mongo.js'
 import * as utils from '../utils.js'
 
+export async function getUserById (id) {
+  const _id = typeof id === 'string' ? new ObjectId(id) : id
+  return users.findOne({ _id })
+}
+
+export async function getUsersById (ids) {
+  return users.find({ _id: { $in: ids } }).toArray()
+}
+
+export async function getUserByEmail (email) {
+  return users.findOne({ email })
+}
+
+export async function getUsersFromEmailList (emailList) {
+  return users.find({ email: { $in: emailList } }).toArray()
+}
+
+export async function getUserEmails (userIds) {
+  const leaders = await users.find({ _id: { $in: userIds } }).toArray()
+  return leaders.map(leader => leader.email)
+}
 export const signinSimple = (req, res, next) => {
   passport.authenticate('local', async (err, user) => {
     if (err) { return err }
@@ -129,24 +150,6 @@ export async function getUser (req, res) {
     hasCompleteProfile = false
   }
   return res.json({ user, hasCompleteProfile })
-}
-
-export async function getUserById (id) {
-  const _id = typeof id === 'string' ? new ObjectId(id) : id
-  return users.findOne({ _id })
-}
-
-export async function getUserByEmail (email) {
-  return users.findOne({ email })
-}
-
-export async function getUsersFromEmailList (emailList) {
-  return users.find({ email: { $in: emailList } }).toArray()
-}
-
-export async function getUserEmails (userIds) {
-  const leaders = await users.find({ _id: { $in: userIds } }).toArray()
-  return leaders.map(leader => leader.email)
 }
 
 export async function getLeaders (_req, res) {

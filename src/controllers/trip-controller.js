@@ -28,6 +28,11 @@ export async function markVehicleStatusDenied (_id) {
   return trips.updateOne({ _id }, { $set: { vehicleStatus: 'denied' } })
 }
 
+export async function getAllCurrentTrips () {
+  const now = new Date()
+  return trips.find({ endDateAndTime: { $gt: now } }).toArray()
+}
+
 const populateTripDocument = (tripQuery, fields) => {
   const fieldsDirectory = {
     owner: 'owner',

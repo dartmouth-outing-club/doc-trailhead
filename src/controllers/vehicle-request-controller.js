@@ -65,18 +65,60 @@ export async function getVehicleWithAssignments (id) {
   return vehicleRequest
 }
 
+async function getAllSoloRequests () {
+  return vehicleRequests.find({ requestType: 'SOLO' }).toArray()
+}
+
 export async function getVehicleRequest (req, res) {
   const vehicleRequest = await getVehicleWithAssignments(req.params.id)
   return res.json(vehicleRequest)
 }
 
+/**
+ * Get all the upcoming vehicle requests.
+ *
+ * Like a lot of the codebase at this stage, this method is a little clunky
+ * because I'm doing imperatively what would normally be handled by an SQL query.
+ * Basically it fetches the relevant subsets of data from Mongo and then stiches
+ * them together.
+ *
+ * We're also hampered by the fact that that the vehicle requests aren't dated, so
+ * we have to use two different proxies for date depending on whether it's a trip or
+ * solo request.
+ *
+ * All in all not so bad though.
+ */
 export async function getAllCurrentVehicleRequests (_req, res) {
-  const vehicleRequests = await VehicleRequest.find({})
-    .populate('requester')
-    .populate('associatedTrip')
-    .populate('assignments')
+  const now = new Date()
+  const trips = await Trips.getAllCurrentTrips()
+  const tripIds = trips.map(trip => trip._id)
 
-  return res.json(vehicleRequests)
+  // Filter the trip requests by the trip date
+  const tripVehicleRequests = await vehicleRequests.find({ associatedTrip: { $in: tripIds } }).toArray()
+  tripVehicleRequests.forEach((request) => {
+    request.associatedTrip = trips.find(trip => trip._id.toString() === request.associatedTrip.toString())
+  })
+
+  // Filter the solo requests by whether their vehicle is out of date
+  const soloRequests = await getAllSoloRequests()
+  const soloRequestsFiltered = soloRequests.filter(request => {
+    return request.requestedVehicles.every(vehicle => (vehicle.returnDateAndTime > now))
+  })
+
+  // Enhance the vehicle requests with their assignments and requesters
+  const allRequests = [...tripVehicleRequests, ...soloRequestsFiltered]
+  const enhancedRequests = await Assignments.matchAssignmentsToVehicleRequests(allRequests)
+  const users = await Users.getUsersById(allRequests.map(request => request.requester))
+  enhancedRequests.forEach((request) => {
+    const user = users.find(user => user._id.toString() === request.requester.toString())
+    request.requester = { name: user.name }
+  })
+
+  // Sort by the first vehicle's pickup date
+  enhancedRequests.sort((a, b) =>
+    a.requestedVehicles[0]?.pickupDateAndTime < b.requestedVehicles[0]?.pickupDateAndTime ? -1 : 1)
+
+  return res.json(enhancedRequests)
 }
 
 export async function updateVehicleRequest (req, res) {
