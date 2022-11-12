@@ -1,8 +1,6 @@
 import jwt from 'jwt-simple'
 import { ObjectId } from 'mongodb'
 
-import passport from '../services/passport.js'
-import * as constants from '../constants.js'
 import Trip from '../models/trip-model.js'
 import VehicleRequest from '../models/vehicle-request-model.js'
 import * as Clubs from '../controllers/club-controller.js'
@@ -18,6 +16,10 @@ export async function getUsersById (ids) {
   return users.find({ _id: { $in: ids } }).toArray()
 }
 
+export async function getUserByCasId (casID) {
+  return users.findOne({ casID })
+}
+
 export async function getUserByEmail (email) {
   return users.findOne({ email })
 }
@@ -30,50 +32,9 @@ export async function getUserEmails (userIds) {
   const leaders = await users.find({ _id: { $in: userIds } }).toArray()
   return leaders.map(leader => leader.email)
 }
-export const signinSimple = (req, res, next) => {
-  passport.authenticate('local', async (err, user) => {
-    if (err) { return err }
-    if (!user) {
-      console.log('No user found, rejecting')
-      return res.status(500).send('rejected')
-    }
-    try {
-      const foundUser = await users.findOne({ _id: user._id })
-      res.json({ token: tokenForUser(user._id, 'normal'), user: foundUser })
-    } catch (error) {
-      res.status(500).send(error.message)
-    }
-  })(req, res, next)
-}
 
-export const signinCAS = (req, res, next) => {
-  passport.authenticate('cas', async (error, casID) => {
-    if (error) { return error }
-    if (!casID) { return res.redirect(constants.frontendURL) }
-
-    try {
-      const user = await users.findOne({ casID })
-
-      if (!user) {
-        const newUser = { casID, completedProfile: false }
-        const { insertedId } = await users.insertOne(newUser)
-        console.log(`Created new user ${insertedId} for ${casID}`)
-        res.redirect(`${constants.frontendURL}?token=${tokenForUser(insertedId, 'normal')}&userId=${insertedId}&new?=yes`)
-      } else {
-        if (!user.isActive) {
-          console.log(`User ${casID} logged in but isn't active, marking them active.`)
-          user.isActive = true
-          // No need to wait for this to finish, just log em in
-          users.updateOne({ _id: casID }, { $set: { isActive: true } })
-        }
-
-        console.log(`Logging in user ${casID}`)
-        res.redirect(`${constants.frontendURL}?token=${tokenForUser(user._id, 'normal')}&userId=${casID}`)
-      }
-    } catch (error) {
-      res.status(500).send(error.message)
-    }
-  })(req, res, next)
+export async function createUser (newUser) {
+  return users.insertOne(newUser)
 }
 
 export function roleAuthorization (roles) {
@@ -140,7 +101,7 @@ export async function getUser (req, res) {
 
   const clubsMap = await Clubs.getClubsMap()
   user.leader_for = user.leader_for?.map(clubId => clubsMap[clubId])
-  user.requested_clubs = user?.requested_clubs.map(clubId => clubsMap[clubId])
+  user.requested_clubs = user.requested_clubs?.map(clubId => clubsMap[clubId])
 
   let hasCompleteProfile
   // Obviously these are redundant, but that will require a frontend change to fix

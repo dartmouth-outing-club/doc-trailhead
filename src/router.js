@@ -7,7 +7,7 @@ import * as vehicleRequests from './controllers/vehicle-request-controller.js'
 import * as vehicles from './controllers/vehicle-controller.js'
 import * as assignments from './controllers/assignment-controller.js'
 import signS3 from './services/s3.js'
-import { requireAuth } from './services/passport.js'
+import { requireAuth, signinSimple, signinCAS } from './services/passport.js'
 
 import * as mailer from './services/mailer.js'
 
@@ -19,8 +19,8 @@ router.get('/', (_req, res) => {
   res.json({ message: 'welcome to our doc app!' })
 })
 
-router.post('/signin-simple', users.signinSimple)
-router.get('/signin-cas', users.signinCAS)
+router.post('/signin-simple', signinSimple)
+router.get('/signin-cas', signinCAS)
 
 router.route('/user')
   .get(requireAuth, users.getUser)

@@ -5,12 +5,11 @@ import cors from 'cors'
 import cron from 'node-cron'
 import morgan from 'morgan'
 import mongoose from 'mongoose'
-import dotenv from 'dotenv'
 import dateMath from 'date-arithmetic'
 
+import * as constants from './constants.js'
 import apiRouter from './router.js'
 import * as mailer from './services/mailer.js'
-import * as constants from './constants.js'
 import Trip from './models/trip-model.js'
 import TripRouter from './routers/trip-router.js'
 import * as trips from './controllers/trip-controller.js'
@@ -40,8 +39,6 @@ mongoose.connect(mongoURI, { useNewUrlParser: true })
 
 // set mongoose promises to es6 default
 mongoose.Promise = global.Promise
-
-dotenv.config({ silent: true })
 
 const app = express()
 

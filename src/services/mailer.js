@@ -1,11 +1,8 @@
 import nodemailer from 'nodemailer'
-import dotenv from 'dotenv'
 
 import { tokenForUser } from '../controllers/user-controller.js'
 import * as constants from '../constants.js'
 import * as users from '../controllers/user-controller.js'
-
-dotenv.config({ silent: true })
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
