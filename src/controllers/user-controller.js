@@ -136,8 +136,10 @@ export const myTrips = (req, res) => {
 
 export async function getUser (req, res) {
   const user = await users.findOne({ _id: req.user._id })
+  if (!user) return res.sendStatus(404)
+
   const clubsMap = await Clubs.getClubsMap()
-  user.leader_for = user?.leader_for.map(clubId => clubsMap[clubId])
+  user.leader_for = user.leader_for?.map(clubId => clubsMap[clubId])
   user.requested_clubs = user?.requested_clubs.map(clubId => clubsMap[clubId])
 
   let hasCompleteProfile
