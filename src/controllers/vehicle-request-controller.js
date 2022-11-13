@@ -26,22 +26,27 @@ async function markVehicleRequestDenied (id) {
 
 export async function createVehicleRequest (req, res) {
   // Retrieves the current maximum vehicle request number and then updates it immediately.
-  const vehicleRequestNumberMax = await Globals.incrementVehicleRequestNumber()
-  const vehicleRequest = new VehicleRequest()
-  vehicleRequest.number = vehicleRequestNumberMax
-  vehicleRequest.requester = req.body.requester
-  vehicleRequest.requestDetails = req.body.requestDetails
-  vehicleRequest.mileage = req.body.mileage
-  vehicleRequest.noOfPeople = req.body.noOfPeople
-  vehicleRequest.requestType = req.body.requestType
-  vehicleRequest.requestedVehicles = req.body.requestedVehicles.map((requestedVehicle) => ({
-    ...requestedVehicle,
-    pickupDateAndTime: constants.createDateObject(requestedVehicle.pickupDate, requestedVehicle.pickupTime, req.body.timezone),
-    returnDateAndTime: constants.createDateObject(requestedVehicle.returnDate, requestedVehicle.returnTime, req.body.timezone)
+  const number = await Globals.incrementVehicleRequestNumber()
+  const { requester, requestDetails, mileage, noOfPeople, requestType, timezone } = req.body
+  const requestedVehicles = req.body.requestedVehicles.map((vehicle) => ({
+    ...vehicle,
+    pickupDateAndTime: constants.createDateObject(vehicle.pickupDate, vehicle.pickupTime, timezone),
+    returnDateAndTime: constants.createDateObject(vehicle.returnDate, vehicle.returnTime, timezone)
   }))
-  const savedRequest = await vehicleRequest.save()
-  const requester = await Users.getUserById(vehicleRequest.requester)
-  mailer.send({ address: [requester.email], subject: `New V-Req #${savedRequest.number} created`, message: `Hello,\n\nYou've created a new vehicle request, V-Req #${savedRequest.number}: ${savedRequest.requestDetails}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${savedRequest._id}\n\nThis request is not associated with any trip.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` })
+  const vehicleRequest = {
+    number,
+    requester,
+    requestDetails,
+    mileage,
+    noOfPeople,
+    requestType,
+    requestedVehicles
+  }
+
+  const { insertedId } = await vehicleRequests.insertOne(vehicleRequest)
+  const savedRequest = { ...vehicleRequest, _id: insertedId }
+  const { email } = await Users.getUserById(requester)
+  mailer.sendVehicleRequestCreatedEmail(savedRequest, [email])
   return res.json(savedRequest)
 }
 

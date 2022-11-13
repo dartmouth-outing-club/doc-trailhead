@@ -117,6 +117,16 @@ export async function sendTripDeletedEmail (trip, ownerEmail, trippeeEmails, rea
   return send(email, 'Trip deleted')
 }
 
+export async function sendVehicleRequestCreatedEmail (vehicleRequest, recipients) {
+  const email = {
+    address: recipients,
+    subject: `New V-Req #${vehicleRequest.number} created`,
+    message: `Hello,\n\nYou've created a new vehicle request, V-Req #${vehicleRequest.number}: ${vehicleRequest.requestDetails}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nThis request is not associated with any trip.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  send(email, 'Vehicle Request Created Email')
+}
+
 export async function sendTripVehicleRequestDeletedEmail (trip, leaderEmails, vehicleRequestNum) {
   const email = {
     address: leaderEmails,
