@@ -195,6 +195,16 @@ export async function sendVehicleRequestDeletedEmail (vehicleRequest, leaderEmai
   return send(email, 'Vehicle request deleted')
 }
 
+export async function sendVehicleRequestCancelledEmail (vehicleRequest, recipients, cancellerEmail) {
+  const email = {
+    address: recipients,
+    subject: 'Your vehicle requests got cancelled',
+    message: `Hello,\n\nYour [V-Req #${vehicleRequest.number}]'s assignments have been cancelled by OPO staff. You can send the staff member who reviewed the request an email at mailto:${cancellerEmail}.\n\nView the vehicle request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  send(email, 'Vehicle request cancelled')
+}
+
 export async function sendGearRequestChangedEmail (trip, leaderEmails, user) {
   const email = {
     address: leaderEmails,

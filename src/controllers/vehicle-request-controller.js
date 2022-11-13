@@ -279,21 +279,18 @@ export const cancelAssignments = async (req, res) => {
       await VehicleRequest.updateOne({ _id: assignment.request }, { $pull: { assignments: assignment._id } }) // remove from vehicle request assignments
       const vehicleRequest = await VehicleRequest.findById(assignment.request)
       const requester = await Users.getUserById(vehicleRequest.requester)
-      const email = { address: [requester.email], subject: '', message: '' }
+
+      let recipients = [requester.email]
       if (vehicleRequest.assignments.length === 0) {
         vehicleRequest.status = 'denied'
         if (vehicleRequest.requestType === 'TRIP') {
           const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).exec()
           associatedTrip.vehicleStatus = 'denied'
-          email.address = email.address.concat(associatedTrip.leaders.map((leader) => { return leader.email }))
-          email.subject = `Trip ${associatedTrip.number}: Your vehicle requests have been cancelled`
-          email.message = `Hello,\n\nYour [Trip #${associatedTrip.number}]'s vehicle request has been cancelled by OPO staff. You can send the staff member who reviewed the request an email at mailto:${req.user.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${associatedTrip._id}\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+          recipients = recipients.concat(associatedTrip.leaders.map((leader) => leader.email))
           await associatedTrip.save()
         }
       }
-      email.subject = 'Your vehicle requests got cancelled'
-      email.message = `Hello,\n\nYour [V-Req #${vehicleRequest.number}]'s assignments have been cancelled by OPO staff. You can send the staff member who reviewed the request an email at mailto:${req.user.email}.\n\nView the vehicle request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
-      mailer.send(email)
+      mailer.sendVehicleRequestCancelledEmail(vehicleRequest, recipients, req.user.email)
       await vehicleRequest.save()
     }))
     await Assignment.deleteMany({ _id: { $in: toBeDeleted } })
