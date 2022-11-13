@@ -1,10 +1,16 @@
 import { subtract } from 'date-arithmetic'
+import { ObjectId } from 'mongodb'
 import { assignments } from '../services/mongo.js'
 import * as utils from '../utils.js'
 import * as Users from './user-controller.js'
 import * as Vehicles from './vehicle-controller.js'
 import * as Trips from './trip-controller.js'
 import * as VehicleRequests from './vehicle-request-controller.js'
+
+export async function getAssignmentById (id) {
+  const _id = typeof id === 'string' ? new ObjectId(id) : id
+  return assignments.findOne({ _id })
+}
 
 export async function getAssignmentByIds (ids) {
   return assignments.find({ _id: { $in: ids } }).toArray()

@@ -1,9 +1,7 @@
 import { subtract } from 'date-arithmetic'
 import { ObjectId } from 'mongodb'
 
-import VehicleRequest from '../models/vehicle-request-model.js'
 import Assignment from '../models/assignment-model.js'
-import Trip from '../models/trip-model.js'
 import { vehicleRequests } from '../services/mongo.js'
 import * as Assignments from '../controllers/assignment-controller.js'
 import * as Users from '../controllers/user-controller.js'
@@ -276,48 +274,29 @@ export const getVehicleAssignments = async (req, res) => {
   }
 }
 
-export const cancelAssignments = async (req, res) => {
-  try {
-    const { toBeDeleted } = req.body.deleteInfo
-    await Promise.all(toBeDeleted.map(async (id) => {
-      const assignment = await Assignment.findById(id)
-      await VehicleRequest.updateOne({ _id: assignment.request }, { $pull: { assignments: assignment._id } }) // remove from vehicle request assignments
-      const vehicleRequest = await VehicleRequest.findById(assignment.request)
-      const requester = await Users.getUserById(vehicleRequest.requester)
+export async function cancelAssignments (req, res) {
+  const { toBeDeleted } = req.body.deleteInfo
+  const assignmentDeletionPromises = toBeDeleted.map(async (id) => {
+    const assignment = await Assignments.getAssignmentById(id)
+    const update = await vehicleRequests.findOneAndUpdate(
+      { _id: assignment.request },
+      { $pull: { assignments: assignment._id } },
+      { returnDocument: 'after' }
+    )
 
-      let recipients = [requester.email]
-      if (vehicleRequest.assignments.length === 0) {
-        vehicleRequest.status = 'denied'
-        if (vehicleRequest.requestType === 'TRIP') {
-          const associatedTrip = await Trip.findById(vehicleRequest.associatedTrip).exec()
-          associatedTrip.vehicleStatus = 'denied'
-          recipients = recipients.concat(associatedTrip.leaders.map((leader) => leader.email))
-          await associatedTrip.save()
-        }
+    const vehicleRequest = update.value
+    const { email } = await Users.getUserById(vehicleRequest.requester)
+
+    if (vehicleRequest.assignments.length === 0) {
+      await markVehicleRequestDenied(req.params.id)
+      if (vehicleRequest.requestType === 'TRIP') {
+        await Trips.markVehicleStatusDenied(vehicleRequest.associatedTrip)
       }
-      mailer.sendVehicleRequestCancelledEmail(vehicleRequest, recipients, req.user.email)
-      await vehicleRequest.save()
-    }))
-    await Assignment.deleteMany({ _id: { $in: toBeDeleted } })
-    const updatedVehicleRequest = await VehicleRequest.findById(req.params.id).populate('requester').populate('associatedTrip').populate('assignments')
-      .populate({
-        path: 'requester',
-        populate: {
-          path: 'leader_for',
-          model: 'Club'
-        }
-      })
-      .populate({
-        path: 'assignments',
-        populate: {
-          path: 'assigned_vehicle',
-          model: 'Vehicle'
-        }
-      })
-      .exec()
-    return res.json({ updatedVehicleRequest })
-  } catch (error) {
-    console.log(error)
-    return res.status(500).send(error)
-  }
+    }
+    mailer.sendVehicleRequestCancelledEmail(vehicleRequest, [email], req.user.email)
+  })
+
+  await Promise.all(assignmentDeletionPromises)
+  await Assignments.deleteAssignments(toBeDeleted)
+  return res.sendStatus(204)
 }

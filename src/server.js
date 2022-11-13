@@ -10,7 +10,6 @@ import dateMath from 'date-arithmetic'
 import * as constants from './constants.js'
 import apiRouter from './router.js'
 import * as mailer from './services/mailer.js'
-import Trip from './models/trip-model.js'
 import TripRouter from './routers/trip-router.js'
 import * as trips from './controllers/trip-controller.js'
 
@@ -20,6 +19,8 @@ import User from './models/user-model.js'
 import Club from './models/club-model.js'
 import Global from './models/global-model.js'
 import Vehicle from './models/vehicle-model.js'
+import VehicleRequest from './models/vehicle-request-model.js'
+import Trip from './models/trip-model.js'
 
 process.env.TZ = 'America/New_York'
 
