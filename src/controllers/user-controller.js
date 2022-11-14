@@ -1,9 +1,9 @@
 import jwt from 'jwt-simple'
 import { ObjectId } from 'mongodb'
 
-import Trip from '../models/trip-model.js'
-import VehicleRequest from '../models/vehicle-request-model.js'
 import * as Clubs from '../controllers/club-controller.js'
+import * as Trips from '../controllers/trip-controller.js'
+import * as VehicleRequests from '../controllers/vehicle-request-controller.js'
 import { users } from '../services/mongo.js'
 import * as utils from '../utils.js'
 
@@ -55,44 +55,21 @@ export function roleAuthorization (roles) {
   }
 }
 
-export const myTrips = (req, res) => {
-  const id = req.user._id
-  Trip.find({ $or: [{ 'members.user': id }, { 'pending.user': id }, { leaders: id }] })
-    .populate('club').populate('leaders').populate('vehicleRequest')
-    .populate({
-      path: 'members.user',
-      model: 'User'
-    })
-    .populate({
-      path: 'pending.user',
-      model: 'User'
-    })
-    .populate({
-      path: 'vehicleRequest',
-      populate: {
-        path: 'assignments',
-        model: 'Assignment'
-      }
-    })
-    .populate({
-      path: 'vehicleRequest',
-      populate: {
-        path: 'assignments',
-        populate: {
-          path: 'assigned_vehicle',
-          model: 'Vehicle'
-        }
-      }
-    })
-    .then((trips) => {
-      VehicleRequest.find({ requester: id }).populate('associatedTrip')
-        .then((vehicleRequests) => {
-          res.json({ trips, vehicleRequests })
-        })
-    })
-    .catch((error) => {
-      res.status(500).send(error.message)
-    })
+export async function myTrips (req, res) {
+  const userId = req.user._id.toString()
+  const [tripsList, clubsMap] = await Promise.all([
+    Trips.getTripsWithUser(userId),
+    Clubs.getClubsMap()
+  ])
+
+  const trips = tripsList.map(trip => ({ ...trip, club: clubsMap[trip.club.toString()] }))
+
+  let vehicleRequests = await VehicleRequests.getVehicleRequestsByRequester(userId)
+  vehicleRequests = vehicleRequests.map(vehicleRequest => {
+    const associatedTrip = trips.find(trip => trip._id.toString() === vehicleRequest.associatedTrip.toString())
+    return { ...vehicleRequest, associatedTrip }
+  })
+  return res.json({ trips, vehicleRequests })
 }
 
 export async function getUser (req, res) {
@@ -218,21 +195,6 @@ export async function updateUser (req, res) {
     console.error(error)
     res.status(500).send('Something went wrong while saving your changes - contact OPO')
   }
-}
-
-export const userTrips = (req, res) => {
-  Trip.find({}, (err, trips) => {
-    const leaderOf = []
-    const memberOf = []
-    trips.forEach((trip) => {
-      if (trip.leaders.indexOf(req.user._id) > -1) {
-        leaderOf.push(trip)
-      } else if (trip.members.indexOf(req.user._id) > -1) {
-        memberOf.push(trip)
-      }
-    })
-    res.json({ leaderOf, memberOf })
-  })
 }
 
 export async function getLeaderRequests (_req, res) {

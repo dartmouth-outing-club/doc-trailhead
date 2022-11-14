@@ -33,6 +33,18 @@ export async function getAllCurrentTrips () {
   return trips.find({ endDateAndTime: { $gt: now } }).toArray()
 }
 
+export async function getTripsWithUser (userId) {
+  const pastAndPresentTrips = await trips.find({ endDateAndTime: { $gte: subtract(new Date(), 30, 'day') }}).toArray()
+  const userTrips = pastAndPresentTrips.filter((trip) => {
+    const isLeader = trip.leaders.some(leader => leader.toString() === userId)
+    const isMember = trip.members.some(member => member.user.toString() === userId)
+    const isPending = trip.pending.some(member => member.user.toString() === userId)
+    return isLeader || isMember || isPending
+  })
+
+  return userTrips
+}
+
 const populateTripDocument = (tripQuery, fields) => {
   const fieldsDirectory = {
     owner: 'owner',

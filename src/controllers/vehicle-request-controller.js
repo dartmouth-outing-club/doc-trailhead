@@ -16,6 +16,10 @@ export async function getVehicleRequestById (id) {
   return vehicleRequests.findOne({ _id })
 }
 
+export async function getVehicleRequestsByRequester (requesterId) {
+  return vehicleRequests.find({ requester: new ObjectId(requesterId) }).toArray()
+}
+
 async function markVehicleRequestDenied (id) {
   const _id = typeof id === 'string' ? new ObjectId(id) : id
   const res = await vehicleRequests.findOneAndUpdate({ _id }, { $set: { status: 'denied' } })
