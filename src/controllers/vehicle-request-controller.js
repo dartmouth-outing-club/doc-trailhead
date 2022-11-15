@@ -24,7 +24,7 @@ async function markVehicleRequestDenied (id) {
   return res.value
 }
 
-export async function createVehicleRequest (req, res) {
+export async function handlePostVehicleRequests (req, res) {
   // Retrieves the current maximum vehicle request number and then updates it immediately.
   const number = await Globals.incrementVehicleRequestNumber()
   const { requester, requestDetails, mileage, noOfPeople, requestType, timezone } = req.body
@@ -74,7 +74,7 @@ async function getAllSoloRequests () {
   return vehicleRequests.find({ requestType: 'SOLO' }).toArray()
 }
 
-export async function getVehicleRequest (req, res) {
+export async function handleGetVehicleRequest (req, res) {
   const vehicleRequest = await getVehicleWithAssignments(req.params.id)
   return res.json(vehicleRequest)
 }
@@ -93,7 +93,7 @@ export async function getVehicleRequest (req, res) {
  *
  * All in all not so bad though.
  */
-export async function getAllCurrentVehicleRequests (_req, res) {
+export async function handleGetVehicleRequests (_req, res) {
   const now = new Date()
   const trips = await Trips.getAllCurrentTrips()
   const tripIds = trips.map(trip => trip._id)
@@ -126,7 +126,7 @@ export async function getAllCurrentVehicleRequests (_req, res) {
   return res.json(enhancedRequests)
 }
 
-export async function updateVehicleRequest (req, res) {
+export async function handlePutVehicleRequest (req, res) {
   const existingRequest = await getVehicleRequestById(req.body._id)
   if (existingRequest.status !== 'pending' && req.user.role !== 'OPO') {
     return res.status(401).send('Only OPO staff can update non-pending requests')
@@ -154,7 +154,7 @@ export async function updateVehicleRequest (req, res) {
   return res.json(saveResult.value)
 }
 
-export async function deleteVehicleRequest (req, res) {
+export async function handleDeleteVehicleRequest (req, res) {
   await deleteOne(req.params.id, 'no reason provided')
   return res.sendStatus(200)
 }
@@ -180,7 +180,7 @@ export async function deleteOne (vehicleRequestID, reason) {
   }
 }
 
-export async function respondToVehicleRequest (req, res) {
+export async function handleOpoPost (req, res) {
   const vehicleRequest = await getVehicleRequestById(req.params.id)
   const proposedAssignments = req.body.assignments || []
 
@@ -212,7 +212,7 @@ export async function respondToVehicleRequest (req, res) {
 /**
  * Deny vehicle requet and inform requester
  */
-export const denyVehicleRequest = async (req, res) => {
+export const handleOpoPut = async (req, res) => {
   const vehicleRequest = await markVehicleRequestDenied(req.params.id)
   if (vehicleRequest.requestType === 'TRIP') {
     Trips.markVehicleStatusDenied(vehicleRequest.associatedTrip)
@@ -223,7 +223,7 @@ export const denyVehicleRequest = async (req, res) => {
   res.sendStatus(200)
 }
 
-export async function cancelAssignments (req, res) {
+export async function handleOpoDelete (req, res) {
   const { toBeDeleted } = req.body.deleteInfo
   const assignmentDeletionPromises = toBeDeleted.map(async (id) => {
     const assignment = await Assignments.getAssignmentById(id)

@@ -10,7 +10,7 @@ export async function getVehicleByName (name) {
   return vehicles.findOne({ name })
 }
 
-export async function getActiveVehicles (_req, res) {
+export async function handleGetVehicles (_req, res) {
   const allVehicles = await vehicles.find({ active: true }).toArray()
   return res.json(allVehicles)
 }
@@ -24,7 +24,7 @@ export async function getVehicleMap () {
   return vehiclesMap
 }
 
-export async function createVehicle (req, res) {
+export async function handlePostVehicles (req, res) {
   const vehicle = { name: req.body.name, body: req.body.type }
   const { insertedId } = await vehicles.insertOne(vehicle)
   res.json({ ...vehicle, _id: insertedId })
@@ -36,7 +36,7 @@ export async function updateVehicle (req, res) {
   res.json(vehicle)
 }
 
-export async function deleteVehicle (req, res) {
+export async function handleDeleteVehicle (req, res) {
   const mongoResponse = await vehicles.updateOne(
     { _id: req.params.id },
     { $set: { active: false } }

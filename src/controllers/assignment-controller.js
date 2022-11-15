@@ -49,7 +49,7 @@ export async function matchAssignmentsToVehicleRequests (vehicleRequests) {
   return vehicleRequests
 }
 
-export async function getAssignmentsForCalendar (_req, res) {
+export async function handleGetAssignmentsForCalendar (_req, res) {
   const timeWindow = subtract(new Date(), 30, 'day')
   const vehicleMap = await Vehicles.getVehicleMap()
   const recentAssignments = await assignments.find({ assigned_pickupDateAndTime: { $gte: timeWindow } }).toArray()

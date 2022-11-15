@@ -40,15 +40,15 @@ router.route('/club')
   .post(requireAuth, clubs.createClub)
 
 router.route('/leaderapprovals')
-  .get(requireAuth, users.roleAuthorization(['OPO']), users.getLeaderRequests)
-  .put(requireAuth, users.roleAuthorization(['OPO']), users.respondToLeaderRequest)
+  .get(requireAuth, users.roleAuthorization(['OPO']), users.handleGetLeaderApprovals)
+  .put(requireAuth, users.roleAuthorization(['OPO']), users.handlePutLeaderApprovals)
 
 router.route('/certapprovals')
-  .get(requireAuth, users.roleAuthorization(['OPO']), users.getCertRequests)
-  .put(requireAuth, users.roleAuthorization(['OPO']), users.respondToCertRequest)
+  .get(requireAuth, users.roleAuthorization(['OPO']), users.handleGetCertApprovals)
+  .put(requireAuth, users.roleAuthorization(['OPO']), users.handlePutCertApprovals)
 
 router.route('/opotrips')
-  .get(requireAuth, users.roleAuthorization(['OPO']), trips.getOPOTrips)
+  .get(requireAuth, users.roleAuthorization(['OPO']), trips.handleGetOpoTrips)
 
 router.route('/gearrequest/:tripID')
   .get(requireAuth, users.roleAuthorization(['OPO']), trips.getTrip)
@@ -65,29 +65,29 @@ router.route('/trippeegearrequest/:tripID')
     trips.respondToTrippeeGearRequest(req.params.tripID, req.body.status).then((updatedTrip) => { res.json(updatedTrip) }).catch((error) => { return res.status(500).json(error) })
   })
 
-router.route('/vehicle-request/:id')
-  .get(requireAuth, vehicleRequests.getVehicleRequest)
-  .put(requireAuth, vehicleRequests.updateVehicleRequest)
-  .delete(requireAuth, vehicleRequests.deleteVehicleRequest)
-
-router.route('/vehicleRequests')
-  .post(requireAuth, vehicleRequests.createVehicleRequest)
-  .get(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.getAllCurrentVehicleRequests)
-
-router.route('/assignments')
-  .get(requireAuth, users.roleAuthorization(['OPO']), assignments.getAssignmentsForCalendar)
-
 router.route('/vehicles')
-  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), vehicles.getActiveVehicles)
-  .post(requireAuth, users.roleAuthorization(['OPO']), vehicles.createVehicle)
+  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), vehicles.handleGetVehicles)
+  .post(requireAuth, users.roleAuthorization(['OPO']), vehicles.handlePostVehicles)
 
 router.route('/vehicles/:id')
-  .delete(requireAuth, users.roleAuthorization(['OPO']), vehicles.deleteVehicle)
+  .delete(requireAuth, users.roleAuthorization(['OPO']), vehicles.handleDeleteVehicle)
+
+router.route('/assignments')
+  .get(requireAuth, users.roleAuthorization(['OPO']), assignments.handleGetAssignmentsForCalendar)
+
+router.route('/vehicle-request/:id')
+  .get(requireAuth, vehicleRequests.handleGetVehicleRequest)
+  .put(requireAuth, vehicleRequests.handlePutVehicleRequest)
+  .delete(requireAuth, vehicleRequests.handleDeleteVehicleRequest)
+
+router.route('/vehicleRequests')
+  .post(requireAuth, vehicleRequests.handlePostVehicleRequests)
+  .get(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.handleGetVehicleRequests)
 
 router.route('/opoVehicleRequest/:id')
-  .post(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.respondToVehicleRequest)
-  .delete(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.cancelAssignments)
-  .put(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.denyVehicleRequest)
+  .post(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.handleOpoPost)
+  .delete(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.handleOpoDelete)
+  .put(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.handleOpoPut)
 
 router.route('/debug')
   .post((req) => {

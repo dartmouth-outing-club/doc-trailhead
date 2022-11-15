@@ -197,7 +197,7 @@ export async function updateUser (req, res) {
   }
 }
 
-export async function getLeaderRequests (_req, res) {
+export async function handleGetLeaderApprovals (_req, res) {
   const usersWithLeaderRequests = await users.find({ has_pending_leader_change: true }).toArray()
   const clubsMap = await Clubs.getClubsMap()
 
@@ -211,7 +211,7 @@ export async function getLeaderRequests (_req, res) {
   return res.json(leaderRequests)
 }
 
-export async function respondToLeaderRequest (req, res) {
+export async function handlePutLeaderApprovals (req, res) {
   let newUser = {}
   const userId = new ObjectId(req.body.userId)
   if (req.body.status !== 'approved') {
@@ -225,16 +225,16 @@ export async function respondToLeaderRequest (req, res) {
   }
 
   await users.updateOne({ _id: userId }, { $set: newUser })
-  return getLeaderRequests(req, res)
+  return handleGetLeaderApprovals(req, res)
 }
 
-export async function getCertRequests (_req, res) {
+export async function handleGetCertApprovals (_req, res) {
   const usersWithPendingCerts = await users.find({ has_pending_cert_change: true }).toArray()
   const certRequests = usersWithPendingCerts.map(user => utils.pick(user, ['_id', 'name', 'requested_certs']))
   return res.json(certRequests)
 }
 
-export async function respondToCertRequest (req, res) {
+export async function handlePutCertApprovals (req, res) {
   let newUser = {}
   const userId = new ObjectId(req.body.userId)
   if (req.body.status !== 'approved') {
@@ -250,7 +250,7 @@ export async function respondToCertRequest (req, res) {
   }
 
   await users.updateOne({ _id: userId }, { $set: newUser })
-  return getCertRequests(req, res)
+  return handleGetCertApprovals(req, res)
 }
 
 export function tokenForUser (userId, purpose, tripId) {

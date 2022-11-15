@@ -109,7 +109,7 @@ export const getTrips = (filters = {}) => {
 /**
  * Fetches only trips that have gear, P-Card, or vehicle requests.
  */
-export const getOPOTrips = (req, res) => {
+export function handleGetOpoTrips (req, res) {
   const filters = {}
   if (req.query.getOldTrips === 'false') {
     filters.startDateAndTime = { $gte: subtract(new Date(), 30, 'day') }
