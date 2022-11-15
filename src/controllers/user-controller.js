@@ -66,7 +66,7 @@ export async function myTrips (req, res) {
 
   let vehicleRequests = await VehicleRequests.getVehicleRequestsByRequester(userId)
   vehicleRequests = vehicleRequests.map(vehicleRequest => {
-    const associatedTrip = trips.find(trip => trip._id.toString() === vehicleRequest.associatedTrip.toString())
+    const associatedTrip = trips.find(trip => trip._id.toString() === vehicleRequest?.associatedTrip.toString())
     return { ...vehicleRequest, associatedTrip }
   })
   return res.json({ trips, vehicleRequests })

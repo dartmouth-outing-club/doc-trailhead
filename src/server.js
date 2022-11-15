@@ -106,6 +106,7 @@ if (process.env.NODE_ENV !== 'development' && process.env.SCHEDULER_STATUS !== '
 }
 
 function handleError (err, _req, res, _next) {
+  console.error('Caught trailhead error, sending 500')
   console.error(err.stack)
   const message = `Sorry, Trailhead had the following problem processing your request: ${err.message}. Please contact OPO for help.`
   res.status(500).send(message)
