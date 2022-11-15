@@ -34,7 +34,7 @@ export async function getAllCurrentTrips () {
 }
 
 export async function getTripsWithUser (userId) {
-  const pastAndPresentTrips = await trips.find({ endDateAndTime: { $gte: subtract(new Date(), 30, 'day') }}).toArray()
+  const pastAndPresentTrips = await trips.find({ endDateAndTime: { $gte: subtract(new Date(), 30, 'day') } }).toArray()
   const userTrips = pastAndPresentTrips.filter((trip) => {
     const isLeader = trip.leaders.some(leader => leader.toString() === userId)
     const isMember = trip.members.some(member => member.user.toString() === userId)
