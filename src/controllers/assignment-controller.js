@@ -20,10 +20,7 @@ export async function getAssignmentByIds (ids) {
 }
 
 export async function deleteAssignments (assignmentsList) {
-  await assignments.deleteMany({ _id: { $in: assignmentsList } })
-  // For each assignment, delete any conflicts it had
-  const promises = assignmentsList.map(assignment => assignments.updateMany({}, { $pull: { conflicts: assignment } }))
-  return Promise.all(promises)
+  return assignments.deleteMany({ _id: { $in: assignmentsList } })
 }
 
 export async function getAssignmentReturningAfter (time) {
@@ -32,6 +29,16 @@ export async function getAssignmentReturningAfter (time) {
 
 export async function removeAssignmentFromConflicts (assignmentId) {
   return assignments.updateMany({}, { $pull: { conflicts: assignmentId } })
+}
+
+export async function markAssignmentReturned (id) {
+  const _id = typeof id === 'string' ? new ObjectId(id) : id
+  return assignments.updateOne({ _id }, { $set: { returned: true } })
+}
+
+export async function markAssignmentPickedUp (id) {
+  const _id = typeof id === 'string' ? new ObjectId(id) : id
+  return assignments.updateOne({ _id }, { $set: { pickedUp: true } })
 }
 
 export async function matchAssignmentsToVehicleRequests (vehicleRequests) {
@@ -43,7 +50,7 @@ export async function matchAssignmentsToVehicleRequests (vehicleRequests) {
   }, {})
 
   vehicleRequests.forEach(request => {
-    request.assignments = request.assignments.map(assignment => assignmentsMap[assignment])
+    request.assignments = request.assignments?.map(assignment => assignmentsMap[assignment])
   })
 
   return vehicleRequests

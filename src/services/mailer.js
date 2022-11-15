@@ -185,11 +185,14 @@ export async function sendNewVehicleRequestEmail (trip, leaderEmails, vehicleReq
   return send(email, 'New vehicle request')
 }
 
-export async function sendVehicleRequestChangedEmail (vehicleRequest, deletedAssignments) {
+export async function sendVehicleRequestChangedEmail (vehicleRequest) {
+  const assignmentsList = vehicleRequest.assignments.map((assignment) => (
+    `\t-\t${assignment.assigned_vehicle.name}: ${constants.formatDateAndTime(assignment.assigned_pickupDateAndTime, 'LONG')} to ${constants.formatDateAndTime(assignment.assigned_returnDateAndTime, 'LONG')}\n`
+  ))
   const email = {
     address: constants.OPOEmails,
     subject: `V-Req #${vehicleRequest.number} updated`,
-    message: `Hello,\n\nThe leaders of V-Req #${vehicleRequest.number} (which was approved) just changed their requested vehicles.\n\nThe original ${vehicleRequest.assignments.length} vehicle assignment${vehicleRequest.assignments.length > 1 ? 's' : ''} now have all been unscheduled.\n\nDeleted assignments:\n${deletedAssignments.map((assignment) => { return `\t-\t${assignment.assigned_vehicle.name}: ${constants.formatDateAndTime(assignment.assigned_pickupDateAndTime, 'LONG')} to ${constants.formatDateAndTime(assignment.assigned_returnDateAndTime, 'LONG')}\n` })}\n\nYou will have to approve this request again at ${constants.frontendURL}/opo-vehicle-request/${vehicleRequest._id.toString()}.\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello,\n\nThe leaders of V-Req #${vehicleRequest.number} (which was approved) just changed their requested vehicles.\n\nThe original ${vehicleRequest.assignments.length} vehicle assignment${vehicleRequest.assignments.length > 1 ? 's' : ''} now have all been unscheduled.\n\nDeleted assignments:\n${assignmentsList}\n\nYou will have to approve this request again at ${constants.frontendURL}/opo-vehicle-request/${vehicleRequest._id.toString()}.\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Vehicle request changed')
