@@ -155,22 +155,35 @@ export async function updateVehicleRequest (req, res) {
 }
 
 export async function deleteVehicleRequest (req, res) {
-  await deleteVehicle(req.params.id, 'no reason provided')
+  await deleteOne(req.params.id, 'no reason provided')
   return res.sendStatus(200)
 }
 
-export async function deleteVehicle (vehicleRequestID, reason) {
+/**
+ * Delete a vehicle request from the database.
+ *
+ * If the reason string is provided, send an email to the requester informing
+ * them that the vehicle has been deleted. If no reason string is provided, do
+ * not send an email.
+ */
+export async function deleteOne (vehicleRequestID, reason) {
   const vehicleRequest = await getVehicleRequestById(vehicleRequestID)
   await Assignments.deleteAssignments(vehicleRequest.assignments)
-  await vehicleRequests.deleteOne({ _id: vehicleRequestID })
-  const leaderEmail = await Users.getUserById(vehicleRequest.requester)
-  return mailer.sendVehicleRequestDeletedEmail(vehicleRequest, leaderEmail, reason)
+  const deleteRequest = vehicleRequests.deleteOne({ _id: vehicleRequestID })
+
+  if (reason) {
+    await deleteRequest
+    const leaderEmail = await Users.getUserById(vehicleRequest.requester)
+    return mailer.sendVehicleRequestDeletedEmail(vehicleRequest, leaderEmail, reason)
+  } else {
+    return deleteRequest
+  }
 }
 
 export async function respondToVehicleRequest (req, res) {
   const vehicleRequest = await getVehicleRequestById(req.params.id)
   const proposedAssignments = req.body.assignments || []
-  //
+
   // This used to be synchronous, keeping it that way because I don't want to mess with it right now
   const assignmentIds = []
   for (const assignment of proposedAssignments) {

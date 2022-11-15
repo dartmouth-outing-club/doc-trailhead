@@ -423,7 +423,7 @@ export const deleteTrip = (req, res) => {
               .map(person => person.user.email)
             await mailer.sendTripDeletedEmail(trip, trip.owner.email, trippeeEmails, req.body.reason)
             if (trip.vehicleRequest) {
-              await VehicleRequests.deleteVehicle(trip.vehicleRequest._id, 'Associated trip has been deleted')
+              await VehicleRequests.deleteOne(trip.vehicleRequest._id, 'Associated trip has been deleted')
               const leaderEmails = trip.leaders.map(leader => leader.email)
               await mailer.sendTripVehicleRequestDeletedEmail(trip, leaderEmails, trip.vehicleRequest.number)
               res.json({ message: 'Trip and associated vehicle request successfully' })
