@@ -63,6 +63,7 @@ app.use('/trips', TripRouter, handleError)
 const port = process.env.PORT || 9090
 app.listen(port)
 console.log(`Server running at ${process.env.NODE_ENV !== 'development' ? constants.backendURL : 'localhost'}:${port}`)
+console.error(`Starting up at ${new Date()}`)
 
 const checkOutEmails = mailer.createRecurringEmailSender('trip check-out',
   trips.getTripsPendingCheckOutEmail, mailer.sendCheckOutEmail, trips.markCheckOutEmail)
