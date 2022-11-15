@@ -169,68 +169,17 @@ export async function deleteVehicle (vehicleRequestID, reason) {
   return mailer.sendVehicleRequestDeletedEmail(vehicleRequest, leaderEmail, reason)
 }
 
-/**
- * Saves a single `proposedAssignment` to the database.
- * @param {String} vehicleRequest
- * @param {Assignment} proposedAssignment
- */
-export async function processAssignment (vehicleRequest, proposedAssignment) {
-  const vehicle = await Vehicles.getVehicleByName(proposedAssignment.assignedVehicle)
-  if (proposedAssignment.existingAssignment) {
-    console.log('Updating existing vehicle assignment')
-    const existingAssignment = await Assignment.findById(proposedAssignment.id).populate('assigned_vehicle')
-    // setting pickup times
-    existingAssignment.assigned_pickupDate = proposedAssignment.pickupDate
-    existingAssignment.assigned_pickupTime = proposedAssignment.pickupTime
-    const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime, proposedAssignment.timezone)
-    existingAssignment.assigned_pickupDateAndTime = pickupDateAndTime
-    // setting return times
-    existingAssignment.assigned_returnDate = proposedAssignment.returnDate
-    existingAssignment.assigned_returnTime = proposedAssignment.returnTime
-    const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime, proposedAssignment.timezone)
-    existingAssignment.assigned_returnDateAndTime = returnDateAndTime
-
-    existingAssignment.assigned_key = proposedAssignment.assignedKey
-    existingAssignment.pickedUp = proposedAssignment.pickedUp
-    existingAssignment.returned = proposedAssignment.returned
-    existingAssignment.assigned_vehicle = vehicle
-    return existingAssignment.save()
-  } else {
-    console.log('Saving new vehicle assignment')
-    const newAssignment = new Assignment()
-    // setting basic info
-    newAssignment.request = vehicleRequest
-    newAssignment.assigned_vehicle = vehicle
-    newAssignment.requester = vehicleRequest.requester
-    newAssignment.assigned_key = proposedAssignment.assignedKey
-    newAssignment.responseIndex = proposedAssignment.responseIndex
-    // setting pickup times
-    newAssignment.assigned_pickupDate = proposedAssignment.pickupDate
-    newAssignment.assigned_pickupTime = proposedAssignment.pickupTime
-    const pickupDateAndTime = constants.createDateObject(proposedAssignment.pickupDate, proposedAssignment.pickupTime, proposedAssignment.timezone)
-    newAssignment.assigned_pickupDateAndTime = pickupDateAndTime
-    // setting return times
-    newAssignment.assigned_returnDate = proposedAssignment.returnDate
-    newAssignment.assigned_returnTime = proposedAssignment.returnTime
-    const returnDateAndTime = constants.createDateObject(proposedAssignment.returnDate, proposedAssignment.returnTime, proposedAssignment.timezone)
-    newAssignment.assigned_returnDateAndTime = returnDateAndTime
-
-    return newAssignment.save()
-  }
-}
-
 export async function respondToVehicleRequest (req, res) {
   const vehicleRequest = await getVehicleRequestById(req.params.id)
   const proposedAssignments = req.body.assignments || []
   //
   // This used to be synchronous, keeping it that way because I don't want to mess with it right now
-  const processedAssignments = []
+  const assignmentIds = []
   for (const assignment of proposedAssignments) {
-    const result = await processAssignment(vehicleRequest, assignment)
-    processedAssignments.push(result)
+    const insertedId = await Assignments.processAssignment(vehicleRequest, assignment)
+    assignmentIds.push(insertedId)
   }
 
-  const assignmentIds = processedAssignments.map(assignment => new ObjectId(assignment._id))
   vehicleRequest.assignments = assignmentIds
   vehicleRequest.status = 'approved'
   const requester = await Users.getUserById(vehicleRequest.requester)

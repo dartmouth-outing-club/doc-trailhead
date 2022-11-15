@@ -1,11 +1,14 @@
 import { subtract } from 'date-arithmetic'
 import { ObjectId } from 'mongodb'
 import { assignments } from '../services/mongo.js'
-import * as utils from '../utils.js'
+
 import * as Users from './user-controller.js'
 import * as Vehicles from './vehicle-controller.js'
 import * as Trips from './trip-controller.js'
 import * as VehicleRequests from './vehicle-request-controller.js'
+
+import * as utils from '../utils.js'
+import * as constants from '../constants.js'
 
 export async function getAssignmentById (id) {
   const _id = typeof id === 'string' ? new ObjectId(id) : id
@@ -69,4 +72,41 @@ export async function getAssignmentsForCalendar (_req, res) {
   }))
 
   res.json(assignmentsWithTripName)
+}
+
+/**
+ * Saves a single `proposedAssignment` to the database.
+ */
+export async function processAssignment (vehicleRequest, proposedAssignment) {
+  const vehicle = await Vehicles.getVehicleByName(proposedAssignment.assignedVehicle)
+  const { pickupDate, pickupTime, returnDate, returnTime, responseIndex, timezone } = proposedAssignment
+  const assigned_pickupDateAndTime = constants.createDateObject(pickupDate, pickupTime, timezone)
+  const assigned_returnDateAndTime = constants.createDateObject(returnDate, returnTime, timezone)
+
+  const assignment = {
+    request: vehicleRequest._id,
+    requester: vehicleRequest.requester,
+    responseIndex,
+    assigned_returnDate: returnDate,
+    assigned_returnTime: returnTime,
+    assigned_pickupDate: pickupDate,
+    assigned_pickupTime: pickupTime,
+    assigned_vehicle: vehicle._id,
+    assigned_key: proposedAssignment.assignedKey,
+    pickedUp: proposedAssignment.pickedUp,
+    returned: proposedAssignment.returned,
+    assigned_pickupDateAndTime,
+    assigned_returnDateAndTime
+  }
+
+  if (proposedAssignment.existingAssignment) {
+    console.log('Updating existing vehicle assignment')
+    const _id = new ObjectId(proposedAssignment.id)
+    await assignments.updateOne({ _id }, { $set: assignment })
+    return _id
+  } else {
+    console.log('Saving new vehicle assignment')
+    const { insertedId } = await assignments.insertOne(assignment)
+    return insertedId
+  }
 }
