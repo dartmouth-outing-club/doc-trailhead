@@ -7,7 +7,7 @@ import { add } from 'date-arithmetic'
 
 import * as constants from '../constants.js'
 import * as Users from '../controllers/user-controller.js'
-import Trip from '../models/trip-model.js'
+import * as Trips from '../controllers/trip-controller.js'
 
 export function signinCAS (req, res, next) {
   passport.authenticate('cas', async (error, casID) => {
@@ -52,7 +52,7 @@ const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
     }
 
     if (payload.purpose === 'mobile') {
-      const trip = await Trip.findById(payload.tripId)
+      const trip = await Trips.getTripById(payload.tripId)
       if (!trip) {
         console.error(payload)
         throw new Error(`Trip not found for id ${payload.tripId}`)
