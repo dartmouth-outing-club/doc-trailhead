@@ -1,7 +1,5 @@
-import { subtract } from 'date-arithmetic'
 import { ObjectId } from 'mongodb'
 
-import Assignment from '../models/assignment-model.js'
 import { vehicleRequests } from '../services/mongo.js'
 import * as Assignments from '../controllers/assignment-controller.js'
 import * as Users from '../controllers/user-controller.js'
@@ -210,21 +208,6 @@ export const denyVehicleRequest = async (req, res) => {
   const { email } = await Users.getUserById(vehicleRequest.requester)
   mailer.sendVehicleRequestDeniedEmail(vehicleRequest, [email])
   res.sendStatus(200)
-}
-
-export const getVehicleAssignments = async (req, res) => {
-  const filters = {}
-  if (req.query.showPastAssignments === 'false') {
-    filters.assigned_pickupDateAndTime = { $gte: subtract(new Date(), 30, 'day') }
-  }
-  try {
-    const assignments = await Assignment.find(filters).populate('requester').populate({ path: 'request', populate: { path: 'associatedTrip', populate: { path: 'leaders' } } }).populate('assigned_vehicle')
-      .exec()
-    return res.json(assignments)
-  } catch (error) {
-    console.log(error)
-    return res.status(500).send(error)
-  }
 }
 
 export async function cancelAssignments (req, res) {

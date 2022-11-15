@@ -20,6 +20,7 @@ import Club from './models/club-model.js'
 import Global from './models/global-model.js'
 import Vehicle from './models/vehicle-model.js'
 import VehicleRequest from './models/vehicle-request-model.js'
+import Assignment from './models/assignment-model.js'
 import Trip from './models/trip-model.js'
 
 process.env.TZ = 'America/New_York'

@@ -89,9 +89,6 @@ router.route('/opoVehicleRequest/:id')
   .delete(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.cancelAssignments)
   .put(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.denyVehicleRequest)
 
-router.route('/vehicle-assignments')
-  .get(requireAuth, vehicleRequests.getVehicleAssignments)
-
 router.route('/debug')
   .post((req) => {
     mailer.send(req.body)
