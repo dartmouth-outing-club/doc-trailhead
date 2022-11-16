@@ -73,7 +73,7 @@ router.route('/vehicles/:id')
   .delete(requireAuth, users.roleAuthorization(['OPO']), vehicles.handleDeleteVehicle)
 
 router.route('/assignments')
-  .get(requireAuth, users.roleAuthorization(['OPO']), assignments.handleGetAssignmentsForCalendar)
+  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), assignments.handleGetAssignmentsForCalendar)
 
 router.route('/vehicle-request/:id')
   .get(requireAuth, vehicleRequests.handleGetVehicleRequest)
