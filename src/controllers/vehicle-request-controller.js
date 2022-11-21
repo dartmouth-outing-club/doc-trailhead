@@ -140,8 +140,7 @@ export async function updateVehicleRequest (requestObject) {
   })
 
   const vehicleRequest = {
-    assignments: requestObject.assignments,
-    associatedTrip: requestObject.associatedTrip,
+    assignments: requestObject.assignments || [],
     mileage: requestObject.mileage,
     noOfPeople: requestObject.noOfPeople,
     requestDetails: requestObject.requestDetails,
@@ -151,6 +150,10 @@ export async function updateVehicleRequest (requestObject) {
     status: requestObject.status,
     timezone: requestObject.timezone
   }
+
+  // The frontend does not send these fields
+  if (requestObject.associatedTrip) vehicleRequest.associatedTrip = requestObject.associatedTrip
+
   // The frontend sometimes send back the entire requester object, not just the ID
   const requester = requestObject.requester._id || requestObject.requester
   if (requester) vehicleRequest.requester = new ObjectId(requester)
@@ -186,8 +189,17 @@ export async function handlePutVehicleRequest (req, res) {
   if (existingRequest.status !== 'pending' && req.user.role !== 'OPO') {
     return res.status(401).send('Only OPO staff can update non-pending requests')
   }
-  const requestObject = utils.pick(req.body,
-    ['requestDetails', 'mileage', 'requestType', 'noOfPeople', 'timezone', 'associatedTrip', 'status'])
+  const requestObject = utils.pick(req.body, [
+    '_id',
+    'mileage',
+    'noOfPeople',
+    'requestDetails',
+    'requestType',
+    'requestedVehicles',
+    'requester',
+    'status',
+    'timezone'
+  ])
   const updatedRequest = await updateVehicleRequest(requestObject)
   return res.json(updatedRequest)
 }

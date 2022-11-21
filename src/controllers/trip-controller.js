@@ -235,7 +235,7 @@ export async function createTrip (creator, data) {
     const { mileage, description, vehicles } = data
     const requestObject = {
       mileage,
-      associatedTrips: savedTrip._id,
+      associatedTrip: savedTrip._id,
       requestType: 'TRIP',
       requester: creator._id,
       requestDetails: description,
