@@ -27,8 +27,6 @@ process.env.TZ = 'America/New_York'
 
 const mongoURI = process.env.MONGODB_URI
 
-mongoose.set('useCreateIndex', true)
-
 mongoose.connect(mongoURI, { useNewUrlParser: true })
   .then((connection) => {
     return console.log(`MongoDB connection established at ${connection.connections[0].host}:${connection.connections[0].port}`)

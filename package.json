@@ -16,7 +16,7 @@
   },
   "license": "ISC",
   "engines": {
-    "node": "18"
+    "node": ">18"
   },
   "type": "module",
   "dependencies": {
@@ -31,7 +31,7 @@
     "express": "^4.18.2",
     "jwt-simple": "^0.5.5",
     "mongodb": "^4.11.0",
-    "mongoose": "^5.4.19",
+    "mongoose": "6.7.3",
     "morgan": "^1.10.0",
     "node-cron": "^2.0.3",
     "nodemailer": "^6.8.0",
