@@ -219,15 +219,14 @@ export async function handleDeleteVehicleRequest (req, res) {
 export async function deleteOne (vehicleRequestID, reason) {
   const vehicleRequest = await getVehicleRequestById(vehicleRequestID)
   await Assignments.deleteAssignments(vehicleRequest.assignments)
-  const deleteRequest = vehicleRequests.deleteOne({ _id: vehicleRequestID })
+  const deleteRequest = await vehicleRequests.findOneAndDelete({ _id: vehicleRequestID })
 
   if (reason) {
-    await deleteRequest
     const leaderEmail = await Users.getUserById(vehicleRequest.requester)
-    return mailer.sendVehicleRequestDeletedEmail(vehicleRequest, leaderEmail, reason)
-  } else {
-    return deleteRequest
+    mailer.sendVehicleRequestDeletedEmail(vehicleRequest, leaderEmail, reason)
   }
+
+  return deleteRequest.value
 }
 
 export async function handleOpoPost (req, res) {

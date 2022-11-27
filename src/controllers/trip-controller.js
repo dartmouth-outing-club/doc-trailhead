@@ -380,35 +380,34 @@ export async function updateTrip (req, res) {
 /**
  * Deletes a trip.
  */
-export const deleteTrip = (req, res) => {
-  populateTripDocument(Trip.findById(req.params.tripID), ['owner', 'leaders', 'membersUser', 'pendingUser', 'vehicleRequest'])
-    .then((trip) => {
-      if (trip.leaders.some((leader) => { return leader._id.equals(req.user._id) }) || req.user.role === 'OPO') {
-        Trip.deleteOne({ _id: req.params.tripID }, async (err) => {
-          if (err) {
-            res.json({ error: err })
-          } else {
-            const trippeeEmails = trip.members
-              .concat(trip.pending)
-              .map(person => person.user.email)
-            await mailer.sendTripDeletedEmail(trip, trip.owner.email, trippeeEmails, req.body.reason)
-            if (trip.vehicleRequest) {
-              await VehicleRequests.deleteOne(trip.vehicleRequest._id, 'Associated trip has been deleted')
-              const leaderEmails = trip.leaders.map(leader => leader.email)
-              await mailer.sendTripVehicleRequestDeletedEmail(trip, leaderEmails, trip.vehicleRequest.number)
-              res.json({ message: 'Trip and associated vehicle request successfully' })
-            } else {
-              res.json({ message: 'Trip removed successfully' })
-            }
-          }
-        })
-      } else {
-        res.status(422).send('You must be a leader on the trip or OPO staff')
-      }
+export async function deleteTrip (req, res) {
+  const userId = req.user._id
+  const tripId = req.params.tripID
+  const trip = await getTripById(tripId)
+
+  const isLeader = trip.leaders.some(leader => leader.toString() === userId.toString())
+  const isOpo = req.user.role === 'OPO'
+  if (!isLeader && !isOpo) {
+    return res.status(422).send('You must be a leader on the trip or OPO staff')
+  }
+
+  await Trip.deleteOne({ _id: tripId })
+  const owner = await Users.getUserById(trip.owner)
+
+  const members = [...trip.members, ...trip.pending]
+  const trippeeEmails = await Users.getUserEmails(members)
+  mailer.sendTripDeletedEmail(trip, owner.email, trippeeEmails, req.body.reason)
+    .catch(err => {
+      console.error(`Failed to send Trip Deleted Email for trip ${trip._id}`, err)
     })
-    .catch((error) => {
-      res.json({ error })
-    })
+
+  if (trip.vehicleRequest) {
+    const request = await VehicleRequests.deleteOne(trip.vehicleRequest, 'Associated trip has been deleted')
+    await mailer.sendTripVehicleRequestDeletedEmail(trip, [owner.email], request.number)
+    return res.json({ message: 'Trip and associated vehicle request successfully' })
+  } else {
+    return res.json({ message: 'Trip removed successfully' })
+  }
 }
 
 /**
