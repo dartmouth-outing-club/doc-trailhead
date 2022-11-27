@@ -5,7 +5,6 @@ import cors from 'cors'
 import cron from 'node-cron'
 import morgan from 'morgan'
 import mongoose from 'mongoose'
-import dateMath from 'date-arithmetic'
 
 import * as constants from './constants.js'
 import apiRouter from './router.js'
@@ -76,19 +75,6 @@ const late90MinEmails = mailer.createRecurringEmailSender('trip late 90 minutes'
 const late3HourEmails = mailer.createRecurringEmailSender('trip late 3 hours',
   trips.getTripsPending3HourEmail, mailer.send3HourLateEmail, trips.markTripLate)
 
-const markTripsAsPast = () => {
-  const now = new Date()
-  const yesterday = dateMath.subtract(now, 1, 'day')
-  Trip.find({ past: false }).sort({ startDateAndTime: 'ascending' }).then((trips) => {
-    trips.forEach((trip) => {
-      if (trip.startDateAndTime < yesterday) {
-        trip.past = true
-        trip.save()
-      }
-    })
-  })
-}
-
 /**
  * Schedules time-based emails.
  */
@@ -96,7 +82,7 @@ if (process.env.NODE_ENV !== 'development' && process.env.SCHEDULER_STATUS !== '
   // These wacky times are a stopgap to mitigate the connection limit throttling
   // I'll batch these properly (with precise queries) soon
   console.log('Starting scheduler')
-  cron.schedule('0 1 * * *', markTripsAsPast)
+  cron.schedule('0 1 * * *', trips.markTripsAsPast)
   cron.schedule('10 * * * *', checkOutEmails)
   cron.schedule('20 * * * *', checkInEmails)
   cron.schedule('5,15,25,35,45,55 * * * *', late90MinEmails)
