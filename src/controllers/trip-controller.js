@@ -59,11 +59,10 @@ const populateTripDocument = (tripQuery, fields) => {
   return tripQuery.populate(fields.map((field) => { return fieldsDirectory[field] }))
 }
 
-const sendLeadersEmail = (tripID, subject, message) => {
-  populateTripDocument(Trip.findById(tripID), ['owner', 'leaders'])
-    .then((trip) => {
-      mailer.send({ address: trip.leaders.map((leader) => { return leader.email }), subject, message })
-    })
+async function sendLeadersEmail (tripID, subject, message) {
+  const trip = await getTripById(tripID)
+  const leaderEmails = await Users.getUserEmails(trip.leaders)
+  mailer.send({ address: leaderEmails, subject, message })
 }
 
 export async function getPublicTrips (_req, res) {
