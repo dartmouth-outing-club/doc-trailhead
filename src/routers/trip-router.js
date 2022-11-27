@@ -3,7 +3,6 @@ import { Router } from 'express'
 import { requireAuth } from '../services/passport.js'
 import { logError } from '../services/error.js'
 import * as trips from '../controllers/trip-controller.js'
-import * as Clubs from '../controllers/club-controller.js'
 
 const tripsRouter = Router()
 
@@ -19,25 +18,9 @@ tripsRouter.route('/')
     }
   })
   .get(requireAuth, async (req, res) => {
-    const filters = {}
-    if (req.query.club) {
-      const club = await Clubs.getClubByName(req.query.club)
-      if (club) filters.club = club.id
-      else res.status(404).json(new Error('No club found with that name'))
-    }
-    if (req.query.getPastTrips === 'false') {
-      filters.startDateAndTime = { $gte: new Date() }
-    } else {
-      filters.startDateAndTime = {
-        $gte: new Date(
-          process.env.ARCHIVE_START_YEAR || '2020',
-          process.env.ARCHIVE_START_MONTH || '0'
-        )
-      }
-    }
-    trips.getTrips(filters).then((result) => {
-      res.json(result)
-    }).catch((error) => { return res.status(500).json(error) })
+    const getPastTrips = req.query.getPastTrips === 'false'
+    const allTrips = await trips.getTrips(getPastTrips)
+    return res.json(allTrips)
   })
 
 tripsRouter.route('/public')

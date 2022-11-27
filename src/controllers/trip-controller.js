@@ -90,41 +90,38 @@ export async function getPublicTrips (_req, res) {
   }
 }
 
-/**
- Fetches all trips with all fields populated.
- */
-export const getTrips = (filters = {}) => {
-  return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.find(filters), ['club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
-      .then((trips) => {
-        resolve(trips)
-      })
-      .catch((error) => {
-        reject(error)
-      })
+export async function getTrips (getPastTrips) {
+  const date = getPastTrips ? subtract(new Date(), 30, 'day') : new Date()
+  const tripsPromise = trips.find({ startDateAndTime: { $gte: date } }).toArray()
+  const clubsPromise = Clubs.getClubsMap()
+
+  const [allTrips, clubsMap] = await Promise.all([tripsPromise, clubsPromise])
+  const owners = allTrips.map(trip => trip.owner)
+  const leaders = await Users.getUsersById(owners)
+  console.log(leaders)
+  allTrips.forEach(trip => { trip.club = clubsMap[trip.club] })
+  allTrips.forEach(trip => {
+    trip.owner = leaders.find(user => user._id.toString() === trip.owner.toString())
   })
+
+  return allTrips
 }
 
 /**
  * Fetches only trips that have gear, P-Card, or vehicle requests.
  */
-export function handleGetOpoTrips (req, res) {
-  const filters = {}
-  if (req.query.getOldTrips === 'false') {
-    filters.startDateAndTime = { $gte: subtract(new Date(), 30, 'day') }
-  }
-  populateTripDocument(Trip.find({
-    $or: [
-      { trippeeGearStatus: { $ne: 'N/A' } },
-      { gearStatus: { $ne: 'N/A' } },
-      { pcardStatus: { $ne: 'N/A' } },
-      { vehicleStatus: { $ne: 'N/A' } }
-    ],
-    ...filters
-  }), ['owner', 'leaders', 'club', 'membersUser', 'pendingUser', 'vehicleRequest', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
-    .then((trips) => {
-      res.json(trips)
-    })
+export async function handleGetOpoTrips (req, res) {
+  const getPastTrips = req.query.getOldTrips === 'false'
+  const allTrips = await getTrips(getPastTrips)
+  const filteredTrips = allTrips.filter(trip => {
+    const { trippeeGearStatus, gearStatus, pcardStatus, vehicleStatus } = trip
+    return trippeeGearStatus !== 'N/A' ||
+      gearStatus !== 'N/A' ||
+      pcardStatus !== 'N/A' ||
+      vehicleStatus !== 'N/A'
+  })
+
+  return res.json(filteredTrips)
 }
 
 /**
@@ -168,11 +165,6 @@ export const getTrip = (tripID, forUser) => {
   })
 }
 
-/**
- * Creates a trip.
- * @param {User} creator The user document returned from passport.js for the user who intiated this trip
- * @param {Trip} data The trip parameters
- */
 export async function createTrip (creator, data) {
   const nextTripNumber = await Globals.incrementTripNumber()
 
