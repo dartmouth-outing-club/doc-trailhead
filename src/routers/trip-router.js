@@ -18,7 +18,7 @@ tripsRouter.route('/')
     }
   })
   .get(requireAuth, async (req, res) => {
-    const getPastTrips = req.query.getPastTrips === 'false'
+    const getPastTrips = req.query.getPastTrips !== 'false'
     const allTrips = await trips.getTrips(getPastTrips)
     return res.json(allTrips)
   })

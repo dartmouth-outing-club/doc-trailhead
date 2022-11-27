@@ -111,7 +111,7 @@ export async function getTrips (getPastTrips) {
  * Fetches only trips that have gear, P-Card, or vehicle requests.
  */
 export async function handleGetOpoTrips (req, res) {
-  const getPastTrips = req.query.getOldTrips === 'false'
+  const getPastTrips = req.query.getOldTrips !== 'false'
   const allTrips = await getTrips(getPastTrips)
   const filteredTrips = allTrips.filter(trip => {
     const { trippeeGearStatus, gearStatus, pcardStatus, vehicleStatus } = trip
