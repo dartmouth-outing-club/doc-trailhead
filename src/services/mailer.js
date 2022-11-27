@@ -53,7 +53,11 @@ export function createRecurringEmailSender (name, tripsFunc, emailFunc, markFunc
 }
 
 export async function send (email, emailName) {
-  if (process.env.MAILER_STATUS === 'disabled') return undefined
+  if (process.env.MAILER_STATUS === 'disabled') {
+    console.log('The following email was queued:')
+    console.log(email)
+    return undefined
+  }
 
   const mailOptions = {
     from: 'doc.signup.no.reply@dartmouth.edu',
