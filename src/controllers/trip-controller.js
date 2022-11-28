@@ -48,7 +48,7 @@ export async function getTripsWithUser (userId) {
 export async function markTripsAsPast () {
   const now = new Date()
   const yesterday = subtract(now, 1, 'day')
-  return trips.updateMany({ startDateAndTime: { $lt: yesterday } }, { past: true })
+  return trips.updateMany({ $set: { startDateAndTime: { $lt: yesterday } } }, { past: true })
 }
 
 const populateTripDocument = (tripQuery, fields) => {
