@@ -132,42 +132,35 @@ export async function handleGetOpoTrips (req, res) {
 /**
  * Fetches a single trip with all fields populated.
  */
-export const getTrip = (tripID, forUser) => {
-  return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner', 'club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
-      .then((trip) => {
-        let userTripStatus
-        let isLeaderOnTrip
-        if (forUser) {
-          const isPending = trip.pending.some((pender) => {
-            return pender.user.equals(forUser.id)
-          })
+export async function getTrip (tripID, forUser) {
+  const trip = await populateTripDocument(Trip.findById(tripID), ['owner', 'club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
+  let userTripStatus
+  let isLeaderOnTrip
+  if (forUser) {
+    const isPending = trip.pending.some((pender) => {
+      return pender.user.equals(forUser.id)
+    })
 
-          const isOnTrip = trip.members.some((member) => {
-            return member.user.id === forUser.id
-          })
+    const isOnTrip = trip.members.some((member) => {
+      return member.user.id === forUser.id
+    })
 
-          if (isPending) userTripStatus = 'PENDING'
-          else if (isOnTrip) userTripStatus = 'APPROVED'
-          else userTripStatus = 'NONE'
+    if (isPending) userTripStatus = 'PENDING'
+    else if (isOnTrip) userTripStatus = 'APPROVED'
+    else userTripStatus = 'NONE'
 
-          if (forUser.role === 'OPO') {
-            isLeaderOnTrip = true
-          } else if (trip.coLeaderCanEditTrip) {
-            isLeaderOnTrip = trip.leaders.some((leader) => {
-              return leader._id.equals(forUser._id)
-            })
-          } else {
-            isLeaderOnTrip = trip.owner._id.equals(forUser._id)
-          }
-        }
-
-        resolve({ trip, userTripStatus, isLeaderOnTrip })
+    if (forUser.role === 'OPO') {
+      isLeaderOnTrip = true
+    } else if (trip.coLeaderCanEditTrip) {
+      isLeaderOnTrip = trip.leaders.some((leader) => {
+        return leader._id.equals(forUser._id)
       })
-      .catch((error) => {
-        reject(error)
-      })
-  })
+    } else {
+      isLeaderOnTrip = trip.owner._id.equals(forUser._id)
+    }
+  }
+
+  return { trip, userTripStatus, isLeaderOnTrip }
 }
 
 export async function createTrip (creator, data) {
@@ -419,6 +412,34 @@ export async function deleteTrip (req, res) {
  * TRIP GEAR
  */
 
+function getNewGearAndGearStatus (trip) {
+  const newGear = trip.trippeeGear.map((gear) => {
+    let quantity = 0
+    for (const member in trip.members) {
+      for (const memberGearRequest in member.requestedGear) {
+        if (memberGearRequest.gearId === gear._id.toString(0)) quantity += 1
+      }
+    }
+    return { ...gear, quantity }
+  })
+
+  // This is a copied bit that I still don't like. This whole way of doing gear is a little fucked
+  const wasApproved = trip.trippeeGearStatus === 'approved'
+  const hasChanged = trip.trippeeGear.length !== newGear.length ||
+    !trip.trippeeGear
+      .map((o, i) => [o, trip.trippeeGear[i]])
+      .every((combined) => (combined[0].name === combined[1].name && combined[0].quantity >= combined[1].quantity && combined[0].sizeType === combined[1].sizeType))
+
+  let trippeeGearStatus = trip.trippeeGearStatus
+  if (wasApproved && hasChanged) {
+    trippeeGearStatus = 'pending'
+    sendLeadersEmail(trip._id, `Trip #${trip.number}: Trippee gear requests un-approved`, `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}]'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
+    mailer.sendGearRequiresReapprovalNotice(trip)
+  }
+
+  return { trippeeGear: newGear, trippeeGearStatus }
+}
+
 /**
  * Recalculates the sum of trippee gear requests from the current list of members.
  * @param {Trip} trip
@@ -480,8 +501,6 @@ export async function editUserGear (req, res) {
   })
 }
 
-// JOINING AND LEAVING TRIPS
-
 /**
  * Puts a trippee on the pending list.
  * Sends an email confirmation to trippee and notice to all leaders and co-leaders.
@@ -489,23 +508,17 @@ export async function editUserGear (req, res) {
  * @param {String} joiningUserID
  * @param {} requestedGear
  */
-export const apply = (tripID, joiningUserID, requestedGear) => {
-  return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
-      .then(async (trip) => {
-        if (!trip.pending.some((pender) => { return pender.user._id.toString() === joiningUserID.toString() })) {
-          trip.pending.push({ user: joiningUserID, requestedGear })
-          await trip.save()
-          const joiningUser = await Users.getUserById(joiningUserID.toString())
-          const tripOwnerEmail = trip.owner.email
-          mailer.sendTripApplicationConfirmation(trip, joiningUser, tripOwnerEmail)
-        }
-        // const leaderEmails = trip.leaders.map((leader) => { return leader.email; });
-        // mailer.send({ address: leaderEmails, subject: `Trip #${trip.number}: ${foundUser.name} applied to your trip`, message: `Hello,\n\nTrippee ${foundUser.name} has applied to join [Trip #${trip.number}: ${trip.title}]. Please use our platform to approve them. You can reach them at ${foundUser.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.` });
-        resolve()
-      })
-      .catch((error) => { reject(error) })
-  })
+export async function apply (tripID, joiningUserID, requestedGear) {
+  const trip = await getTripById(tripID)
+  const isOnTrip = trip.pending.some(pender => pender.user.toString() === joiningUserID.toString())
+  if (!isOnTrip) {
+    const newPending = [...trip.pending, { user: joiningUserID, requestedGear }]
+    trips.updateOne({ _id: new ObjectId(tripID) }, { $set: { pending: newPending } })
+    const newTrippeePromise = Users.getUserById(joiningUserID)
+    const ownerPromise = Users.getUserById(trip.owner)
+    const [newTrippee, owner] = await Promise.all([newTrippeePromise, ownerPromise])
+    mailer.sendTripApplicationConfirmation(trip, newTrippee, owner.email)
+  }
 }
 
 /**
@@ -514,34 +527,26 @@ export const apply = (tripID, joiningUserID, requestedGear) => {
  * @param {String} tripID The ID of the trip to join
  * @param {String} admittedUserID The user ID who is requesting to join
  */
-export const admit = (tripID, admittedUserID) => {
-  return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
-      .then(async (trip) => {
-        let joiningUserPender = {}
-        // Remove user from pending list
-        trip.pending.forEach((pender, index) => {
-          if (pender.user._id.toString() === admittedUserID) {
-            // eslint-disable-next-line prefer-destructuring
-            joiningUserPender = trip.pending.splice(index, 1)[0]
-          }
-        })
+export async function admit (tripID, admittedUserID) {
+  const trip = await getTripById(tripID)
 
-        if (joiningUserPender == null) reject(new Error('This user is not yet on the pending list for this trip'))
+  // Remove user from pending list
+  const joiningUser = trip.pending.find(pender => pender.user?.toString() === admittedUserID)
+  if (!joiningUser) throw new Error('This user is not yet on the pending list for this trip')
 
-        // Add user to member list
-        if (!trip.members.some((member) => { return member.user._id.toString() === admittedUserID })) {
-          trip.members.push(joiningUserPender)
-        } else reject(new Error('This user is already approved to be on the trip'))
+  // Add user to member list
+  const pending = trip.pending.filter(pender => pender.user?.toString() !== admittedUserID)
+  const isMember = trip.members.includes(member => member.user?.toString() === admittedUserID)
+  if (isMember) throw new Error('This user is already approved to be on the trip')
+  const members = [...trip.members, joiningUser]
 
-        await calculateRequiredGear(trip)
-        await trip.save()
-        const foundUser = await Users.getUserById(admittedUserID)
-        mailer.sendTripApprovalEmail(trip, foundUser)
-        resolve()
-      })
-      .catch((error) => { reject(error) })
-  })
+  const { trippeeGear, trippeeGearStatus } = getNewGearAndGearStatus(trip)
+  await trips.updateOne(
+    { _id: new ObjectId(tripID) },
+    { $set: { pending, members, trippeeGear, trippeeGearStatus } }
+  )
+  const foundUser = await Users.getUserById(admittedUserID)
+  return mailer.sendTripApprovalEmail(trip, foundUser)
 }
 
 /**
@@ -551,38 +556,23 @@ export const admit = (tripID, admittedUserID) => {
  * @param {String} tripID The ID of the trip to leave
  * @param {String} leavinUserID The user ID who is leaving
  */
-export const unAdmit = (tripID, leavingUserID) => {
-  return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
-      .then(async (trip) => {
-        let leavingUserPender
-        // Remove the trippee from the member list
-        trip.members.forEach((member, index) => {
-          if (member.user._id.toString() === leavingUserID) {
-            // eslint-disable-next-line prefer-destructuring
-            leavingUserPender = trip.members.splice(index, 1)[0]
-          }
-        })
-        // Remove the trippee from the leader list if they were co-leader
-        trip.leaders.forEach((leader, index) => {
-          if (leader._id.toString() === leavingUserID) {
-            // eslint-disable-next-line prefer-destructuring
-            trip.leaders.splice(index, 1)
-          }
-        })
-        // Add user to pending list
-        if (leavingUserPender == null) reject(new Error('This user was not on the approved list before'))
-        if (!trip.pending.some((pender) => { return pender.user._id.toString() === leavingUserID })) {
-          trip.pending.push(leavingUserPender)
-        }
-        await calculateRequiredGear(trip)
-        await trip.save()
-        const foundUser = await Users.getUserById(leavingUserID)
-        mailer.sendTripRemovalEmail(trip, foundUser)
-        resolve()
-      })
-      .catch((error) => { console.log(error); reject(error) })
-  })
+export async function unAdmit (tripID, leavingUserID) {
+  const trip = await getTripById(tripID)
+
+  const leavingUser = trip.members.find(member => member.user?.toString() === leavingUserID)
+  if (!leavingUser) throw new Error('This user was not on the approved list before')
+
+  const members = trip.members.filter(member => member.user?.toString() !== leavingUserID)
+  const leaders = trip.leaders.filter(leader => leader.toString() !== leavingUserID)
+
+  const pending = [...trip.pending, leavingUser]
+  const { trippeeGear, trippeeGearStatus } = getNewGearAndGearStatus(trip)
+  await trips.updateOne(
+    { _id: new ObjectId(tripID) },
+    { $set: { pending, members, leaders, trippeeGear, trippeeGearStatus } }
+  )
+  const foundUser = await Users.getUserById(leavingUserID)
+  return mailer.sendTripRemovalEmail(trip, foundUser)
 }
 
 /**
@@ -591,26 +581,16 @@ export const unAdmit = (tripID, leavingUserID) => {
  * @param {String} tripID The ID of the trip to leave
  * @param {String} rejectedUserID The user ID who is leaving
  */
-export const reject = (tripID, rejectedUserID) => {
-  return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'pendingUser'])
-      .then(async (trip) => {
-        let rejectedUser
-        // Remove the trippee from the member list
-        trip.pending.forEach((pender, index) => {
-          if (pender.user._id.toString() === rejectedUserID) {
-            // eslint-disable-next-line prefer-destructuring
-            rejectedUser = trip.pending.splice(index, 1)[0]?.user
-          }
-        })
-        // Add user to pending list
-        if (rejectedUser == null) reject(new Error('This user was not on the waitlist'))
-        await trip.save()
-        mailer.sendTripTooFullEmail(trip, rejectedUser)
-        resolve()
-      })
-      .catch((error) => { console.log(error); reject(error) })
-  })
+export async function reject (tripID, rejectedUserID) {
+  const trip = await getTripById(tripID)
+
+  const wasOnWaitlist = trip.pending.some(pender => pender.user?.toString() === rejectedUserID)
+  if (!wasOnWaitlist) throw new Error('This user was not on the waitlist')
+
+  const pending = trip.pending.filter(pender => pender.user?.toString() !== rejectedUserID)
+  await trips.updateOne({ _id: new ObjectId(tripID) }, { $set: { pending } })
+  const rejectedUser = await Users.getUserById(rejectedUserID)
+  return mailer.sendTripTooFullEmail(trip, rejectedUser)
 }
 
 /**
@@ -620,22 +600,26 @@ export const reject = (tripID, rejectedUserID) => {
  * @param {String} leavingUserID The ID of the user leaving
  */
 export async function leave (tripID, leavingUserID) {
-  const trip = await populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser'])
+  const trip = await getTripById(tripID)
 
   // If user is in the list of pending tripees, remove them
-  trip.pending = trip.pending.filter((tripee) => tripee.user.toString() !== leavingUserID)
+  const pending = trip.pending.filter(tripee => tripee.user?.toString() !== leavingUserID)
 
   // If user is in the list of accepted tripees, remove them
   // Should be mutually exclusive with pending tripees, but you never know
-  const memberIndex = trip.members.findIndex((tripee) => tripee.user.toString() === leavingUserID)
-  if (memberIndex > -1) {
-    const leaderEmails = trip.leaders.map(leader => leader.email)
+  const member = trip.members.find((tripee) => tripee.user?.toString() === leavingUserID)
+  if (member) {
+    const leaderEmails = await Users.getUserEmails(trip.leaders)
     const leavingUser = await Users.getUserById(leavingUserID)
     mailer.sendUserLeftEmail(trip, leaderEmails, leavingUser)
-    trip.members = trip.members.slice(memberIndex)
   }
-  const newTrip = await trip.save()
-  calculateRequiredGear(newTrip)
+  const members = trip.members.filter((tripee) => tripee.user?.toString() !== leavingUserID)
+
+  const { trippeeGear, trippeeGearStatus } = getNewGearAndGearStatus(trip)
+  return trips.updateOne(
+    { _id: new ObjectId(tripID) },
+    { $set: { pending, members, trippeeGear, trippeeGearStatus } }
+  )
 }
 
 export const toggleTripLeadership = (req, res) => {

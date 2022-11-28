@@ -44,19 +44,19 @@ tripsRouter.post('/apply/:tripID', requireAuth, (req, res) => {
     .then(() => {
       trips.getTrip(req.params.tripID, req.user).then((result) => { return res.json(result) })
     })
-    .catch((error) => { console.log(error); logError({ type: 'applyToTrip', message: error.message }); res.status(500).send(error.message) })
+    .catch((error) => { console.log(error); logError({ type: 'applyToTrip', message: error.message }); res.sendStatus(500) })
 })
 
 tripsRouter.post('/reject/:tripID', requireAuth, (req, res) => {
-  trips.reject(req.params.tripID, req.body.rejectedUserID).then(() => { return res.json() }).catch((error) => { res.status(500).json(error) })
+  trips.reject(req.params.tripID, req.body.rejectedUserID).then(() => { return res.json() }).catch((error) => { console.log(error); res.sendStatus(500) })
 })
 
 tripsRouter.post('/admit/:tripID', requireAuth, (req, res) => {
-  trips.admit(req.params.tripID, req.body.admittedUserID).then(() => { res.json() }).catch((error) => { res.status(500).json(error) })
+  trips.admit(req.params.tripID, req.body.admittedUserID).then(() => { res.json() }).catch((error) => { console.log(error); res.sendStatus(500) })
 })
 
 tripsRouter.post('/unadmit/:tripID', requireAuth, (req, res) => {
-  trips.unAdmit(req.params.tripID, req.body.unAdmittedUserID).then(() => { return res.json() }).catch((error) => { res.status(500).json(error) })
+  trips.unAdmit(req.params.tripID, req.body.unAdmittedUserID).then(() => { return res.json() }).catch((error) => { console.log(error); res.sendStatus(500) })
 })
 
 tripsRouter.post('/leave/:tripID', requireAuth, async (req, res) => {
