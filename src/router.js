@@ -52,18 +52,14 @@ router.route('/opotrips')
 
 router.route('/gearrequest/:tripID')
   .get(requireAuth, users.roleAuthorization(['OPO']), trips.getTrip)
-  .put(requireAuth, users.roleAuthorization(['OPO']), (req, res) => {
-    trips.respondToGearRequest(req.params.tripID, req.body.status).then((updatedTrip) => { return res.json(updatedTrip) }).catch((error) => { return res.status(500).json(error) })
-  })
+  .put(requireAuth, users.roleAuthorization(['OPO']), trips.respondToGearRequest)
 
 router.route('/pcardrequest/:tripID')
   .put(requireAuth, users.roleAuthorization(['OPO']), trips.respondToPCardRequest)
 
 router.route('/trippeegearrequest/:tripID')
   .get(requireAuth, users.roleAuthorization(['OPO']), trips.getTrip)
-  .put(requireAuth, users.roleAuthorization(['OPO']), (req, res) => {
-    trips.respondToTrippeeGearRequest(req.params.tripID, req.body.status).then((updatedTrip) => { res.json(updatedTrip) }).catch((error) => { return res.status(500).json(error) })
-  })
+  .put(requireAuth, users.roleAuthorization(['OPO']), trips.respondToTrippeeGearRequest)
 
 router.route('/vehicles')
   .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), vehicles.handleGetVehicles)

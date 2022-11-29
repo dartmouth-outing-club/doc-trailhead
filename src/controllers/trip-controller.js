@@ -479,26 +479,42 @@ function requiresReapproval (trip, originalGear) {
  * Allows a user - both pending and approved - to edit their gear requests.
  */
 export async function editUserGear (req, res) {
-  const { tripID } = req.params
-  const { trippeeGear } = req.body
-  const trip = await populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'membersUser'])
-  const isOnTrip = trip.members.some(member => member.user.id === req.user._id.toString())
-  const allPotentialMembers = trip.pending.concat(trip.members)
-  allPotentialMembers.forEach(async (person) => {
-    if (person.user._id.equals(req.user._id)) {
-      person.requestedGear = trippeeGear
-      if (isOnTrip) {
-        const user = await Users.getUserById(req.user._id)
-        const leaderEmails = trip.leaders.map(leader => leader.email)
-        mailer.sendGearRequestChangedEmail(trip, leaderEmails, user)
+  const tripId = req.params.tripID
+  const requestedGear = req.body.trippeeGear
+  const trip = await getTripById(tripId)
+
+  const isOnTrip = trip.members.some(member => member.user.toString() === req.user._id.toString())
+  const newTrip = {}
+  if (isOnTrip) {
+    const members = trip.members.map(member => {
+      if (member.user._id.toString() === req.user._id.toString()) {
+        return { ...member, requestedGear }
+      } else {
+        return member
       }
-    }
-  })
-  calculateRequiredGear(trip).then(() => {
-    trip.save().then(() => {
-      res.send()
     })
-  })
+
+    newTrip.members = members
+    const user = await Users.getUserById(req.user._id)
+    const leaderEmails = await Users.getUserEmails(trip.leaders)
+    mailer.sendGearRequestChangedEmail(trip, leaderEmails, user)
+  } else {
+    const pending = trip.pending.map(pender => {
+      if (pender.user._id.toString() === req.user._id.toString()) {
+        return { ...pender, requestedGear }
+      } else {
+        return pender
+      }
+    })
+    newTrip.pending = pending
+  }
+
+  const { trippeeGear, trippeeGearStatus } = getNewGearAndGearStatus(trip)
+  newTrip.trippeeGear = trippeeGear
+  newTrip.trippeeGearStatus = trippeeGearStatus
+  await trips.updateOne({ _id: new ObjectId(tripId) }, { $set: newTrip })
+  const updatedTrip = await getTrip(tripId, req.params.user)
+  return res.json(updatedTrip)
 }
 
 /**
@@ -622,37 +638,25 @@ export async function leave (tripID, leavingUserID) {
   )
 }
 
-export const toggleTripLeadership = (req, res) => {
-  populateTripDocument(Trip.findById(req.params.tripID), ['owner', 'leaders', 'membersUser', 'pendingUser'])
-    .then(async (trip) => {
-      let demoted = false
-      trip.leaders.some((leader, index) => {
-        if (req.body.member.user.id === leader.id) {
-          trip.leaders.splice(index, 1)
-          demoted = true
-          sendLeadersEmail(req.params.tripID, `Trip #${trip.number}: co-leader change`, `Hello trip leaders and co-leaders,\n\n${req.body.member.user.name} has been removed as a co-leader for [Trip #${trip.number}: ${trip.title}]. You can reach them at ${req.body.member.user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${req.params.tripID}\n\nStay Crunchy 🌳,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
-          mailer.sendCoLeaderRemovalNotice(trip, req.body.member.user)
-        }
-        return leader._id.equals(req.body.member.user._id)
-      })
-      if (!demoted) {
-        trip.members.some((member) => {
-          if (member.user._id.equals(req.body.member.user._id)) {
-            mailer.sendCoLeaderConfirmation(trip, req.body.member.user)
-            trip.leaders.push(member.user)
-          }
-          return member.user._id.equals(req.body.member.user._id)
-        })
-      }
-      trip.members.forEach((m) => { return console.log(m.user.name) })
-      trip.leaders.forEach((m) => { return console.log(m.name) })
-      await trip.save()
-      res.json(await getTrip(req.params.tripID))
-    })
-    .catch((error) => {
-      console.log(error)
-      res.status(500).send(error.message)
-    })
+export async function toggleTripLeadership (req, res) {
+  const tripId = req.params.tripID
+  const toggledUser = await Users.getUserById(req.body.member.user.id)
+  const trip = await getTripById(tripId)
+
+  let leaders
+  const isAlreadyLeader = trip.leaders.some(leader => toggledUser._id.toString() === leader.toString())
+  if (isAlreadyLeader) {
+    mailer.sendCoLeaderRemovalNotice(trip, req.body.member.user)
+    leaders = trip.leaders.filter(leader => toggledUser._id.toString() !== leader.toString())
+  } else {
+    const member = trip.members.find(member => member.user._id.toString() === toggledUser._id.toString())
+    mailer.sendCoLeaderConfirmation(trip, req.body.member.user)
+    leaders = [...trip.leaders, member.user]
+  }
+
+  await trips.updateOne({ _id: new ObjectId(tripId) }, { $set: { leaders } })
+  const newTrip = await getTrip(tripId, req.params.user)
+  return res.json(newTrip)
 }
 
 /**
@@ -687,42 +691,48 @@ export const setMemberAttendance = (req, res) => {
 /**
  * Sets the returned status for the trip.
  */
-export const toggleTripLeftStatus = (req, res) => {
-  const { tripID } = req.params
+export async function toggleTripLeftStatus (req, res) {
+  const tripId = req.params.tripID
   const { status } = req.body
   const now = new Date()
-  populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'vehicleRequest'])
-    .then(async (trip) => {
-      trip.left = status
-      await trip.save()
-      if (trip.vehicleRequest) {
-        trip.vehicleRequest.assignments.forEach(Assignments.markAssignmentPickedUp)
-      }
-      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}left`, `Hello,\n\nYou have marked your Trip #${trip.number}: ${trip.title} as just having ${!status ? 'NOT ' : ''}left ${trip.pickup} at ${constants.formatDateAndTime(now)}, and your trip is due for return at ${constants.formatDateAndTime(trip.endDateAndTime)}.\n\nIMPORTANT: within 90 minutes of returning from this trip, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${Users.tokenForUser(req.user._id, 'mobile', trip._id)}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
-      res.json(await getTrip(tripID))
-    }).catch((error) => { return res.status(500).json(error) })
+
+  const updateResult = await trips.findOneAndUpdate({ _id: new ObjectId(tripId) }, { $set: { left: status } })
+  const trip = updateResult.value
+
+  if (trip.vehicleRequest) {
+    const vehicleRequest = await VehicleRequests.getVehicleRequestById(trip.vehicleRequest)
+    vehicleRequest.assignments.forEach(Assignments.markAssignmentPickedUp)
+  }
+
+  sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}left`, `Hello,\n\nYou have marked your Trip #${trip.number}: ${trip.title} as just having ${!status ? 'NOT ' : ''}left ${trip.pickup} at ${constants.formatDateAndTime(now)}, and your trip is due for return at ${constants.formatDateAndTime(trip.endDateAndTime)}.\n\nIMPORTANT: within 90 minutes of returning from this trip, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${Users.tokenForUser(req.user._id, 'mobile', trip._id)}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
+
+  const newTrip = await getTrip(tripId, req.params.user)
+  res.json(newTrip)
 }
 
 /**
  * Sets the returned status for the trip.
  */
-export const toggleTripReturnedStatus = (req, res) => {
-  const { tripID } = req.params
+export async function toggleTripReturnedStatus (req, res) {
+  const tripId = req.params.tripID
   const { status } = req.body
   const now = new Date()
-  populateTripDocument(Trip.findById(tripID), ['owner', 'leaders', 'vehicleRequest'])
-    .then(async (trip) => {
-      trip.returned = status
-      await trip.save()
-      if (trip.vehicleRequest) {
-        trip.vehicleRequest.assignments.forEach(Assignments.markAssignmentReturned)
-      }
-      sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT ' : ''}returned at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
-      if (trip.markedLate) { // will inform OPO that the trip has been returned if it had been marked as late (3 hr) before
-        trips.sendLateTripBackAnnouncement(trip, status, now)
-      }
-      res.json(await getTrip(tripID))
-    }).catch((error) => { return res.status(500).json(error) })
+
+  const updateResult = await trips.findOneAndUpdate({ _id: new ObjectId(tripId) }, { $set: { returned: status } })
+  const trip = updateResult.value
+
+  if (trip.vehicleRequest) {
+    const vehicleRequest = await VehicleRequests.getVehicleRequestById(trip.vehicleRequest)
+    vehicleRequest.assignments.forEach(Assignments.markAssignmentReturned)
+  }
+
+  sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT ' : ''}returned at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
+  if (trip.markedLate) { // will inform OPO that the trip has been returned if it had been marked as late (3 hr) before
+    mailer.sendLateTripBackAnnouncement(trip, status, now)
+  }
+
+  const newTrip = await getTrip(tripId, req.params.user)
+  res.json(newTrip)
 }
 
 /**
@@ -735,32 +745,35 @@ export const toggleTripReturnedStatus = (req, res) => {
  * @param {String} tripID The ID of the trip to edit status
  * @param {String} status String value of the new status
  */
-export const respondToGearRequest = (tripID, status) => {
-  return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders'])
-      .then(async (trip) => {
-        trip.gearStatus = status
-        await trip.save()
-        const leaderEmails = trip.leaders.map((leader) => { return leader.email })
-        let message
-        switch (status) {
-          case 'approved':
-            message = 'got approved'
-            break
-          case 'denied':
-            message = 'got denied'
-            break
-          case 'pending':
-            message = 'was un-approved, pending again'
-            break
-          default:
-            break
-        }
-        await mailer.sendGroupGearStatusUpdate(trip, leaderEmails, message)
-        resolve(await getTrip(tripID))
-      })
-      .catch((error) => { reject(error) })
-  })
+export async function respondToGearRequest (req, res) {
+  const tripId = req.params.tripID
+  const { status } = req.body
+
+  const updateResult = await trips.findOneAndUpdate(
+    { _id: new ObjectId(tripId) },
+    { $set: { gearStatus: status } }
+  )
+  const trip = updateResult.value
+
+  const leaderEmails = Users.getUserEmails(trip.leaders)
+  let message
+  switch (status) {
+    case 'approved':
+      message = 'got approved'
+      break
+    case 'denied':
+      message = 'got denied'
+      break
+    case 'pending':
+      message = 'was un-approved, pending again'
+      break
+    default:
+      break
+  }
+
+  await mailer.sendGroupGearStatusUpdate(trip, leaderEmails, message)
+  const newTrip = await getTrip(tripId, req.params.user)
+  return res.json(newTrip)
 }
 
 /**
@@ -769,31 +782,34 @@ export const respondToGearRequest = (tripID, status) => {
  * @param {String} tripID The ID of the trip to edit status
  * @param {String} status String value of the new status
  */
-export const respondToTrippeeGearRequest = (tripID, status) => {
-  return new Promise((resolve, reject) => {
-    populateTripDocument(Trip.findById(tripID), ['owner', 'leaders'])
-      .then(async (trip) => {
-        trip.trippeeGearStatus = status
-        await trip.save()
-        let message
-        switch (status) {
-          case 'approved':
-            message = 'got approved'
-            break
-          case 'denied':
-            message = 'got denied'
-            break
-          case 'pending':
-            message = 'was un-approved, pending again'
-            break
-          default:
-            break
-        }
-        const leaderEmails = trip.leaders.map((leader) => { return leader.email })
-        mailer.sendIndividualGearStatusUpdate(trip, leaderEmails, message)
-        resolve(await getTrip(tripID))
-      }).catch((error) => { console.log(error.message); reject(error) })
-  })
+export async function respondToTrippeeGearRequest (req, res) {
+  const tripId = req.params.tripID
+  const { status } = req.body
+  const updateResult = await trips.findOneAndUpdate(
+    { _id: new ObjectId(tripId) },
+    { $set: { trippeeGearStatus: status } }
+  )
+  const trip = updateResult.value
+
+  let message
+  switch (status) {
+    case 'approved':
+      message = 'got approved'
+      break
+    case 'denied':
+      message = 'got denied'
+      break
+    case 'pending':
+      message = 'was un-approved, pending again'
+      break
+    default:
+      break
+  }
+
+  const leaderEmails = await Users.getUserEmails(trip.leaders)
+  mailer.sendIndividualGearStatusUpdate(trip, leaderEmails, message)
+  const newTrip = await getTrip(tripId, req.params.user)
+  return res.json(newTrip)
 }
 
 /**
@@ -802,18 +818,20 @@ export const respondToTrippeeGearRequest = (tripID, status) => {
  * @param {*} req
  * @param {*} res
  */
-export const respondToPCardRequest = (req, res) => {
-  populateTripDocument(Trip.findById(req.params.tripID), ['owner', 'leaders'])
-    .then(async (trip) => {
-      trip.pcardStatus = req.body.pcardStatus
-      trip.pcardAssigned = req.body.pcardAssigned
-      await trip.save()
-      const leaderEmails = trip.leaders.map((leader) => { return leader.email })
-      mailer.sendPCardStatusUpdate(trip, leaderEmails)
-      res.json(await getTrip(req.params.tripID))
-    }).catch((error) => {
-      res.status(500).send(error)
-    })
+export async function respondToPCardRequest (req, res) {
+  const tripId = req.params.tripID
+  const { pcardStatus, pcardAssigned } = req.body
+
+  const updateResult = await trips.findOneAndUpdate(
+    { _id: new ObjectId(tripId) },
+    { $set: { pcardStatus, pcardAssigned } }
+  )
+  const trip = updateResult.value
+
+  const leaderEmails = await Users.getUserEmails(trip.leaders)
+  mailer.sendPCardStatusUpdate(trip, leaderEmails)
+  const newTrip = await getTrip(tripId, req.params.user)
+  return res.json(newTrip)
 }
 
 const _48_HOURS_IN_MS = 172800000
