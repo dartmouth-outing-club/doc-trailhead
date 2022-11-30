@@ -51,20 +51,6 @@ export async function markTripsAsPast () {
   return trips.updateMany({ $set: { startDateAndTime: { $lt: yesterday } } }, { past: true })
 }
 
-const populateTripDocument = (tripQuery, fields) => {
-  const fieldsDirectory = {
-    owner: 'owner',
-    club: 'club',
-    leaders: 'leaders',
-    vehicleRequest: 'vehicleRequest',
-    membersUser: { path: 'members.user', model: 'User' },
-    pendingUser: { path: 'pending.user', model: 'User' },
-    vehicleRequestAssignments: { path: 'vehicleRequest', populate: { path: 'assignments', model: 'Assignment' } },
-    vehicleRequestAssignmentsAssignedVehicle: { path: 'vehicleRequest', populate: { path: 'assignments', populate: { path: 'assigned_vehicle', mode: 'Vehicle' } } }
-  }
-  return tripQuery.populate(fields.map((field) => { return fieldsDirectory[field] }))
-}
-
 async function sendLeadersEmail (tripID, subject, message) {
   const trip = await getTripById(tripID)
   const leaderEmails = await Users.getUserEmails(trip.leaders)
@@ -133,34 +119,53 @@ export async function handleGetOpoTrips (req, res) {
  * Fetches a single trip with all fields populated.
  */
 export async function getTrip (tripID, forUser) {
-  const trip = await populateTripDocument(Trip.findById(tripID), ['owner', 'club', 'leaders', 'vehicleRequest', 'membersUser', 'pendingUser', 'vehicleRequestAssignments', 'vehicleRequestAssignmentsAssignedVehicle'])
+  const [trip, clubsMap] = await Promise.all([getTripById(tripID), Clubs.getClubsMap()])
+
+  const trippeeIds = [...trip.members, ...trip.pending].map(trippee => trippee.user)
+  const allUserIds = [trip.owner, ...trip.leaders, ...trippeeIds]
+
+  const allUsers = await Users.getUsersById(allUserIds)
+  const userMap = allUsers.reduce((map, user) => {
+    map[user._id.toString()] = user
+    return map
+  }, {})
+
   let userTripStatus
   let isLeaderOnTrip
   if (forUser) {
-    const isPending = trip.pending.some((pender) => {
-      return pender.user.equals(forUser.id)
-    })
+    const isPending = trip.pending.some(pender => pender.toString() === forUser._id.toString())
+    const isOnTrip = trip.members.some(member => member.toString() === member._id.toString())
 
-    const isOnTrip = trip.members.some((member) => {
-      return member.user.id === forUser.id
-    })
-
-    if (isPending) userTripStatus = 'PENDING'
-    else if (isOnTrip) userTripStatus = 'APPROVED'
-    else userTripStatus = 'NONE'
+    if (isPending) {
+      userTripStatus = 'PENDING'
+    } else if (isOnTrip) {
+      userTripStatus = 'APPROVED'
+    } else {
+      userTripStatus = 'NONE'
+    }
 
     if (forUser.role === 'OPO') {
       isLeaderOnTrip = true
     } else if (trip.coLeaderCanEditTrip) {
-      isLeaderOnTrip = trip.leaders.some((leader) => {
-        return leader._id.equals(forUser._id)
-      })
+      isLeaderOnTrip = trip.leaders.some(leader => leader.toString() === forUser._id.toString())
     } else {
-      isLeaderOnTrip = trip.owner._id.equals(forUser._id)
+      isLeaderOnTrip = trip.owner.toString() === forUser._id.toString()
     }
   }
 
-  return { trip, userTripStatus, isLeaderOnTrip }
+  let vehicleRequest = trip.vehicleRequest
+  if (trip.vehicleRequest) {
+    vehicleRequest = await VehicleRequests.getVehicleRequestById(trip.vehicleRequest)
+  }
+
+  const club = clubsMap[trip.club]
+  const members = trip.members.map(member => ({ ...member, user: userMap[member.user] }))
+  const pending = trip.pending.map(pender => ({ ...pender, user: userMap[pender.user] }))
+  const leaders = trip.leaders.map(leader => (userMap[leader]))
+  const owner = userMap[trip.owner]
+
+  const enhancedTrip = { ...trip, members, pending, leaders, owner, club, vehicleRequest }
+  return { trip: enhancedTrip, userTripStatus, isLeaderOnTrip }
 }
 
 export async function createTrip (creator, data) {
