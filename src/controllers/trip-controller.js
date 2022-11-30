@@ -405,7 +405,7 @@ export async function deleteTrip (req, res) {
     return res.status(422).send('You must be a leader on the trip or OPO staff')
   }
 
-  await trips.deleteOne({ _id: tripId })
+  await trips.deleteOne({ _id: new ObjectId(tripId) })
   const owner = await Users.getUserById(trip.owner)
 
   const members = [...trip.members, ...trip.pending]
