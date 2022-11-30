@@ -1,10 +1,8 @@
-/* eslint-disable no-unused-vars */
 import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import cron from 'node-cron'
 import morgan from 'morgan'
-import mongoose from 'mongoose'
 
 import * as constants from './constants.js'
 import apiRouter from './router.js'
@@ -12,32 +10,7 @@ import * as mailer from './services/mailer.js'
 import TripRouter from './routers/trip-router.js'
 import * as trips from './controllers/trip-controller.js'
 
-// We have to import these at least once so they "register"
-// These can be removed once all the models get removed.
-import User from './models/user-model.js'
-import Club from './models/club-model.js'
-import Global from './models/global-model.js'
-import Vehicle from './models/vehicle-model.js'
-import VehicleRequest from './models/vehicle-request-model.js'
-import Assignment from './models/assignment-model.js'
-import Trip from './models/trip-model.js'
-
 process.env.TZ = 'America/New_York'
-
-const mongoURI = process.env.MONGODB_URI
-
-mongoose.connect(mongoURI, { useNewUrlParser: true })
-  .then((connection) => {
-    return console.log(`MongoDB connection established at ${connection.connections[0].host}:${connection.connections[0].port}`)
-  }).catch((error) => {
-    console.log(`Error connecting to MongoDB: ${error.message}`)
-    mongoose.connect('mongodb://localhost/trailhead', { useNewUrlParser: true }).then((connection) => {
-      return console.log(`MongoDB connection established at ${connection.connections[0].host}:${connection.connections[0].port}`)
-    })
-  })
-
-// set mongoose promises to es6 default
-mongoose.Promise = global.Promise
 
 const app = express()
 

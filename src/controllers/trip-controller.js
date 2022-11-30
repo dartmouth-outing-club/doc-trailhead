@@ -12,7 +12,6 @@ import * as Assignments from './assignment-controller.js'
 import * as constants from '../constants.js'
 import * as mailer from '../services/mailer.js'
 import * as utils from '../utils.js'
-import { logError } from '../services/error.js'
 
 export async function getTripById (id) {
   const _id = typeof id === 'string' ? new ObjectId(id) : id
@@ -76,7 +75,6 @@ export async function getPublicTrips (_req, res) {
     return res.json(filteredList)
   } catch (error) {
     console.error(error)
-    logError({ type: 'fetchPublicTrips', message: error.message })
     return res.status(500).send(error.message)
   }
 }

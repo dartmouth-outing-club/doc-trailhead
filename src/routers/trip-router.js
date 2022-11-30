@@ -1,7 +1,6 @@
 import { Router } from 'express'
 
 import { requireAuth } from '../services/passport.js'
-import { logError } from '../services/error.js'
 import * as trips from '../controllers/trip-controller.js'
 
 const tripsRouter = Router()
@@ -13,7 +12,6 @@ tripsRouter.route('/')
       res.json(result)
     } catch (error) {
       console.log(error)
-      logError({ type: 'createTrip', message: error.message })
       res.status(500).send('Something went wrong creating the trip.')
     }
   })
@@ -44,7 +42,7 @@ tripsRouter.post('/apply/:tripID', requireAuth, (req, res) => {
     .then(() => {
       trips.getTrip(req.params.tripID, req.user).then((result) => { return res.json(result) })
     })
-    .catch((error) => { console.log(error); logError({ type: 'applyToTrip', message: error.message }); res.sendStatus(500) })
+    .catch((error) => { console.log(error); res.sendStatus(500) })
 })
 
 tripsRouter.post('/reject/:tripID', requireAuth, (req, res) => {

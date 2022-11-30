@@ -1,0 +1,145 @@
+const AssignmentSchema = new Schema({
+  request: { type: Schema.Types.ObjectId, ref: 'VehicleRequest' },
+  requester: { type: Schema.Types.ObjectId, ref: 'User' },
+  responseIndex: Number,
+  assigned_pickupDate: Date,
+  assigned_pickupTime: String,
+  assigned_pickupDateAndTime: Date,
+  assigned_returnDate: Date,
+  assigned_returnTime: String,
+  assigned_returnDateAndTime: Date,
+  assigned_key: String,
+  assigned_vehicle: { type: Schema.Types.ObjectId, ref: 'Vehicle' },
+  pickedUp: { type: Boolean, default: false },
+  returned: { type: Boolean, default: false },
+  conflicts: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }]
+})
+const ClubSchema = new Schema({
+  name: { type: String, unique: true },
+  active: { type: Boolean, default: true }
+})
+const GlobalSchema = new Schema({
+  tripNumberMax: Number,
+  vehicleRequestNumberMax: Number
+})
+const TripSchema = new Schema({
+  number: { type: Number, unique: true },
+  title: { type: String, default: 'Untitled trip' },
+  private: { type: Boolean, default: false },
+  past: { type: Boolean, default: false },
+  left: { type: Boolean, default: false },
+  returned: { type: Boolean, default: false },
+  markedLate: { type: Boolean, default: false },
+  club: { type: Schema.Types.ObjectId, ref: 'Club' },
+  owner: { type: Schema.Types.ObjectId, ref: 'User' },
+  leaders: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  members: [{
+    user: { type: Schema.Types.ObjectId, ref: 'User' },
+    attended: { type: Boolean, default: false },
+    requestedGear: [{ gearId: String, name: String }]
+  }],
+  pending: [{
+    user: { type: Schema.Types.ObjectId, ref: 'User' },
+    requestedGear: [{ gearId: String, name: String }]
+  }],
+  startDateAndTime: { type: Date },
+  endDateAndTime: { type: Date },
+  startDate: { type: Date },
+  endDate: { type: Date },
+  startTime: { type: String },
+  endTime: { type: String },
+  location: { type: String },
+  pickup: { type: String },
+  dropoff: { type: String },
+  cost: { type: Number, default: 0 },
+  description: { type: String },
+  experienceNeeded: { type: Boolean, default: false },
+  coLeaderCanEditTrip: { type: Boolean, default: false },
+  OPOGearRequests: [
+    {
+      name: { type: String },
+      quantity: { type: Number }
+    }
+  ],
+  trippeeGear: [{ name: String, sizeType: { type: String, enum: ['N/A', 'Clothe', 'Shoe', 'Height'], default: 'N/A' }, quantity: Number }],
+  gearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
+  trippeeGearStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
+  pcard: [
+    {
+      numPeople: Number,
+      snacks: Number,
+      breakfast: Number,
+      lunch: Number,
+      dinner: Number,
+      otherCosts: [
+        {
+          title: String,
+          cost: Number
+        }
+      ]
+    }
+  ], // will actually only have one entry
+  pcardStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
+  pcardAssigned: { type: String, default: 'None' },
+  vehicleStatus: { type: String, enum: ['pending', 'approved', 'denied', 'N/A'], default: 'N/A' },
+  vehicleRequest: { type: Schema.Types.ObjectId, ref: 'VehicleRequest' },
+  sentEmails: { type: Array, default: [] }
+})
+const UserSchema = new Schema({
+  casID: String,
+  email: { type: String, lowercase: true },
+  password: { type: String, select: false }, // not defined if the user is from CAS
+  name: String,
+  photo_url: String,
+  pronoun: String,
+  dash_number: String,
+  allergies_dietary_restrictions: String,
+  medical_conditions: String,
+  clothe_size: { type: String, enum: ['Men-XS', 'Men-S', 'Men-M', 'Men-L', 'Men-XL', 'Women-XS', 'Women-S', 'Women-M', 'Women-L', 'Women-XL'] },
+  shoe_size: String,
+  height: String,
+  role: { type: String, enum: ['Leader', 'Trippee', 'OPO'], default: 'Trippee' },
+  leader_for: { type: [{ type: Schema.Types.ObjectId, ref: 'Club' }], default: [] }, // the names/ids of clubs you are a leader for
+  has_pending_leader_change: { type: Boolean, default: false },
+  has_pending_cert_change: { type: Boolean, default: false },
+  driver_cert: { type: String, enum: ['MICROBUS', 'VAN', null], default: null },
+  trailer_cert: { type: Boolean, default: false },
+  requested_clubs: { type: [{ type: Schema.Types.ObjectId, ref: 'Club' }], default: [] },
+  requested_certs: {
+    driver_cert: { type: String, enum: ['MICROBUS', 'VAN', null], default: null },
+    trailer_cert: { type: Boolean, default: false }
+  },
+  completedProfile: { type: Boolean, default: false }
+})
+const VehicleSchema = new Schema({
+  name: { type: String, unique: true },
+  type: { type: String, enum: ['Van', 'Microbus', 'Truck', 'Enterprise', 'PersonalVehicle'] },
+  bookings: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }],
+  active: { type: Boolean, default: true }
+})
+const VehicleRequestSchema = new Schema({
+  number: { type: Number, unique: true },
+  requester: { type: Schema.Types.ObjectId, ref: 'User' },
+  requestDetails: String,
+  mileage: Number,
+  noOfPeople: Number,
+  associatedTrip: { type: Schema.Types.ObjectId, ref: 'Trip' },
+  requestType: { type: String, enum: ['TRIP', 'SOLO'] },
+  requestedVehicles: [
+    {
+      vehicleType: { type: String, enum: ['Van', 'Microbus', 'Truck', 'PersonalVehicle'] },
+      vehicleDetails: String,
+      pickupDate: Date,
+      pickupTime: String,
+      pickupDateAndTime: Date,
+      returnDate: Date,
+      returnDateAndTime: Date,
+      returnTime: String,
+      trailerNeeded: Boolean,
+      passNeeded: Boolean,
+      recurringVehicle: Boolean
+    }
+  ],
+  status: { type: String, enum: ['pending', 'approved', 'denied'], default: 'pending' },
+  assignments: [{ type: Schema.Types.ObjectId, ref: 'Assignment' }]
+})
