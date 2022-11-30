@@ -30,7 +30,7 @@ tripsRouter.route('/:tripID')
   .get(requireAuth, async (req, res) => {
     trips.getTrip(req.params.tripID, req.user)
       .then((result) => { res.json(result) })
-      .catch((error) => { return res.status(500).json(error) })
+      .catch((error) => { console.log(error); return res.sendStatus(500) })
   })
   .put(requireAuth, trips.updateTrip)
   .delete(requireAuth, trips.deleteTrip)

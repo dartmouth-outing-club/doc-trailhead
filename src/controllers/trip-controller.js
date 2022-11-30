@@ -2,7 +2,6 @@ import { subtract } from 'date-arithmetic'
 import { ObjectId } from 'mongodb'
 
 import { trips } from '../services/mongo.js'
-import Trip from '../models/trip-model.js'
 
 import * as Globals from '../controllers/global-controller.js'
 import * as Users from '../controllers/user-controller.js'
@@ -172,39 +171,45 @@ export async function createTrip (creator, data) {
   const nextTripNumber = await Globals.incrementTripNumber()
 
   // Creates the new trip
-  const trip = new Trip()
-  trip.number = nextTripNumber
-  trip.title = data.title
-  trip.private = data.private
-  trip.startDate = data.startDate
-  trip.endDate = data.endDate
-  trip.startTime = data.startTime
-  trip.startDateAndTime = constants.createDateObject(data.startDate, data.startTime, data.timezone)
-  trip.endDateAndTime = constants.createDateObject(data.endDate, data.endTime, data.timezone)
-  trip.endTime = data.endTime
-  trip.description = data.description
-  trip.club = data.club
-  trip.cost = data.cost
-  trip.experienceNeeded = data.experienceNeeded
-  trip.location = data.location
-  trip.pickup = data.pickup
-  trip.dropoff = data.dropoff
-  trip.mileage = data.mileage
-  trip.coLeaderCanEditTrip = data.coLeaderCanEditTrip
-  trip.OPOGearRequests = data.gearRequests
-  trip.trippeeGear = data.trippeeGear
-  trip.pcard = data.pcard
-
-  if (data.injectingStatus) { // TO-DELETE was used for debugging
-    trip.gearStatus = data.gearStatus
-    trip.trippeeGearStatus = data.trippeeGearStatus
-    trip.pcardStatus = data.pcardStatus
-    if (data.pcardStatus === 'approved') trip.pcardAssigned = data.pcardAssigned
-  } else {
-    if (data.gearRequests.length > 0) trip.gearStatus = 'pending'
-    if (data.trippeeGear.length > 0) trip.trippeeGearStatus = 'pending'
-    if (data.pcard.length > 0) trip.pcardStatus = 'pending'
+  const startDateAndTime = constants.createDateObject(data.startDate, data.startTime, data.timezone)
+  const endDateAndTime = constants.createDateObject(data.endDate, data.endTime, data.timezone)
+  const trip = {
+    number: nextTripNumber,
+    title: data.title || 'Untitled trip',
+    private: data.private || false,
+    past: false,
+    left: false,
+    returnd: false,
+    markedLate: false,
+    startDate: data.startDate,
+    endDate: data.endDate,
+    startTime: data.startTime,
+    startDateAndTime,
+    endDateAndTime,
+    endTime: data.endTime,
+    description: data.description,
+    club: data.club._id,
+    cost: data.cost || 0,
+    experienceNeeded: data.experienceNeeded || false,
+    location: data.location,
+    pickup: data.pickup,
+    dropoff: data.dropoff,
+    mileage: data.mileage,
+    coLeaderCanEditTrip: data.coLeaderCanEditTrip || false,
+    OPOGearRequests: data.gearRequests,
+    trippeeGear: data.trippeeGear,
+    gearStatus: 'N/A',
+    trippeeGearStatus: 'N/A',
+    pcard: data.pcard,
+    pcardStatus: 'N/A',
+    pcardAssigned: 'None',
+    vehicleStatus: 'N/A',
+    sentEmails: []
   }
+
+  if (data.gearRequests.length > 0) trip.gearStatus = 'pending'
+  if (data.trippeeGear.length > 0) trip.trippeeGearStatus = 'pending'
+  if (data.pcard.length > 0) trip.pcardStatus = 'pending'
 
   // Add the trip creator to the trip
   trip.members = [{ user: creator._id, requestedGear: [] }]
@@ -221,7 +226,9 @@ export async function createTrip (creator, data) {
       leaderEmails.push(foundUser.email)
     }
   })
-  const savedTrip = await trip.save()
+
+  const { insertedId } = await trips.insertOne(trip)
+  const savedTrip = { ...trip, _id: insertedId }
   await mailer.sendNewTripEmail(savedTrip, leaderEmails, creator)
 
   // If vehciles are specified, create a new Vehicle Request
@@ -235,12 +242,14 @@ export async function createTrip (creator, data) {
       requestDetails: description,
       requestedVehicles: vehicles
     }
+
     try {
       const savedVehicleRequest = await VehicleRequests.createNewVehicleRequest(requestObject)
       await mailer.sendNewVehicleRequestEmail(trip, leaderEmails, savedVehicleRequest)
-      savedTrip.vehicleStatus = data.injectingStatus ? data.vehicleStatus : 'pending'
-      savedTrip.vehicleRequest = savedVehicleRequest._id
-      return await savedTrip.save()
+      const vehicleStatus = 'pending'
+      const vehicleRequest = savedVehicleRequest._id
+      await trips.updateOne({ _id: trip._id }, { $set: { vehicleStatus, vehicleRequest } })
+      return { ...savedTrip, vehicleStatus, vehicleRequest }
     } catch (error) {
       throw new Error(`${'Trip successfully created, but error creating associated vehicle request for trip:'} ${error.toString()}`)
     }
@@ -250,8 +259,8 @@ export async function createTrip (creator, data) {
 }
 
 export async function updateTrip (req, res) {
-  const trip = await Trip.findById(req.params.tripID)
-  const isTripLeaderOrOPO = trip.leaders.some((leaderID) => leaderID.toString() === req.user._id.toString()) || req.user.role === 'OPO'
+  const trip = await getTripById(req.params.tripID)
+  const isTripLeaderOrOPO = trip.leaders.some(leaderID => leaderID.toString() === req.user._id.toString()) || req.user.role === 'OPO'
   if (!isTripLeaderOrOPO) {
     return res.status(403).send('You must be a leader on the trip to update it.')
   }
@@ -266,7 +275,7 @@ export async function updateTrip (req, res) {
   trip.endDateAndTime = constants.createDateObject(req.body.endDate, req.body.endTime, req.body.timezone)
   trip.description = req.body.description
   trip.coLeaderCanEditTrip = req.body.coLeaderCanEditTrip
-  trip.club = req.body.club
+  trip.club = req.body.club._id
   trip.location = req.body.location
   trip.pickup = req.body.pickup
   trip.dropoff = req.body.dropoff
@@ -297,7 +306,9 @@ export async function updateTrip (req, res) {
     for (let i = 0; i < markToRemove.length; i += 1) person.requestedGear.splice(markToRemove[i], 1)
   })
 
-  await calculateRequiredGear(trip)
+  const { trippeeGear, trippeeGearStatus } = getNewGearAndGearStatus(trip)
+  trip.trippeeGear = trippeeGear
+  trip.trippeeGearStatus = trippeeGearStatus
 
   if (trip.gearStatus === 'N/A' && req.body.gearRequests.length > 0) {
     trip.gearStatus = 'pending'
@@ -342,7 +353,7 @@ export async function updateTrip (req, res) {
       trip.vehicleRequest = vehicleRequest._id
       trip.vehicleStatus = 'pending'
     } else {
-      // If the request was previously approved, delete the associated assignements and send an email
+      // If the request was previously approved, delete associated assignements and send an email
       if (trip.vehicleStatus === 'approved') {
         const vehicleRequest = await VehicleRequests.getVehicleRequestById(req.body.vehicleReqId)
         await Assignments.deleteAssignments(vehicleRequest.assignments)
@@ -376,8 +387,8 @@ export async function updateTrip (req, res) {
     }
   })
 
-  const finalTrip = await trip.save()
-  res.json(finalTrip)
+  const updateResponse = await trips.findOneAndUpdate({ _id: trip._id }, { $set: { ...trip } })
+  return res.json(updateResponse.value)
 }
 
 /**
@@ -394,7 +405,7 @@ export async function deleteTrip (req, res) {
     return res.status(422).send('You must be a leader on the trip or OPO staff')
   }
 
-  await Trip.deleteOne({ _id: tripId })
+  await trips.deleteOne({ _id: tripId })
   const owner = await Users.getUserById(trip.owner)
 
   const members = [...trip.members, ...trip.pending]
@@ -443,41 +454,6 @@ function getNewGearAndGearStatus (trip) {
   }
 
   return { trippeeGear: newGear, trippeeGearStatus }
-}
-
-/**
- * Recalculates the sum of trippee gear requests from the current list of members.
- * @param {Trip} trip
- */
-async function calculateRequiredGear (trip) {
-  const originalGear = JSON.parse(JSON.stringify(trip.trippeeGear)) // Presumably because of mongo but lol
-  trip.trippeeGear.forEach((gear) => { gear.quantity = 0 })
-  trip.members.forEach((member) => {
-    member.requestedGear.forEach((g) => {
-      trip.trippeeGear.forEach((gear) => {
-        if (g.gearId === gear._id.toString()) {
-          gear.quantity += 1
-        }
-      })
-    })
-  })
-
-  if (requiresReapproval(trip, originalGear)) {
-    trip.trippeeGearStatus = 'pending'
-    sendLeadersEmail(trip._id, `Trip #${trip.number}: Trippee gear requests un-approved`, `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}]'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
-    mailer.sendGearRequiresReapprovalNotice(trip)
-  }
-
-  return trip.save()
-}
-
-function requiresReapproval (trip, originalGear) {
-  const wasApproved = trip.trippeeGearStatus === 'approved'
-  const hasChanged = originalGear.length !== trip.trippeeGear.length ||
-    !originalGear
-      .map((o, i) => [o, trip.trippeeGear[i]])
-      .every((combined) => (combined[0].name === combined[1].name && combined[0].quantity >= combined[1].quantity && combined[0].sizeType === combined[1].sizeType))
-  return wasApproved && hasChanged
 }
 
 /**
@@ -567,7 +543,9 @@ export async function admit (tripID, admittedUserID) {
     { $set: { pending, members, trippeeGear, trippeeGearStatus } }
   )
   const foundUser = await Users.getUserById(admittedUserID)
-  return mailer.sendTripApprovalEmail(trip, foundUser)
+  const owner = await Users.getUserById(trip.owner)
+  console.log(owner)
+  return mailer.sendTripApprovalEmail(trip, foundUser, owner.email)
 }
 
 /**
@@ -593,7 +571,8 @@ export async function unAdmit (tripID, leavingUserID) {
     { $set: { pending, members, leaders, trippeeGear, trippeeGearStatus } }
   )
   const foundUser = await Users.getUserById(leavingUserID)
-  return mailer.sendTripRemovalEmail(trip, foundUser)
+  const owner = await Users.getUserById(trip.owner)
+  return mailer.sendTripRemovalEmail(trip, foundUser, owner.email)
 }
 
 /**
@@ -611,7 +590,8 @@ export async function reject (tripID, rejectedUserID) {
   const pending = trip.pending.filter(pender => pender.user?.toString() !== rejectedUserID)
   await trips.updateOne({ _id: new ObjectId(tripID) }, { $set: { pending } })
   const rejectedUser = await Users.getUserById(rejectedUserID)
-  return mailer.sendTripTooFullEmail(trip, rejectedUser)
+  const owner = await Users.getUserById(trip.owner)
+  return mailer.sendTripTooFullEmail(trip, rejectedUser, owner.email)
 }
 
 /**
@@ -645,7 +625,7 @@ export async function leave (tripID, leavingUserID) {
 
 export async function toggleTripLeadership (req, res) {
   const tripId = req.params.tripID
-  const toggledUser = await Users.getUserById(req.body.member.user.id)
+  const toggledUser = await Users.getUserById(req.body.member.user._id)
   const trip = await getTripById(tripId)
 
   let leaders
@@ -667,26 +647,20 @@ export async function toggleTripLeadership (req, res) {
 /**
  * Sets the attending status for each member of trip.
  */
-export const setMemberAttendance = (req, res) => {
+export async function setMemberAttendance (req, res) {
   const { tripID } = req.params
-  const { memberID } = req.body
-  const { status } = req.body
-  Trip.findById(tripID).then((trip) => {
-    Promise.all(
-      trip.members.map((member) => {
-        if (member.user.toString() === memberID) {
-          return new Promise((resolve) => {
-            member.attended = status
-            resolve()
-          })
-        } else return null
-      })
-    ).then(() => {
-      trip.save().then(() => {
-        res.json({ status })
-      })
-    })
-  }).catch((error) => { return res.status(500).json(error) })
+  const { memberID, status } = req.body
+
+  const trip = await getTripById(tripID)
+
+  const members = trip.members.map(member => (
+    member.user.toString() === memberID
+      ? { ...member, attended: status }
+      : member
+  ))
+
+  await trips.updateOne({ _id: tripID }, { $set: { members } })
+  res.json({ status })
 }
 
 /**
