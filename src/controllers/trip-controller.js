@@ -134,7 +134,7 @@ export async function getTrip (tripID, forUser) {
   let isLeaderOnTrip
   if (forUser) {
     const isPending = trip.pending.some(pender => pender.toString() === forUser._id.toString())
-    const isOnTrip = trip.members.some(member => member.toString() === member._id.toString())
+    const isOnTrip = trip.members.some(member => member.toString() === forUser._id.toString())
 
     if (isPending) {
       userTripStatus = 'PENDING'
