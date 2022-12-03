@@ -100,10 +100,9 @@ CREATE TABLE vehicles (
   active INTEGER DEFAULT TRUE
 );
 
-CREATE TABLE vehicle_requests (
+CREATE TABLE vehiclerequests (
   id INTEGER primary key,
   _id TEXT,
-  number INTEGER UNIQUE,
   requester TEXT NOT NULL REFERENCES users ON DELETE RESTRICT ON UPDATE CASCADE,
   request_details TEXT, /* requestDetails */
   mileage INTEGER,
@@ -116,9 +115,25 @@ CREATE TABLE vehicle_requests (
 ) STRICT;
 
 CREATE TABLE club_leaders (
-	user INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
-	club INTEGER REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE
-);
+	user TEXT REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
+	club TEXT REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE
+) STRICT;
+
+CREATE TABLE requested_vehicles (
+  vehiclerequest TEXT REFERENCES vehiclerequests ON DELETE CASCADE ON UPDATE CASCADE,
+  type TEXT, -- vehicleType, enum: ['Van', 'Microbus', 'Truck', 'PersonalVehicle']
+  details TEXT, -- vehicleDetails
+  pickup_time INTEGER, -- pickupDateAndTime
+  return_time INTEGER, -- returnDateAndTime
+  trailer_needed INTEGER DEFAULT FALSE, -- trailerNeeded
+  pass_needed INTEGER DEFAULT FALSE, -- passNeeded
+  recurring_vehicle INTEGER DEFAULT FALSE -- recurringVehicle
+) STRICT;
+
+CREATE TABLE vehiclerequests_assignments (
+  vehiclerequest TEXT REFERENCES vehiclerequests ON DELETE CASCADE ON UPDATE CASCADE,
+  assignement TEXT REFERENCES assignements ON DELETE CASCADE ON UPDATE CASCADE
+) STRICT;
 
 /* CREATE TABLE packets_stops ( */
 /* 	packet TEXT REFERENCES packets ON DELETE CASCADE ON UPDATE CASCADE, */

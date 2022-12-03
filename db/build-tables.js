@@ -21,6 +21,39 @@ const club_users = users
   .filter(record => record.user && record.club)
 console.log(getInsertStatementFromRecords(club_users, ['user', 'club'], 'club_leaders'))
 
+const vehicleRequests = getRecordsFromFile('./tables/vehiclerequests.bson.json').map(request => ({
+  ...request,
+  num_participants: request.noOfPeople?.$numberInt,
+  mileage: request.mileage?.$numberInt
+}))
+const vehicleRequestFields = ['_id', 'requester', ['requestDetails', 'request_details'], 'mileage',
+  'num_participants', ['associatedTrip', 'trip'], ['requestType', 'request_type'], 'status']
+console.log(getInsertStatementFromRecords(vehicleRequests, vehicleRequestFields, 'vehiclerequests'))
+
+const requestedVehicles = vehicleRequests.flatMap(request => (
+  request.requestedVehicles.map(requestedVehicle => {
+    const pickup_time = requestedVehicle.pickupDateAndTime?.$date?.$numberLong
+    const return_time = requestedVehicle.returnDateAndTime?.$date?.$numberLong
+    return {
+      ...requestedVehicle,
+      pickup_time,
+      return_time,
+      vehiclerequest: request._id.$oid
+    }
+  })
+))
+const requestedVehicleFields = [
+  'vehiclerequest',
+  ['vehicleType', 'type'],
+  ['vehicleDetails', 'details'],
+  'pickup_time',
+  'return_time',
+  ['trailerNeeded', 'trailer_needed'],
+  ['passNeeded', 'pass_needed'],
+  ['recurringVehicle', 'recurring_vehicle']
+]
+console.log(getInsertStatementFromRecords(requestedVehicles, requestedVehicleFields, 'requested_vehicles'))
+
 function getRecordsFromFile (fileName) {
   const contents = fs.readFileSync(fileName).toString()
   const records = contents
