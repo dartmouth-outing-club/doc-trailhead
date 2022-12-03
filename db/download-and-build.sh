@@ -25,9 +25,6 @@ done
 mkdir tables
 mv dump/main/*.bson.json tables
 
-# Run the script that inserts the JSON files into SQL
-"$DIR"/create-db.sh tables/* | sqlite3 trailhead.db
-
 # Clean up tables directory and database dump
 # If you want to save the mongo stuff you can just comment this out
-rm -rf tables dump
+rm -rf dump
