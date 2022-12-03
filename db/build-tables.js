@@ -1,86 +1,25 @@
 import fs from 'node:fs'
 
-const vehicles = getRecordsFromFile('./tables/vehicles.bson.json').map(vehicle => {
-  const _id = vehicle._id.$oid
-  return { ...vehicle, _id }
-})
+const vehicles = getRecordsFromFile('./tables/vehicles.bson.json')
 const vehicleFields = ['_id', 'name', 'type', 'active']
-const insertVehicles = `
-INSERT OR IGNORE INTO vehicles ( _id, name, type, active) VALUES
-${getInsertsFromRecords(vehicles, vehicleFields)};
-`
-console.log(insertVehicles)
+console.log(getInsertStatementFromRecords(vehicles, vehicleFields, 'vehicles'))
 
-const clubs = getRecordsFromFile('./tables/clubs.bson.json').map(vehicle => {
-  const _id = vehicle._id.$oid
-  return { ...vehicle, _id }
-})
+const clubs = getRecordsFromFile('./tables/clubs.bson.json')
 const clubFields = ['_id', 'name', 'active']
-console.log(`
-INSERT OR IGNORE INTO clubs ( _id, name, active) VALUES
-${getInsertsFromRecords(clubs, clubFields)};
-`)
+console.log(getInsertStatementFromRecords(clubs, clubFields, 'clubs'))
 
-const users = getRecordsFromFile('./tables/users.bson.json').map(user => {
-  const _id = user._id.$oid
-  const leader_for = user?.leader_for?.map(club => club.$oid)
-  return { ...user, _id, leader_for }
-})
-const userFields = [
-  '_id',
-  'casID',
-  'email',
-  'password',
-  'name',
-  'photo_url',
-  'pronoun',
-  'dash_number',
-  'allergies_dietary_restrictions',
-  'medical_conditions',
-  'clothe_size',
-  'shoe_size',
-  'height',
-  'role',
-  'has_pending_leader_change',
-  'has_pending_cert_change',
-  'driver_cert',
-  'trailer_cert',
-  'requested_clubs',
-  'requested_certs'
-]
-console.log(`
-INSERT OR IGNORE INTO USERS (
-  _id,
-  cas_id,
-  email,
-  password,
-  name,
-  photo_url,
-  pronoun,
-  dash_number,
-  allergies_dietary_restrictions,
-  medical_conditions,
-  clothe_size,
-  shoe_size,
-  height,
-  role,
-  has_pending_leader_change,
-  has_pending_cert_change,
-  driver_cert,
-  trailer_cert,
-  requested_clubs,
-  requested_certs
-) VALUES
-${getInsertsFromRecords(users, userFields)};
-`)
+const users = getRecordsFromFile('./tables/users.bson.json')
+const userFields = ['_id', ['casID', 'cas_id'], 'email', 'password', 'name', 'photo_url',
+  'pronoun', 'dash_number', 'allergies_dietary_restrictions', 'medical_conditions', 'clothe_size',
+  'shoe_size', 'height', 'role', 'has_pending_leader_change', 'has_pending_cert_change',
+  'driver_cert', 'trailer_cert', 'requested_clubs', 'requested_certs']
+console.log(getInsertStatementFromRecords(users, userFields, 'users'))
 
 const club_users = users
-  .flatMap(user => user?.leader_for?.map(club => ({ user: user._id, club })))
+  .flatMap(user => user?.leader_for?.map(club => ({ user: user._id.$oid, club: club.$oid })))
   .filter(record => record)
   .filter(record => record.user && record.club)
-console.log(`INSERT INTO club_leaders (user, club) VALUES
-${getInsertsFromRecords(club_users, ['user', 'club'])}
-`)
+console.log(getInsertStatementFromRecords(club_users, ['user', 'club'], 'club_leaders'))
 
 function getRecordsFromFile (fileName) {
   const contents = fs.readFileSync(fileName).toString()
@@ -91,11 +30,23 @@ function getRecordsFromFile (fileName) {
   return records
 }
 
-function getInsertsFromRecords (records, fields) {
+function getInsertStatementFromRecords (records, fields, tableName) {
   const recordFields = records.map(record => (
-    fields.map(field => sqlize(record[field]))
+    fields.map(field => {
+      if (field === '_id') {
+        return record._id.$oid
+      } else {
+        const fieldName = typeof field === 'string' ? field : field[0]
+        return record[fieldName]
+      }
+    }).map(sqlize)
   ))
-  return recordFields.map(record => `(${record.join(',')})`).join(',\n')
+  const fieldNames = fields.map(field => typeof field === 'string' ? field : field[1])
+  const inserts = recordFields.map(record => `(${record.join(',')})`)
+  return `
+INSERT OR IGNORE INTO ${tableName} (${fieldNames.join(',')}) VALUES
+${inserts.join(',\n')};
+`
 }
 
 function sqlize (value) {
