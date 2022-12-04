@@ -7,3 +7,8 @@ UPDATE club_leaders
 SET club = clubs.id
 FROM clubs
 WHERE clubs._id = club_leaders.club;
+
+UPDATE requested_vehicles
+SET vehiclerequest = vehiclerequests.id
+FROM vehiclerequests
+WHERE vehiclerequests._id = requested_vehicles.vehiclerequest;

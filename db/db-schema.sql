@@ -20,21 +20,21 @@ CREATE TABLE assignments (
 CREATE TABLE clubs (
   id INTEGER PRIMARY KEY,
   _id TEXT,
-	name TEXT,
+  name TEXT,
   active INTEGER DEFAULT TRUE
 ) STRICT;
 
 CREATE TABLE globals (
   id INTEGER PRIMARY KEY,
   _id TEXT,
-	trip_number_max INTEGER, /* tripNumberMax */
+  trip_number_max INTEGER, /* tripNumberMax */
   vehicle_request_number_max INTEGER /* vehicleRequestNumberMax */
 ) STRICT;
 
 CREATE TABLE trips (
   id INTEGER PRIMARY KEY,
   _id TEXT,
-	name INTEGER,
+  name INTEGER,
   title TEXT DEFAULT 'Untitled trip',
   private INTEGER DEFAULT FALSE,
   past INTEGER DEFAULT FALSE,
@@ -115,8 +115,8 @@ CREATE TABLE vehiclerequests (
 ) STRICT;
 
 CREATE TABLE club_leaders (
-	user TEXT REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
-	club TEXT REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE
+  user TEXT REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
+  club TEXT REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE
 ) STRICT;
 
 CREATE TABLE requested_vehicles (
@@ -136,9 +136,9 @@ CREATE TABLE vehiclerequests_assignments (
 ) STRICT;
 
 /* CREATE TABLE packets_stops ( */
-/* 	packet TEXT REFERENCES packets ON DELETE CASCADE ON UPDATE CASCADE, */
-/* 	stop TEXT REFERENCES stops(name) ON DELETE RESTRICT ON UPDATE CASCADE */
-/* ); */
+  /* 	packet TEXT REFERENCES packets ON DELETE CASCADE ON UPDATE CASCADE, */
+  /* 	stop TEXT REFERENCES stops(name) ON DELETE RESTRICT ON UPDATE CASCADE */
+  /* ); */
 
 /* CREATE TRIGGER directions_inserted AFTER INSERT ON directions */
 /* BEGIN */
