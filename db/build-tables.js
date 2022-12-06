@@ -54,6 +54,79 @@ const requestedVehicleFields = [
 ]
 console.log(getInsertStatementFromRecords(requestedVehicles, requestedVehicleFields, 'requested_vehicles'))
 
+const assignments = getRecordsFromFile('./tables/assignments.bson.json').map(assignment => ({
+  ...assignment,
+  request: assignment.request.$oid,
+  requester: assignment.requester.$oid,
+  vehicle: assignment.assigned_vehicle.$oid,
+  pickup_time: assignment.assigned_pickupDateAndTime.$date.$numberLong,
+  return_time: assignment.assigned_returnDateAndTime.$date.$numberLong,
+  picked_up: assignment.pickedUp || false,
+  returned: assignment.returned || false
+}))
+const assignmentFields = ['_id', 'request', 'requester', 'pickup_time', 'return_time',
+  ['assigned_key', 'vehicle_key'], 'vehicle', 'picked_up', 'returned']
+console.log(getInsertStatementFromRecords(assignments, assignmentFields, 'assignments'))
+
+const trips = getRecordsFromFile('./tables/trips.bson.json').map(trip => ({
+  ...trip,
+  club: trip.club.$oid,
+  owner: trip.owner.$oid,
+  start_time: trip.startDateAndTime,
+  end_time: trip.endDateAndTime
+}))
+const tripFields = [
+  '_id',
+  'name',
+  'title',
+  'private',
+  'past',
+  'left',
+  'returned',
+  'marked_late', /* markedLate */
+  'club',
+  'owner',
+  'start_time', /* startDateAndTime */
+  'end_time', /* endDateAndTime */
+  'location',
+  'pickup',
+  'dropoff',
+  'cost',
+  'description',
+  'experience_needed', /* experienceNeeded */
+  'coleader_can_edit', /* coLeaderCanEditTrip */
+  'opo_gear_requests', /* OPOGearRequests [{ name }, quantity }] */
+  'trippee_gear',
+  'gear_status',
+  'trippee_gear_status',
+  'pcard',
+  'pcard_status', /* enum: ['pending', 'approved', 'denied', 'N/A'] */
+  'pcard_assigned',
+  'vehicle_status',
+  'vehicle_request',
+  'sent_email'
+]
+
+const tripMembers = trips.flatMap(trip => {
+  const leaders = trip.leaders?.map(leader => leader.$oid) || []
+  const pendingUsers = trip.pending?.map(pender => pender.user.$oid) || []
+  const allMembers = [...trip.members, ...trip.pending]
+  return allMembers.map(member => {
+    const user = member.user?.$oid
+    if (!user) return undefined
+
+    return {
+      user,
+      pending: pendingUsers.includes(user),
+      leader: leaders.includes(user),
+      attended: member.attended || false,
+      trip: trip._id.$oid,
+      requested_gear: JSON.stringify(member.requestedGear)
+    }
+  }) || []
+}).filter(item => item)
+console.log(getInsertStatementFromRecords(tripMembers, ['trip', 'user', 'leader', 'attended', 'pending', 'requested_gear'], 'trip_members'))
+
 function getRecordsFromFile (fileName) {
   const contents = fs.readFileSync(fileName).toString()
   const records = contents

@@ -1,3 +1,4 @@
+BEGIN;
 /* Removed from model: */
 /* responseIndex */
 /* assigned_pickupDate */
@@ -9,10 +10,10 @@ CREATE TABLE assignments (
   _id TEXT,
   request TEXT REFERENCES vehiclerequests ON UPDATE CASCADE ON DELETE SET NULL,
   requester TEXT REFERENCES users ON UPDATE CASCADE ON DELETE RESTRICT,
-  assigned_pickupDateAndTime INTEGER,
-  assigned_returnDateAndTime INTEGER,
-  assigned_key TEXT,
-  assigned_vehicle TEXT REFERENCES vehicles ON UPDATE CASCADE,
+  pickup_time INTEGER,
+  return_time INTEGER,
+  vehicle TEXT REFERENCES vehicles ON UPDATE CASCADE,
+  vehicle_key TEXT,
   picked_up INTEGER DEFAULT FALSE, /* pickedUp */
   returned INTEGER DEFAULT FALSE
 ) STRICT;
@@ -43,11 +44,8 @@ CREATE TABLE trips (
   marked_late INTEGER DEFAULT FALSE, /* markedLate */
   club TEXT REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
   owner TEXT REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
-  leaders TEXT, /* [user] */
-  members TEXT, /* [{user, attended, requestedGear }] */
-  pending TEXT, /* [{user, requestedGear: {gearId, name}}] */
-  start_datetime TEXT, /* startDateAndTime */
-  end_dateime TEXT, /* endDateAndTime */
+  start_time TEXT, /* startDateAndTime */
+  end_time TEXT, /* endDateAndTime */
   location TEXT,
   pickup TEXT,
   dropoff TEXT,
@@ -83,7 +81,6 @@ CREATE TABLE users (
   shoe_size TEXT,
   height TEXT,
   role TEXT DEFAULT 'Trippee', /* { type: String, enum: ['Leader', 'Trippee', 'OPO'], } */
-  leader_for TEXT DEFAULT '[]', /*{ type: [{ type: Schema.Types.ObjectId, ref: 'Club' }], default: [] }*/
   has_pending_leader_change INTEGER DEFAULT FALSE,
   has_pending_cert_change INTEGER DEFAULT FALSE,
   driver_cert TEXT, /*{ type: String, enum: ['MICROBUS', 'VAN', null], default: null }*/
@@ -104,14 +101,13 @@ CREATE TABLE vehiclerequests (
   id INTEGER primary key,
   _id TEXT,
   requester TEXT NOT NULL REFERENCES users ON DELETE RESTRICT ON UPDATE CASCADE,
-  request_details TEXT, /* requestDetails */
+  request_details TEXT, -- requestDetails
   mileage INTEGER,
-  num_participants INTEGER, /* noOfPeople */
-  trip TEXT REFERENCES trips ON DELETE RESTRICT ON UPDATE CASCADE, /* associatedTrip */
-  request_type TEXT, /* requestType { enum: ['TRIP', 'SOLO'] } */
-  requested_vehicles TEXT, /* requestedVehicles */
-  status TEXT DEFAULT 'pending', /*{ enum: ['pending', 'approved', 'denied'], }, */
-  assignments TEXT
+  num_participants INTEGER, -- noOfPeople
+  trip TEXT REFERENCES trips ON DELETE RESTRICT ON UPDATE CASCADE, -- associatedTrip
+  request_type TEXT, -- requestType { enum: ['TRIP', 'SOLO'] }
+  requested_vehicles TEXT, -- requestedVehicles
+  status TEXT DEFAULT 'pending' -- { enum: ['pending', 'approved', 'denied'], },
 ) STRICT;
 
 CREATE TABLE club_leaders (
@@ -135,10 +131,22 @@ CREATE TABLE vehiclerequests_assignments (
   assignement TEXT REFERENCES assignements ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
 
-/* CREATE TABLE packets_stops ( */
-  /* 	packet TEXT REFERENCES packets ON DELETE CASCADE ON UPDATE CASCADE, */
-  /* 	stop TEXT REFERENCES stops(name) ON DELETE RESTRICT ON UPDATE CASCADE */
-  /* ); */
+CREATE TABLE trip_members (
+  trip TEXT REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
+  user TEXT REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
+  leader INTEGER DEFAULT FALSE,
+  attended INTEGER DEFAULT FALSE,
+  pending INTEGER DEFAULT FALSE,
+  requested_gear TEXT
+);
+
+CREATE TABLE trip_pending (
+  trip TEXT REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
+  user TEXT REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
+  requested_gear TEXT
+);
+
+COMMIT;
 
 /* CREATE TRIGGER directions_inserted AFTER INSERT ON directions */
 /* BEGIN */
