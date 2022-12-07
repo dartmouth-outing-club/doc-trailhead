@@ -24,6 +24,11 @@ FROM vehiclerequests
 WHERE vehiclerequests._id = requested_vehicles.vehiclerequest;
 
 UPDATE trip_members
+SET trip = trips.id
+FROM trips
+WHERE trips._id = trip_members.trip;
+
+UPDATE trip_members
 SET user = users.id
 FROM users
 WHERE users._id = trip_members.user;
