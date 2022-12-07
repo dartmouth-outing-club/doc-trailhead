@@ -72,8 +72,10 @@ const trips = getRecordsFromFile('./tables/trips.bson.json').map(trip => ({
   ...trip,
   club: trip.club.$oid,
   owner: trip.owner.$oid,
-  start_time: trip.startDateAndTime,
-  end_time: trip.endDateAndTime
+  start_time: trip.startDateAndTime?.$date?.$numberLong,
+  end_time: trip.endDateAndTime?.$date?.$numberLong,
+  cost: trip.cost?.$numberInt,
+  vehicle_request: trip.vehicleRequest?.$oid
 }))
 const tripFields = [
   '_id',
@@ -83,19 +85,19 @@ const tripFields = [
   'past',
   'left',
   'returned',
-  'marked_late', /* markedLate */
+  ['markedLate', 'marked_late'],
   'club',
   'owner',
-  'start_time', /* startDateAndTime */
-  'end_time', /* endDateAndTime */
+  'start_time',
+  'end_time',
   'location',
   'pickup',
   'dropoff',
   'cost',
   'description',
-  'experience_needed', /* experienceNeeded */
-  'coleader_can_edit', /* coLeaderCanEditTrip */
-  'opo_gear_requests', /* OPOGearRequests [{ name }, quantity }] */
+  ['experienceNeeded', 'experience_needed'],
+  ['coLeaderCanEditTrip', 'coleader_can_edit'],
+  ['OPOGearRequests', 'opo_gear_requests'],
   'trippee_gear',
   'gear_status',
   'trippee_gear_status',
@@ -106,6 +108,7 @@ const tripFields = [
   'vehicle_request',
   'sent_email'
 ]
+console.log(getInsertStatementFromRecords(trips, tripFields, 'trips'))
 
 const tripMembers = trips.flatMap(trip => {
   const leaders = trip.leaders?.map(leader => leader.$oid) || []
@@ -156,7 +159,7 @@ ${inserts.join(',\n')};
 }
 
 function sqlize (value) {
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     return 'NULL'
   } else if (typeof value === 'boolean') {
     return value === true ? 'TRUE' : 'FALSE'

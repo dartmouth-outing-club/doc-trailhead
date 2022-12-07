@@ -44,8 +44,8 @@ CREATE TABLE trips (
   marked_late INTEGER DEFAULT FALSE, /* markedLate */
   club TEXT REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
   owner TEXT REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
-  start_time TEXT, /* startDateAndTime */
-  end_time TEXT, /* endDateAndTime */
+  start_time INTEGER, /* startDateAndTime */
+  end_time INTEGER, /* endDateAndTime */
   location TEXT,
   pickup TEXT,
   dropoff TEXT,
@@ -62,7 +62,7 @@ CREATE TABLE trips (
   pcard_assigned TEXT,
   vehicle_status TEXT DEFAULT 'N/A',
   vehicle_request TEXT REFERENCES vehiclerequests ON DELETE RESTRICT ON UPDATE CASCADE,
-  sent_email TEXT
+  sent_email TEXT DEFAULT '[]'
 ) STRICT;
 
 CREATE TABLE users (

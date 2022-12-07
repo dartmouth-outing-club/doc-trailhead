@@ -1,3 +1,13 @@
+UPDATE trips
+SET owner = users.id
+FROM users
+WHERE users._id = trips.owner;
+
+UPDATE trips
+SET club = clubs.id
+FROM clubs
+WHERE clubs._id = trips.club;
+
 UPDATE club_leaders
 SET user = users.id
 FROM users
