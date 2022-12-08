@@ -15,11 +15,17 @@ const userFields = ['_id', ['casID', 'cas_id'], 'email', 'password', 'name', 'ph
   'driver_cert', 'trailer_cert', 'requested_clubs', 'requested_certs']
 console.log(getInsertStatementFromRecords(users, userFields, 'users'))
 
-const club_users = users
-  .flatMap(user => user?.leader_for?.map(club => ({ user: user._id.$oid, club: club.$oid })))
+const club_leaders = users
+  .flatMap(user => user?.leader_for?.map(club => ({ user: user._id.$oid, club: club.$oid, is_approved: true })))
   .filter(record => record)
   .filter(record => record.user && record.club)
-console.log(getInsertStatementFromRecords(club_users, ['user', 'club'], 'club_leaders'))
+console.log(getInsertStatementFromRecords(club_leaders, ['user', 'club', 'is_approved'], 'club_leaders'))
+
+const club_requested_leaders = users
+  .flatMap(user => user?.requested_clubs?.map(club => ({ user: user._id.$oid, club: club.$oid, is_approved: false })))
+  .filter(record => record)
+  .filter(record => record.user && record.club)
+console.log(getInsertStatementFromRecords(club_requested_leaders, ['user', 'club', 'is_approved'], 'club_leaders'))
 
 const vehicleRequests = getRecordsFromFile('./tables/vehiclerequests.bson.json').map(request => ({
   ...request,
