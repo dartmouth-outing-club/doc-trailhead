@@ -5,9 +5,9 @@ import cron from 'node-cron'
 import morgan from 'morgan'
 
 import * as constants from './constants.js'
+import * as sqlite from './services/sqlite.js'
 import apiRouter from './router.js'
 import * as mailer from './services/mailer.js'
-import TripRouter from './routers/trip-router.js'
 import * as trips from './controllers/trip-controller.js'
 
 process.env.TZ = 'America/New_York'
@@ -26,8 +26,15 @@ app.use(express.static('static'))
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
-app.use('/', apiRouter, handleError)
-app.use('/trips', TripRouter, handleError)
+app.use('/', apiRouter)
+app.use(handleError)
+
+// Open database connection
+sqlite.start('trailhead.db')
+process.on('exit', () => sqlite.stop())
+process.on('SIGHUP', () => process.exit(128 + 1))
+process.on('SIGINT', () => process.exit(128 + 2))
+process.on('SIGTERM', () => process.exit(128 + 15))
 
 // START THE SERVER
 // =============================================================================

@@ -2,30 +2,29 @@ import jwt from 'jwt-simple'
 import { ObjectId } from 'mongodb'
 
 import * as Clubs from '../controllers/club-controller.js'
-import * as Trips from '../controllers/trip-controller.js'
-import * as VehicleRequests from '../controllers/vehicle-request-controller.js'
 import { users } from '../services/mongo.js'
 import * as utils from '../utils.js'
+import * as db from '../services/sqlite.js'
 
-export async function getUserById (id) {
-  const _id = typeof id === 'string' ? new ObjectId(id) : id
-  return users.findOne({ _id })
+export function getUserById (id) {
+  return db.getUserById(id)
 }
 
-export async function getUsersById (ids) {
-  return users.find({ _id: { $in: ids } }).toArray()
+export function getUserByCasId (casID) {
+  return db.getUserByCasId(casID)
 }
 
-export async function getUserByCasId (casID) {
-  return users.findOne({ casID })
-}
-
-export async function getUserByEmail (email) {
-  return users.findOne({ email })
+export function getUserByEmail (email) {
+  return db.getUserByEmail(email)
 }
 
 export async function getUsersFromEmailList (emailList) {
   return users.find({ email: { $in: emailList } }).toArray()
+}
+
+export function getListOfUsers (_req, res) {
+  const users = db.getListOfUsers()
+  return res.json(users)
 }
 
 export async function getUserEmails (userIds) {
@@ -40,7 +39,7 @@ export async function createUser (newUser) {
 export function roleAuthorization (roles) {
   return async (req, res, next) => {
     try {
-      const user = await users.findOne({ _id: req.user._id })
+      const user = db.getUserById(req.user.id)
       if (!user) throw new Error('User not found')
 
       if (roles.includes(user.role)) {
@@ -56,29 +55,16 @@ export function roleAuthorization (roles) {
 }
 
 export async function myTrips (req, res) {
-  const userId = req.user._id.toString()
-  const [tripsList, clubsMap] = await Promise.all([
-    Trips.getTripsWithUser(userId),
-    Clubs.getClubsMap()
-  ])
+  const userId = req.user.id
+  const trips = db.getUserTrips(userId)
+  const vehicleRequests = db.getUserVehicleRequests(userId)
 
-  const trips = tripsList.map(trip => ({ ...trip, club: clubsMap[trip.club.toString()] }))
-
-  let vehicleRequests = await VehicleRequests.getVehicleRequestsByRequester(userId)
-  vehicleRequests = vehicleRequests.map(vehicleRequest => {
-    const associatedTrip = trips.find(trip => trip._id.toString() === vehicleRequest.associatedTrip?.toString())
-    return { ...vehicleRequest, associatedTrip }
-  })
   return res.json({ trips, vehicleRequests })
 }
 
 export async function getUser (req, res) {
-  const user = await users.findOne({ _id: req.user._id })
+  const user = db.getUserById(req.user.id)
   if (!user) return res.sendStatus(404)
-
-  const clubsMap = await Clubs.getClubsMap()
-  user.leader_for = user.leader_for?.map(clubId => clubsMap[clubId]) || []
-  user.requested_clubs = user.requested_clubs?.map(clubId => clubsMap[clubId]) || []
 
   let hasCompleteProfile
   // Obviously these are redundant, but that will require a frontend change to fix
@@ -90,30 +76,6 @@ export async function getUser (req, res) {
     hasCompleteProfile = false
   }
   return res.json({ user, hasCompleteProfile })
-}
-
-export async function getLeaders (_req, res) {
-  try {
-    const leaders = await users.find({ role: 'Leader' }).toArray()
-    const leaderInfo = leaders.map(leader => utils.pick(leader, ['_id', 'name', 'email']))
-    res.json(leaderInfo)
-  } catch {
-    res.error(500)
-  }
-}
-
-/**
- * Returns all users in the database.
- * TODO: Make some users inactive.
- */
-export async function getUsers (_req, res) {
-  try {
-    const allUsers = await users.find({}).toArray()
-    const userInfo = allUsers.map(leader => utils.pick(leader, ['_id', 'name', 'email']))
-    res.json(userInfo)
-  } catch (error) {
-    res.error(500)
-  }
 }
 
 export async function updateUser (req, res) {

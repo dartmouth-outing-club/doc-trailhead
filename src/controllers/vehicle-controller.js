@@ -1,50 +1,36 @@
-import { ObjectId } from 'mongodb'
-import { vehicles } from '../services/mongo.js'
+import * as db from '../services/sqlite.js'
 
-export async function getVehicle (id) {
-  const _id = typeof id === 'string' ? new ObjectId(id) : id
-  return vehicles.findOne({ _id })
+export function getVehicle (id) {
+  return db.getVehicle(id)
 }
 
-export async function getVehicleByName (name) {
-  return vehicles.findOne({ name })
+export function getVehicleByName (name) {
+  return db.getVehicleByName(name)
 }
 
-export async function handleGetVehicles (_req, res) {
-  const allVehicles = await vehicles.find({ active: true }).toArray()
-  return res.json(allVehicles)
-}
-
-export async function getVehicleMap () {
-  const allVehicles = await vehicles.find({}).toArray()
-  const vehiclesMap = allVehicles.reduce((map, vehicle) => {
-    map[vehicle._id] = vehicle
-    return map
-  }, {})
-  return vehiclesMap
+export function handleGetVehicles (_req, res) {
+  const activeVehicles = db.getActiveVehicles()
+  return res.json(activeVehicles)
 }
 
 export async function handlePostVehicles (req, res) {
-  const vehicle = { name: req.body.name, body: req.body.type }
-  const { insertedId } = await vehicles.insertOne(vehicle)
-  res.json({ ...vehicle, _id: insertedId })
+  const { name, type } = req.body
+  const _id = db.insertVehicle(name, type)
+
+  res.json({ _id, name, type })
 }
 
 export async function updateVehicle (req, res) {
-  const vehicle = { name: req.body.name, body: req.body.type }
-  await vehicles.updateOne({ _id: req.params.id }, { $set: vehicle })
-  res.json(vehicle)
+  const { name, type } = req.body
+  const _id = req.params.id
+  db.updateVehicle(_id, name, type)
+  res.json({ _id, name, type })
 }
 
 export async function handleDeleteVehicle (req, res) {
-  const mongoResponse = await vehicles.updateOne(
-    { _id: req.params.id },
-    { $set: { active: false } }
-  )
-
-  if (mongoResponse.modifiedCount !== 1) {
-    console.error(`Requested to delete ${req.params._id}, but got unexpected response`)
-    console.log(mongoResponse)
+  const changes = db.makeVehicleInactive(req.params.id)
+  if (changes !== 1) {
+    console.error(`Requested to delete ${req.params._id}, but got unexpected response: ${changes}`)
   }
 
   // It doesn't matter whether there was something to delete or not, send 204 NO CONTENT

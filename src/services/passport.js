@@ -14,7 +14,7 @@ export function signinCAS (req, res, next) {
     if (error) { return error }
     if (!casID) { return res.redirect(constants.frontendURL) }
 
-    const user = await Users.getUserByCasId(casID)
+    const user = Users.getUserByCasId(casID)
     if (!user) {
       const { insertedId } = await Users.createUser({ casID, completedProfile: false })
       console.log(`Created new user ${insertedId} for ${casID}`)
@@ -33,7 +33,7 @@ export function signinSimple (req, res, next) {
       console.log('No user found, rejecting')
       return res.sendStatus(401)
     }
-    const foundUser = await Users.getUserById(user._id)
+    const foundUser = Users.getUserById(user._id)
     res.json({ token: Users.tokenForUser(user._id, 'normal'), user: foundUser })
   })(req, res, next)
 }

@@ -4,10 +4,11 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "dev": "NODE_ENV=development MONGODB_URI=mongodb://localhost/trailhead nodemon src/server.js",
+    "dev": "NODE_ENV=development nodemon src/server.js",
     "format": "eslint src --fix",
     "lint": "eslint src",
     "init-db": "cat ./db/db-schema.sql | sqlite3 trailhead.db",
+    "import-db": "./db/convert-mongo-to-sql.sh",
     "prod": "nodemon src/server.js",
     "start": "node src/server.js"
   },
@@ -20,6 +21,7 @@
     "aws-sdk": "^2.675.0",
     "axios": "^0.19.2",
     "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^8.0.0",
     "body-parser": "^1.18.3",
     "cors": "^2.8.5",
     "date-arithmetic": "^4.1.0",

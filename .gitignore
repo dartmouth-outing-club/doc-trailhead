@@ -3,7 +3,11 @@ node_modules
 .env
 *.db
 npm-debug.log
+
 trailhead.db
+*-wal
+*-shm
+
 server.csr
 server.key
 server.pass.key

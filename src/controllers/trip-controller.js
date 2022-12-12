@@ -2,45 +2,24 @@ import { subtract } from 'date-arithmetic'
 import { ObjectId } from 'mongodb'
 
 import { trips } from '../services/mongo.js'
+import * as db from '../services/sqlite.js'
 
 import * as Globals from '../controllers/global-controller.js'
 import * as Users from '../controllers/user-controller.js'
-import * as Clubs from '../controllers/club-controller.js'
 import * as VehicleRequests from './vehicle-request-controller.js'
 import * as Assignments from './assignment-controller.js'
 
 import * as constants from '../constants.js'
 import * as mailer from '../services/mailer.js'
-import * as utils from '../utils.js'
 
 export async function getTripById (id) {
   const _id = typeof id === 'string' ? new ObjectId(id) : id
   return trips.findOne({ _id })
 }
 
-export async function markVehicleStatusApproved (_id) {
-  return trips.updateOne({ _id }, { $set: { vehicleStatus: 'approved' } })
-}
-
-export async function markVehicleStatusDenied (_id) {
-  return trips.updateOne({ _id }, { $set: { vehicleStatus: 'denied' } })
-}
-
 export async function getAllCurrentTrips () {
   const now = new Date()
   return trips.find({ endDateAndTime: { $gt: now } }).toArray()
-}
-
-export async function getTripsWithUser (userId) {
-  const pastAndPresentTrips = await trips.find({ endDateAndTime: { $gte: subtract(new Date(), 30, 'day') } }).toArray()
-  const userTrips = pastAndPresentTrips.filter((trip) => {
-    const isLeader = trip.leaders.some(leader => leader.toString() === userId)
-    const isMember = trip.members.some(member => member.user.toString() === userId)
-    const isPending = trip.pending.some(member => member.user.toString() === userId)
-    return isLeader || isMember || isPending
-  })
-
-  return userTrips
 }
 
 export async function markTripsAsPast () {
@@ -56,23 +35,8 @@ async function sendLeadersEmail (tripID, subject, message) {
 }
 
 export async function getPublicTrips (_req, res) {
-  const clubsPromise = Clubs.getClubsMap()
-  const tripsPromise = trips
-    .find({ startDateAndTime: { $gte: new Date() }, private: false })
-    .sort({ startDateAndTime: 1 })
-    .limit(15)
-    .toArray()
-
   try {
-    const [tripsList, clubsMap] = await Promise.all([tripsPromise, clubsPromise])
-
-    const filteredList = tripsList
-      .map((trip) => (
-        utils.pick(trip, ['location', 'club', 'title', 'description', 'startDateAndTime', 'endDateAndTime'])
-      ))
-      .map((trip) => ({ ...trip, club: clubsMap[trip.club] }))
-
-    return res.json(filteredList)
+    return res.json(db.getPublicTrips())
   } catch (error) {
     console.error(error)
     return res.status(500).send(error.message)
@@ -80,23 +44,7 @@ export async function getPublicTrips (_req, res) {
 }
 
 export async function getTrips (getPastTrips) {
-  const date = getPastTrips ? subtract(new Date(), 30, 'day') : new Date()
-  const tripsPromise = trips.find({ startDateAndTime: { $gte: date } }).toArray()
-  const clubsPromise = Clubs.getClubsMap()
-
-  const [allTrips, clubsMap] = await Promise.all([tripsPromise, clubsPromise])
-  const leaderIds = allTrips.flatMap(trip => trip.leaders)
-  const leaders = await Users.getUsersById(leaderIds)
-  allTrips.forEach(trip => { trip.club = clubsMap[trip.club] })
-  allTrips.forEach(trip => {
-    trip.owner = leaders.find(user => user._id.toString() === trip.owner.toString())
-    trip.leaders = trip.leaders.map(leader => {
-      const foundLeader = leaders.find(user => user._id.toString() === leader.toString())
-      return { name: foundLeader.name }
-    })
-  })
-
-  return allTrips
+  return db.getAllTrips(getPastTrips)
 }
 
 /**
@@ -104,7 +52,8 @@ export async function getTrips (getPastTrips) {
  */
 export async function handleGetOpoTrips (req, res) {
   const getPastTrips = req.query.getOldTrips !== 'false'
-  const allTrips = await getTrips(getPastTrips)
+  const allTrips = db.getAllTrips(getPastTrips)
+
   const filteredTrips = allTrips.filter(trip => {
     const { trippeeGearStatus, gearStatus, pcardStatus, vehicleStatus } = trip
     return trippeeGearStatus !== 'N/A' ||
@@ -119,54 +68,11 @@ export async function handleGetOpoTrips (req, res) {
 /**
  * Fetches a single trip with all fields populated.
  */
-export async function getTrip (tripID, forUser) {
-  const [trip, clubsMap] = await Promise.all([getTripById(tripID), Clubs.getClubsMap()])
-
-  const trippeeIds = [...trip.members, ...trip.pending].map(trippee => trippee.user)
-  const allUserIds = [trip.owner, ...trip.leaders, ...trippeeIds]
-
-  const allUsers = await Users.getUsersById(allUserIds)
-  const userMap = allUsers.reduce((map, user) => {
-    map[user._id.toString()] = user
-    return map
-  }, {})
-
-  let userTripStatus
-  let isLeaderOnTrip
-  if (forUser) {
-    const isPending = trip.pending.some(pender => pender.toString() === forUser._id.toString())
-    const isOnTrip = trip.members.some(member => member.toString() === forUser._id.toString())
-
-    if (isPending) {
-      userTripStatus = 'PENDING'
-    } else if (isOnTrip) {
-      userTripStatus = 'APPROVED'
-    } else {
-      userTripStatus = 'NONE'
-    }
-
-    if (forUser.role === 'OPO') {
-      isLeaderOnTrip = true
-    } else if (trip.coLeaderCanEditTrip) {
-      isLeaderOnTrip = trip.leaders.some(leader => leader.toString() === forUser._id.toString())
-    } else {
-      isLeaderOnTrip = trip.owner.toString() === forUser._id.toString()
-    }
-  }
-
-  let vehicleRequest = trip.vehicleRequest
-  if (trip.vehicleRequest) {
-    vehicleRequest = await VehicleRequests.getVehicleRequestById(trip.vehicleRequest)
-  }
-
-  const club = clubsMap[trip.club]
-  const members = trip.members.map(member => ({ ...member, user: userMap[member.user] }))
-  const pending = trip.pending.map(pender => ({ ...pender, user: userMap[pender.user] }))
-  const leaders = trip.leaders.map(leader => (userMap[leader]))
-  const owner = userMap[trip.owner]
-
-  const enhancedTrip = { ...trip, members, pending, leaders, owner, club, vehicleRequest }
-  return { trip: enhancedTrip, userTripStatus, isLeaderOnTrip }
+export async function getTrip (req, res) {
+  const tripId = req.params.tripID
+  const requestingUser = req.user
+  const trip = db.getTripById(tripId, requestingUser)
+  return res.json(trip)
 }
 
 export async function createTrip (creator, data) {

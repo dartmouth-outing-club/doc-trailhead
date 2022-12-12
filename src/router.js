@@ -26,12 +26,12 @@ router.route('/user')
   .get(requireAuth, users.getUser)
   .put(requireAuth, users.updateUser)
 
-router.route('/users').get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), users.getUsers)
+router.route('/users').get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), users.getListOfUsers)
 
 // This route is used to populate co-leader dropdowns
 // The way trailhead functions, anyone is a potential leader
 // TODO slim this down to only active users
-router.route('/leaders').get(requireAuth, users.getUsers)
+router.route('/leaders').get(requireAuth, users.getListOfUsers)
 
 router.get('/myTrips', requireAuth, users.myTrips)
 
@@ -90,4 +90,71 @@ router.route('/debug')
     mailer.send(req.body)
   })
 
+router.route('/trips/')
+  .post(requireAuth, async (req, res) => {
+    try {
+      const result = await trips.createTrip(req.user, req.body)
+      res.json(result)
+    } catch (error) {
+      console.log(error)
+      res.status(500).send('Something went wrong creating the trip.')
+    }
+  })
+  .get(requireAuth, async (req, res) => {
+    const getPastTrips = req.query.getPastTrips !== 'false'
+    const allTrips = await trips.getTrips(getPastTrips)
+    return res.json(allTrips)
+  })
+
+router.route('/trips/public')
+  .get(trips.getPublicTrips)
+
+router.route('/trips/:tripID')
+  .get(requireAuth, safeCall(trips.getTrip))
+  .put(requireAuth, trips.updateTrip)
+  .delete(requireAuth, trips.deleteTrip)
+
+router.post('/trips/apply/:tripID', requireAuth, (req, res) => {
+  trips.apply(req.params.tripID, req.user._id, req.body.trippeeGear)
+    .then(() => {
+      trips.getTrip(req.params.tripID, req.user).then((result) => { return res.json(result) })
+    })
+    .catch((error) => { console.log(error); res.sendStatus(500) })
+})
+
+router.post('/trips/reject/:tripID', requireAuth, (req, res) => {
+  trips.reject(req.params.tripID, req.body.rejectedUserID).then(() => { return res.json() }).catch((error) => { console.log(error); res.sendStatus(500) })
+})
+
+router.post('/trips/admit/:tripID', requireAuth, (req, res) => {
+  trips.admit(req.params.tripID, req.body.admittedUserID).then(() => { res.json() }).catch((error) => { console.log(error); res.sendStatus(500) })
+})
+
+router.post('/trips/unadmit/:tripID', requireAuth, (req, res) => {
+  trips.unAdmit(req.params.tripID, req.body.unAdmittedUserID).then(() => { return res.json() }).catch((error) => { console.log(error); res.sendStatus(500) })
+})
+
+router.post('/trips/leave/:tripID', requireAuth, async (req, res) => {
+  await trips.leave(req.params.tripID, req.body.leavingUserID)
+  res.status(200).send()
+})
+
+router.put('/trips/set-attendence/:tripID', requireAuth, trips.setMemberAttendance)
+router.put('/trips/toggle-left/:tripID', requireAuth, trips.toggleTripLeftStatus)
+router.put('/trips/toggle-returned/:tripID', requireAuth, trips.toggleTripReturnedStatus)
+router.put('/trips/toggle-leadership/:tripID', requireAuth, trips.toggleTripLeadership)
+
+router.put('/trips/editusergear/:tripID', requireAuth, trips.editUserGear)
+
+function safeCall (func) {
+  return async (req, res) => {
+    try {
+      await func(req, res)
+    } catch (err) {
+      console.error(`Error calling function ${func.name}`)
+      console.error(err)
+      return res.sendStatus(500)
+    }
+  }
+}
 export default router
