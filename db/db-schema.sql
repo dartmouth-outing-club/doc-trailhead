@@ -55,14 +55,13 @@ CREATE TABLE trips (
   coleader_can_edit INTEGER DEFAULT FALSE, /* coLeaderCanEditTrip */
   opo_gear_requests TEXT, /* OPOGearRequests [{ name }, quantity }] */
   trippee_gear TEXT, /* [{}]*/
-  gear_status TEXT,
-  trippee_gear_status TEXT,
+  gear_status TEXT DEFAULT 'N/A',
+  trippee_gear_status TEXT DEFAULT 'N/A',
   pcard TEXT,
   pcard_status TEXT DEFAULT 'N/A', /* enum: ['pending', 'approved', 'denied', 'N/A'] */
   pcard_assigned TEXT,
   vehicle_status TEXT DEFAULT 'N/A',
-  vehicle_request TEXT REFERENCES vehiclerequests ON DELETE RESTRICT ON UPDATE CASCADE,
-  sent_email TEXT DEFAULT '[]'
+  sent_emails TEXT DEFAULT '[]'
 ) STRICT;
 
 CREATE TABLE users (
@@ -106,7 +105,6 @@ CREATE TABLE vehiclerequests (
   num_participants INTEGER, -- noOfPeople
   trip TEXT REFERENCES trips ON DELETE RESTRICT ON UPDATE CASCADE, -- associatedTrip
   request_type TEXT, -- requestType { enum: ['TRIP', 'SOLO'] }
-  requested_vehicles TEXT, -- requestedVehicles
   status TEXT DEFAULT 'pending' -- { enum: ['pending', 'approved', 'denied'], },
 ) STRICT;
 
@@ -117,7 +115,7 @@ CREATE TABLE club_leaders (
 ) STRICT;
 
 CREATE TABLE requested_vehicles (
-  vehiclerequest TEXT REFERENCES vehiclerequests ON DELETE CASCADE ON UPDATE CASCADE,
+  vehiclerequest INTEGER REFERENCES vehiclerequests ON DELETE CASCADE ON UPDATE CASCADE,
   type TEXT, -- vehicleType, enum: ['Van', 'Microbus', 'Truck', 'PersonalVehicle']
   details TEXT, -- vehicleDetails
   pickup_time INTEGER, -- pickupDateAndTime
@@ -125,7 +123,7 @@ CREATE TABLE requested_vehicles (
   trailer_needed INTEGER DEFAULT FALSE, -- trailerNeeded
   pass_needed INTEGER DEFAULT FALSE, -- passNeeded
   recurring_vehicle INTEGER DEFAULT FALSE -- recurringVehicle
-) STRICT;
+);
 
 CREATE TABLE vehiclerequests_assignments (
   vehiclerequest INTEGER REFERENCES vehiclerequests ON DELETE CASCADE ON UPDATE CASCADE,

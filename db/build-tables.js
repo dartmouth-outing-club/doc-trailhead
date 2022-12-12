@@ -29,11 +29,13 @@ console.log(getInsertStatementFromRecords(club_requested_leaders, ['user', 'club
 
 const vehicleRequests = getRecordsFromFile('./tables/vehiclerequests.bson.json').map(request => ({
   ...request,
+  trip: request.associatedTrip?.$oid,
+  requester: request.requester.$oid,
   num_participants: request.noOfPeople?.$numberInt,
   mileage: request.mileage?.$numberInt
 }))
 const vehicleRequestFields = ['_id', 'requester', ['requestDetails', 'request_details'], 'mileage',
-  'num_participants', ['associatedTrip', 'trip'], ['requestType', 'request_type'], 'status']
+  'num_participants', 'trip', ['requestType', 'request_type'], 'status']
 console.log(getInsertStatementFromRecords(vehicleRequests, vehicleRequestFields, 'vehiclerequests'))
 
 const requestedVehicles = vehicleRequests.flatMap(request => (
@@ -104,15 +106,14 @@ const tripFields = [
   ['experienceNeeded', 'experience_needed'],
   ['coLeaderCanEditTrip', 'coleader_can_edit'],
   ['OPOGearRequests', 'opo_gear_requests'],
-  'trippee_gear',
-  'gear_status',
-  'trippee_gear_status',
+  ['trippeeGear', 'trippee_gear'],
+  ['gearStatus', 'gear_status'],
+  ['trippeeGearStatus', 'trippee_gear_status'],
   'pcard',
-  'pcard_status', /* enum: ['pending', 'approved', 'denied', 'N/A'] */
-  'pcard_assigned',
-  'vehicle_status',
-  'vehicle_request',
-  'sent_email'
+  ['pcardStatus', 'pcard_status'],
+  ['pcardAssigned', 'pcard_assigned'],
+  ['vehicleStatus', 'vehicle_status'],
+  ['sentEmails', 'sent_emails']
 ]
 console.log(getInsertStatementFromRecords(trips, tripFields, 'trips'))
 

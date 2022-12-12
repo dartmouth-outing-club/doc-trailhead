@@ -37,3 +37,27 @@ UPDATE requested_vehicles
 SET vehiclerequest = vehiclerequests.id
 FROM vehiclerequests
 WHERE vehiclerequests._id = requested_vehicles.vehiclerequest;
+
+UPDATE assignments
+SET request = vehiclerequests.id
+FROM vehiclerequests
+WHERE vehiclerequests._id = assignments.request;
+
+UPDATE assignments
+SET vehicle = vehicles.id
+FROM vehicles
+WHERE vehicles._id = assignments.vehicle;
+
+DELETE FROM assignments
+WHERE request NOT IN
+  (SELECT id FROM vehiclerequests);
+
+UPDATE vehiclerequests
+SET trip = trips.id
+FROM trips
+WHERE trips._id = trip;
+
+UPDATE vehiclerequests
+SET requester = users.id
+FROM users
+WHERE users._id = requester;
