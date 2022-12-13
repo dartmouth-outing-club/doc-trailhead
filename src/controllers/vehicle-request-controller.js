@@ -3,7 +3,6 @@ import { ObjectId } from 'mongodb'
 import { vehicleRequests } from '../services/mongo.js'
 import * as Assignments from '../controllers/assignment-controller.js'
 import * as Users from '../controllers/user-controller.js'
-import * as Vehicles from '../controllers/vehicle-controller.js'
 import * as Globals from '../controllers/global-controller.js'
 
 import * as db from '../services/sqlite.js'
@@ -22,14 +21,14 @@ export function getVehicleRequestsByRequester (requesterId) {
 export async function getVehicleWithAssignments (id) {
   const vehicleRequest = await vehicleRequests.findOne({ _id: new ObjectId(id) })
   const associations = Promise.all([
-    Users.getUserById(vehicleRequest.requester),
+    db.getUserById(vehicleRequest.requester),
     Assignments.getAssignmentByIds(vehicleRequest.assignments),
     db.getTripById(vehicleRequest.associatedTrip)
   ])
   const [requester, assignments, associatedTrip] = await associations
 
   const assignmentPromises = assignments.map(async (assignment) => {
-    const assigned_vehicle = await Vehicles.getVehicle(assignment.assigned_vehicle)
+    const assigned_vehicle = await db.getVehicle(assignment.assigned_vehicle)
     return { ...assignment, assigned_vehicle }
   })
 
@@ -131,7 +130,7 @@ export async function handleGetVehicleRequest (req, res) {
 
 export async function handlePostVehicleRequests (req, res) {
   const savedRequest = await createNewVehicleRequest(req.body)
-  const { email } = await Users.getUserById(req.body.requester)
+  const { email } = await db.getUserById(req.body.requester)
   mailer.sendVehicleRequestCreatedEmail(savedRequest, [email])
   return res.json(savedRequest)
 }
@@ -179,7 +178,7 @@ export async function deleteOne (vehicleRequestID, reason) {
   const deleteRequest = await vehicleRequests.findOneAndDelete({ _id: vehicleRequestID })
 
   if (reason) {
-    const leaderEmail = await Users.getUserById(vehicleRequest.requester)
+    const leaderEmail = await db.getUserById(vehicleRequest.requester)
     mailer.sendVehicleRequestDeletedEmail(vehicleRequest, leaderEmail, reason)
   }
 
@@ -199,7 +198,7 @@ export async function handleOpoPost (req, res) {
 
   vehicleRequest.assignments = assignmentIds
   vehicleRequest.status = 'approved'
-  const requester = await Users.getUserById(vehicleRequest.requester)
+  const requester = await db.getUserById(vehicleRequest.requester)
 
   if (vehicleRequest.requestType === 'TRIP') {
     const associatedTrip = db.getTripById(vehicleRequest.associatedTrip)

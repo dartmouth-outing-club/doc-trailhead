@@ -1,3 +1,17 @@
+/**
+ * Fetch data from SQLite and format it in a way the frontend expects.
+ *
+ * If you're looking at this file and thinking "geez why is so complicated" it's because the
+ * frontend currently expects a deeply nested data structure. There's no inherent reason the
+ * frontend has to do this; in fact many times the frontend does a lot of work to unpack the nested
+ * data structure.
+ *
+ * I've opted to fix these problems on at a time: first by writing a backend that stores the data in
+ * a simple structure and then makes it more complicated (that's this file) when it's fetched by the
+ * frontend, followed writing a frontend that expects data in a simpler format (HTML) and writing
+ * simple backend APIs for the SQL table that surface that data. Such are the delights and perils of
+ * working with legacy code (i.e. basically all code).
+ */
 import fs from 'node:fs'
 import Database from 'better-sqlite3'
 import { subtract } from 'date-arithmetic'
@@ -125,11 +139,6 @@ function enhanceUser (user) {
   user.requested_clubs = requested_clubs
 
   return user
-}
-
-export function getClubByName (name) {
-  const club = db.prepare('SELECT * FROM clubs WHERE name = ?').get(name)
-  return formatClub(club)
 }
 
 export function getClubs () {
@@ -458,4 +467,29 @@ export function getCalenderAssignments () {
   })
 
   return assignments
+}
+
+export function getLeadersPendingApproval () {
+  const pendingRequests = db.prepare(`
+  SELECT user, club
+  FROM club_leaders
+  WHERE is_approved = false
+  `).all()
+
+  const clubRequestsByUser = pendingRequests.reduce((accum, request) => {
+    const { user, club } = request
+    accum[user] = accum[user] ? [...accum[user], club] : [club]
+    return accum
+  }, {})
+  const users = Object.keys(clubRequestsByUser)
+
+  return users.map(userId => {
+    const user = db.prepare('SELECT id, name FROM users WHERE id = ?').get(userId)
+    user._id = user.id
+    const requested_clubs = clubRequestsByUser[userId].map(clubId => {
+      const club = db.prepare('SELECT * FROM clubs WHERE id = ?').get(clubId)
+      return formatClub(club)
+    })
+    return { ...user, requested_clubs }
+  })
 }

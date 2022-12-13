@@ -1,13 +1,5 @@
 import * as db from '../services/sqlite.js'
 
-export function getVehicle (id) {
-  return db.getVehicle(id)
-}
-
-export function getVehicleByName (name) {
-  return db.getVehicleByName(name)
-}
-
 export function handleGetVehicles (_req, res) {
   const activeVehicles = db.getActiveVehicles()
   return res.json(activeVehicles)

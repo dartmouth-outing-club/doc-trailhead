@@ -2,8 +2,6 @@ import { ObjectId } from 'mongodb'
 import { assignments } from '../services/mongo.js'
 
 import * as db from '../services/sqlite.js'
-import * as Vehicles from './vehicle-controller.js'
-
 import * as constants from '../constants.js'
 
 export async function getAssignmentByIds (ids) {
@@ -56,7 +54,7 @@ export async function handleGetAssignmentsForCalendar (_req, res) {
  * Saves a single `proposedAssignment` to the database.
  */
 export async function processAssignment (vehicleRequest, proposedAssignment) {
-  const vehicle = await Vehicles.getVehicleByName(proposedAssignment.assignedVehicle)
+  const vehicle = await db.getVehicleByName(proposedAssignment.assignedVehicle)
   const { pickupDate, pickupTime, returnDate, returnTime, responseIndex, timezone } = proposedAssignment
   const assigned_pickupDateAndTime = constants.createDateObject(pickupDate, pickupTime, timezone)
   const assigned_returnDateAndTime = constants.createDateObject(returnDate, returnTime, timezone)

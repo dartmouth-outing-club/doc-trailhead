@@ -1,10 +1,6 @@
 import { ObjectId } from 'mongodb'
 import * as db from '../services/sqlite.js'
 
-export async function getClubByName (name) {
-  return db.getClubByName(name)
-}
-
 export async function createClub (req, res) {
   const { name } = req.body
   const id = db.insertClub(name)
