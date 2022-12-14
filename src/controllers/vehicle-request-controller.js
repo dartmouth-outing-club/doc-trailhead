@@ -19,20 +19,16 @@ export function getVehicleRequestsByRequester (requesterId) {
 }
 
 export async function getVehicleWithAssignments (id) {
-  const vehicleRequest = await vehicleRequests.findOne({ _id: new ObjectId(id) })
-  const associations = Promise.all([
-    db.getUserById(vehicleRequest.requester),
-    Assignments.getAssignmentByIds(vehicleRequest.assignments),
-    db.getTripById(vehicleRequest.associatedTrip)
-  ])
-  const [requester, assignments, associatedTrip] = await associations
+  const vehicleRequest = db.getVehicleRequestById(id)
+  const requester = db.getUserById(vehicleRequest.requester)
+  const assignments = db.getAssignmentsForVehicleRequest(id)
+  const associatedTrip = db.getTripByVehicleRequest(id)
 
-  const assignmentPromises = assignments.map(async (assignment) => {
-    const assigned_vehicle = await db.getVehicle(assignment.assigned_vehicle)
+  vehicleRequest.assignments = assignments.map((assignment) => {
+    const assigned_vehicle = db.getVehicle(assignment.assigned_vehicle)
     return { ...assignment, assigned_vehicle }
   })
 
-  vehicleRequest.assignments = await Promise.all(assignmentPromises)
   vehicleRequest.requester = requester
   vehicleRequest.associatedTrip = associatedTrip
   return vehicleRequest
@@ -40,9 +36,6 @@ export async function getVehicleWithAssignments (id) {
 
 /**
  * Get all the upcoming vehicle requests.
- *
- *
- * All in all not so bad though.
  */
 async function getCurrentVehicleRequests () {
   const requests = db.getVehicleRequestsForOpo()

@@ -75,8 +75,7 @@ function formatVehicleRequest (vehicleRequest) {
     requestDetails: vehicleRequest.request_details,
     noOfPeople: vehicleRequest.num_participants,
     trip: vehicleRequest.associatedTrip,
-    requestType: vehicleRequest.request_type,
-    requestedVehicles: vehicleRequest.requested_vehicles
+    requestType: vehicleRequest.request_type
   }
 }
 
@@ -98,6 +97,25 @@ function formatTrip (trip) {
   }
 }
 
+function formatRequestedVehicle (vehicle) {
+  if (vehicle === undefined) return undefined
+  const pickup_time = convertSqlDate(vehicle.pickup_time)
+  const return_time = convertSqlDate(vehicle.return_time)
+  return {
+    vehicleType: vehicle.type,
+    vehicleDetails: vehicle.details,
+    pickupTime: pickup_time,
+    returnTime: return_time,
+    pickupDate: pickup_time,
+    returnDate: return_time,
+    pickupDateAndTime: pickup_time,
+    returnDateAndTime: return_time,
+    trailerNeeded: vehicle.trailer_needed,
+    passNeeded: vehicle.pass_needed,
+    recurringVehicle: vehicle.recurring_vehicle
+  }
+}
+
 function getClubName (id) {
   return db.prepare('SELECT name FROM clubs WHERE id = ?').get(id)
 }
@@ -110,8 +128,8 @@ function getTripParticipantNames (tripId, ownerId) {
   WHERE trip_members.trip = ?`).all(tripId)
 
   const owner = db.prepare('SELECT name FROM users WHERE id = ?').get(ownerId)
-  const members = users.filter(user => user.pending === 0)
-  const pending = users.filter(user => user.pending === 1)
+  const members = users.filter(user => user.pending === 0).map(item => ({ user: item }))
+  const pending = users.filter(user => user.pending === 1).map(item => ({ user: item }))
   const leaders = users.filter(user => user.leader === 1)
   return { owner, leaders, members, pending }
 }
@@ -217,11 +235,23 @@ function getVehiclesForVehicleRequest (requestId) {
 }
 
 export function getVehicleRequestById (id) {
-  return db.prepare('SELECT * FROM vehiclerequests WHERE id = ?').get(id)
+  const vehicleRequest = db.prepare('SELECT * FROM vehiclerequests WHERE id = ?').get(id)
+  vehicleRequest.requestedVehicles = db
+    .prepare('SELECT * FROM requested_vehicles WHERE vehiclerequest = ?')
+    .all(id)
+    .map(formatRequestedVehicle)
+  return formatVehicleRequest(vehicleRequest)
 }
 
 export function getVehicleRequestsByRequester (requester) {
-  return db.prepare('SELECT * FROM vehiclerequests WHERE requester = ?').get(requester)
+  const vehicleRequest = db
+    .prepare('SELECT * FROM vehiclerequests WHERE requester = ?')
+    .get(requester)
+  vehicleRequest.requestedVehicles = db
+    .prepare('SELECT * FROM requested_vehicles WHERE vehiclerequest = ?')
+    .all(vehicleRequest.id)
+    .map(formatRequestedVehicle)
+  return formatVehicleRequest(vehicleRequest)
 }
 
 export function markVehicleRequestDenied (id) {
@@ -248,7 +278,7 @@ export function deleteAssignment (id) {
 }
 
 export function getAssignmentsForVehicleRequest (vehicleRequestId) {
-  return db.prepare('SELECT * FROM assignments WHERE request = ?').all(vehicleRequestId)
+  return db.prepare('SELECT * FROM assignments WHERE vehiclerequest = ?').all(vehicleRequestId)
 }
 
 /*
@@ -394,7 +424,12 @@ export function getTripById (tripId, forUser) {
     startDateAndTime: convertSqlDate(trip.start_time),
     endDateAndTime: convertSqlDate(trip.end_time)
   }
-  return { trip: enhancedTrip, userTripStatus, isLeaderOnTrip }
+  return { trip: formatTrip(enhancedTrip), userTripStatus, isLeaderOnTrip }
+}
+
+export function getTripByVehicleRequest (vehicleRequestId) {
+  const { trip } = db.prepare('SELECT trip FROM vehiclerequests WHERE id = ?').get(vehicleRequestId)
+  return getTripById(trip)
 }
 
 export function getUserTrips (userId) {
@@ -437,7 +472,7 @@ export function getCalenderAssignments () {
     SELECT id, requester, request_type, request_details, trip
     FROM vehiclerequests
     WHERE id = ?
-    `).get(assignment.request)
+    `).get(assignment.vehiclerequest)
     const vehicle = db.prepare('SELECT * FROM vehicles WHERE id = ?').get(assignment.vehicle)
 
     const requester = db.prepare('SELECT name, email FROM users WHERE id = ?').get(dbVehicleRequest.requester)
@@ -449,13 +484,13 @@ export function getCalenderAssignments () {
 
     const assigned_pickupDateAndTime = convertSqlDate(assignment.pickup_time)
     const assigned_returnDateAndTime = convertSqlDate(assignment.return_time)
-    const request = formatVehicleRequest(dbVehicleRequest)
-    request.associatedTrip = formatTrip(trip)
+    const vehiclerequest = formatVehicleRequest(dbVehicleRequest)
+    vehiclerequest.associatedTrip = formatTrip(trip)
     const assigned_vehicle = formatVehicle(vehicle)
 
     return {
       ...assignment,
-      request,
+      vehiclerequest,
       requester,
       responseIndex: 0, // idk man
       pickup_time: assignment.pickup_time === 1,

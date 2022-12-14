@@ -4,10 +4,6 @@ import { assignments } from '../services/mongo.js'
 import * as db from '../services/sqlite.js'
 import * as constants from '../constants.js'
 
-export async function getAssignmentByIds (ids) {
-  return assignments.find({ _id: { $in: ids } }).toArray()
-}
-
 export async function deleteAssignments (assignmentsList) {
   return assignments.deleteMany({ _id: { $in: assignmentsList } })
 }
