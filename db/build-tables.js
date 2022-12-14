@@ -64,7 +64,7 @@ console.log(getInsertStatementFromRecords(requestedVehicles, requestedVehicleFie
 
 const assignments = getRecordsFromFile('./tables/assignments.bson.json').map(assignment => ({
   ...assignment,
-  request: assignment.request.$oid,
+  vehiclerequest: assignment.request.$oid,
   requester: assignment.requester.$oid,
   vehicle: assignment.assigned_vehicle.$oid,
   pickup_time: assignment.assigned_pickupDateAndTime.$date.$numberLong,
@@ -72,7 +72,7 @@ const assignments = getRecordsFromFile('./tables/assignments.bson.json').map(ass
   picked_up: assignment.pickedUp || false,
   returned: assignment.returned || false
 }))
-const assignmentFields = ['_id', 'request', 'requester', 'pickup_time', 'return_time',
+const assignmentFields = ['_id', 'vehiclerequest', 'requester', 'pickup_time', 'return_time',
   ['assigned_key', 'vehicle_key'], 'vehicle', 'picked_up', 'returned']
 console.log(getInsertStatementFromRecords(assignments, assignmentFields, 'assignments'))
 

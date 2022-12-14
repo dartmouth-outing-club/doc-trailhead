@@ -8,7 +8,7 @@ BEGIN;
 CREATE TABLE assignments (
   id INTEGER PRIMARY KEY,
   _id TEXT,
-  request TEXT REFERENCES vehiclerequests ON UPDATE CASCADE ON DELETE SET NULL,
+  vehiclerequest TEXT REFERENCES vehiclerequests ON UPDATE CASCADE ON DELETE SET NULL,
   requester TEXT REFERENCES users ON UPDATE CASCADE ON DELETE RESTRICT,
   pickup_time INTEGER,
   return_time INTEGER,
@@ -123,11 +123,6 @@ CREATE TABLE requested_vehicles (
   trailer_needed INTEGER DEFAULT FALSE, -- trailerNeeded
   pass_needed INTEGER DEFAULT FALSE, -- passNeeded
   recurring_vehicle INTEGER DEFAULT FALSE -- recurringVehicle
-);
-
-CREATE TABLE vehiclerequests_assignments (
-  vehiclerequest INTEGER REFERENCES vehiclerequests ON DELETE CASCADE ON UPDATE CASCADE,
-  assignement INTEGER REFERENCES assignements ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE trip_members (

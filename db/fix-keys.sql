@@ -39,9 +39,9 @@ FROM vehiclerequests
 WHERE vehiclerequests._id = requested_vehicles.vehiclerequest;
 
 UPDATE assignments
-SET request = vehiclerequests.id
+SET vehiclerequest = vehiclerequests.id
 FROM vehiclerequests
-WHERE vehiclerequests._id = assignments.request;
+WHERE vehiclerequests._id = assignments.vehiclerequest;
 
 UPDATE assignments
 SET vehicle = vehicles.id
@@ -49,7 +49,7 @@ FROM vehicles
 WHERE vehicles._id = assignments.vehicle;
 
 DELETE FROM assignments
-WHERE request NOT IN
+WHERE vehiclerequest NOT IN
   (SELECT id FROM vehiclerequests);
 
 UPDATE vehiclerequests
