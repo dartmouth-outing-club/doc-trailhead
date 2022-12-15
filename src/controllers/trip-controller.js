@@ -588,7 +588,7 @@ export async function toggleTripLeftStatus (req, res) {
 
   if (trip.vehicleRequest) {
     const vehicleRequest = await VehicleRequests.getVehicleRequestById(trip.vehicleRequest)
-    vehicleRequest.assignments.forEach(Assignments.markAssignmentPickedUp)
+    vehicleRequest.assignments.forEach(db.markAssignmentPickedUp)
   }
 
   sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}left`, `Hello,\n\nYou have marked your Trip #${trip.number}: ${trip.title} as just having ${!status ? 'NOT ' : ''}left ${trip.pickup} at ${constants.formatDateAndTime(now)}, and your trip is due for return at ${constants.formatDateAndTime(trip.endDateAndTime)}.\n\nIMPORTANT: within 90 minutes of returning from this trip, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${Users.tokenForUser(req.user._id, 'mobile', trip._id)}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
@@ -610,7 +610,7 @@ export async function toggleTripReturnedStatus (req, res) {
 
   if (trip.vehicleRequest) {
     const vehicleRequest = await VehicleRequests.getVehicleRequestById(trip.vehicleRequest)
-    vehicleRequest.assignments.forEach(Assignments.markAssignmentReturned)
+    vehicleRequest.assignments.forEach(db.markAssignmentReturned)
   }
 
   sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT ' : ''}returned at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)

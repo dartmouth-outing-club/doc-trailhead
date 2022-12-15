@@ -165,31 +165,48 @@ export async function handleDeleteVehicleRequest (req, res) {
  * them that the vehicle has been deleted. If no reason string is provided, do
  * not send an email.
  */
-export async function deleteOne (vehicleRequestID, reason) {
-  const vehicleRequest = await getVehicleRequestById(vehicleRequestID)
-  await Assignments.deleteAssignments(vehicleRequest.assignments)
-  const deleteRequest = await vehicleRequests.findOneAndDelete({ _id: vehicleRequestID })
+export function deleteOne (vehicleRequestId, reason) {
+  const vehicleRequest = db.getVehicleRequestById(vehicleRequestId)
+  db.deleteVehicleRequest(vehicleRequestId)
 
   if (reason) {
-    const leaderEmail = await db.getUserById(vehicleRequest.requester)
-    mailer.sendVehicleRequestDeletedEmail(vehicleRequest, leaderEmail, reason)
+    const { email } = db.getUserById(vehicleRequest.requester)
+    mailer.sendVehicleRequestDeletedEmail(vehicleRequest, email, reason)
   }
 
-  return deleteRequest.value
+  return vehicleRequest
 }
 
 export async function handleOpoPost (req, res) {
-  const vehicleRequest = await getVehicleRequestById(req.params.id)
+  const vehicleRequest = db.getVehicleRequestById(req.params.id)
   const proposedAssignments = req.body.assignments || []
 
-  // This used to be synchronous, keeping it that way because I don't want to mess with it right now
-  const assignmentIds = []
-  for (const assignment of proposedAssignments) {
-    const insertedId = await Assignments.processAssignment(vehicleRequest, assignment)
-    assignmentIds.push(insertedId)
-  }
+  proposedAssignments.forEach(assignment => {
+    const vehicle = db.getVehicleByName(assignment.assignedVehicle)
+    const { pickupDate, pickupTime, returnDate, returnTime, timezone } = assignment
+    const pickup_time = constants.createDateObject(pickupDate, pickupTime, timezone)
+    const return_time = constants.createDateObject(returnDate, returnTime, timezone)
 
-  vehicleRequest.assignments = assignmentIds
+    const newAssignment = {
+      vehiclerequest: vehicleRequest.id,
+      requester: vehicleRequest.requester,
+      pickup_time,
+      return_time,
+      vehicle: vehicle.id,
+      vehicle_key: assignment.assignedKey,
+      picked_up: assignment.pickedUp,
+      returned: assignment.returned
+    }
+
+    if (assignment.existingAssignment) {
+      console.log('Updating existing vehicle assignment')
+      db.updateAssignment(newAssignment)
+    } else {
+      console.log('Inserting new assignment')
+      db.insertAssignment(newAssignment)
+    }
+  })
+
   vehicleRequest.status = 'approved'
   const requester = await db.getUserById(vehicleRequest.requester)
 

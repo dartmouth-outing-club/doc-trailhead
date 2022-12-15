@@ -56,6 +56,19 @@ function convertSqlDate (unixDate) {
  * FORMAT FUNCTIONS
  * Format functions translate the new schema into the old structure the frontend expects
  */
+function formatAssignment (assignment) {
+  if (assignment === undefined) return undefined
+  return {
+    ...assignment,
+    _id: assignment.id,
+    assigned_vehicle: assignment.vehicle,
+    assigned_pickupDateAndTime: assignment.pickup_time,
+    assigned_returnDateAndTime: assignment.return_time,
+    pickedUp: assignment.picked_up,
+    responseIndex: 0
+  }
+}
+
 function formatClub (club) {
   if (club === undefined) return undefined
   return { ...club, _id: club.id }
@@ -116,6 +129,10 @@ function formatRequestedVehicle (vehicle) {
   }
 }
 
+/*
+ * DATABASE FUNCTIONS
+ * Create, read, update, or delete from the database.
+ */
 function getClubName (id) {
   return db.prepare('SELECT name FROM clubs WHERE id = ?').get(id)
 }
@@ -259,6 +276,12 @@ export function markVehicleRequestDenied (id) {
   return info.changes
 }
 
+export function deleteVehicleRequest (vehicleRequestId) {
+  // Deletes assignments as well thanks to cascading
+  const info = db.prepare('DELETE FROM vehiclerequests WHERE id = ?').run(vehicleRequestId)
+  return info.changes
+}
+
 export function markTripVehicleStatusDenied (id) {
   const info = db.prepare("UPDATE trips SET vehicle_status = 'denied' WHERE id = ?").run(id)
   return info.changes
@@ -270,15 +293,50 @@ export function markTripVehicleStatusApproved (id) {
 }
 
 export function getAssignmentById (id) {
-  return db.prepare('SELECT * FROM assignments WHERE id = ?').get(id)
+  const assignment = db.prepare('SELECT * FROM assignments WHERE id = ?').get(id)
+  return formatAssignment(assignment)
+}
+
+export function getAssignmentsForVehicleRequest (vehicleRequestId) {
+  return db
+    .prepare('SELECT * FROM assignments WHERE vehiclerequest = ?')
+    .all(vehicleRequestId)
+    .map(formatAssignment)
+}
+
+export function updateAssignment (assignment) {
+  return db.prepare(`
+  UPDATE assignments
+  SET
+    vehiclerequest = @vehiclerequest,
+    requester = @requester,
+    pickup_time = @pickup_time,
+    return_time = @return_time,
+    vehicle = @vehicle,
+    vehicle_key = @vehicle_key,
+    picked_up = @picked_up,
+    return = @returned
+  WHERE id = @id
+  `).run(assignment)
+}
+
+export function insertAssignment (assignment) {
+  return db.prepare(`
+  INSERT INTO assignments (vehiclerequest, requester, pickup_time, return_time, vehicle, vehicle_key, picked_up, returned)
+  VALUES (@vehiclerequest, @requester, @pickup_time, @return_time, @vehicle, @vehicle_key, @picked_up, @returned)
+  `).run(assignment)
+}
+
+export function markAssignmentPickedUp (id) {
+  return db.prepare('UPDATE assignments SET picked_up = true WHERE id = ?').run(id)
+}
+
+export function markAssignmentReturned (id) {
+  return db.prepare('UPDATE assignments SET returned = true WHERE id = ?').run(id)
 }
 
 export function deleteAssignment (id) {
   return db.prepare('DELETE FROM assignments WHERE id = ?').run(id)
-}
-
-export function getAssignmentsForVehicleRequest (vehicleRequestId) {
-  return db.prepare('SELECT * FROM assignments WHERE vehiclerequest = ?').all(vehicleRequestId)
 }
 
 /*
@@ -499,7 +557,7 @@ export function getCalenderAssignments () {
       assigned_pickupDateAndTime,
       assigned_returnDateAndTime
     }
-  })
+  }).map(formatAssignment)
 
   return assignments
 }
