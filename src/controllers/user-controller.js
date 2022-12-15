@@ -1,7 +1,6 @@
 import jwt from 'jwt-simple'
 import { ObjectId } from 'mongodb'
 
-import * as Clubs from '../controllers/club-controller.js'
 import { users } from '../services/mongo.js'
 import * as utils from '../utils.js'
 import * as db from '../services/sqlite.js'

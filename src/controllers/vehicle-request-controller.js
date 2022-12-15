@@ -1,10 +1,3 @@
-import { ObjectId } from 'mongodb'
-
-import { vehicleRequests } from '../services/mongo.js'
-import * as Assignments from '../controllers/assignment-controller.js'
-import * as Users from '../controllers/user-controller.js'
-import * as Globals from '../controllers/global-controller.js'
-
 import * as db from '../services/sqlite.js'
 import * as utils from '../utils.js'
 import * as constants from '../constants.js'
@@ -18,7 +11,7 @@ export function getVehicleRequestsByRequester (requesterId) {
   return db.getVehicleRequestsByRequester(requesterId)
 }
 
-export async function getVehicleWithAssignments (id) {
+export function getVehicleWithAssignments (id) {
   const vehicleRequest = db.getVehicleRequestById(id)
   const requester = db.getUserById(vehicleRequest.requester)
   const assignments = db.getAssignmentsForVehicleRequest(id)
@@ -37,7 +30,7 @@ export async function getVehicleWithAssignments (id) {
 /**
  * Get all the upcoming vehicle requests.
  */
-async function getCurrentVehicleRequests () {
+function getCurrentVehicleRequests () {
   const requests = db.getVehicleRequestsForOpo()
   // Sort by the first vehicle's pickup date
   requests.sort((a, b) =>
@@ -54,87 +47,87 @@ async function getCurrentVehicleRequests () {
  * is a little convoluted, but there isn't much that can be done about that
  * right now.
  */
-export async function createNewVehicleRequest (requestObject) {
-  // Retrieves the current maximum vehicle request number and then updates it immediately.
-  const number = await Globals.incrementVehicleRequestNumber()
+export function createNewVehicleRequest (requestObject) {
   const { requester, requestDetails, mileage, noOfPeople, requestType, timezone, associatedTrip } = requestObject
   const requestedVehicles = requestObject.requestedVehicles.map((vehicle) => ({
     ...vehicle,
-    pickupDateAndTime: constants.createDateObject(vehicle.pickupDate, vehicle.pickupTime, timezone),
-    returnDateAndTime: constants.createDateObject(vehicle.returnDate, vehicle.returnTime, timezone)
+    pickup_time: constants.createDateObject(vehicle.pickupDate, vehicle.pickupTime, timezone),
+    return_time: constants.createDateObject(vehicle.returnDate, vehicle.returnTime, timezone)
   }))
   const vehicleRequest = {
-    number,
     requester,
-    requestDetails,
+    request_details: requestDetails,
     mileage,
-    noOfPeople,
-    requestType,
-    requestedVehicles,
-    associatedTrip,
-    assignments: []
+    num_participants: noOfPeople,
+    request_type: requestType,
+    requested_vehicles: requestedVehicles,
+    trip: associatedTrip
   }
 
-  const { insertedId } = await vehicleRequests.insertOne(vehicleRequest)
-  return { ...vehicleRequest, _id: insertedId }
+  const insertedId = db.insertVehicleRequest(vehicleRequest)
+  return db.getVehicleRequestById(insertedId)
 }
 
-export async function updateVehicleRequest (requestObject) {
+export function updateVehicleRequest (requestObject) {
   // Get new vehicle request and add date objects to it
+  const vehicleRequestId = requestObject._id
   const requestedVehicles = requestObject.requestedVehicles.map((vehicle) => {
     const { pickupDate, pickupTime, returnDate, returnTime } = vehicle
-    const pickupDateAndTime = constants.createDateObject(pickupDate, pickupTime, requestObject.timezone)
-    const returnDateAndTime = constants.createDateObject(returnDate, returnTime, requestObject.timezone)
-    return { ...vehicle, pickupDateAndTime, returnDateAndTime }
+    const pickup_time = constants.createDateObject(pickupDate, pickupTime, requestObject.timezone)
+    const return_time = constants.createDateObject(returnDate, returnTime, requestObject.timezone)
+    return {
+      vehiclerequest: vehicleRequestId,
+      type: vehicle.vehicleType,
+      details: vehicle.vehicleDetails,
+      pickup_time,
+      return_time,
+      trailer_needed: vehicle.trailer_needed,
+      pass_needed: vehicle.passNeeded,
+      recurring_vehicle: vehicle.recurring_vehicle
+    }
   })
 
+  db.replaceRequestedVehicles(vehicleRequestId, requestedVehicles)
+
   const vehicleRequest = {
-    assignments: requestObject.assignments || [],
-    mileage: requestObject.mileage,
-    noOfPeople: requestObject.noOfPeople,
-    requestDetails: requestObject.requestDetails,
-    requestType: requestObject.requestType,
-    requestedVehicles,
     requester: requestObject.requester,
-    status: requestObject.status,
-    timezone: requestObject.timezone
+    request_details: requestObject.requestDetails,
+    mileage: requestObject.mileage,
+    num_participants: requestObject.noOfPeople,
+    request_type: requestObject.requestType,
+    status: requestObject.status
   }
 
-  // The frontend does not send these fields
-  if (requestObject.associatedTrip) vehicleRequest.associatedTrip = requestObject.associatedTrip
+  if (requestObject.associatedTrip) vehicleRequest.trip = requestObject.associatedTrip
 
   // The frontend sometimes send back the entire requester object, not just the ID
   const requester = requestObject.requester._id || requestObject.requester
-  if (requester) vehicleRequest.requester = new ObjectId(requester)
+  if (requester) vehicleRequest.requester = requester
 
-  const saveResult = await vehicleRequests.findOneAndUpdate(
-    { _id: new ObjectId(requestObject._id) },
-    { $set: vehicleRequest },
-    { returnDocument: 'after' }
-  )
-
-  return saveResult.value
+  const changes = db.updateVehicleRequest(vehicleRequest)
+  if (!changes) console.warn(`Warning: no changes make to ${vehicleRequestId}`)
+  return db.getVehicleRequestById(vehicleRequestId)
 }
 
 export async function handleGetVehicleRequest (req, res) {
-  const vehicleRequest = await getVehicleWithAssignments(req.params.id)
+  const vehicleRequest = getVehicleWithAssignments(req.params.id)
   return res.json(vehicleRequest)
 }
 
 export async function handlePostVehicleRequests (req, res) {
   const savedRequest = await createNewVehicleRequest(req.body)
-  const { email } = await db.getUserById(req.body.requester)
+  const { email } = db.getUserById(req.body.requester)
   mailer.sendVehicleRequestCreatedEmail(savedRequest, [email])
   return res.json(savedRequest)
 }
 
 export async function handleGetVehicleRequests (_req, res) {
-  const vehicleRequests = await getCurrentVehicleRequests()
+  const vehicleRequests = getCurrentVehicleRequests()
   return res.json(vehicleRequests)
 }
 
 export async function handlePutVehicleRequest (req, res) {
-  const existingRequest = await getVehicleRequestById(req.body._id)
+  const existingRequest = db.getVehicleRequestById(req.body._id)
   if (existingRequest.status !== 'pending' && req.user.role !== 'OPO') {
     return res.status(401).send('Only OPO staff can update non-pending requests')
   }
@@ -207,20 +200,19 @@ export async function handleOpoPost (req, res) {
     }
   })
 
-  vehicleRequest.status = 'approved'
-  const requester = await db.getUserById(vehicleRequest.requester)
+  const requester = db.getUserById(vehicleRequest.requester)
 
   if (vehicleRequest.requestType === 'TRIP') {
     const associatedTrip = db.getTripById(vehicleRequest.associatedTrip)
-    const leaderEmails = await Users.getUserEmails(associatedTrip.leaders)
-    await db.markTripVehicleStatusApproved(associatedTrip._id)
+    const leaderEmails = db.getUserEmails(associatedTrip.leaders)
+    db.markTripVehicleStatusApproved(associatedTrip._id)
     mailer.sendTripVehicleRequestProcessedEmail(vehicleRequest, [requester, ...leaderEmails], associatedTrip)
   } else {
     mailer.sendVehicleRequestProcessedEmail(vehicleRequest, [requester])
   }
 
-  const savedVehicleRequest = await vehicleRequests.findOneAndUpdate({ _id: vehicleRequest._id }, { $set: vehicleRequest }, { returnDocument: 'after' })
-  const updatedVehicleRequest = await getVehicleWithAssignments(savedVehicleRequest.value._id)
+  db.markVehicleRequestApproved(vehicleRequest.id)
+  const updatedVehicleRequest = getVehicleWithAssignments(vehicleRequest.id)
   return res.json({ updatedVehicleRequest })
 }
 
@@ -240,22 +232,21 @@ export function handleOpoPut (req, res) {
 /* Delete vehicle assignment. */
 export async function handleOpoDelete (req, res) {
   const { toBeDeleted } = req.body.deleteInfo
-  const assignmentDeletionPromises = toBeDeleted.map(async (id) => {
-    const assignment = db.getAssignmentById(id)
-    db.deleteAssignment(id)
+  toBeDeleted.forEach((assignmentId) => {
+    const assignment = db.getAssignmentById(assignmentId)
+    db.deleteAssignment(assignmentId)
     const vehicleRequest = db.getVehicleRequestById(assignment.request)
     const { email } = db.getUserById(vehicleRequest.requester)
 
-    if (db.getAssignmentsForVehicleRequest(vehicleRequest.id) === 0) {
-      db.markVehicleRequestDenied(req.params.id)
+    const vehicleRequestId = vehicleRequest.id
+    if (db.getAssignmentsForVehicleRequest(vehicleRequestId) === 0) {
+      db.markVehicleRequestDenied(vehicleRequestId)
       if (vehicleRequest.requestType === 'TRIP') {
-        await db.markTripVehicleStatusDenied(vehicleRequest.associatedTrip)
+        db.markTripVehicleStatusDenied(vehicleRequest.associated_trip)
       }
     }
     mailer.sendVehicleRequestCancelledEmail(vehicleRequest, [email], req.user.email)
   })
 
-  await Promise.all(assignmentDeletionPromises)
-  await Assignments.deleteAssignments(toBeDeleted)
   return res.sendStatus(204)
 }

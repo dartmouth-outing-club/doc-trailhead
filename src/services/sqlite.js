@@ -251,6 +251,20 @@ function getVehiclesForVehicleRequest (requestId) {
     }))
 }
 
+function insertRequestedVehicle (requestedVehicle) {
+  return db.prepare(`
+    INSERT INTO requested_vehicles
+      (vehiclerequest, type, details, pickup_time, return_time, trailer_needed, pass_needed, recurring_vehicle)
+    VALUES (@vehiclerequest, @type, @details, @pickup_time, @return_time, @trailer_needed, @pass_needed, @recurring_vehicle)
+  `).run(requestedVehicle)
+}
+
+export function replaceRequestedVehicles (vehicleRequestId, requestedVehicles) {
+  // Mimic the way this data used to be store (delete the old "array", add a new one)
+  db.prepare('DELETE FROM requested_vehicles WHERE vehiclerequest = ?').run(vehicleRequestId)
+  requestedVehicles.forEach(insertRequestedVehicle)
+}
+
 export function getVehicleRequestById (id) {
   const vehicleRequest = db.prepare('SELECT * FROM vehiclerequests WHERE id = ?').get(id)
   vehicleRequest.requestedVehicles = db
@@ -269,6 +283,36 @@ export function getVehicleRequestsByRequester (requester) {
     .all(vehicleRequest.id)
     .map(formatRequestedVehicle)
   return formatVehicleRequest(vehicleRequest)
+}
+
+export function insertVehicleRequest (vehicleRequest) {
+  const info = db.prepare(`
+  INSERT INTO vehiclerequests
+    (requester, request_details, mileage, num_participants, trip, request_type)
+  VALUES (@requester, @request_details, @mileage, @num_participants, @trip, @request_type)
+  `).run(vehicleRequest)
+  return info.lastInsertRowid
+}
+
+export function updateVehicleRequest (vehicleRequest) {
+  const info = db.prepare(`
+  UPDATE vehiclerequests
+  SET
+    requester = @requester,
+    request_details = @request_details,
+    mileage = @mileage,
+    num_participants = @num_participants,
+    trip = @trip,
+    request_type = @request_type,
+    status = @status
+  WHERE id = @id
+  `).run(vehicleRequest)
+  return info.changes
+}
+
+export function markVehicleRequestApproved (id) {
+  const info = db.prepare("UPDATE vehiclerequests SET status = 'approved' WHERE id = ?").run(id)
+  return info.changes
 }
 
 export function markVehicleRequestDenied (id) {
@@ -560,6 +604,13 @@ export function getCalenderAssignments () {
   }).map(formatAssignment)
 
   return assignments
+}
+
+export function getUserEmails (ids) {
+  return ids.map(id => {
+    const { email } = db.prepare('SELECT email FROM users WHERE id = ?').get(id)
+    return email
+  })
 }
 
 export function getLeadersPendingApproval () {
