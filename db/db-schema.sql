@@ -8,15 +8,15 @@ BEGIN;
 CREATE TABLE assignments (
   id INTEGER PRIMARY KEY,
   _id TEXT,
-  vehiclerequest TEXT REFERENCES vehiclerequests ON UPDATE CASCADE ON DELETE SET NULL,
-  requester TEXT REFERENCES users ON UPDATE CASCADE ON DELETE RESTRICT,
+  vehiclerequest INTEGER REFERENCES vehiclerequests ON UPDATE CASCADE ON DELETE SET NULL,
+  requester INTEGER REFERENCES users ON UPDATE CASCADE ON DELETE RESTRICT,
   pickup_time INTEGER,
   return_time INTEGER,
-  vehicle TEXT REFERENCES vehicles ON UPDATE CASCADE,
+  vehicle INTEGER REFERENCES vehicles ON UPDATE CASCADE,
   vehicle_key TEXT,
   picked_up INTEGER DEFAULT FALSE, /* pickedUp */
   returned INTEGER DEFAULT FALSE
-) STRICT;
+);
 
 CREATE TABLE clubs (
   id INTEGER PRIMARY KEY,
@@ -106,7 +106,7 @@ CREATE TABLE vehiclerequests (
   trip TEXT REFERENCES trips ON DELETE RESTRICT ON UPDATE CASCADE, -- associatedTrip
   request_type TEXT, -- requestType { enum: ['TRIP', 'SOLO'] }
   status TEXT DEFAULT 'pending' -- { enum: ['pending', 'approved', 'denied'], },
-) STRICT;
+);
 
 CREATE TABLE club_leaders (
   user TEXT REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
