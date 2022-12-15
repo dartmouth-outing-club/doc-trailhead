@@ -85,11 +85,15 @@ export async function getTrips (getPastTrips) {
   const clubsPromise = Clubs.getClubsMap()
 
   const [allTrips, clubsMap] = await Promise.all([tripsPromise, clubsPromise])
-  const owners = allTrips.map(trip => trip.owner)
-  const leaders = await Users.getUsersById(owners)
+  const leaderIds = allTrips.flatMap(trip => trip.leaders)
+  const leaders = await Users.getUsersById(leaderIds)
   allTrips.forEach(trip => { trip.club = clubsMap[trip.club] })
   allTrips.forEach(trip => {
     trip.owner = leaders.find(user => user._id.toString() === trip.owner.toString())
+    trip.leaders = trip.leaders.map(leader => {
+      const foundLeader = leaders.find(user => user._id.toString() === leader.toString())
+      return { name: foundLeader.name }
+    })
   })
 
   return allTrips
