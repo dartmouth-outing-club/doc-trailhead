@@ -134,12 +134,6 @@ CREATE TABLE trip_members (
   requested_gear TEXT
 );
 
-CREATE TABLE trip_pending (
-  trip INTEGER REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
-  user INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
-  requested_gear TEXT
-);
-
 COMMIT;
 
 /* CREATE TRIGGER directions_inserted AFTER INSERT ON directions */
