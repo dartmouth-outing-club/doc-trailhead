@@ -30,7 +30,7 @@ export async function markTripsAsPast () {
 
 async function sendLeadersEmail (tripID, subject, message) {
   const trip = await getTripById(tripID)
-  const leaderEmails = await Users.getUserEmails(trip.leaders)
+  const leaderEmails = db.getUserEmails(trip.leaders)
   mailer.send({ address: leaderEmails, subject, message })
 }
 
@@ -126,7 +126,8 @@ export async function createTrip (creator, data) {
   trip.pending = []
 
   const leaderEmails = [creator.email] // Used to send out initial email
-  const foundUsers = await Users.getUsersFromEmailList(data.leaders)
+  const foundUsers = data.leaders.map(db.getUserByEmail).map(user => user.id)
+
   foundUsers.forEach((foundUser) => {
     if (!foundUser._id.equals(creator._id)) {
       trip.leaders.push(foundUser._id)
@@ -279,8 +280,8 @@ export async function updateTrip (req, res) {
     }
   }
 
-  const coleaders = await Users.getUsersFromEmailList(req.body.leaders)
-  trip.leaders = coleaders.map(user => user._id)
+  const { leaders } = req.body
+  trip.leaders = leaders.map(db.getUserByEmail).map(user => user.id)
   if (trip.leaders.length < 1) {
     console.warn(`WARNING: saving a trip without a leader for trip ${req.params.tripID}`)
     console.warn(req.body)
@@ -314,10 +315,10 @@ export async function deleteTrip (req, res) {
   }
 
   await trips.deleteOne({ _id: new ObjectId(tripId) })
-  const owner = await Users.getUserById(trip.owner)
+  const owner = db.getUserById(trip.owner)
 
   const members = [...trip.members, ...trip.pending]
-  const trippeeEmails = await Users.getUserEmails(members)
+  const trippeeEmails = db.getUserEmails(members)
   mailer.sendTripDeletedEmail(trip, owner.email, trippeeEmails, req.body.reason)
     .catch(err => {
       console.error(`Failed to send Trip Deleted Email for trip ${trip._id}`, err)
@@ -384,8 +385,8 @@ export async function editUserGear (req, res) {
     })
 
     newTrip.members = members
-    const user = await Users.getUserById(req.user._id)
-    const leaderEmails = await Users.getUserEmails(trip.leaders)
+    const user = db.getUserById(req.user._id)
+    const leaderEmails = db.getUserEmails(trip.leaders)
     mailer.sendGearRequestChangedEmail(trip, leaderEmails, user)
   } else {
     const pending = trip.pending.map(pender => {
@@ -419,9 +420,8 @@ export async function apply (tripID, joiningUserID, requestedGear) {
   if (!isOnTrip) {
     const newPending = [...trip.pending, { user: joiningUserID, requestedGear }]
     trips.updateOne({ _id: new ObjectId(tripID) }, { $set: { pending: newPending } })
-    const newTrippeePromise = Users.getUserById(joiningUserID)
-    const ownerPromise = Users.getUserById(trip.owner)
-    const [newTrippee, owner] = await Promise.all([newTrippeePromise, ownerPromise])
+    const newTrippee = db.getUserById(joiningUserID)
+    const owner = db.getUserById(trip.owner)
     mailer.sendTripApplicationConfirmation(trip, newTrippee, owner.email)
   }
 }
@@ -450,8 +450,8 @@ export async function admit (tripID, admittedUserID) {
     { _id: new ObjectId(tripID) },
     { $set: { pending, members, trippeeGear, trippeeGearStatus } }
   )
-  const foundUser = await Users.getUserById(admittedUserID)
-  const owner = await Users.getUserById(trip.owner)
+  const foundUser = db.getUserById(admittedUserID)
+  const owner = db.getUserById(trip.owner)
   console.log(owner)
   return mailer.sendTripApprovalEmail(trip, foundUser, owner.email)
 }
@@ -478,8 +478,8 @@ export async function unAdmit (tripID, leavingUserID) {
     { _id: new ObjectId(tripID) },
     { $set: { pending, members, leaders, trippeeGear, trippeeGearStatus } }
   )
-  const foundUser = await Users.getUserById(leavingUserID)
-  const owner = await Users.getUserById(trip.owner)
+  const foundUser = db.getUserById(leavingUserID)
+  const owner = db.getUserById(trip.owner)
   return mailer.sendTripRemovalEmail(trip, foundUser, owner.email)
 }
 
@@ -497,8 +497,8 @@ export async function reject (tripID, rejectedUserID) {
 
   const pending = trip.pending.filter(pender => pender.user?.toString() !== rejectedUserID)
   await trips.updateOne({ _id: new ObjectId(tripID) }, { $set: { pending } })
-  const rejectedUser = await Users.getUserById(rejectedUserID)
-  const owner = await Users.getUserById(trip.owner)
+  const rejectedUser = db.getUserById(rejectedUserID)
+  const owner = db.getUserById(trip.owner)
   return mailer.sendTripTooFullEmail(trip, rejectedUser, owner.email)
 }
 
@@ -518,8 +518,8 @@ export async function leave (tripID, leavingUserID) {
   // Should be mutually exclusive with pending tripees, but you never know
   const member = trip.members.find((tripee) => tripee.user?.toString() === leavingUserID)
   if (member) {
-    const leaderEmails = await Users.getUserEmails(trip.leaders)
-    const leavingUser = await Users.getUserById(leavingUserID)
+    const leaderEmails = db.getUserEmails(trip.leaders)
+    const leavingUser = db.getUserById(leavingUserID)
     mailer.sendUserLeftEmail(trip, leaderEmails, leavingUser)
   }
   const members = trip.members.filter((tripee) => tripee.user?.toString() !== leavingUserID)
@@ -533,7 +533,7 @@ export async function leave (tripID, leavingUserID) {
 
 export async function toggleTripLeadership (req, res) {
   const tripId = req.params.tripID
-  const toggledUser = await Users.getUserById(req.body.member.user._id)
+  const toggledUser = db.getUserById(req.body.member.user._id)
   const trip = await getTripById(tripId)
 
   let leaders
@@ -693,7 +693,7 @@ export async function respondToTrippeeGearRequest (req, res) {
       break
   }
 
-  const leaderEmails = await Users.getUserEmails(trip.leaders)
+  const leaderEmails = db.getUserEmails(trip.leaders)
   mailer.sendIndividualGearStatusUpdate(trip, leaderEmails, message)
   const newTrip = await getTrip(tripId, req.params.user)
   return res.json(newTrip)
@@ -715,7 +715,7 @@ export async function respondToPCardRequest (req, res) {
   )
   const trip = updateResult.value
 
-  const leaderEmails = await Users.getUserEmails(trip.leaders)
+  const leaderEmails = db.getUserEmails(trip.leaders)
   mailer.sendPCardStatusUpdate(trip, leaderEmails)
   const newTrip = await getTrip(tripId, req.params.user)
   return res.json(newTrip)

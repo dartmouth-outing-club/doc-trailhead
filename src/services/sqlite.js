@@ -168,10 +168,15 @@ function enhanceUser (user) {
   WHERE user = ? AND is_approved = false
   `)
 
+  const requested_certs = getRequestedCertsForUser(user.id)
+
   user._id = user.id
   user.casID = user.cas_id
   user.leader_for = leader_for
   user.requested_clubs = requested_clubs
+  user.requested_certs = requested_certs
+  user.has_pending_leader_change = requested_clubs.length !== 0
+  user.has_pending_cert_change = requested_certs.length !== 0
 
   return user
 }
@@ -186,6 +191,74 @@ export function insertClub (name) {
     .prepare('INSERT INTO clubs VALUES (name) VALUES (?)')
     .run(name)
   return info.lastInsertRowid
+}
+
+// Mimic the previous insertion tactic of using an array
+export function replaceUsersClubs (userId, approvedClubs, requestedClubs) {
+  db.prepare('DELETE FROM club_leaders WHERE user = ?').run(userId)
+  approvedClubs.forEach(club => {
+    db.prepare('INSERT INTO club_leaders (user, club, is_approved) VALUES (?, ?, true)')
+      .run(userId, club)
+  })
+  requestedClubs.forEach(club => {
+    db.prepare('INSERT INTO club_leaders (user, club, is_approved) VALUES (?, ?, false)')
+      .run(userId, club)
+  })
+}
+
+export function denyLeadershipRequests (userId) {
+  return db.prepare('DELETE FROM club_leaders WHERE user = ? AND is_approved = false').run(userId)
+}
+
+export function approveLeadershipRequests (userId) {
+  const user = getUserById(userId)
+  const role = user.role === 'OPO' ? 'OPO' : 'Leader'
+  db.prepare('UPDATE users SET role = ? WHERE user = ?').run(role, userId)
+  db.prepare('UPDATE club_leaders SET is_approved = true WHERE user = ?').run(userId)
+}
+
+function getRequestedCertsForUser (userId) {
+  const statement = db.prepare(`
+  SELECT user, name, '[' || group_concat(cert, ',') || ']' as certs
+  FROM user_certs
+  JOIN users on users.id = user
+  WHERE
+    is_approved = FALSE
+    ${userId ? 'AND user = ?' : ''}
+  GROUP BY user
+  `)
+
+  if (userId) {
+    return statement.all(userId)
+  } else {
+    return statement.all()
+  }
+}
+
+export function getUsersPendingCerts () {
+  const users = getRequestedCertsForUser()
+  return users.map(user => {
+    const { id, name, certs } = user
+    let driver_cert
+    if (certs.includes('MICROBUS')) {
+      driver_cert = 'MICROBUS'
+    } else if (certs.includes('VAN')) {
+      driver_cert = 'VAN'
+    } else {
+      driver_cert = null
+    }
+    const trailer_cert = certs.includes('TRAILER') ? 'true' : false
+    const requested_certs = { driver_cert, trailer_cert }
+    return { id, name, _id: id, requested_certs }
+  })
+}
+
+export function denyUserRequestedCerts (userId) {
+  db.prepare('DELETE FROM user_certs WHERE id = ? and is_approved = false').run(userId)
+}
+
+export function approveUserRequestedCerts (userId) {
+  db.prepare('UPDATE user_certs SET is_approved = true WHERE id = ?').run(userId)
 }
 
 export function getUserById (id) {
@@ -206,6 +279,33 @@ export function getUserByEmail (email) {
 export function getListOfUsers () {
   const users = db.prepare('SELECT id, name, email FROM users').all()
   return users.map(user => ({ ...user, _id: user.id }))
+}
+
+export function insertUser (casId) {
+  const info = db.prepare('INSERT INTO users (cas_id) VALUES (?)').run(casId)
+  return info.lastInsertRowid
+}
+
+// ifnull() ensures we only update the fields that are on the object
+export function updateUser (user) {
+  const info = db.prepare(`
+  UPDATE users
+  SET
+    email = ifnull(@email, email),
+    name = ifnull(@name, name),
+    photo_url = ifnull(@photo_url, photo_url),
+    pronoun = ifnull(@pronoun, pronoun),
+    dash_number = ifnull(@dash_number, dash_number),
+    allergies_dietary_restrictions = ifnull(@allergies_dietary_restrictions, allergies_dietary_restrictions),
+    medical_conditions = ifnull(@medical_conditions, medical_conditions),
+    clothe_size = ifnull(@clothe_size, clothe_size),
+    shoe_size = ifnull(@shoe_size, shoe_size),
+    height = ifnull(@height, height),
+    role = ifnull(@role, role)
+  WHERE id = @id
+  `).run(user)
+
+  return info.changes
 }
 
 export function getVehicle (id) {
@@ -634,6 +734,6 @@ export function getLeadersPendingApproval () {
       const club = db.prepare('SELECT * FROM clubs WHERE id = ?').get(clubId)
       return formatClub(club)
     })
-    return { ...user, requested_clubs }
+    return { ...user, requestedClubs: requested_clubs }
   })
 }

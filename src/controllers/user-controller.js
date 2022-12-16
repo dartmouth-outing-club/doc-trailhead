@@ -1,38 +1,12 @@
 import jwt from 'jwt-simple'
-import { ObjectId } from 'mongodb'
 
 import { users } from '../services/mongo.js'
 import * as utils from '../utils.js'
 import * as db from '../services/sqlite.js'
 
-export function getUserById (id) {
-  return db.getUserById(id)
-}
-
-export function getUserByCasId (casID) {
-  return db.getUserByCasId(casID)
-}
-
-export function getUserByEmail (email) {
-  return db.getUserByEmail(email)
-}
-
-export async function getUsersFromEmailList (emailList) {
-  return users.find({ email: { $in: emailList } }).toArray()
-}
-
 export function getListOfUsers (_req, res) {
   const users = db.getListOfUsers()
   return res.json(users)
-}
-
-export async function getUserEmails (userIds) {
-  const leaders = await users.find({ _id: { $in: userIds } }).toArray()
-  return leaders.map(leader => leader.email)
-}
-
-export async function createUser (newUser) {
-  return users.insertOne(newUser)
 }
 
 export function roleAuthorization (roles) {
@@ -53,7 +27,7 @@ export function roleAuthorization (roles) {
   }
 }
 
-export async function myTrips (req, res) {
+export function myTrips (req, res) {
   const userId = req.user.id
   const trips = db.getUserTrips(userId)
   const vehicleRequests = db.getUserVehicleRequests(userId)
@@ -61,7 +35,7 @@ export async function myTrips (req, res) {
   return res.json({ trips, vehicleRequests })
 }
 
-export async function getUser (req, res) {
+export function getUser (req, res) {
   const user = db.getUserById(req.user.id)
   if (!user) return res.sendStatus(404)
 
@@ -79,8 +53,9 @@ export async function getUser (req, res) {
 
 export async function updateUser (req, res) {
   try {
-    const userWithEmail = await users.findOne({ email: req.body.email })
-    if (userWithEmail && userWithEmail._id.toString() !== req.user._id.toString()) {
+    const userId = req.user.id
+    const userWithEmail = db.getUserByEmail(req.body.email)
+    if (userWithEmail && userWithEmail.id !== userId) {
       throw new Error('This email is already associated with a different user')
     }
 
@@ -91,7 +66,7 @@ export async function updateUser (req, res) {
       throw new Error('You must have an email')
     }
 
-    const existingUser = users.findOne({ _id: req.user._id })
+    const existingUser = db.getUserById(userId)
     if (!existingUser.dash_number && !req.body.dash_number) {
       throw new Error('You must have a dash number')
     }
@@ -103,21 +78,12 @@ export async function updateUser (req, res) {
 
     // The frontend sends us club objects, but the database stores club IDs
     // This is not a pattern that we will replicated with a new frontend
-    const requestedLeaderFor = req.body.leader_for || []
-    const newClubs = requestedLeaderFor.map(club => club._id)
-    const currentClubs = existingUser.leader_for || []
+    const approvedClubs = existingUser.leader_for.map(club => club.id)
+    const newClubs = req.body?.leader_for?.map(club => club.id) || []
 
-    // Approval is required if user is adding a new club
-    if (newClubs.length > currentClubs.length) {
-      newUser.has_pending_leader_change = true
-      newUser.requested_clubs = newClubs
-      // If user is dropping a club, make sure that every club they're claiming is one they're currently a leader for
-      // This is a little kludgy - a more granular API surface would not require this
-    } else if (newClubs.every((club) => currentClubs.includes(club))) {
-      newUser.leader_for = newClubs
-      newUser.has_pending_leader_change = false
-      newUser.requested_clubs = []
-    }
+    const newApprovedClubs = newClubs.filter(club => approvedClubs.includes(club))
+    const newRequestedClubs = newClubs.filter(club => !approvedClubs.includes(club))
+    db.replaceUsersClubs(userId, newApprovedClubs, newRequestedClubs)
 
     if (req.body.leader_for.length === 0 && existingUser.role !== 'OPO') {
       newUser.role = 'Trippee'
@@ -164,44 +130,29 @@ export async function handleGetLeaderApprovals (_req, res) {
 }
 
 export async function handlePutLeaderApprovals (req, res) {
-  let newUser = {}
-  const userId = new ObjectId(req.body.userId)
+  const { userId } = req.body
   if (req.body.status !== 'approved') {
-    newUser = { has_pending_leader_change: false, requestedClubs: [] }
+    db.denyLeadershipRequests(userId)
   } else {
-    const user = await users.findOne({ _id: userId })
-    newUser.role = user.role === 'OPO' ? 'OPO' : 'Leader'
-    newUser.leader_for = user.requested_clubs
-    newUser.requested_clubs = []
-    newUser.has_pending_leader_change = false
+    db.approveLeadershipRequests(userId)
   }
 
-  await users.updateOne({ _id: userId }, { $set: newUser })
   return handleGetLeaderApprovals(req, res)
 }
 
 export async function handleGetCertApprovals (_req, res) {
-  const usersWithPendingCerts = await users.find({ has_pending_cert_change: true }).toArray()
-  const certRequests = usersWithPendingCerts.map(user => utils.pick(user, ['_id', 'name', 'requested_certs']))
-  return res.json(certRequests)
+  const usersWithPendingCerts = db.getUsersPendingCerts()
+  return res.json(usersWithPendingCerts)
 }
 
 export async function handlePutCertApprovals (req, res) {
-  let newUser = {}
-  const userId = new ObjectId(req.body.userId)
+  const { userId } = req.body
   if (req.body.status !== 'approved') {
-    newUser = { has_pending_cert_change: false, requestedCerts: {} }
+    db.denyUserRequestedCerts(userId)
   } else {
-    const user = await users.findOne({ _id: userId })
-    newUser = {
-      driver_cert: user.requested_certs.driver_cert,
-      trailer_cert: user.requested_certs.trailer_cert,
-      requested_certs: {},
-      has_pending_cert_change: false
-    }
+    db.approveUserRequestedCerts(userId)
   }
 
-  await users.updateOne({ _id: userId }, { $set: newUser })
   return handleGetCertApprovals(req, res)
 }
 

@@ -5,23 +5,24 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 import cas from 'passport-cas'
 import { add } from 'date-arithmetic'
 
+import * as db from '../services/sqlite.js'
 import * as constants from '../constants.js'
 import * as Users from '../controllers/user-controller.js'
 import * as Trips from '../controllers/trip-controller.js'
 
 export function signinCAS (req, res, next) {
-  passport.authenticate('cas', async (error, casID) => {
+  passport.authenticate('cas', async (error, casId) => {
     if (error) { return error }
-    if (!casID) { return res.redirect(constants.frontendURL) }
+    if (!casId) { return res.redirect(constants.frontendURL) }
 
-    const user = Users.getUserByCasId(casID)
+    const user = db.getUserByCasId(casId)
     if (!user) {
-      const { insertedId } = await Users.createUser({ casID, completedProfile: false })
-      console.log(`Created new user ${insertedId} for ${casID}`)
+      const insertedId = db.insertUser(casId)
+      console.log(`Created new user ${insertedId} for ${casId}`)
       res.redirect(`${constants.frontendURL}?token=${Users.tokenForUser(insertedId, 'normal')}&userId=${insertedId}&new?=yes`)
     } else {
-      console.log(`Logging in user ${casID}`)
-      res.redirect(`${constants.frontendURL}?token=${Users.tokenForUser(user._id, 'normal')}&userId=${casID}`)
+      console.log(`Logging in user ${casId}`)
+      res.redirect(`${constants.frontendURL}?token=${Users.tokenForUser(user._id, 'normal')}&userId=${casId}`)
     }
   })(req, res, next)
 }
@@ -33,7 +34,7 @@ export function signinSimple (req, res, next) {
       console.log('No user found, rejecting')
       return res.sendStatus(401)
     }
-    const foundUser = Users.getUserById(user._id)
+    const foundUser = db.getUserById(user._id)
     res.json({ token: Users.tokenForUser(user._id, 'normal'), user: foundUser })
   })(req, res, next)
 }
@@ -45,7 +46,7 @@ const jwtOptions = {
 
 const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
   try {
-    const user = await Users.getUserById(payload.sub)
+    const user = db.getUserById(payload.sub)
     if (!user) {
       console.error(payload)
       throw new Error(`User not found for id ${payload.sub}`)
@@ -76,7 +77,7 @@ const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
 const localOptions = { usernameField: 'email' }
 const localLogin = new LocalStrategy(localOptions, async (email, password, done) => {
   try {
-    const user = await Users.getUserByEmail(email)
+    const user = db.getUserByEmail(email)
     if (!user) throw new Error(`User with email ${email} not found`)
 
     const comparisonResult = await bcrypt.compare(password, user.password)
