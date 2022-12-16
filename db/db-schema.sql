@@ -79,14 +79,14 @@ CREATE TABLE users (
   clothe_size TEXT, /*{ type: String, enum: ['Men-XS', 'Men-S', 'Men-M', 'Men-L', 'Men-XL', 'Women-XS', 'Women-S', 'Women-M', 'Women-L', 'Women-XL'] } */
   shoe_size TEXT,
   height TEXT,
-  role TEXT DEFAULT 'Trippee', /* { type: String, enum: ['Leader', 'Trippee', 'OPO'], } */
-  has_pending_leader_change INTEGER DEFAULT FALSE,
-  has_pending_cert_change INTEGER DEFAULT FALSE,
-  driver_cert TEXT, /*{ type: String, enum: ['MICROBUS', 'VAN', null], default: null }*/
-  trailer_cert INTEGER DEFAULT FALSE,
-  requested_clubs TEXT DEFAULT '[]',
-  requested_certs TEXT
+  role TEXT DEFAULT 'Trippee' -- Leader, Trippee, OPO
 ) STRICT;
+
+CREATE TABLE user_certs (
+  user INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
+  cert TEXT, -- MICROBUS, VAN, TRAILER
+  is_approved INTEGER DEFAULT FALSE
+);
 
 CREATE TABLE vehicles (
   id INTEGER primary key,

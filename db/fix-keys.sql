@@ -61,3 +61,8 @@ UPDATE vehiclerequests
 SET requester = users.id
 FROM users
 WHERE users._id = requester;
+
+UPDATE user_certs
+SET user = users.id
+FROM users
+WHERE users._id = user

@@ -11,9 +11,25 @@ console.log(getInsertStatementFromRecords(clubs, clubFields, 'clubs'))
 const users = getRecordsFromFile('./tables/users.bson.json')
 const userFields = ['_id', ['casID', 'cas_id'], 'email', 'password', 'name', 'photo_url',
   'pronoun', 'dash_number', 'allergies_dietary_restrictions', 'medical_conditions', 'clothe_size',
-  'shoe_size', 'height', 'role', 'has_pending_leader_change', 'has_pending_cert_change',
-  'driver_cert', 'trailer_cert', 'requested_clubs', 'requested_certs']
+  'shoe_size', 'height', 'role']
 console.log(getInsertStatementFromRecords(users, userFields, 'users'))
+
+const user_certs = users.flatMap(user => {
+  const certs = []
+  const userId = user._id.$oid
+  if (user.driver_cert) {
+    certs.push({ user: userId, cert: user.driver_cert, is_approved: true })
+  } else if (user.requested_certs?.driver_cert) {
+    certs.push({ user: userId, cert: user.requested_certs.driver_cert, is_approved: false })
+  }
+  if (user.trailer_cert) {
+    certs.push({ user: userId, cert: 'TRAILER', is_approved: true })
+  } else if (user.requested_certs?.trailer_cert) {
+    certs.push({ user: userId, cert: 'TRAILER', is_approved: false })
+  }
+  return certs
+})
+console.log(getInsertStatementFromRecords(user_certs, ['user', 'cert', 'is_approved'], 'user_certs'))
 
 const club_leaders = users
   .flatMap(user => user?.leader_for?.map(club => ({ user: user._id.$oid, club: club.$oid, is_approved: true })))
