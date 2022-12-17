@@ -34,8 +34,8 @@ export function signinSimple (req, res, next) {
       console.log('No user found, rejecting')
       return res.sendStatus(401)
     }
-    const foundUser = db.getUserById(user._id)
-    res.json({ token: Users.tokenForUser(user._id, 'normal'), user: foundUser })
+    const foundUser = db.getUserById(user.id)
+    res.json({ token: Users.tokenForUser(user.id, 'normal'), user: foundUser })
   })(req, res, next)
 }
 
@@ -53,14 +53,14 @@ const jwtLogin = new JwtStrategy(jwtOptions, async (payload, done) => {
     }
 
     if (payload.purpose === 'mobile') {
-      const trip = await Trips.getTripById(payload.tripId)
+      const trip = db.getTripById(payload.tripId)
       if (!trip) {
         console.error(payload)
         throw new Error(`Trip not found for id ${payload.tripId}`)
       }
 
       const today = new Date()
-      if (today.getTime() <= add(trip.endDateAndTime, 24, 'hours').getTime()) {
+      if (today.getTime() <= add(trip.end_time, 24, 'hours').getTime()) {
         console.log('Mobile token is valid')
         done(null, user)
       } else {

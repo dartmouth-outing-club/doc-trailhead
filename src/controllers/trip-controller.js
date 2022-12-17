@@ -4,7 +4,6 @@ import { ObjectId } from 'mongodb'
 import { trips } from '../services/mongo.js'
 import * as db from '../services/sqlite.js'
 
-import * as Globals from '../controllers/global-controller.js'
 import * as Users from '../controllers/user-controller.js'
 import * as VehicleRequests from './vehicle-request-controller.js'
 import * as Assignments from './assignment-controller.js'
@@ -76,13 +75,10 @@ export async function getTrip (req, res) {
 }
 
 export async function createTrip (creator, data) {
-  const nextTripNumber = await Globals.incrementTripNumber()
-
   // Creates the new trip
   const startDateAndTime = constants.createDateObject(data.startDate, data.startTime, data.timezone)
   const endDateAndTime = constants.createDateObject(data.endDate, data.endTime, data.timezone)
   const trip = {
-    number: nextTripNumber,
     title: data.title || 'Untitled trip',
     private: data.private || false,
     past: false,
