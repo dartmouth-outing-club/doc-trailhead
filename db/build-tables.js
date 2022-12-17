@@ -38,7 +38,11 @@ const club_leaders = users
 console.log(getInsertStatementFromRecords(club_leaders, ['user', 'club', 'is_approved'], 'club_leaders'))
 
 const club_requested_leaders = users
-  .flatMap(user => user?.requested_clubs?.map(club => ({ user: user._id.$oid, club: club.$oid, is_approved: false })))
+  .flatMap(user => user?.requested_clubs?.map(club => ({
+    user: user._id.$oid,
+    club: club.$oid || club._id || club,
+    is_approved: false
+  })))
   .filter(record => record)
   .filter(record => record.user && record.club)
 console.log(getInsertStatementFromRecords(club_requested_leaders, ['user', 'club', 'is_approved'], 'club_leaders'))
