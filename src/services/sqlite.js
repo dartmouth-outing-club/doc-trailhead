@@ -217,6 +217,31 @@ export function approveLeadershipRequests (userId) {
   db.prepare('UPDATE club_leaders SET is_approved = true WHERE user = ?').run(userId)
 }
 
+export function getLeadersPendingApproval () {
+  const pendingRequests = db.prepare(`
+  SELECT user, club
+  FROM club_leaders
+  WHERE is_approved = false
+  `).all()
+
+  const clubRequestsByUser = pendingRequests.reduce((accum, request) => {
+    const { user, club } = request
+    accum[user] = accum[user] ? [...accum[user], club] : [club]
+    return accum
+  }, {})
+  const users = Object.keys(clubRequestsByUser)
+
+  return users.map(userId => {
+    const user = db.prepare('SELECT id, name FROM users WHERE id = ?').get(userId)
+    user._id = user.id
+    const requested_clubs = clubRequestsByUser[userId].map(clubId => {
+      const club = db.prepare('SELECT * FROM clubs WHERE id = ?').get(clubId)
+      return formatClub(club)
+    })
+    return { ...user, requested_clubs }
+  })
+}
+
 function getRequestedCertsForUser (userId) {
   const statement = db.prepare(`
   SELECT user, name, '[' || group_concat(cert, ',') || ']' as certs
@@ -233,6 +258,23 @@ function getRequestedCertsForUser (userId) {
   } else {
     return statement.all()
   }
+}
+
+export function requestDriverCert (userId, cert) {
+  if (cert !== 'VAN' || cert !== 'MICROBUS') throw new Error(`Invalid cert ${cert} provided`)
+  db.prepare(`
+  INSERT OR REPLACE into user_certs
+    (user, cert, is_approved)
+  VALUES (?, ?, false)
+  `).run(userId, cert)
+}
+
+export function requestTrailerCert (userId) {
+  db.prepare(`
+  INSERT OR REPLACE into user_certs
+    (user, cert, is_approved)
+  VALUES (?, 'TRAILER', false)
+  `).run(userId)
 }
 
 export function getUsersPendingCerts () {
@@ -639,7 +681,7 @@ export function getUserTrips (userId) {
   SELECT *
   FROM trips
   LEFT JOIN trip_members on trip_members.trip = trips.id
-  LEFT JOIN club on trips.club = clubs.id
+  LEFT JOIN clubs on trips.club = clubs.id
   WHERE trip_members.user = ?
   `).all(userId)
 
@@ -710,30 +752,5 @@ export function getUserEmails (ids) {
   return ids.map(id => {
     const { email } = db.prepare('SELECT email FROM users WHERE id = ?').get(id)
     return email
-  })
-}
-
-export function getLeadersPendingApproval () {
-  const pendingRequests = db.prepare(`
-  SELECT user, club
-  FROM club_leaders
-  WHERE is_approved = false
-  `).all()
-
-  const clubRequestsByUser = pendingRequests.reduce((accum, request) => {
-    const { user, club } = request
-    accum[user] = accum[user] ? [...accum[user], club] : [club]
-    return accum
-  }, {})
-  const users = Object.keys(clubRequestsByUser)
-
-  return users.map(userId => {
-    const user = db.prepare('SELECT id, name FROM users WHERE id = ?').get(userId)
-    user._id = user.id
-    const requested_clubs = clubRequestsByUser[userId].map(clubId => {
-      const club = db.prepare('SELECT * FROM clubs WHERE id = ?').get(clubId)
-      return formatClub(club)
-    })
-    return { ...user, requestedClubs: requested_clubs }
   })
 }

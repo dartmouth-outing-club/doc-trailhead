@@ -1,6 +1,5 @@
 import jwt from 'jwt-simple'
 
-import { users } from '../services/mongo.js'
 import * as utils from '../utils.js'
 import * as db from '../services/sqlite.js'
 
@@ -91,32 +90,18 @@ export async function updateUser (req, res) {
 
     const hasNewTrailerCert = !existingUser.trailer_cert && req.body.trailer_cert
     const hasNewDriverCert = req.body.driver_cert !== null && existingUser.driver_cert !== req.body.driver_cert
-    if (hasNewTrailerCert || hasNewDriverCert) {
-      newUser.has_pending_cert_change = true
-      const requestedCerts = {}
-      requestedCerts.driver_cert = req.body.driver_cert
-      requestedCerts.trailer_cert = req.body.trailer_cert
-      newUser.requested_certs = requestedCerts
-    } else {
-      newUser.has_pending_cert_change = false
-      newUser.requested_certs = {}
+    if (hasNewTrailerCert) {
+      db.requestTrailerCert(userId)
+    }
+    if (hasNewDriverCert) {
+      db.requestDriverCert(userId)
     }
 
-    // These user changes can only be performed by OPO
-    if (req.user.role === 'OPO') {
-      if (!req.body.trailer_cert) {
-        newUser.trailer_cert = req.body.trailer_cert
-      }
-
-      if (req.body.driver_cert === null) {
-        newUser.driver_cert = req.body.driver_cert
-      }
-
-      if (req.body.role) {
-        newUser.role = req.body.role
-      }
+    if (!hasNewTrailerCert && !hasNewDriverCert) {
+      db.denyUserRequestedCerts(userId)
     }
-    await users.updateOne({ _id: req.user._id }, { $set: newUser })
+
+    db.updateUser(newUser)
     getUser(req, res)
   } catch (error) {
     console.error(error)
