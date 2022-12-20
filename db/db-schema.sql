@@ -11,7 +11,7 @@ CREATE TABLE assignments (
   vehicle_key TEXT,
   picked_up INTEGER DEFAULT FALSE, -- pickedUp
   returned INTEGER DEFAULT FALSE
-);
+) STRICT;
 
 CREATE TABLE clubs (
   id INTEGER PRIMARY KEY,
@@ -73,8 +73,9 @@ CREATE TABLE users (
 CREATE TABLE user_certs (
   user INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
   cert TEXT, -- MICROBUS, VAN, TRAILER
-  is_approved INTEGER DEFAULT FALSE
-);
+  is_approved INTEGER DEFAULT FALSE,
+  PRIMARY KEY (user, cert)
+) STRICT;
 
 CREATE TABLE vehicles (
   id INTEGER primary key,
@@ -82,7 +83,7 @@ CREATE TABLE vehicles (
   name TEXT UNIQUE NOT NULL,
   type TEXT NOT NULL, /*{ enum: ['Van', 'Microbus', 'Truck', 'Enterprise', 'PersonalVehicle'] }*/
   active INTEGER DEFAULT TRUE
-);
+) STRICT;
 
 CREATE TABLE vehiclerequests (
   id INTEGER primary key,
@@ -94,7 +95,7 @@ CREATE TABLE vehiclerequests (
   trip TEXT REFERENCES trips ON DELETE RESTRICT ON UPDATE CASCADE, -- associatedTrip
   request_type TEXT, -- requestType { enum: ['TRIP', 'SOLO'] }
   status TEXT DEFAULT 'pending' -- { enum: ['pending', 'approved', 'denied'], },
-);
+) STRICT;
 
 CREATE TABLE club_leaders (
   user TEXT REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
@@ -112,7 +113,7 @@ CREATE TABLE requested_vehicles (
   trailer_needed INTEGER NOT NULL DEFAULT FALSE, -- trailerNeeded
   pass_needed INTEGER NOT NULL DEFAULT FALSE, -- passNeeded
   recurring_vehicle INTEGER NOT NULL DEFAULT FALSE -- recurringVehicle
-);
+) STRICT;
 
 CREATE TABLE trip_members (
   trip INTEGER REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
@@ -122,26 +123,11 @@ CREATE TABLE trip_members (
   pending INTEGER DEFAULT FALSE,
   requested_gear TEXT DEFAULT '[]',
   PRIMARY KEY (trip, user)
-);
+) STRICT;
 
 COMMIT;
 
 /* CREATE TRIGGER directions_inserted AFTER INSERT ON directions */
 /* BEGIN */
 /* 	UPDATE directions SET updated_at = unixepoch() WHERE id = NEW.id; */
-/* END; */
-
-/* CREATE TRIGGER directions_updated AFTER UPDATE ON directions */
-/* BEGIN */
-/* 	UPDATE directions SET updated_at = unixepoch() WHERE id = NEW.id; */
-/* END; */
-
-/* CREATE TRIGGER packets_inserted AFTER INSERT ON packets */
-/* BEGIN */
-/* 	UPDATE packets SET updated_at = unixepoch() WHERE name = NEW.name; */
-/* END; */
-
-/* CREATE TRIGGER packets_updated AFTER UPDATE ON packets */
-/* BEGIN */
-/* 	UPDATE packets SET updated_at = unixepoch() WHERE name = NEW.name; */
 /* END; */

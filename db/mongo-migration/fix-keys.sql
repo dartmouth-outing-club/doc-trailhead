@@ -44,6 +44,11 @@ FROM vehiclerequests
 WHERE vehiclerequests._id = assignments.vehiclerequest;
 
 UPDATE assignments
+SET requester = users.id
+FROM users
+WHERE users._id = requester;
+
+UPDATE assignments
 SET vehicle = vehicles.id
 FROM vehicles
 WHERE vehicles._id = assignments.vehicle;
