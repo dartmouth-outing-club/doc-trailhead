@@ -96,15 +96,27 @@ const assignmentFields = ['_id', 'vehiclerequest', 'requester', 'pickup_time', '
   ['assigned_key', 'vehicle_key'], 'vehicle', 'picked_up', 'returned']
 console.log(getInsertStatementFromRecords(assignments, assignmentFields, 'assignments'))
 
-const trips = getRecordsFromFile('./tables/trips.bson.json').map(trip => ({
-  ...trip,
-  club: trip.club.$oid,
-  owner: trip.owner.$oid,
-  start_time: trip.startDateAndTime?.$date?.$numberLong,
-  end_time: trip.endDateAndTime?.$date?.$numberLong,
-  cost: trip.cost?.$numberInt,
-  vehicle_request: trip.vehicleRequest?.$oid
-}))
+const trips = getRecordsFromFile('./tables/trips.bson.json').map(trip => {
+  const newTrip = {
+    ...trip,
+    club: trip.club.$oid,
+    owner: trip.owner.$oid,
+    start_time: trip.startDateAndTime?.$date?.$numberLong,
+    end_time: trip.endDateAndTime?.$date?.$numberLong,
+    cost: trip.cost?.$numberInt,
+    vehicle_request: trip.vehicleRequest?.$oid
+  }
+  newTrip.trippee_gear = trip.trippeeGear.map(gear => {
+    const { sizeType, name, quantity } = gear
+    return { sizeType, name, quantity: quantity?.$numberInt }
+  })
+
+  newTrip.opo_gear_requests = trip.OPOGearRequests.map(gear => {
+    const { sizeType, name, quantity } = gear
+    return { sizeType, name, quantity: quantity?.$numberInt }
+  })
+  return newTrip
+})
 const tripFields = [
   '_id',
   'title',

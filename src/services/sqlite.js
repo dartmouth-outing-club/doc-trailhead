@@ -52,6 +52,20 @@ function convertSqlDate (unixDate) {
   }
 }
 
+function getTimeField (unixDate) {
+  if (!unixDate) return undefined
+  try {
+    const date = new Date(unixDate)
+    const minutes = date.getMinutes()
+    return `${date.getHours()}:${minutes < 10 ? '0' + minutes : minutes}`
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return unixDate
+    }
+    throw error
+  }
+}
+
 /**
  * FORMAT FUNCTIONS
  * Format functions translate the new schema into the old structure the frontend expects
@@ -94,17 +108,23 @@ function formatVehicleRequest (vehicleRequest) {
 
 function formatTrip (trip) {
   if (trip === undefined) return undefined
+
   return {
     ...trip,
     _id: trip.id,
     number: trip.id,
     markedLate: trip.marked_late,
+    startDate: trip.start_time,
+    endDate: trip.end_time,
     startDateAndTime: trip.start_time,
     endDateAndTime: trip.end_time,
     experienceNeeded: trip.experience_needed,
     coLeaderCanEditTrip: trip.coleader_can_edit,
+    trippeeGear: trip.trippee_gear,
     trippeeGearStatus: trip.trippee_gear_status,
     gearStatus: trip.gear_status,
+    OPOGearRequests: trip.opo_gear_requests,
+    pcard: trip.pcard,
     pcardStatus: trip.pcard_status,
     vehicleStatus: trip.vehicle_status
   }
@@ -139,14 +159,25 @@ function getClubName (id) {
 
 function getTripParticipantNames (tripId, ownerId) {
   const users = db.prepare(`
-  SELECT users.id, users.name, pending, leader, requested_gear
-  FROM trip_members
-  LEFT JOIN users ON trip_members.user = users.id
-  WHERE trip_members.trip = ?`).all(tripId)
+    SELECT users.id, users.email, users.name, pending, leader, attended, requested_gear
+    FROM trip_members
+    LEFT JOIN users ON trip_members.user = users.id
+    WHERE trip_members.trip = ?
+  `)
+    .all(tripId)
+    .map(user => {
+      return {
+        attended: user.attended,
+        user: { id: user.id, email: user.email, name: user.name },
+        requestedGear: JSON.parse(user.requested_gear),
+        pending: user.pending,
+        leader: user.leader
+      }
+    })
 
   const owner = db.prepare('SELECT name FROM users WHERE id = ?').get(ownerId)
-  const members = users.filter(user => user.pending === 0).map(item => ({ user: item }))
-  const pending = users.filter(user => user.pending === 1).map(item => ({ user: item }))
+  const members = users.filter(user => user.pending === 0)
+  const pending = users.filter(user => user.pending === 1)
   const leaders = users.filter(user => user.leader === 1)
   return { owner, leaders, members, pending }
 }
@@ -684,9 +715,16 @@ export function getTripById (tripId) {
     leaders,
     members,
     pending,
-    startDateAndTime: convertSqlDate(trip.start_time),
-    endDateAndTime: convertSqlDate(trip.end_time)
+    opo_gear_requests: JSON.parse(trip.opo_gear_requests),
+    trippee_gear: JSON.parse(trip.trippee_gear),
+    pcard: JSON.parse(trip.pcard),
+    sent_emails: JSON.parse(trip.sent_emails),
+    startTime: getTimeField(trip.start_time),
+    endTime: getTimeField(trip.end_time),
+    start_time: convertSqlDate(trip.start_time),
+    end_time: convertSqlDate(trip.end_time)
   }
+
   return formatTrip(enhancedTrip)
 }
 
@@ -838,16 +876,13 @@ export function updateTripMemberGearRequest (tripId, userId, requested_gear) {
 }
 
 export function getFullTripView (tripId, forUser) {
-  const trip = db.prepare('SELECT * FROM trips WHERE id = ?').get(tripId)
-  const vehicleRequest = getVehicleRequestByTripId(tripId)
-  const { owner, leaders, members, pending } = getTripParticipantNames(tripId, trip.owner)
-
+  const trip = getTripById(tripId)
   // This will not work until the user has the correct ID
   let userTripStatus = 'NONE'
   let isLeaderOnTrip = false
   if (forUser) {
-    const isPending = pending.some(user => user.id === forUser.id)
-    const isOnTrip = members.some(user => user.id === forUser.id)
+    const isPending = trip.pending.some(user => user.id === forUser.id)
+    const isOnTrip = trip.members.some(user => user.id === forUser.id)
 
     if (isPending) userTripStatus = 'PENDING'
     if (isOnTrip) userTripStatus = 'APPROVED'
@@ -861,19 +896,7 @@ export function getFullTripView (tripId, forUser) {
     }
   }
 
-  const enhancedTrip = {
-    ...trip,
-    number: trip.id,
-    club: getClubName(trip.club),
-    vehicleRequest,
-    owner,
-    leaders,
-    members,
-    pending,
-    startDateAndTime: convertSqlDate(trip.start_time),
-    endDateAndTime: convertSqlDate(trip.end_time)
-  }
-  return { trip: formatTrip(enhancedTrip), userTripStatus, isLeaderOnTrip }
+  return { trip: formatTrip(trip), userTripStatus, isLeaderOnTrip }
 }
 
 export function getTripByVehicleRequest (vehicleRequestId) {
@@ -903,10 +926,10 @@ export function insertTrip (trip, leaders) {
 
 export function updateTrip (trip) {
   if (!trip.id) throw new Error(`Error, invalid trip ${trip.id} provided`)
+  console.log(trip)
   const info = db.prepare(`
   UPDATE trips
   SET
-    name = ifnull(@name, name),
     title = ifnull(@title, title),
     private = ifnull(@private, private),
     past = ifnull(@past, past),

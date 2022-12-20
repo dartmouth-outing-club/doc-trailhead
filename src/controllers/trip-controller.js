@@ -127,8 +127,8 @@ export async function createTrip (creator, data) {
 
 export async function updateTrip (req, res) {
   const trip = db.getTripById(req.params.tripID)
-  const isOwner = trip.owner.id === req.user
-  const isLeader = trip.leaders.some(user => user.id === req.user)
+  const isOwner = trip.owner.id === req.user.id
+  const isLeader = trip.leaders.some(user => user.id === req.user.id)
   const isOPO = req.user.role === 'OPO'
   if (!isOwner && !isLeader && !isOPO) {
     return res.status(403).send('You must be a leader on the trip to update it.')

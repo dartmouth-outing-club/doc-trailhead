@@ -85,7 +85,7 @@ CREATE TABLE vehicles (
 CREATE TABLE vehiclerequests (
   id INTEGER primary key,
   _id TEXT,
-  requester TEXT NOT NULL REFERENCES users ON DELETE RESTRICT ON UPDATE CASCADE,
+  requester INTEGER NOT NULL REFERENCES users ON DELETE RESTRICT ON UPDATE CASCADE,
   request_details TEXT, -- requestDetails
   mileage INTEGER,
   num_participants INTEGER, -- noOfPeople
