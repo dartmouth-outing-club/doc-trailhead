@@ -98,8 +98,8 @@ CREATE TABLE vehiclerequests (
 ) STRICT;
 
 CREATE TABLE club_leaders (
-  user TEXT REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
-  club TEXT REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
+  user INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
+  club INTEGER REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
   is_approved INTEGER DEFAULT FALSE,
   PRIMARY KEY (user, club)
 ) STRICT;
@@ -110,9 +110,9 @@ CREATE TABLE requested_vehicles (
   details TEXT, -- vehicleDetails
   pickup_time INTEGER, -- pickupDateAndTime
   return_time INTEGER, -- returnDateAndTime
-  trailer_needed INTEGER NOT NULL DEFAULT FALSE, -- trailerNeeded
-  pass_needed INTEGER NOT NULL DEFAULT FALSE, -- passNeeded
-  recurring_vehicle INTEGER NOT NULL DEFAULT FALSE -- recurringVehicle
+  trailer_needed INTEGER DEFAULT FALSE, -- trailerNeeded
+  pass_needed INTEGER DEFAULT FALSE, -- passNeeded
+  recurring_vehicle INTEGER DEFAULT FALSE -- recurringVehicle
 ) STRICT;
 
 CREATE TABLE trip_members (
