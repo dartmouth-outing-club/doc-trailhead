@@ -5,10 +5,9 @@ import cron from 'node-cron'
 import morgan from 'morgan'
 
 import * as constants from './constants.js'
-import * as sqlite from './services/sqlite.js'
-import apiRouter from './router.js'
+import * as db from './services/sqlite.js'
 import * as mailer from './services/mailer.js'
-import * as trips from './controllers/trip-controller.js'
+import apiRouter from './router.js'
 
 process.env.TZ = 'America/New_York'
 
@@ -30,8 +29,8 @@ app.use('/', apiRouter)
 app.use(handleError)
 
 // Open database connection
-sqlite.start('trailhead.db')
-process.on('exit', () => sqlite.stop())
+db.start('trailhead.db')
+process.on('exit', () => db.stop())
 process.on('SIGHUP', () => process.exit(128 + 1))
 process.on('SIGINT', () => process.exit(128 + 2))
 process.on('SIGTERM', () => process.exit(128 + 15))
@@ -44,16 +43,16 @@ console.log(`Server running at ${process.env.NODE_ENV !== 'development' ? consta
 console.error(`Starting up at ${new Date()}`)
 
 const checkOutEmails = mailer.createRecurringEmailSender('trip check-out',
-  trips.getTripsPendingCheckOutEmail, mailer.sendCheckOutEmail, trips.markCheckOutEmail)
+  db.getTripsPendingCheckOutEmail, mailer.sendCheckOutEmail, db.markCheckOutEmail)
 
 const checkInEmails = mailer.createRecurringEmailSender('trip check-in',
-  trips.getTripsPendingCheckInEmail, mailer.sendCheckInEmail, trips.markCheckInEmail)
+  db.getTripsPendingCheckInEmail, mailer.sendCheckInEmail, db.markCheckInEmail)
 
 const late90MinEmails = mailer.createRecurringEmailSender('trip late 90 minutes',
-  trips.getTripsPending90MinEmail, mailer.send90MinuteLateEmail, trips.mark90MinEmail)
+  db.getTripsPending90MinEmail, mailer.send90MinuteLateEmail, db.mark90MinEmail)
 
 const late3HourEmails = mailer.createRecurringEmailSender('trip late 3 hours',
-  trips.getTripsPending3HourEmail, mailer.send3HourLateEmail, trips.markTripLate)
+  db.getTripsPending3HourEmail, mailer.send3HourLateEmail, db.markTripLate)
 
 /**
  * Schedules time-based emails.
@@ -62,7 +61,7 @@ if (process.env.NODE_ENV !== 'development' && process.env.SCHEDULER_STATUS !== '
   // These wacky times are a stopgap to mitigate the connection limit throttling
   // I'll batch these properly (with precise queries) soon
   console.log('Starting scheduler')
-  cron.schedule('0 1 * * *', trips.markTripsAsPast)
+  cron.schedule('0 1 * * *', db.markOldTripsAsPast)
   cron.schedule('10 * * * *', checkOutEmails)
   cron.schedule('20 * * * *', checkInEmails)
   cron.schedule('5,15,25,35,45,55 * * * *', late90MinEmails)

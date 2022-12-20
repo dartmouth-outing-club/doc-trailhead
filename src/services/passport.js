@@ -8,7 +8,6 @@ import { add } from 'date-arithmetic'
 import * as db from '../services/sqlite.js'
 import * as constants from '../constants.js'
 import * as Users from '../controllers/user-controller.js'
-import * as Trips from '../controllers/trip-controller.js'
 
 export function signinCAS (req, res, next) {
   passport.authenticate('cas', async (error, casId) => {

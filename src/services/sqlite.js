@@ -139,7 +139,7 @@ function getClubName (id) {
 
 function getTripParticipantNames (tripId, ownerId) {
   const users = db.prepare(`
-  SELECT users.id, users.name, pending, leader
+  SELECT users.id, users.name, pending, leader, requested_gear
   FROM trip_members
   LEFT JOIN users ON trip_members.user = users.id
   WHERE trip_members.trip = ?`).all(tripId)
@@ -416,6 +416,15 @@ export function getVehicleRequestById (id) {
   return formatVehicleRequest(vehicleRequest)
 }
 
+export function getVehicleRequestByTripId (id) {
+  const vehicleRequest = db.prepare('SELECT * FROM vehiclerequests WHERE trip = ?').get(id)
+  vehicleRequest.requestedVehicles = db
+    .prepare('SELECT * FROM requested_vehicles WHERE vehiclerequest = ?')
+    .all(id)
+    .map(formatRequestedVehicle)
+  return formatVehicleRequest(vehicleRequest)
+}
+
 export function getVehicleRequestsByRequester (requester) {
   const vehicleRequest = db
     .prepare('SELECT * FROM vehiclerequests WHERE requester = ?')
@@ -468,6 +477,11 @@ export function deleteVehicleRequest (vehicleRequestId) {
   return info.changes
 }
 
+export function markTripVehicleStatusPending (id) {
+  const info = db.prepare("UPDATE trips SET vehicle_status = 'denied' WHERE id = ?").run(id)
+  return info.changes
+}
+
 export function markTripVehicleStatusDenied (id) {
   const info = db.prepare("UPDATE trips SET vehicle_status = 'denied' WHERE id = ?").run(id)
   return info.changes
@@ -476,6 +490,26 @@ export function markTripVehicleStatusDenied (id) {
 export function markTripVehicleStatusApproved (id) {
   const info = db.prepare("UPDATE trips SET vehicle_status = 'approved' WHERE id = ?").run(id)
   return info.changes
+}
+
+export function markTripVehicleAssignmentsPickedUp (tripId) {
+  const vehicleRequestId = getVehicleRequestByTripId(tripId)
+  return db
+    .prepare('UPDATE assignments SET picked_up = true WHERE vehiclerequest = ?')
+    .run(vehicleRequestId)
+}
+
+export function markTripVehicleAssignmentsReturned (tripId) {
+  const vehicleRequestId = getVehicleRequestByTripId(tripId)
+  return db
+    .prepare('UPDATE assignments SET returned = true WHERE vehiclerequest = ?')
+    .run(vehicleRequestId)
+}
+
+export function markOldTripsAsPast () {
+  const now = new Date()
+  const yesterday = subtract(now, 1, 'day')
+  db.prepare('UPDATE trips SET past = true WHERE start_time < ?').run(yesterday)
 }
 
 export function getAssignmentById (id) {
@@ -523,6 +557,10 @@ export function markAssignmentReturned (id) {
 
 export function deleteAssignment (id) {
   return db.prepare('DELETE FROM assignments WHERE id = ?').run(id)
+}
+
+export function deleteAllAssignmentsForVehicleRequest (vehicleRequestId) {
+  return db.prepare('DELETE FROM assignments WHERE vehiclerequest = ?').run(vehicleRequestId)
 }
 
 /*
@@ -632,9 +670,176 @@ export function getAllTrips (getPastTrips = false) {
   return allTrips
 }
 
-export function getTripById (tripId, forUser) {
+export function getTripById (tripId) {
   const trip = db.prepare('SELECT * FROM trips WHERE id = ?').get(tripId)
-  const vehicleRequest = db.prepare('SELECT * from vehiclerequests where trip = ?').get(tripId)
+  const vehicleRequest = getVehicleRequestByTripId(tripId)
+  const { owner, leaders, members, pending } = getTripParticipantNames(tripId, trip.owner)
+
+  const enhancedTrip = {
+    ...trip,
+    number: trip.id,
+    club: getClubName(trip.club),
+    vehicleRequest,
+    owner,
+    leaders,
+    members,
+    pending,
+    startDateAndTime: convertSqlDate(trip.start_time),
+    endDateAndTime: convertSqlDate(trip.end_time)
+  }
+  return formatTrip(enhancedTrip)
+}
+
+const _48_HOURS_IN_MS = 172800000
+const _2_HOURS_IN_MS = 7200000
+const _90_MINS_IN_MS = 5400000
+const _3_HOURS_IN_MS = 10800000
+
+export function getTripsPendingCheckOutEmail () {
+  const now = new Date()
+  const emailWindow = new Date(now.getTime() + _48_HOURS_IN_MS)
+  return db.prepare(`
+  SELECT *
+  FROM trips
+  WHERE start_time > ? AND start_time < ? AND sent_emails NOT LIKE '%CHECK_OUT%'
+  `).run(now, emailWindow)
+}
+
+export function getTripsPendingCheckInEmail () {
+  const now = new Date()
+  const emailWindow = new Date(now.getTime() + _2_HOURS_IN_MS)
+  return db.prepare(`
+  SELECT *
+  FROM trips
+  WHERE end_time > ? AND end_time < ? AND sent_emails NOT LIKE '%CHECK_IN%'
+  `).run(now, emailWindow)
+}
+
+export function getTripsPending90MinEmail () {
+  const now = new Date()
+  const returnWindow = new Date(now.getTime() + _90_MINS_IN_MS)
+  return db.prepare(`
+  SELECT *
+  FROM trips
+  WHERE end_time > ? AND returned = false AND sent_emails NOT LIKE '%LATE_90%'
+  `).run(returnWindow)
+}
+
+export function getTripsPending3HourEmail () {
+  const now = new Date()
+  const returnWindow = new Date(now.getTime() + _3_HOURS_IN_MS)
+  return db.prepare(`
+  SELECT *
+  FROM trips
+  WHERE end_time > ? AND returned = false AND sent_emails NOT LIKE '%LATE_180%'
+  `).run(returnWindow)
+}
+
+export function setTripLeftStatus (tripId, left) {
+  return db.prepare('UPDATE trips SET left = ? WHERE id = ?').run(left, tripId)
+}
+
+export function setTripReturnedStatus (tripId, returned) {
+  return db.prepare('UPDATE trips SET returned = ? WHERE id = ?').run(returned, tripId)
+}
+
+export function setTripGearStatus (tripId, status) {
+  return db.prepare('UPDATE trips SET gear_status = ? WHERE id = ?').run(status, tripId)
+}
+
+export function setTripTrippeeGearStatus (tripId, status) {
+  return db.prepare('UPDATE trips SET trippee_gear_status = ? WHERE id = ?').run(status, tripId)
+}
+
+export function setTripPcardStatus (tripId, pcard_status, pcard_assigned) {
+  return db
+    .prepare('UPDATE trips SET pcard_status = ?, pcard_assigned = ? WHERE id = ?')
+    .run(pcard_status, pcard_assigned, tripId)
+}
+
+export function markTripEmailSent (tripId, emailName) {
+  try {
+    return db.prepare(`
+    UPDATE trips
+    SET sent_emails = json_insert(sent_emails, '$[#]', ?)
+    WHERE id = ?
+  `).run(emailName, tripId)
+  } catch (error) {
+    console.error(`Error updating email status ${emailName} for trip ${tripId}:`, error)
+  }
+}
+
+export const markCheckOutEmail = (tripId) => markTripEmailSent(tripId, 'CHECK_OUT')
+export const markCheckInEmail = (tripId) => markTripEmailSent(tripId, 'CHECK_IN')
+export const mark90MinEmail = (tripId) => markTripEmailSent(tripId, 'LATE_90')
+
+export function markTripLate (tripId) {
+  try {
+    markTripEmailSent(tripId, 'LATE_180')
+    return db.prepare('UPDATE trips SET marked_late = true WHERE id = ?').run(tripId)
+  } catch (error) {
+    console.error(`Error updating marking trip ${tripId} late:`, error)
+  }
+}
+
+export function getTripMember (tripId, userId) {
+  return db
+    .prepare('SELECT * FROM trip_members WHERE trip = ? AND user = ?')
+    .get(tripId, userId)
+}
+
+export function insertPendingTripMember (tripId, userId, requested_gear) {
+  return db.prepare(`
+  INSERT INTO trip_members (trip, user, requested_gear)
+  VALUES (?, ?, ?)
+  `).run(tripId, userId, requested_gear)
+}
+
+export function promoteTripMemberToLeader (tripId, userId) {
+  return db
+    .prepare('UPDATE trip_members SET leader = true WHERE trip = ? AND user = ?')
+    .run(tripId, userId)
+}
+
+export function demoteTripLeaderToMember (tripId, userId) {
+  return db
+    .prepare('UPDATE trip_members SET leader = false WHERE trip = ? AND user = ?')
+    .run(tripId, userId)
+}
+
+export function admitTripMember (tripId, userId) {
+  return db
+    .prepare('UPDATE trip_members SET pending = false WHERE trip = ? AND user = ?')
+    .run(tripId, userId)
+}
+
+export function unadmitTripMember (tripId, userId) {
+  return db
+    .prepare('UPDATE trip_members SET pending = true WHERE trip = ? AND user = ?')
+    .run(tripId, userId)
+}
+
+export function setTripMemberAttendance (tripId, userId, attended) {
+  return db
+    .prepare('UPDATE trip_members SET attended = ? WHERE trip = ? AND user = ?')
+    .run(attended, tripId, userId)
+}
+
+export function deleteTripMember (tripId, userId) {
+  return db.prepare('DELETE FROM trip_members WHERE trip = ? AND user = ?').run(tripId, userId)
+}
+
+export function updateTripMemberGearRequest (tripId, userId, requested_gear) {
+  return db.prepare(`
+  UPDATE trip_members
+  SET requested_gear = ?
+  WHERE trip = ? and user = ?
+  `).run(requested_gear, tripId, userId)
+}
+
+export function getFullTripView (tripId, forUser) {
+  const trip = db.prepare('SELECT * FROM trips WHERE id = ?').get(tripId)
+  const vehicleRequest = getVehicleRequestByTripId(tripId)
   const { owner, leaders, members, pending } = getTripParticipantNames(tripId, trip.owner)
 
   // This will not work until the user has the correct ID
@@ -674,6 +879,103 @@ export function getTripById (tripId, forUser) {
 export function getTripByVehicleRequest (vehicleRequestId) {
   const { trip } = db.prepare('SELECT trip FROM vehiclerequests WHERE id = ?').get(vehicleRequestId)
   return getTripById(trip)
+}
+
+export function insertTrip (trip, leaders) {
+  const info = db.prepare(`
+  INSERT INTO trips (title, private, start_time, end_time, owner, description, club, cost,
+    experience_needed, location, pickup, dropoff, mileage, coleader_can_edit, opo_gear_requests,
+    trippee_gear, gear_status, trippee_gear_status, pcard_status, pcard)
+  VALUES (@title, @private, @start_time, @end_time, @owner, @description, @club, @cost,
+    @experience_needed, @location, @pickup, @dropoff, @mileage, @coleader_can_edit,
+    @opo_gear_requests, @trippee_gear, @gear_status, @trippee_gear_status, @pcard_status, @pcard)
+  `).run(trip)
+  const id = info.lastInsertRowid
+
+  // Insert leaders
+  leaders.forEach(leaderId => {
+    db.prepare('INSERT INTO trip_members (trip, user, leader, requested_gear) VALUES (?, ?, ?)')
+      .run(id, leaderId, true)
+  })
+
+  return id
+}
+
+export function updateTrip (trip) {
+  if (!trip.id) throw new Error(`Error, invalid trip ${trip.id} provided`)
+  const info = db.prepare(`
+  UPDATE trips
+  SET
+    name = ifnull(@name, name),
+    title = ifnull(@title, title),
+    private = ifnull(@private, private),
+    past = ifnull(@past, past),
+    left = ifnull(@left, left),
+    returned = ifnull(@returned, returned),
+    marked_late = ifnull(@marked_late, marked_late),
+    club = ifnull(@club, club),
+    owner = ifnull(@owner, owner),
+    start_time = ifnull(@start_time, start_time),
+    end_time = ifnull(@end_time, end_time),
+    location = ifnull(@location, location),
+    pickup = ifnull(@pickup, pickup),
+    dropoff = ifnull(@dropoff, dropoff),
+    cost = ifnull(@cost, cost),
+    description = ifnull(@description, description),
+    experience_needed = ifnull(@experience_needed, experience_needed),
+    coleader_can_edit = ifnull(@coleader_can_edit, coleader_can_edit),
+    opo_gear_requests = ifnull(@opo_gear_requests, opo_gear_requests),
+    trippee_gear = ifnull(@trippee_gear, trippee_gear),
+    gear_status = ifnull(@gear_status, gear_status),
+    trippee_gear_status = ifnull(@trippee_gear_status, trippee_gear_status),
+    pcard = ifnull(@pcard, pcard),
+    pcard_status = ifnull(@pcard_status, pcard_status),
+    pcard_assigned = ifnull(@pcard_assigned, pcard_assigned),
+    vehicle_status = ifnull(@vehicle_status, vehicle_status),
+    sent_emails = ifnull(@sent_emails, sent_emails)
+  WHERE id = @id
+  `).run(trip)
+
+  return info.changes
+}
+
+export function deleteTrip (id) {
+  db.prepare('DELETE FROM trips WHERE id = ?').run(id)
+}
+
+export function replaceTripLeaders (tripId, leaders) {
+  db.prepare('DELETE FROM trip_members WHERE trip = ? and leader = true').run(tripId)
+  leaders.forEach(userId => {
+    db.prepare('INSERT INTO trip_members (trip, user, leader) VALUES (?, ?, true)')
+      .run(tripId, userId)
+  })
+}
+
+export function updateRequestedGear (tripId, userId, requested_gear) {
+  db.prepare('UPDATE trip_members SET requested_gear = ? WHERE trip = ? and user = ?')
+    .run(requested_gear, tripId, userId)
+}
+
+export function createVehicleRequestForTrip (vehicleRequest, requestedVehicles) {
+  const info = db.prepare(`
+  INSERT INTO vehicles
+    (requester, request_details, mileage, trip, request_type)
+  VALUES (@requester, @request_details, @mileage, @trip, @request_type)
+  `).run(vehicleRequest)
+  const insertedId = info.lastInsertRowid
+
+  requestedVehicles.forEach(vehicle => {
+    vehicle.vehiclerequest = insertedId
+    db.prepare(`
+    INSERT INTO requested_vehicles
+      (vehiclerequest, type, trailer_needed, pass_needed, recurring_vehicle, pickup_time,
+      return_time)
+    VALUES (@vehiclerequest, @type, @trailer_needed, @pass_needed, @recurring_vehicle, @pickup_time,
+      @return_time)
+    `).run(vehicle)
+  })
+
+  return insertedId
 }
 
 export function getUserTrips (userId) {
@@ -753,4 +1055,13 @@ export function getUserEmails (ids) {
     const { email } = db.prepare('SELECT email FROM users WHERE id = ?').get(id)
     return email
   })
+}
+
+export function getTripLeaderEmails (tripId) {
+  return db.prepare(`
+  SELECT email
+  FROM users
+  LEFT JOIN trip_members ON user = users.id
+  WHERE leader = true AND trip = ?
+  `).run(tripId)
 }

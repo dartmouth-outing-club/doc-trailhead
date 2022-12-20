@@ -1,36 +1,15 @@
-import { subtract } from 'date-arithmetic'
-import { ObjectId } from 'mongodb'
-
-import { trips } from '../services/mongo.js'
 import * as db from '../services/sqlite.js'
 
 import * as Users from '../controllers/user-controller.js'
 import * as VehicleRequests from './vehicle-request-controller.js'
-import * as Assignments from './assignment-controller.js'
 
 import * as constants from '../constants.js'
 import * as mailer from '../services/mailer.js'
 
-export async function getTripById (id) {
-  const _id = typeof id === 'string' ? new ObjectId(id) : id
-  return trips.findOne({ _id })
-}
-
-export async function getAllCurrentTrips () {
-  const now = new Date()
-  return trips.find({ endDateAndTime: { $gt: now } }).toArray()
-}
-
-export async function markTripsAsPast () {
-  const now = new Date()
-  const yesterday = subtract(now, 1, 'day')
-  return trips.updateMany({ $set: { startDateAndTime: { $lt: yesterday } } }, { past: true })
-}
-
 async function sendLeadersEmail (tripID, subject, message) {
-  const trip = await getTripById(tripID)
+  const trip = db.getTripById(tripID)
   const leaderEmails = db.getUserEmails(trip.leaders)
-  mailer.send({ address: leaderEmails, subject, message })
+  return mailer.send({ address: leaderEmails, subject, message })
 }
 
 export async function getPublicTrips (_req, res) {
@@ -42,8 +21,10 @@ export async function getPublicTrips (_req, res) {
   }
 }
 
-export async function getTrips (getPastTrips) {
-  return db.getAllTrips(getPastTrips)
+export async function getTrips (req, res) {
+  const getPastTrips = req.query.getPastTrips !== 'false'
+  const allTrips = db.getAllTrips(getPastTrips)
+  return res.json(allTrips)
 }
 
 /**
@@ -76,85 +57,66 @@ export async function getTrip (req, res) {
 
 export async function createTrip (creator, data) {
   // Creates the new trip
-  const startDateAndTime = constants.createDateObject(data.startDate, data.startTime, data.timezone)
-  const endDateAndTime = constants.createDateObject(data.endDate, data.endTime, data.timezone)
   const trip = {
     title: data.title || 'Untitled trip',
     private: data.private || false,
-    past: false,
-    left: false,
-    returnd: false,
-    markedLate: false,
-    startDate: data.startDate,
-    endDate: data.endDate,
-    startTime: data.startTime,
-    startDateAndTime,
-    endDateAndTime,
-    endTime: data.endTime,
+    start_time: constants.createDateObject(data.startDate, data.startTime, data.timezone),
+    end_time: constants.createDateObject(data.endDate, data.endTime, data.timezone),
+    owner: creator.id,
     description: data.description,
     club: data.club._id,
     cost: data.cost || 0,
-    experienceNeeded: data.experienceNeeded || false,
+    experience_needed: data.experienceNeeded || false,
     location: data.location,
     pickup: data.pickup,
     dropoff: data.dropoff,
     mileage: data.mileage,
-    coLeaderCanEditTrip: data.coLeaderCanEditTrip || false,
-    OPOGearRequests: data.gearRequests,
-    trippeeGear: data.trippeeGear,
-    gearStatus: 'N/A',
-    trippeeGearStatus: 'N/A',
-    pcard: data.pcard,
-    pcardStatus: 'N/A',
-    pcardAssigned: 'None',
-    vehicleStatus: 'N/A',
-    sentEmails: []
+    coleader_can_edit: data.coLeaderCanEditTrip || false,
+    opo_gear_requests: data.gearRequests,
+    trippee_gear: data.trippeeGear,
+    pcard: data.pcard
   }
 
-  if (data.gearRequests.length > 0) trip.gearStatus = 'pending'
-  if (data.trippeeGear.length > 0) trip.trippeeGearStatus = 'pending'
-  if (data.pcard.length > 0) trip.pcardStatus = 'pending'
+  if (data.gearRequests.length > 0) trip.gear_status = 'pending'
+  if (data.trippeeGear.length > 0) trip.trippee_gear_status = 'pending'
+  if (data.pcard.length > 0) trip.pcard_status = 'pending'
 
-  // Add the trip creator to the trip
-  trip.members = [{ user: creator._id, requestedGear: [] }]
-  trip.owner = creator._id
-  trip.leaders = [creator._id]
-  trip.pending = []
+  const leaders = data.leaders
+    .map(db.getUserByEmail)
+    .map(user => user.id)
+
+  const tripId = db.insertTrip(trip, leaders)
 
   const leaderEmails = [creator.email] // Used to send out initial email
-  const foundUsers = data.leaders.map(db.getUserByEmail).map(user => user.id)
-
-  foundUsers.forEach((foundUser) => {
-    if (!foundUser._id.equals(creator._id)) {
-      trip.leaders.push(foundUser._id)
-      trip.members.push({ user: foundUser._id, requestedGear: [] })
-      leaderEmails.push(foundUser.email)
-    }
-  })
-
-  const { insertedId } = await trips.insertOne(trip)
-  const savedTrip = { ...trip, _id: insertedId }
+  const savedTrip = { ...trip, id: tripId }
   await mailer.sendNewTripEmail(savedTrip, leaderEmails, creator)
 
   // If vehciles are specified, create a new Vehicle Request
   if (data.vehicles.length > 0) {
     const { mileage, description, vehicles } = data
-    const requestObject = {
+    const vehicleRequest = {
+      requester: creator.id,
+      request_details: description,
       mileage,
-      associatedTrip: savedTrip._id,
-      requestType: 'TRIP',
-      requester: creator._id,
-      requestDetails: description,
-      requestedVehicles: vehicles
+      trip: tripId,
+      request_type: 'TRIP'
     }
 
+    const requestedVehicles = vehicles.map((vehicle) => ({
+      type: vehicle.type,
+      trailer_needed: vehicle.trailerNeeded,
+      pass_needed: vehicle.passNeeded,
+      recurring_vehicle: vehicle.recurringVehicle,
+      pickup_time: constants.createDateObject(vehicle.pickupDate, vehicle.pickupTime),
+      return_time: constants.createDateObject(vehicle.returnDate, vehicle.returnTime)
+    }))
+
     try {
-      const savedVehicleRequest = await VehicleRequests.createNewVehicleRequest(requestObject)
-      await mailer.sendNewVehicleRequestEmail(trip, leaderEmails, savedVehicleRequest)
-      const vehicleStatus = 'pending'
-      const vehicleRequest = savedVehicleRequest._id
-      await trips.updateOne({ _id: trip._id }, { $set: { vehicleStatus, vehicleRequest } })
-      return { ...savedTrip, vehicleStatus, vehicleRequest }
+      const vehicleRequestId = db.createVehicleRequestForTrip(vehicleRequest, requestedVehicles)
+      await mailer.sendNewVehicleRequestEmail(trip, leaderEmails, vehicleRequestId)
+      db.markTripVehicleStatusPending(tripId)
+
+      return db.getTripById(tripId)
     } catch (error) {
       throw new Error(`${'Trip successfully created, but error creating associated vehicle request for trip:'} ${error.toString()}`)
     }
@@ -164,114 +126,83 @@ export async function createTrip (creator, data) {
 }
 
 export async function updateTrip (req, res) {
-  const trip = await getTripById(req.params.tripID)
-  const isTripLeaderOrOPO = trip.leaders.some(leaderID => leaderID.toString() === req.user._id.toString()) || req.user.role === 'OPO'
-  if (!isTripLeaderOrOPO) {
+  const trip = db.getTripById(req.params.tripID)
+  const isOwner = trip.owner.id === req.user
+  const isLeader = trip.leaders.some(user => user.id === req.user)
+  const isOPO = req.user.role === 'OPO'
+  if (!isOwner && !isLeader && !isOPO) {
     return res.status(403).send('You must be a leader on the trip to update it.')
   }
 
   trip.title = req.body.title
   trip.private = req.body.private
-  trip.startDate = req.body.startDate
-  trip.endDate = req.body.endDate
-  trip.startTime = req.body.startTime
-  trip.endTime = req.body.endTime
-  trip.startDateAndTime = constants.createDateObject(req.body.startDate, req.body.startTime, req.body.timezone)
-  trip.endDateAndTime = constants.createDateObject(req.body.endDate, req.body.endTime, req.body.timezone)
+  trip.returned = req.body.returned
+  trip.start_time = constants.createDateObject(req.body.startDate, req.body.startTime)
+  trip.end_time = constants.createDateObject(req.body.endDate, req.body.endTime)
   trip.description = req.body.description
-  trip.coLeaderCanEditTrip = req.body.coLeaderCanEditTrip
+  trip.coleader_can_edit = req.body.coLeaderCanEditTrip
   trip.club = req.body.club._id
   trip.location = req.body.location
   trip.pickup = req.body.pickup
   trip.dropoff = req.body.dropoff
   trip.cost = req.body.cost
-  trip.experienceNeeded = req.body.experienceNeeded
-  trip.OPOGearRequests = req.body.gearRequests
-  trip.trippeeGear = req.body.trippeeGear
+  trip.experience_needed = req.body.experienceNeeded
+  trip.opo_gear_requests = req.body.gearRequests
+  trip.trippee_gear = req.body.trippeeGear
   trip.pcard = req.body.pcard
-  trip.returned = req.body.returned
 
-  /**
-   * Updates each member's gear requests based on the new gear.
-   */
   trip.members.concat(trip.pending).forEach((person) => {
-    const markToRemove = []
-    person.requestedGear.forEach((gear, idx) => {
-      let found = false
-      trip.trippeeGear.forEach((newGear) => {
-        if (gear.gearId === newGear._id.toString()) {
-          gear.gearId = newGear._id
-          found = true
-        }
-      })
-      if (!found) {
-        markToRemove.push(idx)
-      }
-    })
-    for (let i = 0; i < markToRemove.length; i += 1) person.requestedGear.splice(markToRemove[i], 1)
+    db.updateRequestedGear(trip.id, person.id, person.requestedGear)
   })
 
-  const { trippeeGear, trippeeGearStatus } = getNewGearAndGearStatus(trip)
-  trip.trippeeGear = trippeeGear
-  trip.trippeeGearStatus = trippeeGearStatus
-
   if (trip.gearStatus === 'N/A' && req.body.gearRequests.length > 0) {
-    trip.gearStatus = 'pending'
-  }
-
-  if (trip.gearStatus === 'pending' && req.body.gearRequests.length === 0) {
-    trip.gearStatus = 'N/A'
+    trip.gear_status = 'pending'
+  } else if (trip.gearStatus === 'pending' && req.body.gearRequests.length === 0) {
+    trip.gear_status = 'N/A'
   }
 
   if (trip.trippeeGearStatus === 'N/A' && req.body.trippeeGear.length > 0) {
-    trip.trippeeGearStatus = 'pending'
-  }
-  if (trip.trippeeGearStatus === 'pending' && req.body.trippeeGear.length === 0) {
-    trip.trippeeGearStatus = 'N/A'
+    trip.trippee_gear_status = 'pending'
+  } else if (trip.trippeeGearStatus === 'pending' && req.body.trippeeGear.length === 0) {
+    trip.trippee_gear_status = 'N/A'
   }
 
   if (trip.pcardStatus === 'N/A' && req.body.pcard.length > 0) {
-    trip.pcardStatus = 'pending'
-  }
-  if (trip.pcardStatus === 'pending' && req.body.pcard.length === 0) {
-    trip.pcardStatus = 'N/A'
+    trip.pcard_status = 'pending'
+  } else if (trip.pcardStatus === 'pending' && req.body.pcard.length === 0) {
+    trip.pcard_status = 'N/A'
   }
 
   if (req.body.changedVehicles) {
-    const { vehicleReqId, mileage, noOfPeople, timezone } = req.body
-    const requestObject = {
-      _id: vehicleReqId,
-      mileage,
-      noOfPeople,
-      timezone,
-      requestDetails: req.body.description,
+    const { vehicleReqId, mileage, noOfPeople, vehicles } = req.body
+    const vehicleRequest = {
+      id: vehicleReqId,
       requester: req.user._id,
-      associatedTrip: new ObjectId(req.params.tripID),
-      assignments: [],
-      requestType: 'TRIP',
-      status: 'pending',
-      requestedVehicles: req.body.vehicles
+      request_details: req.body.description,
+      mileage,
+      num_participants: noOfPeople,
+      trip: req.params.tripID,
+      request_type: 'TRIP',
+      status: 'pending'
     }
 
-    if (trip.vehicleStatus === 'N/A' && req.body.vehicles.length > 0) {
-      const vehicleRequest = await VehicleRequests.createNewVehicleRequest(requestObject)
-      trip.vehicleRequest = vehicleRequest._id
-      trip.vehicleStatus = 'pending'
+    if (trip.vehicle_status === 'N/A' && vehicles.length > 0) {
+      db.createVehicleRequestForTrip(vehicleRequest, vehicles)
+      trip.vehicle_status = 'pending'
     } else {
       // If the request was previously approved, delete associated assignements and send an email
-      if (trip.vehicleStatus === 'approved') {
-        const vehicleRequest = await VehicleRequests.getVehicleRequestById(req.body.vehicleReqId)
-        await Assignments.deleteAssignments(vehicleRequest.assignments)
-        if (vehicleRequest.assignments) await mailer.sendVehicleRequestChangedEmail(vehicleRequest)
+      if (trip.vehicle_status === 'approved') {
+        const info = db.deleteAllAssignmentsForVehicleRequest(vehicleReqId)
+        if (info.changes > 0) await mailer.sendVehicleRequestChangedEmail(vehicleRequest)
       }
 
       // If there are no requests, delete the request entirely, otherwise update and set to pending
-      if (req.body.vehicles.length === 0) {
-        await VehicleRequests.deleteOne(req.body.vehicleReqId)
-        trip.vehicleStatus = 'N/A'
+      if (vehicles.length === 0) {
+        db.deleteVehicleRequest(vehicleReqId)
+        trip.vehicle_status = 'N/A'
       } else {
-        await VehicleRequests.updateVehicleRequest(requestObject)
-        trip.vehicleStatus = 'pending'
+        db.updateVehicleRequest(vehicleRequest)
+        trip.vehicle_status = 'pending'
       }
     }
   }
@@ -279,49 +210,45 @@ export async function updateTrip (req, res) {
   const { leaders } = req.body
   trip.leaders = leaders.map(db.getUserByEmail).map(user => user.id)
   if (trip.leaders.length < 1) {
-    console.warn(`WARNING: saving a trip without a leader for trip ${req.params.tripID}`)
-    console.warn(req.body)
+    console.error(`ERROR: attempted to save a trip without a leader for trip ${req.params.tripID}`)
+    return res.status(400).send('Cannot save trip with no leader')
   }
 
-  // The updateTrip method is responsible for adding trip leaders as members
-  // This is very silly! It duplicates the data inside the object
-  trip.leaders.forEach((leaderId) => {
-    const containsLeader = trip.members.some(member => member.user.toString() === leaderId.toString())
-    if (!containsLeader) {
-      trip.members.push({ user: leaderId, requestedGear: [] })
-    }
-  })
-
-  const updateResponse = await trips.findOneAndUpdate({ _id: trip._id }, { $set: { ...trip } })
-  return res.json(updateResponse.value)
+  db.replaceTripLeaders(trip.id, trip.leaders)
+  db.updateTrip(trip)
+  db.updateTripGearAndStatus(trip.id)
+  const savedTrip = db.getTripById(trip.id)
+  return res.json(savedTrip)
 }
 
 /**
  * Deletes a trip.
  */
 export async function deleteTrip (req, res) {
-  const userId = req.user._id
+  const userId = req.user.id
   const tripId = req.params.tripID
-  const trip = await getTripById(tripId)
+  const trip = db.getTripById(tripId)
 
-  const isLeader = trip.leaders.some(leader => leader.toString() === userId.toString())
+  const isLeader = trip.leaders.includes(userId)
   const isOpo = req.user.role === 'OPO'
   if (!isLeader && !isOpo) {
     return res.status(422).send('You must be a leader on the trip or OPO staff')
   }
 
-  await trips.deleteOne({ _id: new ObjectId(tripId) })
-  const owner = db.getUserById(trip.owner)
+  db.deleteTrip(trip.id)
 
+  const owner = db.getUserById(trip.owner)
   const members = [...trip.members, ...trip.pending]
-  const trippeeEmails = db.getUserEmails(members)
+  const trippeeIds = members.map(member => member.user.id)
+  const trippeeEmails = db.getUserEmails(trippeeIds)
   mailer.sendTripDeletedEmail(trip, owner.email, trippeeEmails, req.body.reason)
     .catch(err => {
       console.error(`Failed to send Trip Deleted Email for trip ${trip._id}`, err)
     })
 
-  if (trip.vehicleRequest) {
-    const request = await VehicleRequests.deleteOne(trip.vehicleRequest, 'Associated trip has been deleted')
+  const vehicleRequest = db.getVehicleRequestByTripId(trip.id)
+  if (vehicleRequest) {
+    const request = VehicleRequests.deleteOne(trip.vehicleRequest, 'Associated trip has been deleted')
     await mailer.sendTripVehicleRequestDeletedEmail(trip, [owner.email], request.number)
     return res.json({ message: 'Trip and associated vehicle request successfully' })
   } else {
@@ -333,7 +260,8 @@ export async function deleteTrip (req, res) {
  * TRIP GEAR
  */
 
-function getNewGearAndGearStatus (trip) {
+function updateTripGearAndStatus (tripId) {
+  const trip = db.getTripById(tripId)
   const newGear = trip.trippeeGear.map((gear) => {
     let quantity = 0
     for (const member in trip.members) {
@@ -351,14 +279,14 @@ function getNewGearAndGearStatus (trip) {
       .map((o, i) => [o, trip.trippeeGear[i]])
       .every((combined) => (combined[0].name === combined[1].name && combined[0].quantity >= combined[1].quantity && combined[0].sizeType === combined[1].sizeType))
 
-  let trippeeGearStatus = trip.trippeeGearStatus
+  let trippee_gear_status = trip.trippeeGearStatus
   if (wasApproved && hasChanged) {
-    trippeeGearStatus = 'pending'
+    trippee_gear_status = 'pending'
     sendLeadersEmail(trip._id, `Trip #${trip.number}: Trippee gear requests un-approved`, `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}]'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
     mailer.sendGearRequiresReapprovalNotice(trip)
   }
 
-  return { trippeeGear: newGear, trippeeGearStatus }
+  db.updateTrip({ id: tripId, trippee_gear: newGear, trippee_gear_status })
 }
 
 /**
@@ -366,185 +294,144 @@ function getNewGearAndGearStatus (trip) {
  */
 export async function editUserGear (req, res) {
   const tripId = req.params.tripID
-  const requestedGear = req.body.trippeeGear
-  const trip = await getTripById(tripId)
+  const userId = req.user.id
+  const requested_gear = req.body.trippeeGear
+  const trip = db.getTripById(tripId)
+  const tripMember = db.getTripMember(tripId, userId)
 
-  const isOnTrip = trip.members.some(member => member.user.toString() === req.user._id.toString())
-  const newTrip = {}
-  if (isOnTrip) {
-    const members = trip.members.map(member => {
-      if (member.user._id.toString() === req.user._id.toString()) {
-        return { ...member, requestedGear }
-      } else {
-        return member
-      }
-    })
+  db.updateTripMemberGearRequest(tripId, userId, requested_gear)
 
-    newTrip.members = members
-    const user = db.getUserById(req.user._id)
+  if (tripMember.pending === false) {
     const leaderEmails = db.getUserEmails(trip.leaders)
+    const user = db.getUserById(tripMember.user)
     mailer.sendGearRequestChangedEmail(trip, leaderEmails, user)
-  } else {
-    const pending = trip.pending.map(pender => {
-      if (pender.user._id.toString() === req.user._id.toString()) {
-        return { ...pender, requestedGear }
-      } else {
-        return pender
-      }
-    })
-    newTrip.pending = pending
   }
 
-  const { trippeeGear, trippeeGearStatus } = getNewGearAndGearStatus(trip)
-  newTrip.trippeeGear = trippeeGear
-  newTrip.trippeeGearStatus = trippeeGearStatus
-  await trips.updateOne({ _id: new ObjectId(tripId) }, { $set: newTrip })
-  const updatedTrip = await getTrip(tripId, req.params.user)
+  updateTripGearAndStatus(tripId)
+  const updatedTrip = db.getFullTripView(tripId, req.params.user)
   return res.json(updatedTrip)
 }
 
 /**
  * Puts a trippee on the pending list.
  * Sends an email confirmation to trippee and notice to all leaders and co-leaders.
- * @param {String} tripID
- * @param {String} joiningUserID
- * @param {} requestedGear
+ * @param {String} tripId
+ * @param {String} userId
+ * @param {} requested_gear
  */
-export async function apply (tripID, joiningUserID, requestedGear) {
-  const trip = await getTripById(tripID)
-  const isOnTrip = trip.pending.some(pender => pender.user.toString() === joiningUserID.toString())
-  if (!isOnTrip) {
-    const newPending = [...trip.pending, { user: joiningUserID, requestedGear }]
-    trips.updateOne({ _id: new ObjectId(tripID) }, { $set: { pending: newPending } })
-    const newTrippee = db.getUserById(joiningUserID)
-    const owner = db.getUserById(trip.owner)
-    mailer.sendTripApplicationConfirmation(trip, newTrippee, owner.email)
-  }
+export async function apply (tripId, userId, requested_gear) {
+  const tripMember = db.getTripMember(tripId, userId)
+  if (tripMember) throw new Error(`User ${userId} is already on the trip`)
+  db.insertPendingTripMember(tripId, userId, requested_gear)
+
+  const trip = db.getTripById(tripId)
+  const newMember = db.getUserById(userId)
+  const owner = db.getUserById(trip.owner)
+  mailer.sendTripApplicationConfirmation(trip, newMember, owner.email)
 }
 
 /**
- * Moves a pending member to the approved list, while adding their gear requests to the trip's total.
+ * Moves a pending member to the approved list, while adding their gear requests to the trip's
+ * total.
  * Sends approved notification email to the trippee and a notice to all leaders and co-leaders.
- * @param {String} tripID The ID of the trip to join
- * @param {String} admittedUserID The user ID who is requesting to join
+ * @param {String} tripId The ID of the trip to join
+ * @param {String} userId The user ID who is requesting to join
  */
-export async function admit (tripID, admittedUserID) {
-  const trip = await getTripById(tripID)
+export async function admit (tripId, userId) {
+  // Admit user
+  const tripMember = db.getTripMember(tripId, userId)
+  if (!tripMember) throw new Error('This user is not yet on the pending list for this trip')
+  if (!tripMember.pending) throw new Error('This user is already approved to be on the trip')
+  db.admitTripMember(tripId, userId)
 
-  // Remove user from pending list
-  const joiningUser = trip.pending.find(pender => pender.user?.toString() === admittedUserID)
-  if (!joiningUser) throw new Error('This user is not yet on the pending list for this trip')
+  // Update trippee gear
+  const trip = db.getTripById(tripId)
+  updateTripGearAndStatus(tripId)
 
-  // Add user to member list
-  const pending = trip.pending.filter(pender => pender.user?.toString() !== admittedUserID)
-  const isMember = trip.members.includes(member => member.user?.toString() === admittedUserID)
-  if (isMember) throw new Error('This user is already approved to be on the trip')
-  const members = [...trip.members, joiningUser]
-
-  const { trippeeGear, trippeeGearStatus } = getNewGearAndGearStatus(trip)
-  await trips.updateOne(
-    { _id: new ObjectId(tripID) },
-    { $set: { pending, members, trippeeGear, trippeeGearStatus } }
-  )
-  const foundUser = db.getUserById(admittedUserID)
+  // Send approval email to user
+  const member = db.getUserById(userId)
   const owner = db.getUserById(trip.owner)
-  console.log(owner)
-  return mailer.sendTripApprovalEmail(trip, foundUser, owner.email)
+  return mailer.sendTripApprovalEmail(trip, member, owner.email)
 }
 
 /**
  * Moves a currently approved trippee to the pending list.
  * Removes trippees gear requests from the group list.
  * Sends all trip leaders and co-leaders a notification email.
- * @param {String} tripID The ID of the trip to leave
- * @param {String} leavinUserID The user ID who is leaving
+ * @param {String} tripId The ID of the trip to leave
+ * @param {String} userId The user ID who is leaving
  */
-export async function unAdmit (tripID, leavingUserID) {
-  const trip = await getTripById(tripID)
+export async function unadmit (tripId, userId) {
+  // Remove user from trip
+  const tripMember = db.getTripMember(tripId, userId)
+  if (!tripMember) throw new Error('This user was not on the trip before')
+  if (tripMember.pending) throw new Error('This user was already on the pending list')
+  db.unadmitTripMember(tripId, userId)
 
-  const leavingUser = trip.members.find(member => member.user?.toString() === leavingUserID)
-  if (!leavingUser) throw new Error('This user was not on the approved list before')
+  // Update gear
+  const trip = db.getTripById(tripId)
+  updateTripGearAndStatus(tripId)
 
-  const members = trip.members.filter(member => member.user?.toString() !== leavingUserID)
-  const leaders = trip.leaders.filter(leader => leader.toString() !== leavingUserID)
-
-  const pending = [...trip.pending, leavingUser]
-  const { trippeeGear, trippeeGearStatus } = getNewGearAndGearStatus(trip)
-  await trips.updateOne(
-    { _id: new ObjectId(tripID) },
-    { $set: { pending, members, leaders, trippeeGear, trippeeGearStatus } }
-  )
-  const foundUser = db.getUserById(leavingUserID)
+  // Inform user of their removal
+  const user = db.getUserById(userId)
   const owner = db.getUserById(trip.owner)
-  return mailer.sendTripRemovalEmail(trip, foundUser, owner.email)
+  return mailer.sendTripRemovalEmail(trip, user, owner.email)
 }
 
 /**
  * Removes a currently pending trippee.
  * Sends all trip leaders and co-leaders a notification email.
- * @param {String} tripID The ID of the trip to leave
- * @param {String} rejectedUserID The user ID who is leaving
+ * @param {String} tripId The ID of the trip to leave
+ * @param {String} userId The user ID who is leaving
  */
-export async function reject (tripID, rejectedUserID) {
-  const trip = await getTripById(tripID)
+export async function reject (tripId, userId) {
+  const tripMember = db.getTripMember(tripId, userId)
+  if (!tripMember) throw new Error('This user was not on the trip before')
+  db.deleteTripMember(tripId, userId)
 
-  const wasOnWaitlist = trip.pending.some(pender => pender.user?.toString() === rejectedUserID)
-  if (!wasOnWaitlist) throw new Error('This user was not on the waitlist')
-
-  const pending = trip.pending.filter(pender => pender.user?.toString() !== rejectedUserID)
-  await trips.updateOne({ _id: new ObjectId(tripID) }, { $set: { pending } })
-  const rejectedUser = db.getUserById(rejectedUserID)
+  const trip = db.getTripById(tripId)
+  const user = db.getUserById(userId)
   const owner = db.getUserById(trip.owner)
-  return mailer.sendTripTooFullEmail(trip, rejectedUser, owner.email)
+  return mailer.sendTripTooFullEmail(trip, user, owner.email)
 }
 
 /**
  * Processes request from trippee to leave trip.
  * If the trippee was approved, removes all gear requested by trippee in the group list and sends email alert to all trip leaders and co-leaders.
- * @param {String} tripID The ID of the trip to leave from
+ * @param {String} tripId The ID of the trip to leave from
  * @param {String} leavingUserID The ID of the user leaving
  */
-export async function leave (tripID, leavingUserID) {
-  const trip = await getTripById(tripID)
+export async function leave (tripId, userId) {
+  const trip = db.getTripById(tripId)
 
-  // If user is in the list of pending tripees, remove them
-  const pending = trip.pending.filter(tripee => tripee.user?.toString() !== leavingUserID)
-
-  // If user is in the list of accepted tripees, remove them
-  // Should be mutually exclusive with pending tripees, but you never know
-  const member = trip.members.find((tripee) => tripee.user?.toString() === leavingUserID)
-  if (member) {
+  const tripMember = db.getTripMember(tripId, userId)
+  db.deleteTripMember(tripId, userId)
+  if (!tripMember.pending) {
     const leaderEmails = db.getUserEmails(trip.leaders)
-    const leavingUser = db.getUserById(leavingUserID)
+    const leavingUser = db.getUserById(userId)
     mailer.sendUserLeftEmail(trip, leaderEmails, leavingUser)
   }
-  const members = trip.members.filter((tripee) => tripee.user?.toString() !== leavingUserID)
 
-  const { trippeeGear, trippeeGearStatus } = getNewGearAndGearStatus(trip)
-  return trips.updateOne(
-    { _id: new ObjectId(tripID) },
-    { $set: { pending, members, trippeeGear, trippeeGearStatus } }
-  )
+  updateTripGearAndStatus(tripId)
 }
 
 export async function toggleTripLeadership (req, res) {
   const tripId = req.params.tripID
-  const toggledUser = db.getUserById(req.body.member.user._id)
-  const trip = await getTripById(tripId)
+  const userId = req.body.member.user.id
 
-  let leaders
-  const isAlreadyLeader = trip.leaders.some(leader => toggledUser._id.toString() === leader.toString())
-  if (isAlreadyLeader) {
-    mailer.sendCoLeaderRemovalNotice(trip, req.body.member.user)
-    leaders = trip.leaders.filter(leader => toggledUser._id.toString() !== leader.toString())
+  const trip = db.getTripById(tripId)
+  const user = db.getUserById(userId)
+  const tripMember = db.getTripMember(tripId, userId)
+
+  if (tripMember.leader) {
+    mailer.sendCoLeaderRemovalNotice(trip, user)
+    db.promoteTripMemberToLeader(tripId, userId)
   } else {
-    const member = trip.members.find(member => member.user._id.toString() === toggledUser._id.toString())
-    mailer.sendCoLeaderConfirmation(trip, req.body.member.user)
-    leaders = [...trip.leaders, member.user]
+    mailer.sendCoLeaderConfirmation(trip, user)
+    db.demoteTripLeaderToMember(tripId, userId)
   }
 
-  await trips.updateOne({ _id: new ObjectId(tripId) }, { $set: { leaders } })
-  const newTrip = await getTrip(tripId, req.params.user)
+  const newTrip = db.getFullTripView(tripId, req.params.user)
   return res.json(newTrip)
 }
 
@@ -554,16 +441,7 @@ export async function toggleTripLeadership (req, res) {
 export async function setMemberAttendance (req, res) {
   const { tripID } = req.params
   const { memberID, status } = req.body
-
-  const trip = await getTripById(tripID)
-
-  const members = trip.members.map(member => (
-    member.user.toString() === memberID
-      ? { ...member, attended: status }
-      : member
-  ))
-
-  await trips.updateOne({ _id: tripID }, { $set: { members } })
+  db.setTripMemberAttendance(tripID, memberID, status)
   res.json({ status })
 }
 
@@ -576,20 +454,20 @@ export async function setMemberAttendance (req, res) {
  */
 export async function toggleTripLeftStatus (req, res) {
   const tripId = req.params.tripID
-  const { status } = req.body
+  const left = req.body.status
   const now = new Date()
 
-  const updateResult = await trips.findOneAndUpdate({ _id: new ObjectId(tripId) }, { $set: { left: status } })
-  const trip = updateResult.value
+  db.setTripLeftStatus(tripId, left)
+  const trip = db.getTripById(tripId)
 
-  if (trip.vehicleRequest) {
-    const vehicleRequest = await VehicleRequests.getVehicleRequestById(trip.vehicleRequest)
-    vehicleRequest.assignments.forEach(db.markAssignmentPickedUp)
+  if (left) {
+    // These do not toggle back - unclear if that was intentional
+    db.markTripVehicleAssignmentsPickedUp(tripId)
   }
 
-  sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}left`, `Hello,\n\nYou have marked your Trip #${trip.number}: ${trip.title} as just having ${!status ? 'NOT ' : ''}left ${trip.pickup} at ${constants.formatDateAndTime(now)}, and your trip is due for return at ${constants.formatDateAndTime(trip.endDateAndTime)}.\n\nIMPORTANT: within 90 minutes of returning from this trip, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${Users.tokenForUser(req.user._id, 'mobile', trip._id)}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
+  sendLeadersEmail(trip._id, `Trip #${trip.number} ${!left ? 'un-' : ''}left`, `Hello,\n\nYou have marked your Trip #${trip.number}: ${trip.title} as just having ${!left ? 'NOT ' : ''}left ${trip.pickup} at ${constants.formatDateAndTime(now)}, and your trip is due for return at ${constants.formatDateAndTime(trip.endDateAndTime)}.\n\nIMPORTANT: within 90 minutes of returning from this trip, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip._id}?token=${Users.tokenForUser(req.user._id, 'mobile', trip._id)}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
 
-  const newTrip = await getTrip(tripId, req.params.user)
+  const newTrip = db.getFullTripView(tripId, req.params.user)
   res.json(newTrip)
 }
 
@@ -598,23 +476,25 @@ export async function toggleTripLeftStatus (req, res) {
  */
 export async function toggleTripReturnedStatus (req, res) {
   const tripId = req.params.tripID
-  const { status } = req.body
+  const returned = req.body.status
   const now = new Date()
 
-  const updateResult = await trips.findOneAndUpdate({ _id: new ObjectId(tripId) }, { $set: { returned: status } })
-  const trip = updateResult.value
+  db.setTripReturnedStatus(tripId, returned)
 
-  if (trip.vehicleRequest) {
-    const vehicleRequest = await VehicleRequests.getVehicleRequestById(trip.vehicleRequest)
-    vehicleRequest.assignments.forEach(db.markAssignmentReturned)
+  if (returned) {
+    // These do not toggle back - unclear if that was intentional
+    db.markTripVehicleAssignmentsReturned(tripId)
   }
 
-  sendLeadersEmail(trip._id, `Trip #${trip.number} ${!status ? 'un-' : ''}returned`, `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!status ? 'NOT ' : ''}returned at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
-  if (trip.markedLate) { // will inform OPO that the trip has been returned if it had been marked as late (3 hr) before
-    mailer.sendLateTripBackAnnouncement(trip, status, now)
+  const trip = db.getTripById(tripId)
+  sendLeadersEmail(trip._id, `Trip #${trip.number} ${!returned ? 'un-' : ''}returned`, `Hello,\n\nYour Trip #${trip.number}: ${trip.title}, has been marked as ${!returned ? 'NOT ' : ''}returned at ${constants.formatDateAndTime(now)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip._id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
+
+  // Inform OPO that the trip has been returned if it had been marked as late (3 hr) before
+  if (trip.marked_late) {
+    mailer.sendLateTripBackAnnouncement(trip, returned, now)
   }
 
-  const newTrip = await getTrip(tripId, req.params.user)
+  const newTrip = db.getFullTripView(tripId, req.params.user)
   res.json(newTrip)
 }
 
@@ -632,13 +512,8 @@ export async function respondToGearRequest (req, res) {
   const tripId = req.params.tripID
   const { status } = req.body
 
-  const updateResult = await trips.findOneAndUpdate(
-    { _id: new ObjectId(tripId) },
-    { $set: { gearStatus: status } }
-  )
-  const trip = updateResult.value
+  db.setTripGearStatus(tripId, status)
 
-  const leaderEmails = Users.getUserEmails(trip.leaders)
   let message
   switch (status) {
     case 'approved':
@@ -654,9 +529,10 @@ export async function respondToGearRequest (req, res) {
       break
   }
 
+  const trip = db.getFullTripView(tripId, req.params.user)
+  const leaderEmails = db.getUserEmails(trip.leaders)
   await mailer.sendGroupGearStatusUpdate(trip, leaderEmails, message)
-  const newTrip = await getTrip(tripId, req.params.user)
-  return res.json(newTrip)
+  return res.json(trip)
 }
 
 /**
@@ -668,12 +544,8 @@ export async function respondToGearRequest (req, res) {
 export async function respondToTrippeeGearRequest (req, res) {
   const tripId = req.params.tripID
   const { status } = req.body
-  const updateResult = await trips.findOneAndUpdate(
-    { _id: new ObjectId(tripId) },
-    { $set: { trippeeGearStatus: status } }
-  )
-  const trip = updateResult.value
 
+  db.setTripTrippeeGearStatus(tripId, status)
   let message
   switch (status) {
     case 'approved':
@@ -689,10 +561,10 @@ export async function respondToTrippeeGearRequest (req, res) {
       break
   }
 
+  const trip = db.getFullTripView(tripId, req.params.user)
   const leaderEmails = db.getUserEmails(trip.leaders)
-  mailer.sendIndividualGearStatusUpdate(trip, leaderEmails, message)
-  const newTrip = await getTrip(tripId, req.params.user)
-  return res.json(newTrip)
+  await mailer.sendIndividualGearStatusUpdate(trip, leaderEmails, message)
+  return res.json(trip)
 }
 
 /**
@@ -704,81 +576,10 @@ export async function respondToTrippeeGearRequest (req, res) {
 export async function respondToPCardRequest (req, res) {
   const tripId = req.params.tripID
   const { pcardStatus, pcardAssigned } = req.body
+  db.setTripPcardStatus(tripId, pcardStatus, pcardAssigned)
 
-  const updateResult = await trips.findOneAndUpdate(
-    { _id: new ObjectId(tripId) },
-    { $set: { pcardStatus, pcardAssigned } }
-  )
-  const trip = updateResult.value
-
+  const trip = db.getFullTripView(tripId, req.params.user)
   const leaderEmails = db.getUserEmails(trip.leaders)
   mailer.sendPCardStatusUpdate(trip, leaderEmails)
-  const newTrip = await getTrip(tripId, req.params.user)
-  return res.json(newTrip)
+  return res.json(trip)
 }
-
-const _48_HOURS_IN_MS = 172800000
-const _2_HOURS_IN_MS = 7200000
-const _90_MINS_IN_MS = 5400000
-const _3_HOURS_IN_MS = 10800000
-
-export async function getTripsPendingCheckOutEmail () {
-  const now = new Date()
-  const emailWindow = new Date(now.getTime() + _48_HOURS_IN_MS)
-  const tripsInWindow = await trips.find({ startDateAndTime: { $lt: emailWindow, $gt: now } }).toArray()
-  return tripsInWindow.filter(trip => !trip.sentEmails.includes('CHECK_OUT'))
-}
-
-export async function getTripsPendingCheckInEmail () {
-  const now = new Date()
-  const emailWindow = new Date(now.getTime() + _2_HOURS_IN_MS)
-  const tripsInWindow = await trips.find({ endDateAndTime: { $lt: emailWindow, $gt: now } }).toArray()
-  return tripsInWindow.filter(trip => !trip.sentEmails.includes('CHECK_IN'))
-}
-
-export async function getTripsPending90MinEmail () {
-  const now = new Date()
-  const returnWindow = new Date(now.getTime() - _90_MINS_IN_MS)
-  const tripsInWindow = await trips.find({
-    endDateAndTime: { $lt: returnWindow }, // The endDateAndTime is earlier than 90 minutes ago
-    returned: false
-  }).toArray()
-  return tripsInWindow.filter(trip => !trip.sentEmails.includes('LATE_90'))
-}
-
-export async function getTripsPending3HourEmail () {
-  const now = new Date()
-  const returnWindow = new Date(now.getTime() - _3_HOURS_IN_MS)
-  const tripsInWindow = await trips.find({
-    endDateAndTime: { $lt: returnWindow }, // The endDateAndTime is earlier than 3 hours ago
-    returned: false
-  }).toArray()
-  return tripsInWindow.filter(trip => !trip.sentEmails.includes('LATE_180'))
-}
-
-async function markEmailSent (trip, emailName) {
-  try {
-    const sentEmails = [...trip.sentEmails, emailName]
-    return trips.updateOne({ _id: trip._id }, { $set: { sentEmails } })
-  } catch (error) {
-    console.error('trip:', trip)
-    console.error(`Error updating email status ${emailName} for trip ${trip._id}:`, error)
-  }
-}
-
-/**
- * Trips are officially marked late after 3 hours.
- */
-export async function markTripLate (trip) {
-  const sentEmails = [...trip.sentEmails, 'LATE_180']
-  try {
-    await trips.updateOne({ _id: trip._id }, { $set: { sentEmails, markedLate: true } })
-  } catch (error) {
-    console.error('trip:', trip)
-    console.error(`Error updating marking trip ${trip._id} late:`, error)
-  }
-}
-
-export const markCheckOutEmail = (trip) => markEmailSent(trip, 'CHECK_OUT')
-export const markCheckInEmail = (trip) => markEmailSent(trip, 'CHECK_IN')
-export const mark90MinEmail = (trip) => markEmailSent(trip, 'LATE_90')

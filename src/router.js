@@ -100,11 +100,7 @@ router.route('/trips/')
       res.status(500).send('Something went wrong creating the trip.')
     }
   })
-  .get(requireAuth, async (req, res) => {
-    const getPastTrips = req.query.getPastTrips !== 'false'
-    const allTrips = await trips.getTrips(getPastTrips)
-    return res.json(allTrips)
-  })
+  .get(requireAuth, trips.getTrip)
 
 router.route('/trips/public')
   .get(trips.getPublicTrips)
@@ -131,7 +127,7 @@ router.post('/trips/admit/:tripID', requireAuth, (req, res) => {
 })
 
 router.post('/trips/unadmit/:tripID', requireAuth, (req, res) => {
-  trips.unAdmit(req.params.tripID, req.body.unAdmittedUserID).then(() => { return res.json() }).catch((error) => { console.log(error); res.sendStatus(500) })
+  trips.unadmit(req.params.tripID, req.body.unAdmittedUserID).then(() => { return res.json() }).catch((error) => { console.log(error); res.sendStatus(500) })
 })
 
 router.post('/trips/leave/:tripID', requireAuth, async (req, res) => {

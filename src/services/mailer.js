@@ -42,7 +42,7 @@ export function createRecurringEmailSender (name, tripsFunc, emailFunc, markFunc
         console.log(`[Mailer] Sending ${name} email to: ` + leaderEmails.join(', '))
         const token = tokenForUser(trip.leaders[0], 'mobile', trip._id)
         await emailFunc(trip, leaderEmails, token)
-        markFunc(trip)
+        markFunc(trip.id)
       } catch (error) {
         console.error(`Failed to send mail for trip ${trip._id}`, error)
       }
@@ -173,7 +173,7 @@ export async function sendNewTripEmail (trip, leaderEmails, creator) {
   const email = {
     address: leaderEmails,
     subject: `New Trip #${trip.number} created`,
-    message: `Hello,\n\nYou've created a new Trip #${trip.number}: ${trip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave ${trip.pickup}:: ${constants.frontendURL}/trip-check-out/${trip._id}?token=${tokenForUser(creator._id, 'mobile', trip._id)}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello,\n\nYou've created a new Trip #${trip.number}: ${trip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave ${trip.pickup}:: ${constants.frontendURL}/trip-check-out/${trip.id}?token=${tokenForUser(creator.id, 'mobile', trip.id)}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'New trip')

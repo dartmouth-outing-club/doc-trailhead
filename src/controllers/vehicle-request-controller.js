@@ -49,11 +49,6 @@ function getCurrentVehicleRequests () {
  */
 export function createNewVehicleRequest (requestObject) {
   const { requester, requestDetails, mileage, noOfPeople, requestType, timezone, associatedTrip } = requestObject
-  const requestedVehicles = requestObject.requestedVehicles.map((vehicle) => ({
-    ...vehicle,
-    pickup_time: constants.createDateObject(vehicle.pickupDate, vehicle.pickupTime, timezone),
-    return_time: constants.createDateObject(vehicle.returnDate, vehicle.returnTime, timezone)
-  }))
   const vehicleRequest = {
     requester,
     request_details: requestDetails,
