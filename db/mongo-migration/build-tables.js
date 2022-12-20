@@ -125,8 +125,6 @@ const tripFields = [
   'description',
   ['experienceNeeded', 'experience_needed'],
   ['coLeaderCanEditTrip', 'coleader_can_edit'],
-  ['OPOGearRequests', 'opo_gear_requests'],
-  ['trippeeGear', 'trippee_gear'],
   ['gearStatus', 'gear_status'],
   ['trippeeGearStatus', 'trippee_gear_status'],
   'pcard',
@@ -136,6 +134,24 @@ const tripFields = [
   ['sentEmails', 'sent_emails']
 ]
 console.log(getInsertStatementFromRecords(trips, tripFields, 'trips'))
+
+const tripGear = trips.flatMap(trip => {
+  const trippeeGear = trip.trippeeGear.map(gear => {
+    return {
+      _id: gear._id,
+      trip: trip._id.$oid,
+      name: gear.name,
+      quantity: gear.quantity.$numberInt,
+      size_type: gear.sizeType,
+      is_opo: false
+    }
+  })
+  const opoGear = trip.OPOGearRequests.map(gear => {
+    return { _id: gear._id, name: gear.name, quantity: gear.quantity.$numberInt, is_opo: true }
+  })
+  return [...trippeeGear, ...opoGear]
+})
+console.log(getInsertStatementFromRecords(tripGear, ['_id', 'name', 'trip', 'quantity', 'size_type', 'is_opo'], 'trip_gear'))
 
 const tripMembers = trips.flatMap(trip => {
   const leaders = trip.leaders?.map(leader => leader.$oid) || []
@@ -150,12 +166,20 @@ const tripMembers = trips.flatMap(trip => {
       pending: pendingUsers.includes(user),
       leader: leaders.includes(user),
       attended: member.attended || false,
-      trip: trip._id.$oid,
-      requested_gear: JSON.stringify(member.requestedGear)
+      requested_gear: member.requestedGear,
+      trip: trip._id.$oid
     }
   }) || []
 }).filter(item => item)
-console.log(getInsertStatementFromRecords(tripMembers, ['trip', 'user', 'leader', 'attended', 'pending', 'requested_gear'], 'trip_members'))
+console.log(getInsertStatementFromRecords(tripMembers, ['trip', 'user', 'leader', 'attended', 'pending'], 'trip_members'))
+
+const tripMemberRequestedGear = tripMembers.flatMap(member => (
+  member.requested_gear.map(gear => {
+    const gearId = gear.gearId || gear._id?.$oid || gear._id
+    return { user: member.user, trip_gear: gearId }
+  })
+))
+console.log(getInsertStatementFromRecords(tripMemberRequestedGear, ['user', 'trip_gear'], 'trip_member_requested_gear'))
 
 function getRecordsFromFile (fileName) {
   const contents = fs.readFileSync(fileName).toString()

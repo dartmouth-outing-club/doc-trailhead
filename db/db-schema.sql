@@ -41,8 +41,6 @@ CREATE TABLE trips (
   description TEXT,
   experience_needed INTEGER DEFAULT FALSE, /* experienceNeeded */
   coleader_can_edit INTEGER DEFAULT FALSE, /* coLeaderCanEditTrip */
-  opo_gear_requests TEXT, /* OPOGearRequests [{ name }, quantity }] */
-  trippee_gear TEXT, /* [{}]*/
   gear_status TEXT DEFAULT 'N/A',
   trippee_gear_status TEXT DEFAULT 'N/A',
   pcard TEXT,
@@ -121,8 +119,22 @@ CREATE TABLE trip_members (
   leader INTEGER DEFAULT FALSE,
   attended INTEGER DEFAULT FALSE,
   pending INTEGER DEFAULT FALSE,
-  requested_gear TEXT DEFAULT '[]',
   PRIMARY KEY (trip, user)
+) STRICT;
+
+CREATE TABLE trip_gear (
+  id INTEGER PRIMARY KEY,
+  _id TEXT,
+  trip INTEGER REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
+  name TEXT,
+  quantity INTEGER,
+  size_type TEXT,
+  is_opo INTEGER DEFAULT FALSE
+) STRICT;
+
+CREATE TABLE trip_member_requested_gear (
+  user INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
+  trip_gear INTEGER REFERENCES trip_gear ON DELETE RESTRICT ON UPDATE CASCADE
 ) STRICT;
 
 COMMIT;
