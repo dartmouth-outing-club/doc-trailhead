@@ -51,7 +51,7 @@ export async function handleGetOpoTrips (req, res) {
 export async function getTrip (req, res) {
   const tripId = req.params.tripID
   const requestingUser = req.user
-  const trip = db.getTripById(tripId, requestingUser)
+  const trip = db.getFullTripView(tripId, requestingUser)
   return res.json(trip)
 }
 
