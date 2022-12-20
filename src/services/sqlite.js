@@ -213,7 +213,7 @@ export function denyLeadershipRequests (userId) {
 export function approveLeadershipRequests (userId) {
   const user = getUserById(userId)
   const role = user.role === 'OPO' ? 'OPO' : 'Leader'
-  db.prepare('UPDATE users SET role = ? WHERE user = ?').run(role, userId)
+  db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, userId)
   db.prepare('UPDATE club_leaders SET is_approved = true WHERE user = ?').run(userId)
 }
 
@@ -244,7 +244,7 @@ export function getLeadersPendingApproval () {
 
 function getRequestedCertsForUser (userId) {
   const statement = db.prepare(`
-  SELECT user, name, '[' || group_concat(cert, ',') || ']' as certs
+  SELECT id, user, name, '[' || group_concat(cert, ',') || ']' as certs
   FROM user_certs
   JOIN users on users.id = user
   WHERE
@@ -296,11 +296,11 @@ export function getUsersPendingCerts () {
 }
 
 export function denyUserRequestedCerts (userId) {
-  db.prepare('DELETE FROM user_certs WHERE id = ? and is_approved = false').run(userId)
+  db.prepare('DELETE FROM user_certs WHERE user = ? and is_approved = false').run(userId)
 }
 
 export function approveUserRequestedCerts (userId) {
-  db.prepare('UPDATE user_certs SET is_approved = true WHERE id = ?').run(userId)
+  db.prepare('UPDATE user_certs SET is_approved = true WHERE user = ?').run(userId)
 }
 
 export function getUserById (id) {
@@ -575,7 +575,7 @@ export function getVehicleRequestsForOpo () {
   const now = (new Date()).getTime()
   const tripRequests = db.prepare(`
   SELECT
-    vehiclerequests.id request_id,
+    vehiclerequests.id as request_id,
     trips.title,
     users.name as user_name,
     status
