@@ -1,10 +1,5 @@
 BEGIN;
-/* Removed from model: */
-/* responseIndex */
-/* assigned_pickupDate */
-/* assigned_pickupTime */
-/* assigned_returnDate */
-/* assigned_returnTime */
+
 CREATE TABLE assignments (
   id INTEGER PRIMARY KEY,
   _id TEXT,
@@ -14,7 +9,7 @@ CREATE TABLE assignments (
   return_time INTEGER,
   vehicle INTEGER REFERENCES vehicles ON UPDATE CASCADE,
   vehicle_key TEXT,
-  picked_up INTEGER DEFAULT FALSE, /* pickedUp */
+  picked_up INTEGER DEFAULT FALSE, -- pickedUp
   returned INTEGER DEFAULT FALSE
 );
 
@@ -23,13 +18,6 @@ CREATE TABLE clubs (
   _id TEXT,
   name TEXT,
   active INTEGER DEFAULT TRUE
-) STRICT;
-
-CREATE TABLE globals (
-  id INTEGER PRIMARY KEY,
-  _id TEXT,
-  trip_number_max INTEGER, /* tripNumberMax */
-  vehicle_request_number_max INTEGER /* vehicleRequestNumberMax */
 ) STRICT;
 
 CREATE TABLE trips (
@@ -59,7 +47,7 @@ CREATE TABLE trips (
   trippee_gear_status TEXT DEFAULT 'N/A',
   pcard TEXT,
   pcard_status TEXT DEFAULT 'N/A', /* enum: ['pending', 'approved', 'denied', 'N/A'] */
-  pcard_assigned TEXT,
+  pcard_assigned TEXT DEFAULT 'NONE',
   vehicle_status TEXT DEFAULT 'N/A',
   sent_emails TEXT DEFAULT '[]'
 ) STRICT;
@@ -111,7 +99,8 @@ CREATE TABLE vehiclerequests (
 CREATE TABLE club_leaders (
   user TEXT REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
   club TEXT REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
-  is_approved INTEGER DEFAULT FALSE
+  is_approved INTEGER DEFAULT FALSE,
+  PRIMARY KEY (user, club)
 ) STRICT;
 
 CREATE TABLE requested_vehicles (
@@ -120,9 +109,9 @@ CREATE TABLE requested_vehicles (
   details TEXT, -- vehicleDetails
   pickup_time INTEGER, -- pickupDateAndTime
   return_time INTEGER, -- returnDateAndTime
-  trailer_needed INTEGER DEFAULT FALSE, -- trailerNeeded
-  pass_needed INTEGER DEFAULT FALSE, -- passNeeded
-  recurring_vehicle INTEGER DEFAULT FALSE -- recurringVehicle
+  trailer_needed INTEGER NOT NULL DEFAULT FALSE, -- trailerNeeded
+  pass_needed INTEGER NOT NULL DEFAULT FALSE, -- passNeeded
+  recurring_vehicle INTEGER NOT NULL DEFAULT FALSE -- recurringVehicle
 );
 
 CREATE TABLE trip_members (
@@ -131,7 +120,8 @@ CREATE TABLE trip_members (
   leader INTEGER DEFAULT FALSE,
   attended INTEGER DEFAULT FALSE,
   pending INTEGER DEFAULT FALSE,
-  requested_gear TEXT
+  requested_gear TEXT DEFAULT '[]',
+  PRIMARY KEY (trip, user)
 );
 
 COMMIT;
