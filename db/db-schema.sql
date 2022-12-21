@@ -23,15 +23,14 @@ CREATE TABLE clubs (
 CREATE TABLE trips (
   id INTEGER PRIMARY KEY,
   _id TEXT,
-  name INTEGER,
   title TEXT DEFAULT 'Untitled trip',
   private INTEGER DEFAULT FALSE,
   past INTEGER DEFAULT FALSE,
   left INTEGER DEFAULT FALSE,
   returned INTEGER DEFAULT FALSE,
   marked_late INTEGER DEFAULT FALSE, /* markedLate */
-  club TEXT REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
-  owner TEXT REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
+  club INTEGER REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
+  owner INTEGER REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
   start_time INTEGER, /* startDateAndTime */
   end_time INTEGER, /* endDateAndTime */
   location TEXT,
@@ -43,7 +42,7 @@ CREATE TABLE trips (
   coleader_can_edit INTEGER DEFAULT FALSE, /* coLeaderCanEditTrip */
   gear_status TEXT DEFAULT 'N/A',
   trippee_gear_status TEXT DEFAULT 'N/A',
-  pcard TEXT,
+  pcard TEXT DEFAULT '[]',
   pcard_status TEXT DEFAULT 'N/A', /* enum: ['pending', 'approved', 'denied', 'N/A'] */
   pcard_assigned TEXT DEFAULT 'NONE',
   vehicle_status TEXT DEFAULT 'N/A',
