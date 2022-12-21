@@ -260,6 +260,7 @@ export async function deleteTrip (req, res) {
  * TRIP GEAR
  */
 
+// TODO this function is no longer relevant
 function updateTripGearAndStatus (tripId) {
   const trip = db.getTripById(tripId)
   const newGear = trip.trippeeGear.map((gear) => {
@@ -295,11 +296,10 @@ function updateTripGearAndStatus (tripId) {
 export async function editUserGear (req, res) {
   const tripId = req.params.tripID
   const userId = req.user.id
-  const requested_gear = req.body.trippeeGear
   const trip = db.getTripById(tripId)
   const tripMember = db.getTripMember(tripId, userId)
 
-  db.updateTripMemberGearRequest(tripId, userId, requested_gear)
+  db.updateTripMemberGearRequest(userId, req.body.trippeeGear)
 
   if (tripMember.pending === false) {
     const leaderEmails = db.getUserEmails(trip.leaders)

@@ -120,10 +120,8 @@ function formatTrip (trip) {
     endDateAndTime: trip.end_time,
     experienceNeeded: trip.experience_needed,
     coLeaderCanEditTrip: trip.coleader_can_edit,
-    trippeeGear: trip.trippee_gear,
     trippeeGearStatus: trip.trippee_gear_status,
     gearStatus: trip.gear_status,
-    OPOGearRequests: trip.opo_gear_requests,
     pcard: trip.pcard,
     pcardStatus: trip.pcard_status,
     vehicleStatus: trip.vehicle_status
@@ -157,13 +155,13 @@ function getClubName (id) {
   return db.prepare('SELECT name FROM clubs WHERE id = ?').get(id)
 }
 
-function getRequestedGearForUser (userId) {
+function getRequestedGearForUser (tripId, userId) {
   return db.prepare(`
     SELECT trip_gear.id, trip_gear.name
-    FROM trip_member_requested_gear
-    LEFT JOIN trip_gear ON trip_gear.id = trip_gear
-    WHERE user = ?`
-  ).all(userId)
+    FROM member_gear_requests
+    LEFT JOIN trip_gear ON trip_gear.id = member_gear_requests.trip_gear
+    WHERE trip_gear.trip = ? AND user = ?`
+  ).all(tripId, userId)
     .map(request => ({ gearId: request.id, name: request.name }))
 }
 
@@ -189,7 +187,7 @@ function getTripParticipants (tripId, ownerId) {
       return {
         attended: user.attended,
         user: frontendUser,
-        requestedGear: getRequestedGearForUser(user.id),
+        requestedGear: getRequestedGearForUser(tripId, user.id),
         pending: user.pending,
         leader: user.leader
       }
@@ -198,7 +196,7 @@ function getTripParticipants (tripId, ownerId) {
   const owner = db.prepare('SELECT name FROM users WHERE id = ?').get(ownerId)
   const members = users.filter(user => user.pending === 0)
   const pending = users.filter(user => user.pending === 1)
-  const leaders = users.filter(user => user.leader === 1)
+  const leaders = users.filter(user => user.leader === 1).map(item => item.user)
   return { owner, leaders, members, pending }
 }
 
@@ -721,11 +719,24 @@ export function getAllTrips (getPastTrips = false) {
   return allTrips
 }
 
-function getTripGearRequests (tripId, isOpo) {
+function getTripMemberGearRequests (tripId) {
   return db
-    .prepare('SELECT * FROM trip_gear WHERE trip = ? AND is_opo = ?')
-    .all(tripId, isOpo ? 1 : 0)
+    .prepare(`
+      SELECT id, trip, name, size_type, quantity
+      FROM trip_gear
+      LEFT JOIN (
+        SELECT trip_gear as gearId, count(user) as quantity
+        FROM member_gear_requests
+        GROUP BY trip_gear
+      ) ON gearId = id
+      WHERE trip = ?
+      `)
+    .all(tripId)
     .map(gear => ({ ...gear, _id: gear.id, sizeType: gear.size_type }))
+}
+
+function getTripGroupGearRequests (tripId) {
+  return db.prepare('SELECT name, quantity FROM group_gear_requests WHERE trip = ?').all(tripId)
 }
 
 export function getTripById (tripId) {
@@ -742,8 +753,8 @@ export function getTripById (tripId) {
     leaders,
     members,
     pending,
-    opo_gear_requests: getTripGearRequests(trip.id, true),
-    trippee_gear: getTripGearRequests(trip.id, false),
+    OPOGearRequests: getTripGroupGearRequests(trip.id),
+    trippeeGear: getTripMemberGearRequests(trip.id),
     pcard: JSON.parse(trip.pcard),
     sent_emails: JSON.parse(trip.sent_emails),
     startTime: getTimeField(trip.start_time),
@@ -894,12 +905,15 @@ export function deleteTripMember (tripId, userId) {
   return db.prepare('DELETE FROM trip_members WHERE trip = ? AND user = ?').run(tripId, userId)
 }
 
-export function updateTripMemberGearRequest (tripId, userId, requested_gear) {
-  return db.prepare(`
-  UPDATE trip_members
-  SET requested_gear = ?
-  WHERE trip = ? and user = ?
-  `).run(requested_gear, tripId, userId)
+export function insertGearRequest (userId, gearId) {
+  return db
+    .prepare('INSERT INTO requested_gear (user, gear) VALUES (?, ?)')
+    .run(userId, gearId)
+}
+
+export function updateTripMemberGearRequest (userId, trippeeGear) {
+  db.prepare('DELETE FROM requested_gear WHERE user = ?').run(userId)
+  trippeeGear.forEach(request => insertGearRequest(request.userId, request.gearId))
 }
 
 export function getFullTripView (tripId, forUser) {
@@ -974,8 +988,6 @@ export function updateTrip (trip) {
     description = ifnull(@description, description),
     experience_needed = ifnull(@experience_needed, experience_needed),
     coleader_can_edit = ifnull(@coleader_can_edit, coleader_can_edit),
-    opo_gear_requests = ifnull(@opo_gear_requests, opo_gear_requests),
-    trippee_gear = ifnull(@trippee_gear, trippee_gear),
     gear_status = ifnull(@gear_status, gear_status),
     trippee_gear_status = ifnull(@trippee_gear_status, trippee_gear_status),
     pcard = ifnull(@pcard, pcard),
