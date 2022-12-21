@@ -1,10 +1,8 @@
 import * as db from '../services/sqlite.js'
-
-import * as Users from '../controllers/user-controller.js'
-import * as VehicleRequests from './vehicle-request-controller.js'
-
 import * as constants from '../constants.js'
 import * as mailer from '../services/mailer.js'
+import * as Users from '../controllers/user-controller.js'
+import * as VehicleRequests from './vehicle-request-controller.js'
 
 async function sendLeadersEmail (tripID, subject, message) {
   const trip = db.getTripById(tripID)
@@ -147,13 +145,9 @@ export async function updateTrip (req, res) {
   trip.dropoff = req.body.dropoff
   trip.cost = req.body.cost
   trip.experience_needed = req.body.experienceNeeded
-  trip.opo_gear_requests = req.body.gearRequests
-  trip.trippee_gear = req.body.trippeeGear
+  // trip.opo_gear_requests = req.body.gearRequests
+  // trip.trippee_gear = req.body.trippeeGear
   trip.pcard = req.body.pcard
-
-  trip.members.concat(trip.pending).forEach((person) => {
-    db.updateRequestedGear(trip.id, person.id, person.requestedGear)
-  })
 
   if (trip.gearStatus === 'N/A' && req.body.gearRequests.length > 0) {
     trip.gear_status = 'pending'
@@ -216,7 +210,6 @@ export async function updateTrip (req, res) {
 
   db.replaceTripLeaders(trip.id, trip.leaders)
   db.updateTrip(trip)
-  db.updateTripGearAndStatus(trip.id)
   const savedTrip = db.getTripById(trip.id)
   return res.json(savedTrip)
 }
@@ -260,34 +253,14 @@ export async function deleteTrip (req, res) {
  * TRIP GEAR
  */
 
-// TODO this function is no longer relevant
-function updateTripGearAndStatus (tripId) {
-  const trip = db.getTripById(tripId)
-  const newGear = trip.trippeeGear.map((gear) => {
-    let quantity = 0
-    for (const member in trip.members) {
-      for (const memberGearRequest in member.requestedGear) {
-        if (memberGearRequest.gearId === gear._id.toString(0)) quantity += 1
-      }
-    }
-    return { ...gear, quantity }
-  })
-
-  // This is a copied bit that I still don't like. This whole way of doing gear is a little fucked
-  const wasApproved = trip.trippeeGearStatus === 'approved'
-  const hasChanged = trip.trippeeGear.length !== newGear.length ||
-    !trip.trippeeGear
-      .map((o, i) => [o, trip.trippeeGear[i]])
-      .every((combined) => (combined[0].name === combined[1].name && combined[0].quantity >= combined[1].quantity && combined[0].sizeType === combined[1].sizeType))
-
-  let trippee_gear_status = trip.trippeeGearStatus
-  if (wasApproved && hasChanged) {
-    trippee_gear_status = 'pending'
-    sendLeadersEmail(trip._id, `Trip #${trip.number}: Trippee gear requests un-approved`, `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}]'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`)
+// Send an email and set approval to pending if gear was previously approved, and then changed
+function resetGearApproval (trip) {
+  if (trip.trippee_gear_status === 'approved') {
+    db.setTripIndividualGearStatus(trip.id, 'pending')
+    const leaderEmails = db.getTripLeaderEmails(trip.id)
+    mailer.sendTripGearChangedNotice(trip, leaderEmails)
     mailer.sendGearRequiresReapprovalNotice(trip)
   }
-
-  db.updateTrip({ id: tripId, trippee_gear: newGear, trippee_gear_status })
 }
 
 /**
@@ -296,20 +269,17 @@ function updateTripGearAndStatus (tripId) {
 export async function editUserGear (req, res) {
   const tripId = req.params.tripID
   const userId = req.user.id
+  const { trippeeGear } = req.body
   const trip = db.getTripById(tripId)
   const tripMember = db.getTripMember(tripId, userId)
 
-  db.updateTripMemberGearRequest(userId, req.body.trippeeGear)
+  db.updateTripMemberGearRequest(userId, trippeeGear)
 
-  if (tripMember.pending === false) {
-    const leaderEmails = db.getUserEmails(trip.leaders)
-    const user = db.getUserById(tripMember.user)
-    mailer.sendGearRequestChangedEmail(trip, leaderEmails, user)
+  // If the member was on the trip, reset the gear approval
+  if (!tripMember.pending) {
+    resetGearApproval(trip)
   }
-
-  updateTripGearAndStatus(tripId)
-  const updatedTrip = db.getFullTripView(tripId, req.params.user)
-  return res.json(updatedTrip)
+  return res.json(db.getFullTripView(tripId, req.params.user))
 }
 
 /**
@@ -344,9 +314,10 @@ export async function admit (tripId, userId) {
   if (!tripMember.pending) throw new Error('This user is already approved to be on the trip')
   db.admitTripMember(tripId, userId)
 
-  // Update trippee gear
+  // Update trippee gear if the admitted user requsted anything
   const trip = db.getTripById(tripId)
-  updateTripGearAndStatus(tripId)
+  const numberOfGearRequests = db.getMemberGearRequests(tripId, userId).length
+  if (numberOfGearRequests > 0) resetGearApproval(trip)
 
   // Send approval email to user
   const member = db.getUserById(userId)
@@ -368,11 +339,8 @@ export async function unadmit (tripId, userId) {
   if (tripMember.pending) throw new Error('This user was already on the pending list')
   db.unadmitTripMember(tripId, userId)
 
-  // Update gear
-  const trip = db.getTripById(tripId)
-  updateTripGearAndStatus(tripId)
-
   // Inform user of their removal
+  const trip = db.getTripById(tripId)
   const user = db.getUserById(userId)
   const owner = db.getUserById(trip.owner)
   return mailer.sendTripRemovalEmail(trip, user, owner.email)
@@ -411,8 +379,6 @@ export async function leave (tripId, userId) {
     const leavingUser = db.getUserById(userId)
     mailer.sendUserLeftEmail(trip, leaderEmails, leavingUser)
   }
-
-  updateTripGearAndStatus(tripId)
 }
 
 export async function toggleTripLeadership (req, res) {
@@ -512,7 +478,7 @@ export async function respondToGearRequest (req, res) {
   const tripId = req.params.tripID
   const { status } = req.body
 
-  db.setTripGearStatus(tripId, status)
+  db.setTripGroupGearStatus(tripId, status)
 
   let message
   switch (status) {
@@ -545,7 +511,7 @@ export async function respondToTrippeeGearRequest (req, res) {
   const tripId = req.params.tripID
   const { status } = req.body
 
-  db.setTripTrippeeGearStatus(tripId, status)
+  db.setTripIndividualGearStatus(tripId, status)
   let message
   switch (status) {
     case 'approved':

@@ -350,3 +350,13 @@ export async function sendPCardStatusUpdate (trip, leaderEmails) {
 
   return send(email)
 }
+
+export function sendTripGearChangedNotice (trip, leaderEmails) {
+  const email = {
+    address: leaderEmails,
+    subject: `Trip #${trip.number}: Trippee gear requests un-approved`,
+    message: `Hello,\n\nYour [Trip #${trip.number}: ${trip.title}]'s trippee (not group) gear requests was originally approved by OPO staff, but since a new trippee was admitted who requested additional gear, it has automatically been sent back to review to OPO staff to ensure we have enough.\nCurrently, your trip's status has been changed back to pending, and you should await re-approval before heading out.\n\nView the trip here: ${constants.frontendURL}/trip/${trip._id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  send(email)
+}

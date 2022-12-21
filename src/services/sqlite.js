@@ -719,7 +719,7 @@ export function getAllTrips (getPastTrips = false) {
   return allTrips
 }
 
-function getTripMemberGearRequests (tripId) {
+function getTripIndividualGear (tripId) {
   return db
     .prepare(`
       SELECT id, trip, name, size_type, quantity
@@ -754,7 +754,7 @@ export function getTripById (tripId) {
     members,
     pending,
     OPOGearRequests: getTripGroupGearRequests(trip.id),
-    trippeeGear: getTripMemberGearRequests(trip.id),
+    trippeeGear: getTripIndividualGear(trip.id),
     pcard: JSON.parse(trip.pcard),
     sent_emails: JSON.parse(trip.sent_emails),
     startTime: getTimeField(trip.start_time),
@@ -819,11 +819,11 @@ export function setTripReturnedStatus (tripId, returned) {
   return db.prepare('UPDATE trips SET returned = ? WHERE id = ?').run(returned, tripId)
 }
 
-export function setTripGearStatus (tripId, status) {
+export function setTripGroupGearStatus (tripId, status) {
   return db.prepare('UPDATE trips SET gear_status = ? WHERE id = ?').run(status, tripId)
 }
 
-export function setTripTrippeeGearStatus (tripId, status) {
+export function setTripIndividualGearStatus (tripId, status) {
   return db.prepare('UPDATE trips SET trippee_gear_status = ? WHERE id = ?').run(status, tripId)
 }
 
@@ -862,6 +862,15 @@ export function getTripMember (tripId, userId) {
   return db
     .prepare('SELECT * FROM trip_members WHERE trip = ? AND user = ?')
     .get(tripId, userId)
+}
+
+export function getMemberGearRequests (tripId, userId) {
+  return db.prepare(`
+    SELECT trip_gear
+    FROM member_gear_requests
+    LEFT JOIN trip_gear ON trip_gear.id = member_gear_requests.trip_gear
+    WHERE trip = ? AND user = ?
+    `).get(tripId, userId)
 }
 
 export function insertPendingTripMember (tripId, userId, requested_gear) {
