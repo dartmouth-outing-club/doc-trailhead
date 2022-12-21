@@ -157,19 +157,39 @@ function getClubName (id) {
   return db.prepare('SELECT name FROM clubs WHERE id = ?').get(id)
 }
 
-function getTripParticipantNames (tripId, ownerId) {
+function getRequestedGearForUser (userId) {
+  return db.prepare(`
+    SELECT trip_gear.id, trip_gear.name
+    FROM trip_member_requested_gear
+    LEFT JOIN trip_gear ON trip_gear.id = trip_gear
+    WHERE user = ?`
+  ).all(userId)
+    .map(request => ({ gearId: request.id, name: request.name }))
+}
+
+function getTripParticipants (tripId, ownerId) {
   const users = db.prepare(`
-    SELECT users.id, users.email, users.name, pending, leader, attended, requested_gear
+    SELECT users.id, users.email, users.name, pending, leader, attended, height, shoe_size,
+      clothe_size
     FROM trip_members
     LEFT JOIN users ON trip_members.user = users.id
     WHERE trip_members.trip = ?
   `)
     .all(tripId)
     .map(user => {
+      const frontendUser = {
+        id: user.id,
+        _id: user.id,
+        email: user.email,
+        name: user.name,
+        height: user.height,
+        shoe_size: user.shoe_size,
+        clothe_size: user.clothe_size
+      }
       return {
         attended: user.attended,
-        user: { id: user.id, email: user.email, name: user.name },
-        requestedGear: JSON.parse(user.requested_gear),
+        user: frontendUser,
+        requestedGear: getRequestedGearForUser(user.id),
         pending: user.pending,
         leader: user.leader
       }
@@ -681,7 +701,7 @@ export function getAllTrips (getPastTrips = false) {
   const trips = db.prepare('SELECT * FROM trips WHERE start_time > ?').all(start_time)
   const allTrips = trips.map(trip => {
     const club = getClubName(trip.club)
-    const { owner, leaders, members, pending } = getTripParticipantNames(trip.id, trip.owner)
+    const { owner, leaders, members, pending } = getTripParticipants(trip.id, trip.owner)
     const startDateAndTime = convertSqlDate(trip.start_time)
     const endDateAndTime = convertSqlDate(trip.end_time)
     const newTrip = {
@@ -701,10 +721,17 @@ export function getAllTrips (getPastTrips = false) {
   return allTrips
 }
 
+function getTripGearRequests (tripId, isOpo) {
+  return db
+    .prepare('SELECT * FROM trip_gear WHERE trip = ? AND is_opo = ?')
+    .all(tripId, isOpo ? 1 : 0)
+    .map(gear => ({ ...gear, _id: gear.id, sizeType: gear.size_type }))
+}
+
 export function getTripById (tripId) {
   const trip = db.prepare('SELECT * FROM trips WHERE id = ?').get(tripId)
   const vehicleRequest = getVehicleRequestByTripId(tripId)
-  const { owner, leaders, members, pending } = getTripParticipantNames(tripId, trip.owner)
+  const { owner, leaders, members, pending } = getTripParticipants(tripId, trip.owner)
 
   const enhancedTrip = {
     ...trip,
@@ -715,8 +742,8 @@ export function getTripById (tripId) {
     leaders,
     members,
     pending,
-    opo_gear_requests: JSON.parse(trip.opo_gear_requests),
-    trippee_gear: JSON.parse(trip.trippee_gear),
+    opo_gear_requests: getTripGearRequests(trip.id, true),
+    trippee_gear: getTripGearRequests(trip.id, false),
     pcard: JSON.parse(trip.pcard),
     sent_emails: JSON.parse(trip.sent_emails),
     startTime: getTimeField(trip.start_time),
