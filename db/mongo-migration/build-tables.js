@@ -107,7 +107,6 @@ const trips = getRecordsFromFile('./tables/trips.bson.json').map(trip => ({
 }))
 const tripFields = [
   '_id',
-  'name',
   'title',
   'private',
   'past',
@@ -136,10 +135,11 @@ const tripFields = [
 console.log(getInsertStatementFromRecords(trips, tripFields, 'trips'))
 
 const tripGear = trips.flatMap(trip => {
+  const tripId = trip._id.$oid
   const trippeeGear = trip.trippeeGear.map(gear => {
     return {
       _id: gear._id,
-      trip: trip._id.$oid,
+      trip: tripId,
       name: gear.name,
       quantity: gear.quantity.$numberInt,
       size_type: gear.sizeType,
@@ -147,7 +147,7 @@ const tripGear = trips.flatMap(trip => {
     }
   })
   const opoGear = trip.OPOGearRequests.map(gear => {
-    return { _id: gear._id, name: gear.name, quantity: gear.quantity.$numberInt, is_opo: true }
+    return { _id: gear._id, trip: tripId, name: gear.name, quantity: gear.quantity.$numberInt, is_opo: true }
   })
   return [...trippeeGear, ...opoGear]
 })
