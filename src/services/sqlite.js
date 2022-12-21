@@ -114,10 +114,8 @@ function formatTrip (trip) {
     _id: trip.id,
     number: trip.id,
     markedLate: trip.marked_late,
-    startDate: trip.start_time,
-    endDate: trip.end_time,
-    startDateAndTime: trip.start_time,
-    endDateAndTime: trip.end_time,
+    startDate: trip.startDateAndTime,
+    endDate: trip.endDateAndTime,
     experienceNeeded: trip.experience_needed,
     coLeaderCanEditTrip: trip.coleader_can_edit,
     trippeeGearStatus: trip.trippee_gear_status,
@@ -135,8 +133,8 @@ function formatRequestedVehicle (vehicle) {
   return {
     vehicleType: vehicle.type,
     vehicleDetails: vehicle.details,
-    pickupTime: pickup_time,
-    returnTime: return_time,
+    pickupTime: getTimeField(vehicle.pickup_time),
+    returnTime: getTimeField(vehicle.return_time),
     pickupDate: pickup_time,
     returnDate: return_time,
     pickupDateAndTime: pickup_time,
@@ -756,11 +754,11 @@ export function getTripById (tripId) {
     OPOGearRequests: getTripGroupGearRequests(trip.id),
     trippeeGear: getTripIndividualGear(trip.id),
     pcard: JSON.parse(trip.pcard),
-    sent_emails: JSON.parse(trip.sent_emails),
     startTime: getTimeField(trip.start_time),
     endTime: getTimeField(trip.end_time),
-    start_time: convertSqlDate(trip.start_time),
-    end_time: convertSqlDate(trip.end_time)
+    startDateAndTime: convertSqlDate(trip.start_time),
+    endDateAndTime: convertSqlDate(trip.end_time),
+    sent_emails: JSON.parse(trip.sent_emails)
   }
 
   return formatTrip(enhancedTrip)
