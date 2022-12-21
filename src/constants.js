@@ -9,7 +9,7 @@ export const backendURL = process.env.NODE_ENV === 'development' ? 'http://local
 export const OPOEmails = process.env.NODE_ENV === 'development' ? ['ziray.hao@dali.dartmouth.edu'] : ['rory.c.gawler@dartmouth.edu', 'willow.nilsen@dartmouth.edu', 'kellen.t.appleton@dartmouth.edu', 'bradley.r.geismar@dartmouth.edu', 'yong.sheng.ng@dartmouth.edu', 'Elizabeth.U.Keeley@dartmouth.edu', 'Robert.D.Caldwell@dartmouth.edu']
 export const gearAdminEmails = process.env.NODE_ENV === 'development' ? ['ziray.hao@dali.dartmouth.edu'] : ['Dartmouth.Outdoor.Rentals@Dartmouth.EDU', 'Michael.Silverman@Dartmouth.EDU']
 
-export const createDateObject = (date, time, timezone) => {
+export function createDateObject (date, time, timezone) {
   // adapted from https://stackoverflow.com/questions/2488313/javascripts-getdate-returns-wrong-date
   const parts = date.toString().match(/(\d+)/g)
   const splitTime = time.split(':')
@@ -21,7 +21,11 @@ export const createDateObject = (date, time, timezone) => {
   }
 }
 
-export const formatDateAndTime = (date, mode) => {
+export function createIntegerDateObject (date, time, timezone) {
+  return createDateObject(date, time, timezone).getTime()
+}
+
+export function formatDateAndTime (date, mode) {
   if (mode === 'LONG') {
     return dateFormat(date, 'ddd, m/d/yy @ h:MM TT')
   } else {

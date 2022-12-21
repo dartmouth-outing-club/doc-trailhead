@@ -191,7 +191,7 @@ function getTripParticipants (tripId, ownerId) {
       }
     })
 
-  const owner = db.prepare('SELECT name FROM users WHERE id = ?').get(ownerId)
+  const owner = db.prepare('SELECT name, email FROM users WHERE id = ?').get(ownerId)
   const members = users.filter(user => user.pending === 0)
   const pending = users.filter(user => user.pending === 1)
   const leaders = users.filter(user => user.leader === 1).map(item => item.user)
@@ -465,6 +465,8 @@ export function getVehicleRequestById (id) {
 
 export function getVehicleRequestByTripId (id) {
   const vehicleRequest = db.prepare('SELECT * FROM vehiclerequests WHERE trip = ?').get(id)
+  if (!vehicleRequest) return undefined
+
   vehicleRequest.requestedVehicles = db
     .prepare('SELECT * FROM requested_vehicles WHERE vehiclerequest = ?')
     .all(id)
@@ -974,34 +976,22 @@ export function insertTrip (trip, leaders) {
 
 export function updateTrip (trip) {
   if (!trip.id) throw new Error(`Error, invalid trip ${trip.id} provided`)
-  console.log(trip)
   const info = db.prepare(`
   UPDATE trips
   SET
     title = ifnull(@title, title),
     private = ifnull(@private, private),
-    past = ifnull(@past, past),
-    left = ifnull(@left, left),
-    returned = ifnull(@returned, returned),
-    marked_late = ifnull(@marked_late, marked_late),
-    club = ifnull(@club, club),
-    owner = ifnull(@owner, owner),
     start_time = ifnull(@start_time, start_time),
     end_time = ifnull(@end_time, end_time),
+    description = ifnull(@description, description),
+    coleader_can_edit = ifnull(@coleader_can_edit, coleader_can_edit),
+    club = ifnull(@club, club),
     location = ifnull(@location, location),
     pickup = ifnull(@pickup, pickup),
     dropoff = ifnull(@dropoff, dropoff),
     cost = ifnull(@cost, cost),
-    description = ifnull(@description, description),
     experience_needed = ifnull(@experience_needed, experience_needed),
-    coleader_can_edit = ifnull(@coleader_can_edit, coleader_can_edit),
-    gear_status = ifnull(@gear_status, gear_status),
-    trippee_gear_status = ifnull(@trippee_gear_status, trippee_gear_status),
-    pcard = ifnull(@pcard, pcard),
-    pcard_status = ifnull(@pcard_status, pcard_status),
-    pcard_assigned = ifnull(@pcard_assigned, pcard_assigned),
-    vehicle_status = ifnull(@vehicle_status, vehicle_status),
-    sent_emails = ifnull(@sent_emails, sent_emails)
+    pcard = ifnull(@pcard, pcard)
   WHERE id = @id
   `).run(trip)
 
