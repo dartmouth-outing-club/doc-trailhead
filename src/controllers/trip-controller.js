@@ -334,6 +334,7 @@ export async function unadmit (tripId, userId) {
   const tripMember = db.getTripMember(tripId, userId)
   if (!tripMember) throw new Error('This user was not on the trip before')
   if (tripMember.pending) throw new Error('This user was already on the pending list')
+  if (tripMember.is_owner) throw new Error('You cannot unadmit the owner of the trip')
   db.unadmitTripMember(tripId, userId)
 
   // Inform user of their removal

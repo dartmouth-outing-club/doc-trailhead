@@ -860,8 +860,12 @@ export function markTripLate (tripId) {
 
 export function getTripMember (tripId, userId) {
   return db
-    .prepare('SELECT * FROM trip_members WHERE trip = ? AND user = ?')
-    .get(tripId, userId)
+    .prepare(`
+    SELECT trip, user, leader, attended, pending, iif(user = owner, true, false) as is_owner
+    FROM trip_members
+    LEFT JOIN (SELECT owner FROM trips WHERE id = @tripId)
+    WHERE trip = @tripId AND user = @userId`)
+    .get({ tripId, userId })
 }
 
 export function getMemberGearRequests (tripId, userId) {
