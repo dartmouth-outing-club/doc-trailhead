@@ -127,14 +127,18 @@ CREATE TABLE trip_gear (
   _id TEXT,
   trip INTEGER REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
   name TEXT,
-  quantity INTEGER,
-  size_type TEXT,
-  is_opo INTEGER DEFAULT FALSE
+  size_type TEXT
 ) STRICT;
 
-CREATE TABLE trip_member_requested_gear (
+CREATE TABLE member_gear_requests (
   user INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
   trip_gear INTEGER REFERENCES trip_gear ON DELETE RESTRICT ON UPDATE CASCADE
+) STRICT;
+
+CREATE TABLE group_gear_requests (
+  trip INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
+  name TEXT,
+  quantity INTEGER
 ) STRICT;
 
 COMMIT;

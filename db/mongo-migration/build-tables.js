@@ -135,23 +135,27 @@ const tripFields = [
 console.log(getInsertStatementFromRecords(trips, tripFields, 'trips'))
 
 const tripGear = trips.flatMap(trip => {
-  const tripId = trip._id.$oid
-  const trippeeGear = trip.trippeeGear.map(gear => {
+  return trip.trippeeGear.map(gear => {
     return {
       _id: gear._id,
-      trip: tripId,
+      trip: trip._id.$oid,
       name: gear.name,
-      quantity: gear.quantity.$numberInt,
-      size_type: gear.sizeType,
-      is_opo: false
+      size_type: gear.sizeType
     }
   })
-  const opoGear = trip.OPOGearRequests.map(gear => {
-    return { _id: gear._id, trip: tripId, name: gear.name, quantity: gear.quantity.$numberInt, is_opo: true }
-  })
-  return [...trippeeGear, ...opoGear]
 })
-console.log(getInsertStatementFromRecords(tripGear, ['_id', 'name', 'trip', 'quantity', 'size_type', 'is_opo'], 'trip_gear'))
+console.log(getInsertStatementFromRecords(tripGear, ['_id', 'name', 'trip', 'size_type'], 'trip_gear'))
+
+const group_gear_requests = trips.flatMap(trip => {
+  return trip.OPOGearRequests.map(gear => {
+    return {
+      trip: trip._id.$oid,
+      name: gear.name,
+      quantity: gear.quantity.$numberInt
+    }
+  })
+})
+console.log(getInsertStatementFromRecords(group_gear_requests, ['name', 'trip', 'quantity'], 'group_gear_requests'))
 
 const tripMembers = trips.flatMap(trip => {
   const leaders = trip.leaders?.map(leader => leader.$oid) || []
@@ -173,13 +177,13 @@ const tripMembers = trips.flatMap(trip => {
 }).filter(item => item)
 console.log(getInsertStatementFromRecords(tripMembers, ['trip', 'user', 'leader', 'attended', 'pending'], 'trip_members'))
 
-const tripMemberRequestedGear = tripMembers.flatMap(member => (
+const member_gear_requests = tripMembers.flatMap(member => (
   member.requested_gear.map(gear => {
     const gearId = gear.gearId || gear._id?.$oid || gear._id
     return { user: member.user, trip_gear: gearId }
   })
 ))
-console.log(getInsertStatementFromRecords(tripMemberRequestedGear, ['user', 'trip_gear'], 'trip_member_requested_gear'))
+console.log(getInsertStatementFromRecords(member_gear_requests, ['user', 'trip_gear'], 'member_gear_requests'))
 
 function getRecordsFromFile (fileName) {
   const contents = fs.readFileSync(fileName).toString()

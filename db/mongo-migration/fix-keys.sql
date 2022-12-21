@@ -75,15 +75,20 @@ SET trip = trips.id
 FROM trips
 WHERE trips._id = trip;
 
-UPDATE trip_member_requested_gear
+UPDATE member_gear_requests
 SET user = users.id
 FROM users
 WHERE users._id = user;
 
-UPDATE trip_member_requested_gear
+UPDATE member_gear_requests
 SET trip_gear = trip_gear.id
 FROM trip_gear
 WHERE trip_gear._id = trip_gear;
+
+UPDATE group_gear_requests
+SET trip = trips.id
+FROM trips
+WHERE trips._id = trip;
 
 DELETE FROM assignments
 WHERE vehiclerequest NOT IN
