@@ -256,7 +256,7 @@ export async function editUserGear (req, res) {
   const trip = db.getTripById(tripId)
   const tripMember = db.getTripMember(tripId, userId)
 
-  db.updateTripMemberGearRequest(userId, trippeeGear)
+  db.updateTripMemberGearRequest(tripId, userId, trippeeGear)
 
   // If the member was on the trip, reset the gear approval
   if (!tripMember.pending) {

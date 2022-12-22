@@ -892,8 +892,8 @@ export function getMemberGearRequests (tripId, userId) {
 export function insertPendingTripMember (tripId, userId, requested_gear) {
   db.prepare('INSERT INTO trip_members (trip, user) VALUES (?, ?)').run(tripId, userId)
   requested_gear.forEach(gear => {
-    db.prepare('INSERT INTO member_gear_requests (user, gear) VALUES (?, ?)')
-      .run(userId, gear.gearId)
+    db.prepare('INSERT OR IGNORE INTO member_gear_requests (trip, user, gear) VALUES (?, ?, ?)')
+      .run(tripId, userId, gear.gearId)
   })
 }
 
@@ -931,15 +931,13 @@ export function deleteTripMember (tripId, userId) {
   return db.prepare('DELETE FROM trip_members WHERE trip = ? AND user = ?').run(tripId, userId)
 }
 
-export function insertGearRequest (userId, gearId) {
-  return db
-    .prepare('INSERT INTO requested_gear (user, gear) VALUES (?, ?)')
-    .run(userId, gearId)
-}
-
-export function updateTripMemberGearRequest (userId, trippeeGear) {
-  db.prepare('DELETE FROM requested_gear WHERE user = ?').run(userId)
-  trippeeGear.forEach(request => insertGearRequest(request.userId, request.gearId))
+export function updateTripMemberGearRequest (tripId, userId, trippeeGear) {
+  console.log(tripId, userId)
+  db.prepare('DELETE FROM member_gear_requests WHERE trip = ? AND user = ?').run(tripId, userId)
+  trippeeGear.forEach(request => {
+    db.prepare('INSERT INTO member_gear_requests (trip, user, gear) VALUES (?, ?, ?)')
+      .run(tripId, userId, request.gearId)
+  })
 }
 
 export function getFullTripView (tripId, forUser) {
