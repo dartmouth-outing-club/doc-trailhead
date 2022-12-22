@@ -81,9 +81,14 @@ FROM users
 WHERE users._id = user;
 
 UPDATE member_gear_requests
-SET trip_gear = trip_gear.id
+SET trip = trips.id
+FROM trips
+WHERE trips._id = trip;
+
+UPDATE member_gear_requests
+SET gear = trip_gear.id
 FROM trip_gear
-WHERE trip_gear._id = trip_gear;
+WHERE trip_gear._id = gear;
 
 UPDATE group_gear_requests
 SET trip = trips.id

@@ -19,9 +19,10 @@ export async function getPublicTrips (_req, res) {
   }
 }
 
-export async function getTrips (req, res) {
+export async function handleGetTrips (req, res) {
   const getPastTrips = req.query.getPastTrips !== 'false'
-  const allTrips = db.getAllTrips(getPastTrips)
+  const showUserData = req.user.role === 'OPO' || req.user.role === 'Leader'
+  const allTrips = db.getAllTrips(getPastTrips, showUserData)
   return res.json(allTrips)
 }
 
@@ -271,14 +272,19 @@ export async function editUserGear (req, res) {
  * @param {String} userId
  * @param {} requested_gear
  */
-export async function apply (tripId, userId, requested_gear) {
+export async function apply (req, res) {
+  const tripId = req.params.tripID
+  const userId = req.user.id
+  const trippeeGear = req.body.trippeeGear
+
   const tripMember = db.getTripMember(tripId, userId)
   if (tripMember) throw new Error(`User ${userId} is already on the trip`)
-  db.insertPendingTripMember(tripId, userId, requested_gear)
+  db.insertPendingTripMember(tripId, userId, trippeeGear)
 
   const trip = db.getTripById(tripId)
   const newMember = db.getUserById(userId)
   mailer.sendTripApplicationConfirmation(trip, newMember, trip.owner.email)
+  return res.json(trip)
 }
 
 /**
@@ -354,7 +360,7 @@ export async function leave (tripId, userId) {
   const tripMember = db.getTripMember(tripId, userId)
   db.deleteTripMember(tripId, userId)
   if (!tripMember.pending) {
-    const leaderEmails = db.getUserEmails(trip.leaders)
+    const leaderEmails = db.getTripLeaderEmails(tripId)
     const leavingUser = db.getUserById(userId)
     mailer.sendUserLeftEmail(trip, leaderEmails, leavingUser)
   }

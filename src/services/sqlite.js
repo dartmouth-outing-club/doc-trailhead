@@ -150,20 +150,10 @@ function getClubName (id) {
   return db.prepare('SELECT name FROM clubs WHERE id = ?').get(id)
 }
 
-function getRequestedGearForUser (tripId, userId) {
-  return db.prepare(`
-    SELECT trip_gear.id, trip_gear.name
-    FROM member_gear_requests
-    LEFT JOIN trip_gear ON trip_gear.id = member_gear_requests.trip_gear
-    WHERE trip_gear.trip = ? AND user = ?`
-  ).all(tripId, userId)
-    .map(request => ({ gearId: request.id, name: request.name }))
-}
-
-function getTripParticipants (tripId, ownerId) {
+function getTripParticipants (tripId, ownerId, showUserData) {
   const users = db.prepare(`
     SELECT users.id, users.email, users.name, pending, leader, attended, height, shoe_size,
-      clothe_size
+      clothe_size, allergies_dietary_restrictions, medical_conditions
     FROM trip_members
     LEFT JOIN users ON trip_members.user = users.id
     WHERE trip_members.trip = ?
@@ -179,10 +169,14 @@ function getTripParticipants (tripId, ownerId) {
         shoe_size: user.shoe_size,
         clothe_size: user.clothe_size
       }
+      if (showUserData) {
+        frontendUser.medical_conditions = user.medical_conditions
+        frontendUser.medical_conditions = user.allergies_dietary_restrictions
+      }
       return {
         attended: user.attended,
         user: frontendUser,
-        requestedGear: getRequestedGearForUser(tripId, user.id),
+        requestedGear: getMemberGearRequests(tripId, user.id),
         pending: user.pending,
         leader: user.leader
       }
@@ -690,12 +684,12 @@ export function getPublicTrips () {
   return allTrips
 }
 
-export function getAllTrips (getPastTrips = false) {
+export function getAllTrips (getPastTrips = false, showUserData = false) {
   const date = getPastTrips ? subtract(new Date(), 30, 'day') : new Date()
   const start_time = date.getTime()
   return db.prepare('SELECT id FROM trips WHERE start_time > ?')
     .all(start_time)
-    .map(trip => getTripById(trip.id))
+    .map(trip => getTripById(trip.id, showUserData))
 }
 
 function getTripIndividualGear (tripId) {
@@ -704,9 +698,9 @@ function getTripIndividualGear (tripId) {
       SELECT id, trip, name, size_type, quantity
       FROM trip_gear
       LEFT JOIN (
-        SELECT trip_gear as gearId, count(user) as quantity
+        SELECT gear as gearId, count(user) as quantity
         FROM member_gear_requests
-        GROUP BY trip_gear
+        GROUP BY gear
       ) ON gearId = id
       WHERE trip = ?
       `)
@@ -718,16 +712,15 @@ function getTripGroupGearRequests (tripId) {
   return db.prepare('SELECT name, quantity FROM group_gear_requests WHERE trip = ?').all(tripId)
 }
 
-export function getTripById (tripId) {
+export function getTripById (tripId, showUserData = false) {
   const trip = db.prepare('SELECT * FROM trips WHERE id = ?').get(tripId)
   const vehicleRequest = getVehicleRequestByTripId(tripId)
-  const { owner, leaders, members, pending } = getTripParticipants(tripId, trip.owner)
+  const { owner, leaders, members, pending } = getTripParticipants(tripId, trip.owner, showUserData)
 
   // Get the "pending" or "N/A" status depending on whether there are gear requests
   const num_trippee_gear_requests = db.prepare(`
     SELECT iif(count(*) > 0, 'pending', 'N/A') as status
     FROM member_gear_requests
-    LEFT JOIN trip_gear ON trip_gear.id = member_gear_requests.trip_gear
     WHERE trip = ?
   `).get(tripId)
   const num_group_gear_requests = db.prepare(`
@@ -888,18 +881,20 @@ export function getTripMember (tripId, userId) {
 
 export function getMemberGearRequests (tripId, userId) {
   return db.prepare(`
-    SELECT trip_gear
+    SELECT trip_gear.id, trip_gear.name
     FROM member_gear_requests
-    LEFT JOIN trip_gear ON trip_gear.id = member_gear_requests.trip_gear
-    WHERE trip = ? AND user = ?
-    `).get(tripId, userId)
+    LEFT JOIN trip_gear ON trip_gear.id = member_gear_requests.gear
+    WHERE trip_gear.trip = ? AND user = ?`
+  ).all(tripId, userId)
+    .map(request => ({ gearId: request.id, name: request.name }))
 }
 
 export function insertPendingTripMember (tripId, userId, requested_gear) {
-  return db.prepare(`
-  INSERT INTO trip_members (trip, user, requested_gear)
-  VALUES (?, ?, ?)
-  `).run(tripId, userId, requested_gear)
+  db.prepare('INSERT INTO trip_members (trip, user) VALUES (?, ?)').run(tripId, userId)
+  requested_gear.forEach(gear => {
+    db.prepare('INSERT INTO member_gear_requests (user, gear) VALUES (?, ?)')
+      .run(userId, gear.gearId)
+  })
 }
 
 export function promoteTripMemberToLeader (tripId, userId) {
@@ -948,7 +943,8 @@ export function updateTripMemberGearRequest (userId, trippeeGear) {
 }
 
 export function getFullTripView (tripId, forUser) {
-  const trip = getTripById(tripId)
+  const showUserData = forUser?.role === 'OPO' || forUser?.role === 'Leader'
+  const trip = getTripById(tripId, showUserData)
   // This will not work until the user has the correct ID
   let userTripStatus = 'NONE'
   let isLeaderOnTrip = false
@@ -1030,11 +1026,6 @@ export function replaceTripLeaders (tripId, leaders) {
     db.prepare('INSERT INTO trip_members (trip, user, leader) VALUES (?, ?, true)')
       .run(tripId, userId)
   })
-}
-
-export function updateRequestedGear (tripId, userId, requested_gear) {
-  db.prepare('UPDATE trip_members SET requested_gear = ? WHERE trip = ? and user = ?')
-    .run(requested_gear, tripId, userId)
 }
 
 export function createVehicleRequestForTrip (vehicleRequest, requestedVehicles) {
@@ -1133,6 +1124,7 @@ export function getCalenderAssignments () {
 
 export function getUserEmails (ids) {
   return ids.map(id => {
+    console.log(ids)
     const { email } = db.prepare('SELECT email FROM users WHERE id = ?').get(id)
     return email
   })
@@ -1144,5 +1136,6 @@ export function getTripLeaderEmails (tripId) {
   FROM users
   LEFT JOIN trip_members ON user = users.id
   WHERE leader = true AND trip = ?
-  `).run(tripId)
+  `).all(tripId)
+    .map(user => user.email)
 }

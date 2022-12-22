@@ -90,7 +90,7 @@ router.route('/debug')
     mailer.send(req.body)
   })
 
-router.route('/trips/')
+router.route('/trips')
   .post(requireAuth, async (req, res) => {
     try {
       const result = await trips.createTrip(req.user, req.body)
@@ -100,7 +100,7 @@ router.route('/trips/')
       res.status(500).send('Something went wrong creating the trip.')
     }
   })
-  .get(requireAuth, trips.getTrip)
+  .get(requireAuth, trips.handleGetTrips)
 
 router.route('/trips/public')
   .get(trips.getPublicTrips)
@@ -110,13 +110,7 @@ router.route('/trips/:tripID')
   .put(requireAuth, trips.updateTrip)
   .delete(requireAuth, trips.deleteTrip)
 
-router.post('/trips/apply/:tripID', requireAuth, (req, res) => {
-  trips.apply(req.params.tripID, req.user._id, req.body.trippeeGear)
-    .then(() => {
-      trips.getTrip(req.params.tripID, req.user).then((result) => { return res.json(result) })
-    })
-    .catch((error) => { console.log(error); res.sendStatus(500) })
-})
+router.post('/trips/apply/:tripID', requireAuth, trips.apply)
 
 router.post('/trips/reject/:tripID', requireAuth, (req, res) => {
   trips.reject(req.params.tripID, req.body.rejectedUserID).then(() => { return res.json() }).catch((error) => { console.log(error); res.sendStatus(500) })

@@ -129,9 +129,11 @@ CREATE TABLE trip_gear (
 ) STRICT;
 
 CREATE TABLE member_gear_requests (
-  user INTEGER REFERENCES trip_members(user) ON DELETE CASCADE ON UPDATE CASCADE,
-  trip_gear INTEGER REFERENCES trip_gear ON DELETE RESTRICT ON UPDATE CASCADE,
-  PRIMARY KEY (user, trip_gear)
+  trip INTEGER,
+  user INTEGER,
+  gear INTEGER REFERENCES trip_gear ON DELETE RESTRICT ON UPDATE CASCADE,
+  PRIMARY KEY (user, gear),
+  FOREIGN KEY (trip, user) REFERENCES trip_members(trip, user)
 ) STRICT;
 
 CREATE TABLE group_gear_requests (

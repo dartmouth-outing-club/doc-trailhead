@@ -186,10 +186,10 @@ console.log(getInsertStatementFromRecords(tripMembers, ['trip', 'user', 'leader'
 const member_gear_requests = tripMembers.flatMap(member => (
   member.requested_gear.map(gear => {
     const gearId = gear.gearId || gear._id?.$oid || gear._id
-    return { user: member.user, trip_gear: gearId }
+    return { trip: member.trip, user: member.user, gear: gearId }
   })
 ))
-console.log(getInsertStatementFromRecords(member_gear_requests, ['user', 'trip_gear'], 'member_gear_requests'))
+console.log(getInsertStatementFromRecords(member_gear_requests, ['trip', 'user', 'gear'], 'member_gear_requests'))
 
 function getRecordsFromFile (fileName) {
   const contents = fs.readFileSync(fileName).toString()
