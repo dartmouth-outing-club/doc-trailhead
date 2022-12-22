@@ -97,12 +97,20 @@ const assignmentFields = ['_id', 'vehiclerequest', 'requester', 'pickup_time', '
 console.log(getInsertStatementFromRecords(assignments, assignmentFields, 'assignments'))
 
 const trips = getRecordsFromFile('./tables/trips.bson.json').map(trip => {
+  let group_gear_approved, member_gear_approved
+  if (trip.gearStatus === 'approved') group_gear_approved = 1
+  if (trip.gearStatus === 'denied') group_gear_approved = 0
+  if (trip.trippeeGear === 'approved') member_gear_approved = 1
+  if (trip.trippeeGear === 'denied') member_gear_approved = 0
+
   const newTrip = {
     ...trip,
     club: trip.club.$oid,
     owner: trip.owner.$oid,
     start_time: trip.startDateAndTime?.$date?.$numberLong,
     end_time: trip.endDateAndTime?.$date?.$numberLong,
+    group_gear_approved,
+    member_gear_approved,
     cost: trip.cost?.$numberInt,
     vehicle_request: trip.vehicleRequest?.$oid
   }
@@ -118,30 +126,11 @@ const trips = getRecordsFromFile('./tables/trips.bson.json').map(trip => {
   return newTrip
 })
 const tripFields = [
-  '_id',
-  'title',
-  'private',
-  'past',
-  'left',
-  'returned',
-  ['markedLate', 'marked_late'],
-  'club',
-  'owner',
-  'start_time',
-  'end_time',
-  'location',
-  'pickup',
-  'dropoff',
-  'cost',
-  'description',
-  ['experienceNeeded', 'experience_needed'],
-  ['coLeaderCanEditTrip', 'coleader_can_edit'],
-  ['gearStatus', 'gear_status'],
-  ['trippeeGearStatus', 'trippee_gear_status'],
-  'pcard',
-  ['pcardStatus', 'pcard_status'],
-  ['pcardAssigned', 'pcard_assigned'],
-  ['vehicleStatus', 'vehicle_status'],
+  '_id', 'title', 'private', 'past', 'left', 'returned', ['markedLate', 'marked_late'], 'club',
+  'owner', 'start_time', 'end_time', 'location', 'pickup', 'dropoff', 'cost', 'description',
+  ['experienceNeeded', 'experience_needed'], ['coLeaderCanEditTrip', 'coleader_can_edit'],
+  'group_gear_approved', 'member_gear_approved', 'pcard', ['pcardStatus', 'pcard_status'],
+  ['pcardAssigned', 'pcard_assigned'], ['vehicleStatus', 'vehicle_status'],
   ['sentEmails', 'sent_emails']
 ]
 console.log(getInsertStatementFromRecords(trips, tripFields, 'trips'))

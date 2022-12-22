@@ -40,8 +40,8 @@ CREATE TABLE trips (
   description TEXT,
   experience_needed INTEGER DEFAULT FALSE, /* experienceNeeded */
   coleader_can_edit INTEGER DEFAULT FALSE, /* coLeaderCanEditTrip */
-  gear_status TEXT DEFAULT 'N/A',
-  trippee_gear_status TEXT DEFAULT 'N/A',
+  group_gear_approved INTEGER, -- gearSatus
+  member_gear_approved INTEGER, -- trippeeGearSatus
   pcard TEXT DEFAULT '[]',
   pcard_status TEXT DEFAULT 'N/A', /* enum: ['pending', 'approved', 'denied', 'N/A'] */
   pcard_assigned TEXT DEFAULT 'NONE',

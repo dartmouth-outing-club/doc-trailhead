@@ -149,18 +149,6 @@ export async function updateTrip (req, res) {
     pcard: JSON.stringify(req.body.pcard)
   }
 
-  if (trip.gearStatus === 'N/A' && req.body.gearRequests.length > 0) {
-    newTrip.gear_status = 'pending'
-  } else if (trip.gearStatus === 'pending' && req.body.gearRequests.length === 0) {
-    newTrip.gear_status = 'N/A'
-  }
-
-  if (trip.trippeeGearStatus === 'N/A' && req.body.trippeeGear.length > 0) {
-    newTrip.trippee_gear_status = 'pending'
-  } else if (trip.trippeeGearStatus === 'pending' && req.body.trippeeGear.length === 0) {
-    newTrip.trippee_gear_status = 'N/A'
-  }
-
   if (trip.pcardStatus === 'N/A' && req.body.pcard.length > 0) {
     newTrip.pcard_status = 'pending'
   } else if (trip.pcardStatus === 'pending' && req.body.pcard.length === 0) {
@@ -254,8 +242,8 @@ export async function deleteTrip (req, res) {
 
 // Send an email and set approval to pending if gear was previously approved, and then changed
 function resetGearApproval (trip) {
-  if (trip.trippee_gear_status === 'approved') {
-    db.setTripIndividualGearStatus(trip.id, 'pending')
+  if (trip.trippee_gear_status === 1) {
+    db.setTripIndividualGearStatus(trip.id, null)
     const leaderEmails = db.getTripLeaderEmails(trip.id)
     mailer.sendTripGearChangedNotice(trip, leaderEmails)
     mailer.sendGearRequiresReapprovalNotice(trip)
@@ -472,22 +460,19 @@ export async function toggleTripReturnedStatus (req, res) {
  */
 export async function respondToGearRequest (req, res) {
   const tripId = req.params.tripID
-  const { status } = req.body
-
-  db.setTripGroupGearStatus(tripId, status)
+  if (req.body.status === 'approved') {
+    db.approveTripGroupGear(tripId)
+  } else {
+    db.denyTripGroupGear(tripId)
+  }
 
   let message
-  switch (status) {
+  switch (req.body.status) {
     case 'approved':
       message = 'got approved'
       break
     case 'denied':
       message = 'got denied'
-      break
-    case 'pending':
-      message = 'was un-approved, pending again'
-      break
-    default:
       break
   }
 
@@ -505,19 +490,19 @@ export async function respondToGearRequest (req, res) {
  */
 export async function respondToTrippeeGearRequest (req, res) {
   const tripId = req.params.tripID
-  const { status } = req.body
+  if (req.body.status === 'approved') {
+    db.approveTripIndividualGear(tripId)
+  } else {
+    db.denyTripIndividualGear(tripId)
+  }
 
-  db.setTripIndividualGearStatus(tripId, status)
   let message
-  switch (status) {
+  switch (req.body.status) {
     case 'approved':
       message = 'got approved'
       break
     case 'denied':
       message = 'got denied'
-      break
-    case 'pending':
-      message = 'was un-approved, pending again'
       break
     default:
       break
