@@ -112,7 +112,6 @@ export async function createTrip (creator, data) {
     try {
       const vehicleRequestId = db.createVehicleRequestForTrip(vehicleRequest, requestedVehicles)
       await mailer.sendNewVehicleRequestEmail(trip, leaderEmails, vehicleRequestId)
-      db.markTripVehicleStatusPending(tripId)
 
       return db.getTripById(tripId)
     } catch (error) {
@@ -168,23 +167,19 @@ export async function updateTrip (req, res) {
       status: 'pending'
     }
 
-    if (trip.vehicle_status === 'N/A' && vehicles.length > 0) {
+    if (trip.vehicleStatus === null && vehicles.length > 0) {
       db.createVehicleRequestForTrip(vehicleRequest, vehicles)
-      newTrip.vehicle_status = 'pending'
     } else {
       // If the request was previously approved, delete associated assignements and send an email
-      if (trip.vehicle_status === 'approved') {
+      if (trip.vehicleStatus === 'approved') {
         const info = db.deleteAllAssignmentsForVehicleRequest(vehicleReqId)
         if (info.changes > 0) await mailer.sendVehicleRequestChangedEmail(vehicleRequest)
       }
-
-      // If there are no requests, delete the request entirely, otherwise update and set to pending
+      // If there are no requests, delete the request entirely, otherwise update it
       if (vehicles.length === 0) {
         db.deleteVehicleRequest(vehicleReqId)
-        newTrip.vehicle_status = 'N/A'
       } else {
         db.updateVehicleRequest(vehicleRequest)
-        newTrip.vehicle_status = 'pending'
       }
     }
   }

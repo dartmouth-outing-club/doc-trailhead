@@ -48,14 +48,13 @@ function getCurrentVehicleRequests () {
  * right now.
  */
 export function createNewVehicleRequest (requestObject) {
-  const { requester, requestDetails, mileage, noOfPeople, requestType, timezone, associatedTrip } = requestObject
+  const { requester, requestDetails, mileage, noOfPeople, requestType, associatedTrip } = requestObject
   const vehicleRequest = {
     requester,
     request_details: requestDetails,
     mileage,
     num_participants: noOfPeople,
     request_type: requestType,
-    requested_vehicles: requestedVehicles,
     trip: associatedTrip
   }
 

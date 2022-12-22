@@ -119,8 +119,7 @@ function formatTrip (trip) {
     experienceNeeded: trip.experience_needed,
     coLeaderCanEditTrip: trip.coleader_can_edit,
     pcard: trip.pcard,
-    pcardStatus: trip.pcard_status,
-    vehicleStatus: trip.vehicle_status
+    pcardStatus: trip.pcard_status
   }
 }
 
@@ -524,18 +523,18 @@ export function deleteVehicleRequest (vehicleRequestId) {
   return info.changes
 }
 
-export function markTripVehicleStatusPending (id) {
-  const info = db.prepare("UPDATE trips SET vehicle_status = 'denied' WHERE id = ?").run(id)
+export function resetTripVehicleStatus (id) {
+  const info = db.prepare('UPDATE trips SET vehicle_status = NULL WHERE id = ?').run(id)
   return info.changes
 }
 
 export function markTripVehicleStatusDenied (id) {
-  const info = db.prepare("UPDATE trips SET vehicle_status = 'denied' WHERE id = ?").run(id)
+  const info = db.prepare('UPDATE trips SET vehicle_status = false WHERE id = ?').run(id)
   return info.changes
 }
 
 export function markTripVehicleStatusApproved (id) {
-  const info = db.prepare("UPDATE trips SET vehicle_status = 'approved' WHERE id = ?").run(id)
+  const info = db.prepare('UPDATE trips SET vehicle_status = true WHERE id = ?').run(id)
   return info.changes
 }
 
@@ -744,6 +743,11 @@ export function getTripById (tripId) {
   // If the status are null, then use the "pending" or "N/A" status
   const gearStatus = trip.group_gear_request_approved || num_group_gear_requests.status
   const trippeeGearStatus = trip.individual_gear_request_approved || num_trippee_gear_requests.status
+  const vehicleStatus = db.prepare(`
+      SELECT iif(status IS NULL, 'pending', iif(status = 0, 'denied', 'approved')) as reqstatus
+      FROM vehiclerequests
+      WHERE trip = ?
+    `).get(trip.id)?.reqstatus || 'N/A'
 
   const enhancedTrip = {
     ...trip,
@@ -763,6 +767,7 @@ export function getTripById (tripId) {
     endTime: getTimeField(trip.end_time),
     startDateAndTime: convertSqlDate(trip.start_time),
     endDateAndTime: convertSqlDate(trip.end_time),
+    vehicleStatus,
     sent_emails: JSON.parse(trip.sent_emails)
   }
 

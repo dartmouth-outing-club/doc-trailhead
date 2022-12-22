@@ -28,31 +28,30 @@ CREATE TABLE trips (
   past INTEGER DEFAULT FALSE,
   left INTEGER DEFAULT FALSE,
   returned INTEGER DEFAULT FALSE,
-  marked_late INTEGER DEFAULT FALSE, /* markedLate */
+  marked_late INTEGER DEFAULT FALSE,
   club INTEGER REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
-  owner INTEGER REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
-  start_time INTEGER, /* startDateAndTime */
-  end_time INTEGER, /* endDateAndTime */
+  owner INTEGER REFERENCES users ON DELETE RESTRICT ON UPDATE CASCADE,
+  start_time INTEGER,
+  end_time INTEGER,
   location TEXT,
   pickup TEXT,
   dropoff TEXT,
   cost INTEGER DEFAULT 0,
   description TEXT,
-  experience_needed INTEGER DEFAULT FALSE, /* experienceNeeded */
-  coleader_can_edit INTEGER DEFAULT FALSE, /* coLeaderCanEditTrip */
-  group_gear_approved INTEGER, -- gearSatus
-  member_gear_approved INTEGER, -- trippeeGearSatus
+  experience_needed INTEGER DEFAULT FALSE,
+  coleader_can_edit INTEGER DEFAULT FALSE,
+  group_gear_approved INTEGER, -- NULL means that it's pending or N/A
+  member_gear_approved INTEGER,
   pcard TEXT DEFAULT '[]',
-  pcard_status TEXT DEFAULT 'N/A', /* enum: ['pending', 'approved', 'denied', 'N/A'] */
+  pcard_status TEXT DEFAULT 'N/A',
   pcard_assigned TEXT DEFAULT 'NONE',
-  vehicle_status TEXT DEFAULT 'N/A',
   sent_emails TEXT DEFAULT '[]'
 ) STRICT;
 
 CREATE TABLE users (
   id INTEGER primary key,
   _id TEXT,
-  cas_id TEXT UNIQUE, /* casID */
+  cas_id TEXT UNIQUE,
   email TEXT UNIQUE,
   password TEXT,
   name TEXT,
@@ -61,7 +60,7 @@ CREATE TABLE users (
   dash_number TEXT,
   allergies_dietary_restrictions TEXT,
   medical_conditions TEXT,
-  clothe_size TEXT, /*{ type: String, enum: ['Men-XS', 'Men-S', 'Men-M', 'Men-L', 'Men-XL', 'Women-XS', 'Women-S', 'Women-M', 'Women-L', 'Women-XL'] } */
+  clothe_size TEXT,
   shoe_size TEXT,
   height TEXT,
   role TEXT DEFAULT 'Trippee' -- Leader, Trippee, OPO
@@ -78,7 +77,7 @@ CREATE TABLE vehicles (
   id INTEGER primary key,
   _id TEXT,
   name TEXT UNIQUE NOT NULL,
-  type TEXT NOT NULL, /*{ enum: ['Van', 'Microbus', 'Truck', 'Enterprise', 'PersonalVehicle'] }*/
+  type TEXT NOT NULL,
   active INTEGER DEFAULT TRUE
 ) STRICT;
 
@@ -89,9 +88,9 @@ CREATE TABLE vehiclerequests (
   request_details TEXT, -- requestDetails
   mileage INTEGER,
   num_participants INTEGER, -- noOfPeople
-  trip TEXT REFERENCES trips ON DELETE RESTRICT ON UPDATE CASCADE, -- associatedTrip
+  trip INTEGER REFERENCES trips ON DELETE RESTRICT ON UPDATE CASCADE, -- associatedTrip
   request_type TEXT, -- requestType { enum: ['TRIP', 'SOLO'] }
-  status TEXT DEFAULT 'pending' -- { enum: ['pending', 'approved', 'denied'], },
+  status INTEGER
 ) STRICT;
 
 CREATE TABLE club_leaders (
@@ -142,8 +141,3 @@ CREATE TABLE group_gear_requests (
 ) STRICT;
 
 COMMIT;
-
-/* CREATE TRIGGER directions_inserted AFTER INSERT ON directions */
-/* BEGIN */
-/* 	UPDATE directions SET updated_at = unixepoch() WHERE id = NEW.id; */
-/* END; */
