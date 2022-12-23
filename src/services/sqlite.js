@@ -52,6 +52,12 @@ function convertSqlDate (unixDate) {
   }
 }
 
+function getDateField (unixDate) {
+  if (!unixDate) return undefined
+  const date = new Date(unixDate)
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDay()}`
+}
+
 function getTimeField (unixDate) {
   if (!unixDate) return undefined
   try {
@@ -72,14 +78,21 @@ function getTimeField (unixDate) {
  */
 function formatAssignment (assignment) {
   if (assignment === undefined) return undefined
+  const assigned_pickupDateAndTime = convertSqlDate(assignment.pickup_time)
+  const assigned_returnDateAndTime = convertSqlDate(assignment.return_time)
   return {
     ...assignment,
     _id: assignment.id,
-    assigned_vehicle: assignment.vehicle,
-    assigned_pickupDateAndTime: assignment.pickup_time,
-    assigned_returnDateAndTime: assignment.return_time,
-    pickedUp: assignment.picked_up,
-    responseIndex: 0
+    assigned_key: assignment.vehicle_key,
+    assigned_pickupTime: getTimeField(assignment.pickup_time),
+    assigned_returnTime: getTimeField(assignment.return_time),
+    assigned_pickupDate: getDateField(assignment.pickup_time),
+    assigned_returnDate: getDateField(assignment.return_time),
+    assigned_pickupDateAndTime,
+    assigned_returnDateAndTime,
+    pickedUp: assignment.picked_up === 1,
+    returned: assignment.returned === 1,
+    responseIndex: 0 // idk man
   }
 }
 
@@ -114,12 +127,15 @@ function formatTrip (trip) {
     _id: trip.id,
     number: trip.id,
     markedLate: trip.marked_late,
-    startDate: trip.startDateAndTime,
-    endDate: trip.endDateAndTime,
+    startTime: getTimeField(trip.start_time),
+    endTime: getTimeField(trip.end_time),
+    startDateAndTime: convertSqlDate(trip.start_time),
+    endDateAndTime: convertSqlDate(trip.end_time),
     experienceNeeded: trip.experience_needed,
     coLeaderCanEditTrip: trip.coleader_can_edit,
-    pcard: trip.pcard,
-    pcardStatus: trip.pcard_status
+    pcard: JSON.parse(trip.pcard),
+    pcardStatus: trip.pcard_status,
+    sent_emails: JSON.parse(trip.sent_emails)
   }
 }
 
@@ -404,7 +420,7 @@ export function getActiveVehicles () {
 
 export function insertVehicle (name, type) {
   const info = db
-    .prepare('INSERT INTO vehicles VALUES (name, type) VALUES (?, ?)')
+    .prepare('INSERT INTO vehicles (name, type) VALUES (?, ?)')
     .run(name, type)
 
   return info.lastInsertRowid
@@ -618,7 +634,7 @@ export function getVehicleRequestsForOpo () {
     vehiclerequests.id as request_id,
     trips.title,
     users.name as user_name,
-    status
+    iif(status IS NULL, 'pending', iif(status = 0, 'denied', 'approved')) as status
   FROM trips
   LEFT JOIN vehiclerequests ON vehiclerequests.trip = trips.id
   LEFT JOIN users ON requester = users.id
@@ -744,7 +760,6 @@ export function getTripById (tripId, showUserData = false) {
 
   const enhancedTrip = {
     ...trip,
-    number: trip.id,
     club: getClubName(trip.club),
     vehicleRequest,
     owner,
@@ -755,13 +770,7 @@ export function getTripById (tripId, showUserData = false) {
     trippeeGear: getTripIndividualGear(trip.id),
     gearStatus,
     trippeeGearStatus,
-    pcard: JSON.parse(trip.pcard),
-    startTime: getTimeField(trip.start_time),
-    endTime: getTimeField(trip.end_time),
-    startDateAndTime: convertSqlDate(trip.start_time),
-    endDateAndTime: convertSqlDate(trip.end_time),
-    vehicleStatus,
-    sent_emails: JSON.parse(trip.sent_emails)
+    vehicleStatus
   }
 
   return formatTrip(enhancedTrip)
@@ -1074,7 +1083,7 @@ export function getUserVehicleRequests (userId) {
     .map(formatVehicleRequest)
 }
 
-export function getCalenderAssignments () {
+export function getCalendarAssignments () {
   const timeWindow = subtract(new Date(), 30, 'day')
   const recentAssignments = db.prepare(`
   SELECT *
@@ -1088,31 +1097,18 @@ export function getCalenderAssignments () {
     FROM vehiclerequests
     WHERE id = ?
     `).get(assignment.vehiclerequest)
-    const vehicle = db.prepare('SELECT * FROM vehicles WHERE id = ?').get(assignment.vehicle)
 
-    const requester = db.prepare('SELECT name, email FROM users WHERE id = ?').get(dbVehicleRequest.requester)
-    const trip = db.prepare(`
-    SELECT id, title, description, start_time, end_time
-    FROM trips
-    WHERE id = ?
-    `).get(dbVehicleRequest.trip)
-
-    const assigned_pickupDateAndTime = convertSqlDate(assignment.pickup_time)
-    const assigned_returnDateAndTime = convertSqlDate(assignment.return_time)
+    const vehicle = getVehicle(assignment.vehicle)
+    const requester = db.prepare('SELECT name, email FROM users WHERE id = ?')
+      .get(dbVehicleRequest.requester)
     const vehiclerequest = formatVehicleRequest(dbVehicleRequest)
-    vehiclerequest.associatedTrip = formatTrip(trip)
-    const assigned_vehicle = formatVehicle(vehicle)
+    vehiclerequest.associatedTrip = getTripById(dbVehicleRequest.trip)
 
     return {
       ...assignment,
-      vehiclerequest,
       requester,
-      responseIndex: 0, // idk man
-      pickup_time: assignment.pickup_time === 1,
-      returned: assignment.pickup_time === 1,
-      assigned_vehicle,
-      assigned_pickupDateAndTime,
-      assigned_returnDateAndTime
+      request: vehiclerequest,
+      assigned_vehicle: formatVehicle(vehicle)
     }
   }).map(formatAssignment)
 
