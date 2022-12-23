@@ -204,9 +204,15 @@ function enhanceUser (user) {
   FROM club_leaders
   LEFT JOIN clubs ON club = clubs.id
   WHERE user = ? AND is_approved = false
-  `)
+  `).all(user.id)
 
   const requested_certs = getRequestedCertsForUser(user.id)
+
+  if (user.is_opo) {
+    user.role = 'OPO'
+  } else {
+    user.role = leader_for.length > 0 ? 'Leader' : 'Trippee'
+  }
 
   user._id = user.id
   user.casID = user.cas_id

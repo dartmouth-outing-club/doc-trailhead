@@ -95,6 +95,9 @@ SET trip = trips.id
 FROM trips
 WHERE trips._id = trip;
 
+UPDATE users
+SET is_opo = iif(is_opo = 'OPO', true, false);
+
 DELETE FROM assignments
 WHERE vehiclerequest NOT IN
   (SELECT id FROM vehiclerequests);

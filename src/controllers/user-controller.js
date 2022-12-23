@@ -70,10 +70,7 @@ export async function updateUser (req, res) {
       throw new Error('You must have a dash number')
     }
 
-    const newUser = utils.pick(req.body,
-      ['pronoun', 'dash_number', 'allergies_dietary_restrictions', 'medical_conditions', 'clothe_size', 'shoe_size', 'height', 'photo_url'])
-    newUser.email = req.body.email
-    newUser.name = req.body.name
+    const newUser = { ...req.body }
 
     // The frontend sends us club objects, but the database stores club IDs
     // This is not a pattern that we will replicated with a new frontend
@@ -84,19 +81,14 @@ export async function updateUser (req, res) {
     const newRequestedClubs = newClubs.filter(club => !approvedClubs.includes(club))
     db.replaceUsersClubs(userId, newApprovedClubs, newRequestedClubs)
 
-    if (req.body.leader_for.length === 0 && existingUser.role !== 'OPO') {
-      newUser.role = 'Trippee'
-    }
-
     const hasNewTrailerCert = !existingUser.trailer_cert && req.body.trailer_cert
     const hasNewDriverCert = req.body.driver_cert !== null && existingUser.driver_cert !== req.body.driver_cert
     if (hasNewTrailerCert) {
       db.requestTrailerCert(userId)
     }
     if (hasNewDriverCert) {
-      db.requestDriverCert(userId)
+      db.requestDriverCert(userId, req.body.driver_cert)
     }
-
     if (!hasNewTrailerCert && !hasNewDriverCert) {
       db.denyUserRequestedCerts(userId)
     }

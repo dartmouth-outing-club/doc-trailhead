@@ -63,7 +63,7 @@ CREATE TABLE users (
   clothe_size TEXT,
   shoe_size TEXT,
   height TEXT,
-  role TEXT DEFAULT 'Trippee' -- Leader, Trippee, OPO
+  is_opo INTEGER DEFAULT FALSE
 ) STRICT;
 
 CREATE TABLE user_certs (

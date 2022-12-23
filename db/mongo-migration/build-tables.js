@@ -11,7 +11,7 @@ console.log(getInsertStatementFromRecords(clubs, clubFields, 'clubs'))
 const users = getRecordsFromFile('./tables/users.bson.json')
 const userFields = ['_id', ['casID', 'cas_id'], 'email', 'password', 'name', 'photo_url',
   'pronoun', 'dash_number', 'allergies_dietary_restrictions', 'medical_conditions', 'clothe_size',
-  'shoe_size', 'height', 'role']
+  'shoe_size', 'height', ['role', 'is_opo']]
 console.log(getInsertStatementFromRecords(users, userFields, 'users'))
 
 const user_certs = users.flatMap(user => {
