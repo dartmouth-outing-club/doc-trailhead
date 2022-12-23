@@ -108,14 +108,19 @@ function formatVehicle (vehicle) {
 
 function formatVehicleRequest (vehicleRequest) {
   if (vehicleRequest === undefined) return undefined
+  let status = 'pending'
+  if (vehicleRequest.is_approved === 1) status = 'approved'
+  if (vehicleRequest.is_approved === 0) status = 'denied'
+
   return {
     ...vehicleRequest,
     _id: vehicleRequest.id,
     number: vehicleRequest.id,
     requestDetails: vehicleRequest.request_details,
     noOfPeople: vehicleRequest.num_participants,
-    trip: vehicleRequest.associatedTrip,
-    requestType: vehicleRequest.request_type
+    trip: vehicleRequest.associated_trip,
+    requestType: vehicleRequest.request_type,
+    status
   }
 }
 
@@ -129,6 +134,8 @@ function formatTrip (trip) {
     markedLate: trip.marked_late,
     startTime: getTimeField(trip.start_time),
     endTime: getTimeField(trip.end_time),
+    startDate: convertSqlDate(trip.start_time),
+    endDate: convertSqlDate(trip.end_time),
     startDateAndTime: convertSqlDate(trip.start_time),
     endDateAndTime: convertSqlDate(trip.end_time),
     experienceNeeded: trip.experience_needed,
@@ -510,20 +517,19 @@ export function updateVehicleRequest (vehicleRequest) {
     mileage = @mileage,
     num_participants = @num_participants,
     trip = @trip,
-    request_type = @request_type,
-    status = @status
+    request_type = @request_type
   WHERE id = @id
   `).run(vehicleRequest)
   return info.changes
 }
 
 export function markVehicleRequestApproved (id) {
-  const info = db.prepare("UPDATE vehiclerequests SET status = 'approved' WHERE id = ?").run(id)
+  const info = db.prepare('UPDATE vehiclerequests SET is_approved = true WHERE id = ?').run(id)
   return info.changes
 }
 
 export function markVehicleRequestDenied (id) {
-  const info = db.prepare("UPDATE vehiclerequests SET status = 'denied' WHERE id = ?").run(id)
+  const info = db.prepare('UPDATE vehiclerequests SET is_approved = false WHERE id = ?').run(id)
   return info.changes
 }
 
@@ -535,16 +541,6 @@ export function deleteVehicleRequest (vehicleRequestId) {
 
 export function resetTripVehicleStatus (id) {
   const info = db.prepare('UPDATE trips SET vehicle_status = NULL WHERE id = ?').run(id)
-  return info.changes
-}
-
-export function markTripVehicleStatusDenied (id) {
-  const info = db.prepare('UPDATE trips SET vehicle_status = false WHERE id = ?').run(id)
-  return info.changes
-}
-
-export function markTripVehicleStatusApproved (id) {
-  const info = db.prepare('UPDATE trips SET vehicle_status = true WHERE id = ?').run(id)
   return info.changes
 }
 
@@ -970,7 +966,8 @@ export function getFullTripView (tripId, forUser) {
     }
   }
 
-  return { trip: formatTrip(trip), userTripStatus, isLeaderOnTrip }
+  // Note that formatTrip was already called by getTripById
+  return { trip, userTripStatus, isLeaderOnTrip }
 }
 
 export function getTripByVehicleRequest (vehicleRequestId) {

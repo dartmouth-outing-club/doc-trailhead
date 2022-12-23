@@ -90,7 +90,7 @@ CREATE TABLE vehiclerequests (
   num_participants INTEGER, -- noOfPeople
   trip INTEGER REFERENCES trips ON DELETE RESTRICT ON UPDATE CASCADE, -- associatedTrip
   request_type TEXT, -- requestType { enum: ['TRIP', 'SOLO'] }
-  status INTEGER
+  is_approved INTEGER
 ) STRICT;
 
 CREATE TABLE club_leaders (

@@ -48,20 +48,20 @@ const club_requested_leaders = users
 console.log(getInsertStatementFromRecords(club_requested_leaders, ['user', 'club', 'is_approved'], 'club_leaders'))
 
 const vehicleRequests = getRecordsFromFile('./tables/vehiclerequests.bson.json').map(request => {
-  let status
-  if (request.status === 'approved') status = 1
-  if (request.status === 'denied') status = 0
+  let is_approved
+  if (request.status === 'approved') is_approved = 1
+  if (request.status === 'denied') is_approved = 0
   return {
     ...request,
     trip: request.associatedTrip?.$oid,
     requester: request.requester.$oid,
     num_participants: request.noOfPeople?.$numberInt,
     mileage: request.mileage?.$numberInt,
-    status
+    is_approved
   }
 })
 const vehicleRequestFields = ['_id', 'requester', ['requestDetails', 'request_details'], 'mileage',
-  'num_participants', 'trip', ['requestType', 'request_type'], 'status']
+  'num_participants', 'trip', ['requestType', 'request_type'], 'is_approved']
 console.log(getInsertStatementFromRecords(vehicleRequests, vehicleRequestFields, 'vehiclerequests'))
 
 const requestedVehicles = vehicleRequests.flatMap(request => (

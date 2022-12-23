@@ -199,7 +199,6 @@ export async function handleOpoPost (req, res) {
   if (vehicleRequest.requestType === 'TRIP') {
     const associatedTrip = db.getTripById(vehicleRequest.associatedTrip)
     const leaderEmails = db.getUserEmails(associatedTrip.leaders)
-    db.markTripVehicleStatusApproved(associatedTrip._id)
     mailer.sendTripVehicleRequestProcessedEmail(vehicleRequest, [requester, ...leaderEmails], associatedTrip)
   } else {
     mailer.sendVehicleRequestProcessedEmail(vehicleRequest, [requester])
@@ -213,11 +212,8 @@ export async function handleOpoPost (req, res) {
 /* Deny vehicle request and inform requester.  */
 export function handleOpoPut (req, res) {
   db.markVehicleRequestDenied(req.params.id)
-  const vehicleRequest = db.getVehicleRequestById(req.params.id)
-  if (vehicleRequest.requestType === 'TRIP') {
-    db.markTripVehicleStatusDenied(vehicleRequest.associatedTrip)
-  }
 
+  const vehicleRequest = db.getVehicleRequestById(req.params.id)
   const { email } = db.getUserById(vehicleRequest.requester)
   mailer.sendVehicleRequestDeniedEmail(vehicleRequest, [email])
   return res.sendStatus(200)
@@ -235,9 +231,6 @@ export async function handleOpoDelete (req, res) {
     const vehicleRequestId = vehicleRequest.id
     if (db.getAssignmentsForVehicleRequest(vehicleRequestId) === 0) {
       db.markVehicleRequestDenied(vehicleRequestId)
-      if (vehicleRequest.requestType === 'TRIP') {
-        db.markTripVehicleStatusDenied(vehicleRequest.associated_trip)
-      }
     }
     mailer.sendVehicleRequestCancelledEmail(vehicleRequest, [email], req.user.email)
   })
