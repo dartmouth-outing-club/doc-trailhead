@@ -1,6 +1,4 @@
 import jwt from 'jwt-simple'
-
-import * as utils from '../utils.js'
 import * as db from '../services/sqlite.js'
 
 export function getListOfUsers (_req, res) {
@@ -51,54 +49,49 @@ export function getUser (req, res) {
 }
 
 export async function updateUser (req, res) {
-  try {
-    const userId = req.user.id
-    const userWithEmail = db.getUserByEmail(req.body.email)
-    if (userWithEmail && userWithEmail.id !== userId) {
-      throw new Error('This email is already associated with a different user')
-    }
-
-    if (!req.body.name) {
-      throw new Error('You must have a name')
-    }
-    if (!req.body.email) {
-      throw new Error('You must have an email')
-    }
-
-    const existingUser = db.getUserById(userId)
-    if (!existingUser.dash_number && !req.body.dash_number) {
-      throw new Error('You must have a dash number')
-    }
-
-    const newUser = { ...req.body }
-
-    // The frontend sends us club objects, but the database stores club IDs
-    // This is not a pattern that we will replicated with a new frontend
-    const approvedClubs = existingUser.leader_for.map(club => club.id)
-    const newClubs = req.body?.leader_for?.map(club => club.id) || []
-
-    const newApprovedClubs = newClubs.filter(club => approvedClubs.includes(club))
-    const newRequestedClubs = newClubs.filter(club => !approvedClubs.includes(club))
-    db.replaceUsersClubs(userId, newApprovedClubs, newRequestedClubs)
-
-    const hasNewTrailerCert = !existingUser.trailer_cert && req.body.trailer_cert
-    const hasNewDriverCert = req.body.driver_cert !== null && existingUser.driver_cert !== req.body.driver_cert
-    if (hasNewTrailerCert) {
-      db.requestTrailerCert(userId)
-    }
-    if (hasNewDriverCert) {
-      db.requestDriverCert(userId, req.body.driver_cert)
-    }
-    if (!hasNewTrailerCert && !hasNewDriverCert) {
-      db.denyUserRequestedCerts(userId)
-    }
-
-    db.updateUser(newUser)
-    getUser(req, res)
-  } catch (error) {
-    console.error(error)
-    res.status(500).send('Something went wrong while saving your changes - contact OPO')
+  const userId = req.user.id
+  const userWithEmail = db.getUserByEmail(req.body.email)
+  if (userWithEmail && userWithEmail.id !== userId) {
+    throw new Error('This email is already associated with a different user')
   }
+
+  if (!req.body.name) {
+    throw new Error('You must have a name')
+  }
+  if (!req.body.email) {
+    throw new Error('You must have an email')
+  }
+
+  const existingUser = db.getUserById(userId)
+  if (!existingUser.dash_number && !req.body.dash_number) {
+    throw new Error('You must have a dash number')
+  }
+
+  const newUser = { ...req.body, id: userId }
+
+  // The frontend sends us club objects, but the database stores club IDs
+  // This is not a pattern that we will replicated with a new frontend
+  const approvedClubs = existingUser.leader_for.map(club => club.id)
+  const newClubs = req.body?.leader_for?.map(club => club._id) || []
+
+  const newApprovedClubs = newClubs.filter(club => approvedClubs.includes(club))
+  const newRequestedClubs = newClubs.filter(club => !approvedClubs.includes(club))
+  db.replaceUsersClubs(userId, newApprovedClubs, newRequestedClubs)
+
+  const hasNewTrailerCert = !existingUser.trailer_cert && req.body.trailer_cert
+  const hasNewDriverCert = req.body.driver_cert !== null && existingUser.driver_cert !== req.body.driver_cert
+  if (hasNewTrailerCert) {
+    db.requestTrailerCert(userId)
+  }
+  if (hasNewDriverCert) {
+    db.requestDriverCert(userId, req.body.driver_cert)
+  }
+  if (!hasNewTrailerCert && !hasNewDriverCert) {
+    db.denyUserRequestedCerts(userId)
+  }
+
+  db.updateUser(newUser)
+  return getUser(req, res)
 }
 
 export async function handleGetLeaderApprovals (_req, res) {

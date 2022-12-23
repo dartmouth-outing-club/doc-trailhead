@@ -226,8 +226,7 @@ function enhanceUser (user) {
 }
 
 export function getClubs () {
-  const club = db.prepare('SELECT * FROM clubs').all()
-  return formatClub(club)
+  return db.prepare('SELECT * FROM clubs').all().map(formatClub)
 }
 
 export function insertClub (name) {
@@ -255,9 +254,6 @@ export function denyLeadershipRequests (userId) {
 }
 
 export function approveLeadershipRequests (userId) {
-  const user = getUserById(userId)
-  const role = user.role === 'OPO' ? 'OPO' : 'Leader'
-  db.prepare('UPDATE users SET role = ? WHERE id = ?').run(role, userId)
   db.prepare('UPDATE club_leaders SET is_approved = true WHERE user = ?').run(userId)
 }
 
@@ -379,15 +375,13 @@ export function updateUser (user) {
   SET
     email = ifnull(@email, email),
     name = ifnull(@name, name),
-    photo_url = ifnull(@photo_url, photo_url),
     pronoun = ifnull(@pronoun, pronoun),
     dash_number = ifnull(@dash_number, dash_number),
     allergies_dietary_restrictions = ifnull(@allergies_dietary_restrictions, allergies_dietary_restrictions),
     medical_conditions = ifnull(@medical_conditions, medical_conditions),
     clothe_size = ifnull(@clothe_size, clothe_size),
     shoe_size = ifnull(@shoe_size, shoe_size),
-    height = ifnull(@height, height),
-    role = ifnull(@role, role)
+    height = ifnull(@height, height)
   WHERE id = @id
   `).run(user)
 
@@ -938,7 +932,6 @@ export function deleteTripMember (tripId, userId) {
 }
 
 export function updateTripMemberGearRequest (tripId, userId, trippeeGear) {
-  console.log(tripId, userId)
   db.prepare('DELETE FROM member_gear_requests WHERE trip = ? AND user = ?').run(tripId, userId)
   trippeeGear.forEach(request => {
     db.prepare('INSERT INTO member_gear_requests (trip, user, gear) VALUES (?, ?, ?)')
@@ -1128,7 +1121,6 @@ export function getCalenderAssignments () {
 
 export function getUserEmails (ids) {
   return ids.map(id => {
-    console.log(ids)
     const { email } = db.prepare('SELECT email FROM users WHERE id = ?').get(id)
     return email
   })
