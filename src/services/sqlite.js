@@ -82,7 +82,7 @@ function formatAssignment (assignment) {
   const assigned_returnDateAndTime = convertSqlDate(assignment.return_time)
   return {
     ...assignment,
-    _id: assignment.id,
+    _id: assignment.id.toString(),
     assigned_key: assignment.vehicle_key,
     assigned_vehicle: assignment.vehicle,
     assigned_pickupTime: getTimeField(assignment.pickup_time),
@@ -99,12 +99,12 @@ function formatAssignment (assignment) {
 
 function formatClub (club) {
   if (club === undefined) return undefined
-  return { ...club, _id: club.id }
+  return { ...club, _id: club.id.toString() }
 }
 
 function formatVehicle (vehicle) {
   if (vehicle === undefined) return undefined
-  return { ...vehicle, _id: vehicle.id }
+  return { ...vehicle, _id: vehicle.id.toString() }
 }
 
 function formatVehicleRequest (vehicleRequest) {
@@ -115,7 +115,7 @@ function formatVehicleRequest (vehicleRequest) {
 
   return {
     ...vehicleRequest,
-    _id: vehicleRequest.id,
+    _id: vehicleRequest.id.toString(),
     number: vehicleRequest.id,
     requestDetails: vehicleRequest.request_details,
     noOfPeople: vehicleRequest.num_participants,
@@ -130,7 +130,7 @@ function formatTrip (trip) {
 
   return {
     ...trip,
-    _id: trip.id,
+    _id: trip.id.toString(),
     number: trip.id,
     markedLate: trip.marked_late,
     startTime: getTimeField(trip.start_time),
@@ -186,7 +186,7 @@ function getTripParticipants (tripId, ownerId, showUserData) {
     .map(user => {
       const frontendUser = {
         id: user.id,
-        _id: user.id,
+        _id: user.id.toString(),
         email: user.email,
         name: user.name,
         height: user.height,
@@ -238,9 +238,9 @@ function enhanceUser (user) {
     user.role = leader_for.length > 0 ? 'Leader' : 'Trippee'
   }
 
-  user._id = user.id
+  user._id = user.id.toString()
   user.casID = user.cas_id
-  user.leader_for = leader_for
+  user.leader_for = leader_for.map(formatClub)
   user.requested_clubs = requested_clubs
   user.requested_certs = requested_certs
   user.has_pending_leader_change = requested_clubs.length !== 0
@@ -297,7 +297,7 @@ export function getLeadersPendingApproval () {
 
   return users.map(userId => {
     const user = db.prepare('SELECT id, name FROM users WHERE id = ?').get(userId)
-    user._id = user.id
+    user._id = user.id.toString()
     const requested_clubs = clubRequestsByUser[userId].map(clubId => {
       const club = db.prepare('SELECT * FROM clubs WHERE id = ?').get(clubId)
       return formatClub(club)
@@ -355,7 +355,7 @@ export function getUsersPendingCerts () {
     }
     const trailer_cert = certs.includes('TRAILER') ? 'true' : false
     const requested_certs = { driver_cert, trailer_cert }
-    return { id, name, _id: id, requested_certs }
+    return { id, name, _id: id.toString(), requested_certs }
   })
 }
 
@@ -384,7 +384,7 @@ export function getUserByEmail (email) {
 
 export function getListOfUsers () {
   const users = db.prepare('SELECT id, name, email FROM users').all()
-  return users.map(user => ({ ...user, _id: user.id }))
+  return users.map(user => ({ ...user, _id: user.id.toString() }))
 }
 
 export function insertUser (casId) {
@@ -642,7 +642,7 @@ export function getVehicleRequestsForOpo () {
     const requestedVehicles = getVehiclesForVehicleRequest(request.request_id)
     return {
       id: request.request_id,
-      _id: request.request_id,
+      _id: request.request_id.toString(),
       requester: { name: request.user_name },
       status: request.status,
       associatedTrip: { title: request.title },
@@ -668,7 +668,7 @@ export function getVehicleRequestsForOpo () {
     const requestedVehicles = getVehiclesForVehicleRequest(request.request_id)
     return {
       id: request.request_id,
-      _id: request.request_id,
+      _id: request.request_id.toString(),
       requester: { name: request.user_name },
       status: request.status,
       requestDetails: request.request_details,
@@ -719,7 +719,7 @@ function getTripIndividualGear (tripId) {
       WHERE trip = ?
       `)
     .all(tripId)
-    .map(gear => ({ ...gear, _id: gear.id, sizeType: gear.size_type }))
+    .map(gear => ({ ...gear, _id: gear.id.toString(), sizeType: gear.size_type }))
 }
 
 function getTripGroupGearRequests (tripId) {
@@ -750,7 +750,7 @@ export function getTripById (tripId, showUserData = false) {
   // If the status are null, then use the "pending" or "N/A" status
   const gearStatus = trip.group_gear_request_approved || num_group_gear_requests.status
   const trippeeGearStatus = trip.individual_gear_request_approved || num_trippee_gear_requests.status
-  const vehicleStatus = getVehicleRequestByTripId(trip.id).status || 'N/A'
+  const vehicleStatus = getVehicleRequestByTripId(trip.id)?.status || 'N/A'
 
   const enhancedTrip = {
     ...trip,
@@ -973,27 +973,31 @@ export function getTripByVehicleRequest (vehicleRequestId) {
   return getTripById(trip)
 }
 
-export function insertTrip (trip, leaders) {
+export function insertTrip (trip, leaders, trip_gear, group_gear_requests) {
   const info = db.prepare(`
   INSERT INTO trips (title, private, start_time, end_time, owner, description, club, cost,
-    experience_needed, location, pickup, dropoff, mileage, coleader_can_edit, opo_gear_requests,
-    trippee_gear, pcard_status, pcard)
+    experience_needed, location, pickup, dropoff, coleader_can_edit, pcard)
   VALUES (@title, @private, @start_time, @end_time, @owner, @description, @club, @cost,
-    @experience_needed, @location, @pickup, @dropoff, @mileage, @coleader_can_edit,
-    @opo_gear_requests, @trippee_gear, @pcard_status, @pcard)
+    @experience_needed, @location, @pickup, @dropoff, @coleader_can_edit, @pcard)
   `).run(trip)
   const id = info.lastInsertRowid
 
-  // Insert leaders
   leaders.forEach(leaderId => {
-    db.prepare('INSERT INTO trip_members (trip, user, leader, requested_gear) VALUES (?, ?, ?)')
-      .run(id, leaderId, true)
+    db.prepare('INSERT INTO trip_members (trip, user, leader) VALUES (?, ?, ?)')
+      .run(id, leaderId, 1)
+  })
+
+  trip_gear.forEach(gear => insertTripGear(id, gear.name, gear.sizeType))
+
+  group_gear_requests.forEach(request => {
+    db.prepare('INSERT INTO group_gear_requests (trip, name, quantity) VALUES (?, ?, ?)')
+      .run(id, request.name, request.quantity)
   })
 
   return id
 }
 
-export function updateTrip (trip) {
+export function updateTrip (trip, trip_gear, group_gear_requests) {
   if (!trip.id) throw new Error(`Error, invalid trip ${trip.id} provided`)
   const info = db.prepare(`
   UPDATE trips
@@ -1014,6 +1018,8 @@ export function updateTrip (trip) {
   WHERE id = @id
   `).run(trip)
 
+  replaceGroupGearRequests(trip.id, group_gear_requests)
+
   return info.changes
 }
 
@@ -1027,6 +1033,34 @@ export function replaceTripLeaders (tripId, leaders) {
     db.prepare('INSERT INTO trip_members (trip, user, leader) VALUES (?, ?, true)')
       .run(tripId, userId)
   })
+}
+
+function insertGroupGearRequest (tripId, name, quantity) {
+  return db.prepare('INSERT INTO group_gear_requests (trip, name, quantity)')
+    .run(tripId, name, quantity)
+}
+
+function replaceGroupGearRequests (tripId, group_gear_requests) {
+  db.prepare('DELETE FROM trip_gear WHERE trip = ?').run(tripId)
+  group_gear_requests.forEach(request => insertGroupGearRequest(tripId, request.name, request.quantity))
+}
+
+function insertTripGear (trip, name, sizeType) {
+  return db.prepare('INSERT INTO trip_gear (trip, name, size_type) VALUES (?, ?, ?)')
+    .run(trip, name, sizeType)
+}
+
+// This one is a little more complicated because we dont want to delete linked gear requests
+function replaceTripGear (tripId, trip_gear) {
+  const existingGearIds = db.prepare('SELECT id FROM trip_gear WHERE trip = ?')
+    .all(tripId)
+    .map(gear => gear.ids)
+  // const newGear = trip_gear.filter(tripGear => trip.)
+}
+
+export function updateTripGear (tripId, trip_gear) {
+  // db.prepare('DELETE FROM trip_gear WHERE trip = ?').run(tripId)
+  return trip_gear.forEach(gear => insertTripGear(tripId, gear.user, gear.sizeType))
 }
 
 export function createVehicleRequestForTrip (vehicleRequest, requestedVehicles) {
@@ -1053,14 +1087,12 @@ export function createVehicleRequestForTrip (vehicleRequest, requestedVehicles) 
 
 export function getUserTrips (userId) {
   const trips = db.prepare(`
-  SELECT *
-  FROM trips
-  LEFT JOIN trip_members on trip_members.trip = trips.id
-  LEFT JOIN clubs on trips.club = clubs.id
-  WHERE trip_members.user = ?
+  SELECT trip
+  FROM trip_members
+  WHERE user = ?
   `).all(userId)
 
-  return trips.map(trip => ({ ...trip, club: getClubName(trip.club) }))
+  return trips.map(item => getTripById(item.trip))
 }
 
 export function getUserVehicleRequests (userId) {

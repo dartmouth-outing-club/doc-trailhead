@@ -58,36 +58,30 @@ export async function createTrip (creator, data) {
   // Creates the new trip
   const trip = {
     title: data.title || 'Untitled trip',
-    private: data.private || false,
-    start_time: constants.createDateObject(data.startDate, data.startTime, data.timezone),
-    end_time: constants.createDateObject(data.endDate, data.endTime, data.timezone),
+    private: data.private ? 1 : 0,
+    start_time: constants.createIntegerDateObject(data.startDate, data.startTime),
+    end_time: constants.createIntegerDateObject(data.endDate, data.endTime),
     owner: creator.id,
     description: data.description,
     club: data.club._id,
     cost: data.cost || 0,
-    experience_needed: data.experienceNeeded || false,
+    experience_needed: data.experienceNeeded ? 1 : 0,
     location: data.location,
     pickup: data.pickup,
     dropoff: data.dropoff,
     mileage: data.mileage,
-    coleader_can_edit: data.coLeaderCanEditTrip || false,
-    opo_gear_requests: data.gearRequests,
-    trippee_gear: data.trippeeGear,
-    pcard: data.pcard
+    coleader_can_edit: data.coLeaderCanEditTrip ? 1 : 0,
+    pcard: JSON.stringify(data.pcard)
   }
 
-  if (data.gearRequests.length > 0) trip.gear_status = 'pending'
-  if (data.trippeeGear.length > 0) trip.trippee_gear_status = 'pending'
-  if (data.pcard.length > 0) trip.pcard_status = 'pending'
-
-  const leaders = data.leaders
-    .map(db.getUserByEmail)
-    .map(user => user.id)
-
-  const tripId = db.insertTrip(trip, leaders)
+  const coLeaders = data.leaders.map(db.getUserByEmail).map(user => user.id)
+  const allLeaders = [...coLeaders, creator.id]
+  const trip_gear = data.trippeeGear || []
+  const group_gear_requests = data.gearRequests || []
+  const tripId = db.insertTrip(trip, allLeaders, trip_gear, group_gear_requests)
 
   const leaderEmails = [creator.email] // Used to send out initial email
-  const savedTrip = { ...trip, id: tripId }
+  const savedTrip = { ...trip, id: tripId, _id: tripId }
   await mailer.sendNewTripEmail(savedTrip, leaderEmails, creator)
 
   // If vehciles are specified, create a new Vehicle Request
@@ -186,15 +180,16 @@ export async function updateTrip (req, res) {
   }
 
   const { leaders } = req.body
-
   const newLeaders = leaders.map(db.getUserByEmail).map(user => user.id)
   if (trip.leaders.length < 1) {
     console.error(`ERROR: attempted to save a trip without a leader for trip ${req.params.tripID}`)
     return res.status(400).send('Cannot save trip with no leader')
   }
-
   db.replaceTripLeaders(trip.id, newLeaders)
-  db.updateTrip(newTrip)
+
+  const trip_gear = req.body.trippeeGear || []
+  const group_gear_requests = req.body.gearRequests || []
+  db.updateTrip(newTrip, trip_gear, group_gear_requests)
   return res.json(db.getTripById(trip.id))
 }
 
@@ -202,11 +197,10 @@ export async function updateTrip (req, res) {
  * Deletes a trip.
  */
 export async function deleteTrip (req, res) {
-  const userId = req.user.id
   const tripId = req.params.tripID
   const trip = db.getTripById(tripId)
 
-  const isLeader = trip.leaders.includes(userId)
+  const isLeader = trip.leaders.some(leader => leader.id === req.user.id)
   const isOpo = req.user.role === 'OPO'
   if (!isLeader && !isOpo) {
     return res.status(422).send('You must be a leader on the trip or OPO staff')
