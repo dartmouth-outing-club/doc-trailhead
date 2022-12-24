@@ -84,6 +84,7 @@ function formatAssignment (assignment) {
     ...assignment,
     _id: assignment.id,
     assigned_key: assignment.vehicle_key,
+    assigned_vehicle: assignment.vehicle,
     assigned_pickupTime: getTimeField(assignment.pickup_time),
     assigned_returnTime: getTimeField(assignment.return_time),
     assigned_pickupDate: getDateField(assignment.pickup_time),
@@ -118,7 +119,7 @@ function formatVehicleRequest (vehicleRequest) {
     number: vehicleRequest.id,
     requestDetails: vehicleRequest.request_details,
     noOfPeople: vehicleRequest.num_participants,
-    trip: vehicleRequest.associated_trip,
+    associatedTrip: vehicleRequest.trip,
     requestType: vehicleRequest.request_type,
     status
   }
@@ -585,17 +586,15 @@ export function updateAssignment (assignment) {
     pickup_time = @pickup_time,
     return_time = @return_time,
     vehicle = @vehicle,
-    vehicle_key = @vehicle_key,
-    picked_up = @picked_up,
-    return = @returned
+    vehicle_key = @vehicle_key
   WHERE id = @id
   `).run(assignment)
 }
 
 export function insertAssignment (assignment) {
   return db.prepare(`
-  INSERT INTO assignments (vehiclerequest, requester, pickup_time, return_time, vehicle, vehicle_key, picked_up, returned)
-  VALUES (@vehiclerequest, @requester, @pickup_time, @return_time, @vehicle, @vehicle_key, @picked_up, @returned)
+  INSERT INTO assignments (vehiclerequest, requester, pickup_time, return_time, vehicle, vehicle_key)
+  VALUES (@vehiclerequest, @requester, @pickup_time, @return_time, @vehicle, @vehicle_key)
   `).run(assignment)
 }
 
@@ -748,11 +747,7 @@ export function getTripById (tripId, showUserData = false) {
   // If the status are null, then use the "pending" or "N/A" status
   const gearStatus = trip.group_gear_request_approved || num_group_gear_requests.status
   const trippeeGearStatus = trip.individual_gear_request_approved || num_trippee_gear_requests.status
-  const vehicleStatus = db.prepare(`
-      SELECT iif(status IS NULL, 'pending', iif(status = 0, 'denied', 'approved')) as reqstatus
-      FROM vehiclerequests
-      WHERE trip = ?
-    `).get(trip.id)?.reqstatus || 'N/A'
+  const vehicleStatus = getVehicleRequestByTripId(trip.id).status || 'N/A'
 
   const enhancedTrip = {
     ...trip,

@@ -171,18 +171,17 @@ export async function handleOpoPost (req, res) {
   proposedAssignments.forEach(assignment => {
     const vehicle = db.getVehicleByName(assignment.assignedVehicle)
     const { pickupDate, pickupTime, returnDate, returnTime, timezone } = assignment
-    const pickup_time = constants.createDateObject(pickupDate, pickupTime, timezone)
-    const return_time = constants.createDateObject(returnDate, returnTime, timezone)
+    const pickup_time = constants.createIntegerDateObject(pickupDate, pickupTime, timezone)
+    const return_time = constants.createIntegerDateObject(returnDate, returnTime, timezone)
 
     const newAssignment = {
+      id: assignment._id,
       vehiclerequest: vehicleRequest.id,
       requester: vehicleRequest.requester,
       pickup_time,
       return_time,
       vehicle: vehicle.id,
-      vehicle_key: assignment.assignedKey,
-      picked_up: assignment.pickedUp,
-      returned: assignment.returned
+      vehicle_key: assignment.assignedKey
     }
 
     if (assignment.existingAssignment) {
@@ -197,8 +196,9 @@ export async function handleOpoPost (req, res) {
   const requester = db.getUserById(vehicleRequest.requester)
 
   if (vehicleRequest.requestType === 'TRIP') {
-    const associatedTrip = db.getTripById(vehicleRequest.associatedTrip)
-    const leaderEmails = db.getUserEmails(associatedTrip.leaders)
+    console.log(vehicleRequest)
+    const associatedTrip = db.getTripById(vehicleRequest.trip)
+    const leaderEmails = db.getTripLeaderEmails(vehicleRequest.trip)
     mailer.sendTripVehicleRequestProcessedEmail(vehicleRequest, [requester, ...leaderEmails], associatedTrip)
   } else {
     mailer.sendVehicleRequestProcessedEmail(vehicleRequest, [requester])
@@ -225,9 +225,9 @@ export async function handleOpoDelete (req, res) {
   toBeDeleted.forEach((assignmentId) => {
     const assignment = db.getAssignmentById(assignmentId)
     db.deleteAssignment(assignmentId)
-    const vehicleRequest = db.getVehicleRequestById(assignment.request)
-    const { email } = db.getUserById(vehicleRequest.requester)
 
+    const vehicleRequest = db.getVehicleRequestById(assignment.vehiclerequest)
+    const { email } = db.getUserById(vehicleRequest.requester)
     const vehicleRequestId = vehicleRequest.id
     if (db.getAssignmentsForVehicleRequest(vehicleRequestId) === 0) {
       db.markVehicleRequestDenied(vehicleRequestId)
