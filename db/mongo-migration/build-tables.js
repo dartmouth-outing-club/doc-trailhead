@@ -96,10 +96,11 @@ const assignments = getRecordsFromFile('./tables/assignments.bson.json').map(ass
   pickup_time: assignment.assigned_pickupDateAndTime.$date.$numberLong,
   return_time: assignment.assigned_returnDateAndTime.$date.$numberLong,
   picked_up: assignment.pickedUp || false,
-  returned: assignment.returned || false
+  returned: assignment.returned || false,
+  response_index: assignment.responseIndex.$numberInt
 }))
 const assignmentFields = ['_id', 'vehiclerequest', 'requester', 'pickup_time', 'return_time',
-  ['assigned_key', 'vehicle_key'], 'vehicle', 'picked_up', 'returned']
+  ['assigned_key', 'vehicle_key'], 'vehicle', 'picked_up', 'returned', 'response_index']
 console.log(getInsertStatementFromRecords(assignments, assignmentFields, 'assignments'))
 
 const trips = getRecordsFromFile('./tables/trips.bson.json').map(trip => {

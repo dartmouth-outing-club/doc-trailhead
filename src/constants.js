@@ -21,8 +21,8 @@ export function createDateObject (date, time, timezone) {
   }
 }
 
-export function createIntegerDateObject (date, time, timezone) {
-  return createDateObject(date, time, timezone).getTime()
+export function createIntegerDateObject (date, time) {
+  return createDateObject(date, time).getTime()
 }
 
 export function formatDateAndTime (date, mode) {

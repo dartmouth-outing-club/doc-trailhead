@@ -10,7 +10,8 @@ CREATE TABLE assignments (
   vehicle INTEGER REFERENCES vehicles ON UPDATE CASCADE,
   vehicle_key TEXT,
   picked_up INTEGER DEFAULT FALSE, -- pickedUp
-  returned INTEGER DEFAULT FALSE
+  returned INTEGER DEFAULT FALSE,
+  response_index INTEGER DEFAULT 0
 ) STRICT;
 
 CREATE TABLE clubs (

@@ -170,20 +170,22 @@ export async function handleOpoPost (req, res) {
 
   proposedAssignments.forEach(assignment => {
     const vehicle = db.getVehicleByName(assignment.assignedVehicle)
-    const { pickupDate, pickupTime, returnDate, returnTime, timezone } = assignment
-    const pickup_time = constants.createIntegerDateObject(pickupDate, pickupTime, timezone)
-    const return_time = constants.createIntegerDateObject(returnDate, returnTime, timezone)
+    const { pickupDate, pickupTime, returnDate, returnTime } = assignment
+    const pickup_time = constants.createIntegerDateObject(pickupDate, pickupTime)
+    const return_time = constants.createIntegerDateObject(returnDate, returnTime)
 
     const newAssignment = {
-      id: assignment._id,
+      id: assignment.id,
       vehiclerequest: vehicleRequest.id,
       requester: vehicleRequest.requester,
       pickup_time,
       return_time,
       vehicle: vehicle.id,
-      vehicle_key: assignment.assignedKey
+      vehicle_key: assignment.assignedKey,
+      response_index: assignment.responseIndex
     }
 
+    console.log(newAssignment)
     if (assignment.existingAssignment) {
       console.log('Updating existing vehicle assignment')
       db.updateAssignment(newAssignment)
@@ -196,10 +198,9 @@ export async function handleOpoPost (req, res) {
   const requester = db.getUserById(vehicleRequest.requester)
 
   if (vehicleRequest.requestType === 'TRIP') {
-    console.log(vehicleRequest)
     const associatedTrip = db.getTripById(vehicleRequest.trip)
     const leaderEmails = db.getTripLeaderEmails(vehicleRequest.trip)
-    mailer.sendTripVehicleRequestProcessedEmail(vehicleRequest, [requester, ...leaderEmails], associatedTrip)
+    mailer.sendTripVehicleRequestProcessedEmail(vehicleRequest, leaderEmails, associatedTrip)
   } else {
     mailer.sendVehicleRequestProcessedEmail(vehicleRequest, [requester])
   }

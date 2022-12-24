@@ -93,7 +93,7 @@ function formatAssignment (assignment) {
     assigned_returnDateAndTime,
     pickedUp: assignment.picked_up === 1,
     returned: assignment.returned === 1,
-    responseIndex: 0 // idk man
+    responseIndex: assignment.response_index || 0
   }
 }
 
@@ -217,7 +217,7 @@ function enhanceUser (user) {
   if (!user) return user
 
   const leader_for = db.prepare(`
-  SELECT clubs.id, name
+  SELECT clubs.id, name, active
   FROM club_leaders
   LEFT JOIN clubs ON club = clubs.id
   WHERE user = ? AND is_approved = true
@@ -586,15 +586,18 @@ export function updateAssignment (assignment) {
     pickup_time = @pickup_time,
     return_time = @return_time,
     vehicle = @vehicle,
-    vehicle_key = @vehicle_key
+    vehicle_key = @vehicle_key,
+    response_index = @response_index
   WHERE id = @id
   `).run(assignment)
 }
 
 export function insertAssignment (assignment) {
   return db.prepare(`
-  INSERT INTO assignments (vehiclerequest, requester, pickup_time, return_time, vehicle, vehicle_key)
-  VALUES (@vehiclerequest, @requester, @pickup_time, @return_time, @vehicle, @vehicle_key)
+  INSERT INTO assignments
+    (vehiclerequest, requester, pickup_time, return_time, vehicle, vehicle_key, response_index)
+  VALUES
+    (@vehiclerequest, @requester, @pickup_time, @return_time, @vehicle, @vehicle_key, @response_index)
   `).run(assignment)
 }
 
@@ -629,7 +632,7 @@ export function getVehicleRequestsForOpo () {
     vehiclerequests.id as request_id,
     trips.title,
     users.name as user_name,
-    iif(status IS NULL, 'pending', iif(status = 0, 'denied', 'approved')) as status
+    iif(is_approved IS NULL, 'pending', iif(is_approved = 0, 'denied', 'approved')) as status
   FROM trips
   LEFT JOIN vehiclerequests ON vehiclerequests.trip = trips.id
   LEFT JOIN users ON requester = users.id
@@ -652,7 +655,7 @@ export function getVehicleRequestsForOpo () {
       vehiclerequests.id AS request_id,
       request_details,
       users.name AS user_name,
-      status
+      iif(is_approved IS NULL, 'pending', iif(is_approved = 0, 'denied', 'approved')) as status
     FROM vehiclerequests
     LEFT JOIN users ON requester = users.id
     WHERE request_type = 'SOLO' AND vehiclerequests.id IN (
