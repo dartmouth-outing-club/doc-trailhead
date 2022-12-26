@@ -982,9 +982,9 @@ export function getFullTripView (tripId, forUser) {
     if (forUser.role === 'OPO') {
       isLeaderOnTrip = true
     } else if (trip.coLeaderCanEditTrip) {
-      isLeaderOnTrip = trip.leaders.some(leader => leader.toString() === forUser._id.toString())
+      isLeaderOnTrip = trip.leaders.some(leader => leader.id === forUser.id)
     } else {
-      isLeaderOnTrip = trip.owner.toString() === forUser._id.toString()
+      isLeaderOnTrip = trip.owner === forUser.id
     }
   }
 
@@ -1060,12 +1060,12 @@ export function replaceTripLeaders (tripId, leaders) {
 }
 
 function insertGroupGearRequest (tripId, name, quantity) {
-  return db.prepare('INSERT INTO group_gear_requests (trip, name, quantity)')
+  return db.prepare('INSERT INTO group_gear_requests (trip, name, quantity) VALUES (?, ?, ?)')
     .run(tripId, name, quantity)
 }
 
 function replaceGroupGearRequests (tripId, group_gear_requests) {
-  db.prepare('DELETE FROM trip_gear WHERE trip = ?').run(tripId)
+  db.prepare('DELETE FROM group_gear_requests WHERE trip = ?').run(tripId)
   group_gear_requests.forEach(request => insertGroupGearRequest(tripId, request.name, request.quantity))
 }
 
