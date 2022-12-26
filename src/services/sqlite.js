@@ -482,15 +482,17 @@ function getVehiclesForVehicleRequest (requestId) {
 function insertRequestedVehicle (requestedVehicle) {
   return db.prepare(`
     INSERT INTO requested_vehicles
-      (vehiclerequest, type, details, pickup_time, return_time, trailer_needed, pass_needed, recurring_vehicle)
-    VALUES (@vehiclerequest, @type, @details, @pickup_time, @return_time, @trailer_needed, @pass_needed, @recurring_vehicle)
+      (vehiclerequest, type, details, pickup_time, return_time, trailer_needed, pass_needed)
+    VALUES (@vehiclerequest, @type, @details, @pickup_time, @return_time, @trailer_needed, @pass_needed)
   `).run(requestedVehicle)
 }
 
 export function replaceRequestedVehicles (vehicleRequestId, requestedVehicles) {
   // Mimic the way this data used to be store (delete the old "array", add a new one)
   db.prepare('DELETE FROM requested_vehicles WHERE vehiclerequest = ?').run(vehicleRequestId)
-  requestedVehicles.forEach(insertRequestedVehicle)
+  requestedVehicles
+    .map(vehicle => ({ ...vehicle, vehiclerequest: vehicleRequestId }))
+    .forEach(insertRequestedVehicle)
 }
 
 export function getVehicleRequestById (id) {
@@ -508,7 +510,7 @@ export function getVehicleRequestByTripId (id) {
 
   vehicleRequest.requestedVehicles = db
     .prepare('SELECT * FROM requested_vehicles WHERE vehiclerequest = ?')
-    .all(id)
+    .all(vehicleRequest.id)
     .map(formatRequestedVehicle)
   return formatVehicleRequest(vehicleRequest)
 }
@@ -533,7 +535,7 @@ export function insertVehicleRequest (vehicleRequest) {
   return info.lastInsertRowid
 }
 
-export function updateVehicleRequest (vehicleRequest) {
+export function updateVehicleRequest (vehicleRequest, vehicles) {
   const info = db.prepare(`
   UPDATE vehiclerequests
   SET
@@ -545,6 +547,7 @@ export function updateVehicleRequest (vehicleRequest) {
     request_type = @request_type
   WHERE id = @id
   `).run(vehicleRequest)
+  replaceRequestedVehicles(vehicleRequest.id, vehicles)
   return info.changes
 }
 
@@ -555,6 +558,12 @@ export function markVehicleRequestApproved (id) {
 
 export function markVehicleRequestDenied (id) {
   const info = db.prepare('UPDATE vehiclerequests SET is_approved = false WHERE id = ?').run(id)
+  return info.changes
+}
+
+export function deleteVehicleRequestForTrip (tripId) {
+  // Deletes assignments as well thanks to cascading
+  const info = db.prepare('DELETE FROM vehiclerequests WHERE trip = ?').run(tripId)
   return info.changes
 }
 
@@ -1089,24 +1098,23 @@ export function updateTripGear (tripId, trip_gear) {
 
 export function createVehicleRequestForTrip (vehicleRequest, requestedVehicles) {
   const info = db.prepare(`
-  INSERT INTO vehicles
+  INSERT INTO vehiclerequests
     (requester, request_details, mileage, trip, request_type)
   VALUES (@requester, @request_details, @mileage, @trip, @request_type)
   `).run(vehicleRequest)
-  const insertedId = info.lastInsertRowid
+  const requestId = info.lastInsertRowid
 
   requestedVehicles.forEach(vehicle => {
-    vehicle.vehiclerequest = insertedId
+    vehicle.vehiclerequest = requestId
     db.prepare(`
     INSERT INTO requested_vehicles
-      (vehiclerequest, type, trailer_needed, pass_needed, recurring_vehicle, pickup_time,
-      return_time)
-    VALUES (@vehiclerequest, @type, @trailer_needed, @pass_needed, @recurring_vehicle, @pickup_time,
+      (vehiclerequest, type, details, trailer_needed, pass_needed, pickup_time, return_time)
+    VALUES (@vehiclerequest, @type, @details, @trailer_needed, @pass_needed, @pickup_time,
       @return_time)
     `).run(vehicle)
   })
 
-  return insertedId
+  return requestId
 }
 
 export function getUserTrips (userId) {
@@ -1128,7 +1136,7 @@ export function getUserVehicleRequests (userId) {
 
   return vehicleRequests
     .map(vehicleRequest => {
-      const trip = db.prepare('SELECT * FROM trips WHERE id = ?').get(vehicleRequest.trip)
+      const trip = getTripById(vehicleRequest.trip)
       return { ...vehicleRequest, trip }
     })
     .map(formatVehicleRequest)

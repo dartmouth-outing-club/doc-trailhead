@@ -150,7 +150,7 @@ export async function updateTrip (req, res) {
   }
 
   if (req.body.changedVehicles) {
-    const { vehicleReqId, mileage, noOfPeople, vehicles } = req.body
+    const { vehicleReqId, mileage, noOfPeople } = req.body
     const vehicleRequest = {
       id: vehicleReqId,
       requester: req.user._id,
@@ -161,8 +161,18 @@ export async function updateTrip (req, res) {
       request_type: 'TRIP',
       status: 'pending'
     }
-
-    if (trip.vehicleStatus === null && vehicles.length > 0) {
+    const vehicles = req.body.vehicles?.map(vehicle => {
+      return {
+        // You're not *really* supposed to use Date.parse but it's a hack that works here
+        pickup_time: Date.parse(`${vehicle.pickupDate} ${vehicle.pickupTime}`),
+        return_time: Date.parse(`${vehicle.returnDate} ${vehicle.returnTime}`),
+        details: vehicle.vehicleDetails,
+        type: vehicle.vehicleType,
+        pass_needed: vehicle.passNeeded ? 1 : 0,
+        trailer_needed: vehicle.trailerNeeded ? 1 : 0
+      }
+    })
+    if (trip.vehicleStatus === 'N/A' && vehicles.length > 0) {
       db.createVehicleRequestForTrip(vehicleRequest, vehicles)
     } else {
       // If the request was previously approved, delete associated assignements and send an email
@@ -170,11 +180,12 @@ export async function updateTrip (req, res) {
         const info = db.deleteAllAssignmentsForVehicleRequest(vehicleReqId)
         if (info.changes > 0) await mailer.sendVehicleRequestChangedEmail(vehicleRequest)
       }
+
       // If there are no requests, delete the request entirely, otherwise update it
       if (vehicles.length === 0) {
         db.deleteVehicleRequest(vehicleReqId)
       } else {
-        db.updateVehicleRequest(vehicleRequest)
+        db.updateVehicleRequest(vehicleRequest, vehicles)
       }
     }
   }

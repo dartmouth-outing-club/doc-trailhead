@@ -185,7 +185,6 @@ export async function handleOpoPost (req, res) {
       response_index: assignment.responseIndex
     }
 
-    console.log(newAssignment)
     if (assignment.existingAssignment) {
       console.log('Updating existing vehicle assignment')
       db.updateAssignment(newAssignment)
