@@ -512,6 +512,7 @@ export function getVehicleRequestByTripId (id) {
     .prepare('SELECT * FROM requested_vehicles WHERE vehiclerequest = ?')
     .all(vehicleRequest.id)
     .map(formatRequestedVehicle)
+  vehicleRequest.assignments = getAssignmentsForVehicleRequest(vehicleRequest.id)
   return formatVehicleRequest(vehicleRequest)
 }
 
