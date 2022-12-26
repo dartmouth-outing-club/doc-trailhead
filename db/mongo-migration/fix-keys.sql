@@ -70,7 +70,7 @@ SET user = users.id
 FROM users
 WHERE users._id = user;
 
-UPDATE trip_gear
+UPDATE required_trip_gear
 SET trip = trips.id
 FROM trips
 WHERE trips._id = trip;
@@ -86,9 +86,9 @@ FROM trips
 WHERE trips._id = trip;
 
 UPDATE member_gear_requests
-SET gear = trip_gear.id
-FROM trip_gear
-WHERE trip_gear._id = gear;
+SET gear = required_trip_gear.id
+FROM required_trip_gear
+WHERE required_trip_gear._id = gear;
 
 UPDATE group_gear_requests
 SET trip = trips.id

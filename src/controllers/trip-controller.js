@@ -76,9 +76,9 @@ export async function createTrip (creator, data) {
 
   const coLeaders = data.leaders.map(db.getUserByEmail).map(user => user.id)
   const allLeaders = [...coLeaders, creator.id]
-  const trip_gear = data.trippeeGear || []
+  const required_trip_gear = data.trippeeGear || []
   const group_gear_requests = data.gearRequests || []
-  const tripId = db.insertTrip(trip, allLeaders, trip_gear, group_gear_requests)
+  const tripId = db.insertTrip(trip, allLeaders, required_trip_gear, group_gear_requests)
 
   const leaderEmails = [creator.email] // Used to send out initial email
   const savedTrip = { ...trip, id: tripId, _id: tripId }
@@ -198,9 +198,9 @@ export async function updateTrip (req, res) {
   }
   db.replaceTripLeaders(trip.id, newLeaders)
 
-  const trip_gear = req.body.trippeeGear || []
+  const required_trip_gear = req.body.trippeeGear || []
   const group_gear_requests = req.body.gearRequests || []
-  db.updateTrip(newTrip, trip_gear, group_gear_requests)
+  db.updateTrip(newTrip, required_trip_gear, group_gear_requests)
   return res.json(db.getTripById(trip.id))
 }
 

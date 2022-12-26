@@ -744,7 +744,7 @@ function getTripIndividualGear (tripId) {
   return db
     .prepare(`
       SELECT id, trip, name, size_type, quantity
-      FROM trip_gear
+      FROM required_trip_gear
       LEFT JOIN (
         SELECT gear as gearId, count(user) as quantity
         FROM member_gear_requests
@@ -918,10 +918,10 @@ export function getTripMember (tripId, userId) {
 
 export function getMemberGearRequests (tripId, userId) {
   return db.prepare(`
-    SELECT trip_gear.id, trip_gear.name
+    SELECT required_trip_gear.id, required_trip_gear.name
     FROM member_gear_requests
-    LEFT JOIN trip_gear ON trip_gear.id = member_gear_requests.gear
-    WHERE trip_gear.trip = ? AND user = ?`
+    LEFT JOIN required_trip_gear ON required_trip_gear.id = member_gear_requests.gear
+    WHERE required_trip_gear.trip = ? AND user = ?`
   ).all(tripId, userId)
     .map(request => ({ gearId: request.id, name: request.name }))
 }
@@ -1007,7 +1007,7 @@ export function getTripByVehicleRequest (vehicleRequestId) {
   return getTripById(trip)
 }
 
-export function insertTrip (trip, leaders, trip_gear, group_gear_requests) {
+export function insertTrip (trip, leaders, required_trip_gear, group_gear_requests) {
   const info = db.prepare(`
   INSERT INTO trips (title, private, start_time, end_time, owner, description, club, cost,
     experience_needed, location, pickup, dropoff, coleader_can_edit, pcard)
@@ -1017,12 +1017,11 @@ export function insertTrip (trip, leaders, trip_gear, group_gear_requests) {
   const id = info.lastInsertRowid
 
   leaders.forEach(leaderId => {
-    db.prepare('INSERT INTO trip_members (trip, user, leader) VALUES (?, ?, ?)')
-      .run(id, leaderId, 1)
+    db.prepare('INSERT INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)')
+      .run(id, leaderId, 1, 0)
   })
 
-  trip_gear.forEach(gear => insertTripGear(id, gear.name, gear.sizeType))
-
+  required_trip_gear.forEach(gear => insertTripGear(id, gear.name, gear.sizeType))
   group_gear_requests.forEach(request => {
     db.prepare('INSERT INTO group_gear_requests (trip, name, quantity) VALUES (?, ?, ?)')
       .run(id, request.name, request.quantity)
@@ -1031,7 +1030,7 @@ export function insertTrip (trip, leaders, trip_gear, group_gear_requests) {
   return id
 }
 
-export function updateTrip (trip, trip_gear, group_gear_requests) {
+export function updateTrip (trip, required_trip_gear, group_gear_requests) {
   if (!trip.id) throw new Error(`Error, invalid trip ${trip.id} provided`)
   const info = db.prepare(`
   UPDATE trips
@@ -1080,21 +1079,21 @@ function replaceGroupGearRequests (tripId, group_gear_requests) {
 }
 
 function insertTripGear (trip, name, sizeType) {
-  return db.prepare('INSERT INTO trip_gear (trip, name, size_type) VALUES (?, ?, ?)')
+  return db.prepare('INSERT INTO required_trip_gear (trip, name, size_type) VALUES (?, ?, ?)')
     .run(trip, name, sizeType)
 }
 
 // This one is a little more complicated because we dont want to delete linked gear requests
-function replaceTripGear (tripId, trip_gear) {
-  const existingGearIds = db.prepare('SELECT id FROM trip_gear WHERE trip = ?')
+function replaceTripGear (tripId, required_trip_gear) {
+  const existingGearIds = db.prepare('SELECT id FROM required_trip_gear WHERE trip = ?')
     .all(tripId)
     .map(gear => gear.ids)
-  // const newGear = trip_gear.filter(tripGear => trip.)
+  // const newGear = required_trip_gear.filter(requiredTripGear => trip.)
 }
 
-export function updateTripGear (tripId, trip_gear) {
-  // db.prepare('DELETE FROM trip_gear WHERE trip = ?').run(tripId)
-  return trip_gear.forEach(gear => insertTripGear(tripId, gear.user, gear.sizeType))
+export function updateTripGear (tripId, required_trip_gear) {
+  // db.prepare('DELETE FROM required_trip_gear WHERE trip = ?').run(tripId)
+  return required_trip_gear.forEach(gear => insertTripGear(tripId, gear.user, gear.sizeType))
 }
 
 export function createVehicleRequestForTrip (vehicleRequest, requestedVehicles) {

@@ -141,7 +141,7 @@ const tripFields = [
 ]
 console.log(getInsertStatementFromRecords(trips, tripFields, 'trips'))
 
-const tripGear = trips.flatMap(trip => {
+const requiredTripGear = trips.flatMap(trip => {
   return trip.trippeeGear.map(gear => {
     return {
       _id: gear._id,
@@ -151,7 +151,7 @@ const tripGear = trips.flatMap(trip => {
     }
   })
 })
-console.log(getInsertStatementFromRecords(tripGear, ['_id', 'name', 'trip', 'size_type'], 'trip_gear'))
+console.log(getInsertStatementFromRecords(requiredTripGear, ['_id', 'name', 'trip', 'size_type'], 'required_trip_gear'))
 
 const group_gear_requests = trips.flatMap(trip => {
   return trip.OPOGearRequests.map(gear => {
