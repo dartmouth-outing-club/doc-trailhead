@@ -177,13 +177,14 @@ function getClubName (id) {
 function getTripParticipants (tripId, ownerId, showUserData) {
   const users = db.prepare(`
     SELECT users.id, users.email, users.name, pending, leader, attended, height, shoe_size,
-      clothe_size, allergies_dietary_restrictions, medical_conditions
+      clothe_size, allergies_dietary_restrictions, medical_conditions, pronoun, dash_number
     FROM trip_members
     LEFT JOIN users ON trip_members.user = users.id
     WHERE trip_members.trip = ?
   `)
     .all(tripId)
     .map(user => {
+      const { driver_cert, trailer_cert } = getCertsForUser(user.id)
       const frontendUser = {
         id: user.id,
         _id: user.id.toString(),
@@ -191,11 +192,17 @@ function getTripParticipants (tripId, ownerId, showUserData) {
         name: user.name,
         height: user.height,
         shoe_size: user.shoe_size,
-        clothe_size: user.clothe_size
+        clothe_size: user.clothe_size,
+        leader_for: getLeaderFor(user.id),
+        driver_cert,
+        trailer_cert,
+        completedProfile: true
       }
       if (showUserData) {
         frontendUser.medical_conditions = user.medical_conditions
-        frontendUser.medical_conditions = user.allergies_dietary_restrictions
+        frontendUser.allergies_dietary_restrictions = user.allergies_dietary_restrictions
+        frontendUser.pronoun = user.pronoun
+        frontendUser.dash_number = user.dash_number
       }
       return {
         attended: user.attended,
@@ -206,22 +213,25 @@ function getTripParticipants (tripId, ownerId, showUserData) {
       }
     })
 
-  const owner = db.prepare('SELECT name, email FROM users WHERE id = ?').get(ownerId)
+  const owner = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(ownerId)
   const members = users.filter(user => user.pending === 0)
   const pending = users.filter(user => user.pending === 1)
   const leaders = users.filter(user => user.leader === 1).map(item => item.user)
   return { owner, leaders, members, pending }
 }
 
-function enhanceUser (user) {
-  if (!user) return user
-
-  const leader_for = db.prepare(`
+function getLeaderFor (userId) {
+  return db.prepare(`
   SELECT clubs.id, name, active
   FROM club_leaders
   LEFT JOIN clubs ON club = clubs.id
   WHERE user = ? AND is_approved = true
-  `).all(user.id)
+  `).all(userId)
+    .map(formatClub)
+}
+
+function enhanceUser (user) {
+  if (!user) return user
 
   const requested_clubs = db.prepare(`
   SELECT clubs.id, name
@@ -230,17 +240,22 @@ function enhanceUser (user) {
   WHERE user = ? AND is_approved = false
   `).all(user.id)
 
-  const requested_certs = getRequestedCertsForUser(user.id)
-
+  const requested_certs = getUsersPendingCertApprovals()
+    .find(pendingUser => pendingUser.id === user.id) || []
+  const leader_for = getLeaderFor(user.id)
   if (user.is_opo) {
     user.role = 'OPO'
   } else {
     user.role = leader_for.length > 0 ? 'Leader' : 'Trippee'
   }
 
+  const { driver_cert, trailer_cert } = getCertsForUser(user.id)
+
   user._id = user.id.toString()
   user.casID = user.cas_id
-  user.leader_for = leader_for.map(formatClub)
+  user.leader_for = leader_for
+  user.driver_cert = driver_cert
+  user.trailer_cert = trailer_cert
   user.requested_clubs = requested_clubs
   user.requested_certs = requested_certs
   user.has_pending_leader_change = requested_clubs.length !== 0
@@ -306,24 +321,6 @@ export function getLeadersPendingApproval () {
   })
 }
 
-function getRequestedCertsForUser (userId) {
-  const statement = db.prepare(`
-  SELECT id, user, name, '[' || group_concat(cert, ',') || ']' as certs
-  FROM user_certs
-  JOIN users on users.id = user
-  WHERE
-    is_approved = FALSE
-    ${userId ? 'AND user = ?' : ''}
-  GROUP BY user
-  `)
-
-  if (userId) {
-    return statement.all(userId)
-  } else {
-    return statement.all()
-  }
-}
-
 export function requestDriverCert (userId, cert) {
   if (cert !== 'VAN' || cert !== 'MICROBUS') throw new Error(`Invalid cert ${cert} provided`)
   db.prepare(`
@@ -341,8 +338,35 @@ export function requestTrailerCert (userId) {
   `).run(userId)
 }
 
-export function getUsersPendingCerts () {
-  const users = getRequestedCertsForUser()
+function getCertsForUser (userId) {
+  const certs = db.prepare(`
+  SELECT '[' || group_concat(cert, ',') || ']' as certs
+  FROM user_certs
+  JOIN users on users.id = user
+  WHERE is_approved = TRUE AND users.id = ?
+  GROUP BY user
+  `).get(userId)?.certs || '[]'
+
+  let driver_cert
+  if (certs.includes('MICROBUS')) {
+    driver_cert = 'MICROBUS'
+  } else if (certs.includes('VAN')) {
+    driver_cert = 'VAN'
+  } else {
+    driver_cert = null
+  }
+  const trailer_cert = certs.includes('TRAILER') ? 'true' : false
+  return { driver_cert, trailer_cert }
+}
+
+export function getUsersPendingCertApprovals () {
+  const users = db.prepare(`
+  SELECT id, user, name, '[' || group_concat(cert, ',') || ']' as certs
+  FROM user_certs
+  JOIN users on users.id = user
+  WHERE is_approved = FALSE
+  GROUP BY user
+  `).all()
   return users.map(user => {
     const { id, name, certs } = user
     let driver_cert

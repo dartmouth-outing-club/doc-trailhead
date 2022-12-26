@@ -44,46 +44,46 @@ router.route('/leaderapprovals')
   .put(requireAuth, users.roleAuthorization(['OPO']), users.handlePutLeaderApprovals)
 
 router.route('/certapprovals')
-  .get(requireAuth, users.roleAuthorization(['OPO']), users.handleGetCertApprovals)
-  .put(requireAuth, users.roleAuthorization(['OPO']), users.handlePutCertApprovals)
+  .get(requireAuth, users.roleAuthorization(['OPO']), safeCall(users.handleGetCertApprovals))
+  .put(requireAuth, users.roleAuthorization(['OPO']), safeCall(users.handlePutCertApprovals))
 
 router.route('/opotrips')
-  .get(requireAuth, users.roleAuthorization(['OPO']), trips.handleGetOpoTrips)
+  .get(requireAuth, users.roleAuthorization(['OPO']), safeCall(trips.handleGetOpoTrips))
 
 router.route('/gearrequest/:tripID')
-  .get(requireAuth, users.roleAuthorization(['OPO']), trips.getTrip)
-  .put(requireAuth, users.roleAuthorization(['OPO']), trips.respondToGearRequest)
+  .get(requireAuth, users.roleAuthorization(['OPO']), safeCall(trips.getTrip))
+  .put(requireAuth, users.roleAuthorization(['OPO']), safeCall(trips.respondToGearRequest))
 
 router.route('/pcardrequest/:tripID')
-  .put(requireAuth, users.roleAuthorization(['OPO']), trips.respondToPCardRequest)
+  .put(requireAuth, users.roleAuthorization(['OPO']), safeCall(trips.respondToPCardRequest))
 
 router.route('/trippeegearrequest/:tripID')
-  .get(requireAuth, users.roleAuthorization(['OPO']), trips.getTrip)
-  .put(requireAuth, users.roleAuthorization(['OPO']), trips.respondToTrippeeGearRequest)
+  .get(requireAuth, users.roleAuthorization(['OPO']), safeCall(trips.getTrip))
+  .put(requireAuth, users.roleAuthorization(['OPO']), safeCall(trips.respondToTrippeeGearRequest))
 
 router.route('/vehicles')
-  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), vehicles.handleGetVehicles)
-  .post(requireAuth, users.roleAuthorization(['OPO']), vehicles.handlePostVehicles)
+  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), safeCall(vehicles.handleGetVehicles))
+  .post(requireAuth, users.roleAuthorization(['OPO']), safeCall(vehicles.handlePostVehicles))
 
 router.route('/vehicles/:id')
-  .delete(requireAuth, users.roleAuthorization(['OPO']), vehicles.handleDeleteVehicle)
+  .delete(requireAuth, users.roleAuthorization(['OPO']), safeCall(vehicles.handleDeleteVehicle))
 
 router.route('/assignments')
-  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), assignments.handleGetAssignmentsForCalendar)
+  .get(requireAuth, users.roleAuthorization(['Leader', 'OPO']), safeCall(assignments.handleGetAssignmentsForCalendar))
 
 router.route('/vehicle-request/:id')
-  .get(requireAuth, vehicleRequests.handleGetVehicleRequest)
-  .put(requireAuth, vehicleRequests.handlePutVehicleRequest)
-  .delete(requireAuth, vehicleRequests.handleDeleteVehicleRequest)
+  .get(requireAuth, safeCall(vehicleRequests.handleGetVehicleRequest))
+  .put(requireAuth, safeCall(vehicleRequests.handlePutVehicleRequest))
+  .delete(requireAuth, safeCall(vehicleRequests.handleDeleteVehicleRequest))
 
 router.route('/vehicleRequests')
-  .post(requireAuth, vehicleRequests.handlePostVehicleRequests)
-  .get(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.handleGetVehicleRequests)
+  .post(requireAuth, safeCall(vehicleRequests.handlePostVehicleRequests))
+  .get(requireAuth, users.roleAuthorization(['OPO']), safeCall(vehicleRequests.handleGetVehicleRequests))
 
 router.route('/opoVehicleRequest/:id')
-  .post(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.handleOpoPost)
-  .delete(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.handleOpoDelete)
-  .put(requireAuth, users.roleAuthorization(['OPO']), vehicleRequests.handleOpoPut)
+  .post(requireAuth, users.roleAuthorization(['OPO']), safeCall(vehicleRequests.handleOpoPost))
+  .delete(requireAuth, users.roleAuthorization(['OPO']), safeCall(vehicleRequests.handleOpoDelete))
+  .put(requireAuth, users.roleAuthorization(['OPO']), safeCall(vehicleRequests.handleOpoPut))
 
 router.route('/debug')
   .post((req) => {
@@ -110,7 +110,7 @@ router.route('/trips/:tripID')
   .put(requireAuth, trips.updateTrip)
   .delete(requireAuth, trips.deleteTrip)
 
-router.post('/trips/apply/:tripID', requireAuth, trips.apply)
+router.post('/trips/apply/:tripID', requireAuth, safeCall(trips.apply))
 
 router.post('/trips/reject/:tripID', requireAuth, (req, res) => {
   trips.reject(req.params.tripID, req.body.rejectedUserID).then(() => { return res.json() }).catch((error) => { console.log(error); res.sendStatus(500) })
@@ -129,12 +129,12 @@ router.post('/trips/leave/:tripID', requireAuth, async (req, res) => {
   res.status(200).send()
 })
 
-router.put('/trips/set-attendence/:tripID', requireAuth, trips.setMemberAttendance)
-router.put('/trips/toggle-left/:tripID', requireAuth, trips.toggleTripLeftStatus)
-router.put('/trips/toggle-returned/:tripID', requireAuth, trips.toggleTripReturnedStatus)
-router.put('/trips/toggle-leadership/:tripID', requireAuth, trips.toggleTripLeadership)
+router.put('/trips/set-attendence/:tripID', requireAuth, safeCall(trips.setMemberAttendance))
+router.put('/trips/toggle-left/:tripID', requireAuth, safeCall(trips.toggleTripLeftStatus))
+router.put('/trips/toggle-returned/:tripID', requireAuth, safeCall(trips.toggleTripReturnedStatus))
+router.put('/trips/toggle-leadership/:tripID', requireAuth, safeCall(trips.toggleTripLeadership))
 
-router.put('/trips/editusergear/:tripID', requireAuth, trips.editUserGear)
+router.put('/trips/editusergear/:tripID', requireAuth, safeCall(trips.editUserGear))
 
 function safeCall (func) {
   return async (req, res) => {
@@ -143,7 +143,7 @@ function safeCall (func) {
     } catch (err) {
       console.error(`Error calling function ${func.name}`)
       console.error(err)
-      return res.sendStatus(500)
+      return res.status(500).send('Error completing request')
     }
   }
 }

@@ -111,8 +111,7 @@ export async function handlePutLeaderApprovals (req, res) {
 }
 
 export async function handleGetCertApprovals (_req, res) {
-  const usersWithPendingCerts = db.getUsersPendingCerts()
-  console.log(usersWithPendingCerts)
+  const usersWithPendingCerts = db.getUsersPendingCertApprovals()
   return res.json(usersWithPendingCerts)
 }
 

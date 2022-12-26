@@ -367,16 +367,17 @@ export async function toggleTripLeadership (req, res) {
   const trip = db.getTripById(tripId)
   const user = db.getUserById(userId)
   const tripMember = db.getTripMember(tripId, userId)
+  if (tripMember.is_owner) throw new Error('You cannot remove the owner of the trip from leadership')
 
-  if (tripMember.leader) {
-    mailer.sendCoLeaderRemovalNotice(trip, user)
-    db.promoteTripMemberToLeader(tripId, userId)
-  } else {
-    mailer.sendCoLeaderConfirmation(trip, user)
+  if (tripMember.leader === 1) {
     db.demoteTripLeaderToMember(tripId, userId)
+    mailer.sendCoLeaderRemovalNotice(trip, user)
+  } else {
+    db.promoteTripMemberToLeader(tripId, userId)
+    mailer.sendCoLeaderConfirmation(trip, user)
   }
 
-  const newTrip = db.getFullTripView(tripId, req.params.user)
+  const newTrip = db.getFullTripView(tripId, user)
   return res.json(newTrip)
 }
 
