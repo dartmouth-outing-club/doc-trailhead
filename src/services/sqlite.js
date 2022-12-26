@@ -55,7 +55,7 @@ function convertSqlDate (unixDate) {
 function getDateField (unixDate) {
   if (!unixDate) return undefined
   const date = new Date(unixDate)
-  return `${date.getFullYear()}-${date.getMonth()}-${date.getDay()}`
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
 }
 
 function getTimeField (unixDate) {
@@ -1167,7 +1167,7 @@ export function getCalendarAssignments () {
       ...assignment,
       requester,
       request: vehiclerequest,
-      assigned_vehicle: formatVehicle(vehicle)
+      vehicle: formatVehicle(vehicle)
     }
   }).map(formatAssignment)
 
