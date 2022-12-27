@@ -4,9 +4,8 @@ import * as mailer from '../services/mailer.js'
 import * as Users from '../controllers/user-controller.js'
 import * as VehicleRequests from './vehicle-request-controller.js'
 
-async function sendLeadersEmail (tripID, subject, message) {
-  const trip = db.getTripById(tripID)
-  const leaderEmails = db.getUserEmails(trip.leaders)
+async function sendLeadersEmail (tripId, subject, message) {
+  const leaderEmails = db.getTripLeaderEmails(tripId)
   return mailer.send({ address: leaderEmails, subject, message })
 }
 
@@ -96,12 +95,13 @@ export async function createTrip (creator, data) {
     if (data.mileage) vehicleRequest.mileage = data.mileage
 
     const requestedVehicles = data.vehicles.map((vehicle) => ({
-      type: vehicle.type,
-      trailer_needed: vehicle.trailerNeeded,
-      pass_needed: vehicle.passNeeded,
+      type: vehicle.vehicleType,
+      details: vehicle.vehicleDetails,
+      trailer_needed: vehicle.trailerNeeded ? 1 : 0,
+      pass_needed: vehicle.passNeeded ? 1 : 0,
       recurring_vehicle: vehicle.recurringVehicle,
-      pickup_time: constants.createDateObject(vehicle.pickupDate, vehicle.pickupTime),
-      return_time: constants.createDateObject(vehicle.returnDate, vehicle.returnTime)
+      pickup_time: constants.createIntegerDateObject(vehicle.pickupDate, vehicle.pickupTime),
+      return_time: constants.createIntegerDateObject(vehicle.returnDate, vehicle.returnTime)
     }))
 
     try {
@@ -468,25 +468,28 @@ export async function toggleTripReturnedStatus (req, res) {
  */
 export async function respondToGearRequest (req, res) {
   const tripId = req.params.tripID
-  if (req.body.status === 'approved') {
-    db.approveTripGroupGear(tripId)
-  } else {
-    db.denyTripGroupGear(tripId)
-  }
 
   let message
   switch (req.body.status) {
     case 'approved':
+      db.approveTripGroupGear(tripId)
       message = 'got approved'
       break
     case 'denied':
+      db.denyTripGroupGear(tripId)
       message = 'got denied'
       break
+    case 'pending':
+      db.resetTripGroupGear(tripId)
+      message = 'are marked pending'
+      break
+    default:
+      return res.sendStatus(400)
   }
 
   const trip = db.getFullTripView(tripId, req.params.user)
-  const leaderEmails = db.getUserEmails(trip.leaders)
-  await mailer.sendGroupGearStatusUpdate(trip, leaderEmails, message)
+  const leaderEmails = db.getTripLeaderEmails(tripId)
+  await mailer.sendGroupGearStatusUpdate(trip.trip, leaderEmails, message)
   return res.json(trip)
 }
 
@@ -498,27 +501,28 @@ export async function respondToGearRequest (req, res) {
  */
 export async function respondToTrippeeGearRequest (req, res) {
   const tripId = req.params.tripID
-  if (req.body.status === 'approved') {
-    db.approveTripIndividualGear(tripId)
-  } else {
-    db.denyTripIndividualGear(tripId)
-  }
 
   let message
   switch (req.body.status) {
     case 'approved':
+      db.approveTripIndividualGear(tripId)
       message = 'got approved'
       break
     case 'denied':
+      db.denyTripIndividualGear(tripId)
       message = 'got denied'
       break
-    default:
+    case 'pending':
+      db.resetTripIndividualGear(tripId)
+      message = 'are marked pending'
       break
+    default:
+      return res.sendStatus(400)
   }
 
   const trip = db.getFullTripView(tripId, req.params.user)
-  const leaderEmails = db.getUserEmails(trip.leaders)
-  await mailer.sendIndividualGearStatusUpdate(trip, leaderEmails, message)
+  const leaderEmails = db.getTripLeaderEmails(tripId)
+  await mailer.sendIndividualGearStatusUpdate(trip.trip, leaderEmails, message)
   return res.json(trip)
 }
 
@@ -534,7 +538,7 @@ export async function respondToPCardRequest (req, res) {
   db.setTripPcardStatus(tripId, pcardStatus, pcardAssigned)
 
   const trip = db.getFullTripView(tripId, req.params.user)
-  const leaderEmails = db.getUserEmails(trip.leaders)
-  mailer.sendPCardStatusUpdate(trip, leaderEmails)
+  const leaderEmails = db.getTripLeaderEmails(tripId)
+  mailer.sendPCardStatusUpdate(trip.trip, leaderEmails)
   return res.json(trip)
 }

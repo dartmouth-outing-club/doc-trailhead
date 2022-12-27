@@ -772,12 +772,17 @@ export function getTripById (tripId, showUserData = false) {
 
   // Get the "pending" or "N/A" status depending on whether there are gear requests
   const num_trippee_gear_requests = db.prepare(`
-    SELECT iif(count(*) > 0, 'pending', 'N/A') as status
+    SELECT iif(member_gear_approved IS NULL,
+               iif(count(*) > 0, 'pending', 'N/A'),
+               iif(member_gear_approved = 1, 'approved', 'denied')) as status
     FROM member_gear_requests
+    LEFT JOIN trips ON trips.id = trip
     WHERE trip = ?
   `).get(tripId)
   const num_group_gear_requests = db.prepare(`
-    SELECT iif(count IS NULL, 'N/A', 'pending') as status
+    SELECT iif(group_gear_approved IS NULL,
+               iif(count IS NULL, 'N/A', 'pending'),
+               iif(group_gear_approved = 1, 'approved', 'denied')) as status
     FROM trips
     LEFT JOIN (
       SELECT trip, count(*) as count
@@ -787,8 +792,8 @@ export function getTripById (tripId, showUserData = false) {
     `).get(tripId)
 
   // If the status are null, then use the "pending" or "N/A" status
-  const gearStatus = trip.group_gear_request_approved || num_group_gear_requests.status
-  const trippeeGearStatus = trip.individual_gear_request_approved || num_trippee_gear_requests.status
+  const gearStatus = num_group_gear_requests.status
+  const trippeeGearStatus = num_trippee_gear_requests.status
   const vehicleStatus = getVehicleRequestByTripId(trip.id)?.status || 'N/A'
 
   const enhancedTrip = {
@@ -869,12 +874,12 @@ export const approveTripGroupGear = (tripId) => setTripGroupGearApproval(tripId,
 export const denyTripGroupGear = (tripId) => setTripGroupGearApproval(tripId, 0)
 export const resetTripGroupGear = (tripId) => setTripGroupGearApproval(tripId, null)
 
-function setTripIndividualGearApproval (tripId, approved) {
-  return db.prepare('UPDATE trips SET individual_gear_approved = ? WHERE id = ?').run(approved, tripId)
+function setMemberGearApproval (tripId, approved) {
+  return db.prepare('UPDATE trips SET member_gear_approved = ? WHERE id = ?').run(approved, tripId)
 }
-export const approveTripIndividualGear = (tripId) => setTripIndividualGearApproval(tripId, 1)
-export const denyTripIndividualGear = (tripId) => setTripIndividualGearApproval(tripId, 0)
-export const resetTripIndividualGear = (tripId) => setTripIndividualGearApproval(tripId, null)
+export const approveTripIndividualGear = (tripId) => setMemberGearApproval(tripId, 1)
+export const denyTripIndividualGear = (tripId) => setMemberGearApproval(tripId, 0)
+export const resetTripIndividualGear = (tripId) => setMemberGearApproval(tripId, null)
 
 export function setTripIndividualGearStatus (tripId, status) {
   return db.prepare('UPDATE trips SET member_gear_approved = ? WHERE id = ?').run(status, tripId)
@@ -984,6 +989,8 @@ export function updateTripMemberGearRequest (tripId, userId, trippeeGear) {
 export function getFullTripView (tripId, forUser) {
   const showUserData = forUser?.role === 'OPO' || forUser?.role === 'Leader'
   const trip = getTripById(tripId, showUserData)
+  if (!trip) return undefined
+
   // This will not work until the user has the correct ID
   let userTripStatus = 'NONE'
   let isLeaderOnTrip = false
@@ -1110,7 +1117,7 @@ export function createVehicleRequestForTrip (vehicleRequest, requestedVehicles) 
 
   requestedVehicles.forEach(vehicle => {
     vehicle.vehiclerequest = requestId
-    vehicle.details = vehicle.details || null
+    vehicle.details = vehicle.vehicleDetails || null
     db.prepare(`
     INSERT INTO requested_vehicles
       (vehiclerequest, type, details, trailer_needed, pass_needed, pickup_time, return_time)
@@ -1187,6 +1194,7 @@ export function getUserEmails (ids) {
 }
 
 export function getTripLeaderEmails (tripId) {
+  console.log(tripId)
   return db.prepare(`
   SELECT email
   FROM users

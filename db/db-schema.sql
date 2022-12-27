@@ -3,8 +3,8 @@ BEGIN;
 CREATE TABLE assignments (
   id INTEGER PRIMARY KEY,
   _id TEXT,
-  vehiclerequest INTEGER REFERENCES vehiclerequests ON UPDATE CASCADE ON DELETE SET NULL,
-  requester INTEGER REFERENCES users ON UPDATE CASCADE ON DELETE RESTRICT,
+  vehiclerequest INTEGER REFERENCES vehiclerequests ON DELETE CASCADE ON UPDATE CASCADE,
+  requester INTEGER REFERENCES users ON DELETE RESTRICT ON UPDATE CASCADE,
   pickup_time INTEGER,
   return_time INTEGER,
   vehicle INTEGER REFERENCES vehicles ON UPDATE CASCADE,
@@ -103,13 +103,13 @@ CREATE TABLE club_leaders (
 
 CREATE TABLE requested_vehicles (
   vehiclerequest INTEGER REFERENCES vehiclerequests ON DELETE CASCADE ON UPDATE CASCADE,
-  type TEXT,
+  type TEXT NOT NULL,
   details TEXT,
   pickup_time INTEGER,
   return_time INTEGER,
-  trailer_needed INTEGER DEFAULT FALSE,
-  pass_needed INTEGER DEFAULT FALSE,
-  recurring_vehicle INTEGER DEFAULT FALSE
+  trailer_needed INTEGER NOT NULL DEFAULT FALSE,
+  pass_needed INTEGER NOT NULL DEFAULT FALSE,
+  recurring_vehicle INTEGER NOT NULL DEFAULT FALSE
 ) STRICT;
 
 CREATE TABLE trip_members (
@@ -132,7 +132,7 @@ CREATE TABLE required_trip_gear (
 CREATE TABLE member_gear_requests (
   trip INTEGER NOT NULL,
   user INTEGER NOT NULL,
-  gear INTEGER NOT NULL REFERENCES required_trip_gear ON DELETE RESTRICT ON UPDATE CASCADE,
+  gear INTEGER NOT NULL REFERENCES required_trip_gear ON DELETE CASCADE ON UPDATE CASCADE,
   PRIMARY KEY (user, gear),
   FOREIGN KEY (trip, user) REFERENCES trip_members(trip, user) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
