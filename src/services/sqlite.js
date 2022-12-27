@@ -7,10 +7,15 @@
  * data structure.
  *
  * I've opted to fix these problems on at a time: first by writing a backend that stores the data in
- * a simple structure and then makes it more complicated (that's this file) when it's fetched by the
- * frontend, followed writing a frontend that expects data in a simpler format (HTML) and writing
- * simple backend APIs for the SQL table that surface that data. Such are the delights and perils of
- * working with legacy code (i.e. basically all code).
+ * a simple structure (the database schema). When the frontend makes an API call, the backend mimics
+ * the complex data structure of the frontend by deeply nesting all its data. Next I'll write a
+ * frontend that expects data in a simpler format (HTML) and write simple backend APIs for the SQL
+ * table that surface that data. Such are the delights and perils of working with legacy code (i.e.
+ * basically all code).
+ *
+ * Anyway, if you're here to fix something, don't be intimidated. Just look upstream at the router
+ * to figure out which function gets called as a result of your API call, and then find that
+ * function here. It's usually one or two SQL statements followed by a lot of renaming.
  */
 import fs from 'node:fs'
 import Database from 'better-sqlite3'
@@ -1021,7 +1026,7 @@ export function insertTrip (trip, leaders, required_trip_gear, group_gear_reques
       .run(id, leaderId, 1, 0)
   })
 
-  required_trip_gear.forEach(gear => insertTripGear(id, gear.name, gear.sizeType))
+  required_trip_gear.forEach(gear => insertRequiredTripGear(id, gear.name, gear.sizeType))
   group_gear_requests.forEach(request => {
     db.prepare('INSERT INTO group_gear_requests (trip, name, quantity) VALUES (?, ?, ?)')
       .run(id, request.name, request.quantity)
@@ -1051,7 +1056,19 @@ export function updateTrip (trip, required_trip_gear, group_gear_requests) {
   WHERE id = @id
   `).run(trip)
 
-  replaceGroupGearRequests(trip.id, group_gear_requests)
+  const gearIdList = db.prepare('SELECT id FROM required_trip_gear WHERE trip = ?').all(trip.id)
+  const toAdd = required_trip_gear.filter(gear => !gear.id)
+  // We do this to preserve the IDs so that linked gear requests won't be deleted
+  const toDelete = gearIdList.filter(gear => {
+    return !required_trip_gear.some(item => item.id === gear.id)
+  })
+
+  toAdd.forEach(gear => insertRequiredTripGear(trip.id, gear.name, gear.sizeType))
+  toDelete.forEach(gear => deleteRequiredTripGearFromList(trip.id, gear.id))
+
+  // Replace group gear requests
+  db.prepare('DELETE FROM group_gear_requests WHERE trip = ?').run(trip.id)
+  group_gear_requests.forEach(request => insertGroupGearRequest(trip.id, request.name, request.quantity))
 
   return info.changes
 }
@@ -1073,27 +1090,14 @@ function insertGroupGearRequest (tripId, name, quantity) {
     .run(tripId, name, quantity)
 }
 
-function replaceGroupGearRequests (tripId, group_gear_requests) {
-  db.prepare('DELETE FROM group_gear_requests WHERE trip = ?').run(tripId)
-  group_gear_requests.forEach(request => insertGroupGearRequest(tripId, request.name, request.quantity))
-}
-
-function insertTripGear (trip, name, sizeType) {
+function insertRequiredTripGear (trip, name, sizeType) {
   return db.prepare('INSERT INTO required_trip_gear (trip, name, size_type) VALUES (?, ?, ?)')
     .run(trip, name, sizeType)
 }
 
-// This one is a little more complicated because we dont want to delete linked gear requests
-function replaceTripGear (tripId, required_trip_gear) {
-  const existingGearIds = db.prepare('SELECT id FROM required_trip_gear WHERE trip = ?')
-    .all(tripId)
-    .map(gear => gear.ids)
-  // const newGear = required_trip_gear.filter(requiredTripGear => trip.)
-}
-
-export function updateTripGear (tripId, required_trip_gear) {
-  // db.prepare('DELETE FROM required_trip_gear WHERE trip = ?').run(tripId)
-  return required_trip_gear.forEach(gear => insertTripGear(tripId, gear.user, gear.sizeType))
+function deleteRequiredTripGearFromList (tripId, gearId) {
+  return db.prepare('DELETE FROM required_trip_gear WHERE trip = ? AND id = ?')
+    .run(tripId, gearId)
 }
 
 export function createVehicleRequestForTrip (vehicleRequest, requestedVehicles) {
@@ -1106,6 +1110,7 @@ export function createVehicleRequestForTrip (vehicleRequest, requestedVehicles) 
 
   requestedVehicles.forEach(vehicle => {
     vehicle.vehiclerequest = requestId
+    vehicle.details = vehicle.details || null
     db.prepare(`
     INSERT INTO requested_vehicles
       (vehiclerequest, type, details, trailer_needed, pass_needed, pickup_time, return_time)

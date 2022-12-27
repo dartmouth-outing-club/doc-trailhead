@@ -86,16 +86,16 @@ export async function createTrip (creator, data) {
 
   // If vehciles are specified, create a new Vehicle Request
   if (data.vehicles.length > 0) {
-    const { mileage, description, vehicles } = data
     const vehicleRequest = {
       requester: creator.id,
-      request_details: description,
-      mileage,
+      request_details: data.description,
       trip: tripId,
+      mileage: null,
       request_type: 'TRIP'
     }
+    if (data.mileage) vehicleRequest.mileage = data.mileage
 
-    const requestedVehicles = vehicles.map((vehicle) => ({
+    const requestedVehicles = data.vehicles.map((vehicle) => ({
       type: vehicle.type,
       trailer_needed: vehicle.trailerNeeded,
       pass_needed: vehicle.passNeeded,
@@ -110,7 +110,8 @@ export async function createTrip (creator, data) {
 
       return db.getTripById(tripId)
     } catch (error) {
-      throw new Error(`${'Trip successfully created, but error creating associated vehicle request for trip:'} ${error.toString()}`)
+      console.error('Trip successfully created, but error creating associated vehicle request for trip', error)
+      return savedTrip
     }
   } else {
     return savedTrip

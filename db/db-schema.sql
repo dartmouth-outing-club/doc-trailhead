@@ -9,7 +9,7 @@ CREATE TABLE assignments (
   return_time INTEGER,
   vehicle INTEGER REFERENCES vehicles ON UPDATE CASCADE,
   vehicle_key TEXT,
-  picked_up INTEGER DEFAULT FALSE, -- pickedUp
+  picked_up INTEGER DEFAULT FALSE,
   returned INTEGER DEFAULT FALSE,
   response_index INTEGER DEFAULT 0
 ) STRICT;
@@ -86,11 +86,11 @@ CREATE TABLE vehiclerequests (
   id INTEGER primary key,
   _id TEXT,
   requester INTEGER NOT NULL REFERENCES users ON DELETE RESTRICT ON UPDATE CASCADE,
-  request_details TEXT, -- requestDetails
+  request_details TEXT,
   mileage INTEGER,
-  num_participants INTEGER, -- noOfPeople
-  trip INTEGER REFERENCES trips ON DELETE RESTRICT ON UPDATE CASCADE, -- associatedTrip
-  request_type TEXT, -- requestType { enum: ['TRIP', 'SOLO'] }
+  num_participants INTEGER,
+  trip INTEGER REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
+  request_type TEXT,
   is_approved INTEGER
 ) STRICT;
 
@@ -103,13 +103,13 @@ CREATE TABLE club_leaders (
 
 CREATE TABLE requested_vehicles (
   vehiclerequest INTEGER REFERENCES vehiclerequests ON DELETE CASCADE ON UPDATE CASCADE,
-  type TEXT, -- vehicleType, enum: ['Van', 'Microbus', 'Truck', 'PersonalVehicle']
-  details TEXT, -- vehicleDetails
-  pickup_time INTEGER, -- pickupDateAndTime
-  return_time INTEGER, -- returnDateAndTime
-  trailer_needed INTEGER DEFAULT FALSE, -- trailerNeeded
-  pass_needed INTEGER DEFAULT FALSE, -- passNeeded
-  recurring_vehicle INTEGER DEFAULT FALSE -- recurringVehicle
+  type TEXT,
+  details TEXT,
+  pickup_time INTEGER,
+  return_time INTEGER,
+  trailer_needed INTEGER DEFAULT FALSE,
+  pass_needed INTEGER DEFAULT FALSE,
+  recurring_vehicle INTEGER DEFAULT FALSE
 ) STRICT;
 
 CREATE TABLE trip_members (
