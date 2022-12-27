@@ -108,8 +108,7 @@ CREATE TABLE requested_vehicles (
   pickup_time INTEGER,
   return_time INTEGER,
   trailer_needed INTEGER NOT NULL DEFAULT FALSE,
-  pass_needed INTEGER NOT NULL DEFAULT FALSE,
-  recurring_vehicle INTEGER NOT NULL DEFAULT FALSE
+  pass_needed INTEGER NOT NULL DEFAULT FALSE
 ) STRICT;
 
 CREATE TABLE trip_members (

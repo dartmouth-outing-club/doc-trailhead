@@ -64,8 +64,9 @@ const vehicleRequestFields = ['_id', 'requester', ['requestDetails', 'request_de
   'num_participants', 'trip', ['requestType', 'request_type'], 'is_approved']
 console.log(getInsertStatementFromRecords(vehicleRequests, vehicleRequestFields, 'vehiclerequests'))
 
-const requestedVehicles = vehicleRequests.flatMap(request => (
-  request.requestedVehicles.map(requestedVehicle => {
+const requestedVehicles = vehicleRequests.flatMap(request => {
+  // console.log(request.requested_vehicles)
+  return request.requestedVehicles.map(requestedVehicle => {
     const pickup_time = requestedVehicle.pickupDateAndTime?.$date?.$numberLong
     const return_time = requestedVehicle.returnDateAndTime?.$date?.$numberLong
     return {
@@ -75,7 +76,8 @@ const requestedVehicles = vehicleRequests.flatMap(request => (
       vehiclerequest: request._id.$oid
     }
   })
-))
+})
+
 const requestedVehicleFields = [
   'vehiclerequest',
   ['vehicleType', 'type'],
@@ -83,8 +85,7 @@ const requestedVehicleFields = [
   'pickup_time',
   'return_time',
   ['trailerNeeded', 'trailer_needed'],
-  ['passNeeded', 'pass_needed'],
-  ['recurringVehicle', 'recurring_vehicle']
+  ['passNeeded', 'pass_needed']
 ]
 console.log(getInsertStatementFromRecords(requestedVehicles, requestedVehicleFields, 'requested_vehicles'))
 

@@ -76,8 +76,7 @@ export function updateVehicleRequest (requestObject) {
       pickup_time,
       return_time,
       trailer_needed: vehicle.trailer_needed,
-      pass_needed: vehicle.passNeeded,
-      recurring_vehicle: vehicle.recurring_vehicle
+      pass_needed: vehicle.passNeeded
     }
   })
 

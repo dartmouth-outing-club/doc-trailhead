@@ -99,7 +99,6 @@ export async function createTrip (creator, data) {
       details: vehicle.vehicleDetails,
       trailer_needed: vehicle.trailerNeeded ? 1 : 0,
       pass_needed: vehicle.passNeeded ? 1 : 0,
-      recurring_vehicle: vehicle.recurringVehicle,
       pickup_time: constants.createIntegerDateObject(vehicle.pickupDate, vehicle.pickupTime),
       return_time: constants.createIntegerDateObject(vehicle.returnDate, vehicle.returnTime)
     }))

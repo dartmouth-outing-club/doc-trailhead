@@ -166,8 +166,7 @@ function formatRequestedVehicle (vehicle) {
     pickupDateAndTime: pickup_time,
     returnDateAndTime: return_time,
     trailerNeeded: vehicle.trailer_needed,
-    passNeeded: vehicle.pass_needed,
-    recurringVehicle: vehicle.recurring_vehicle
+    passNeeded: vehicle.pass_needed
   }
 }
 
