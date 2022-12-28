@@ -120,7 +120,8 @@ CREATE TABLE trip_members (
   PRIMARY KEY (trip, user)
 ) STRICT;
 
-CREATE TABLE required_trip_gear (
+
+CREATE TABLE trip_required_gear (
   id INTEGER PRIMARY KEY,
   _id TEXT,
   trip INTEGER REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
@@ -128,10 +129,20 @@ CREATE TABLE required_trip_gear (
   size_type TEXT
 ) STRICT;
 
+CREATE TABLE trip_pcard_requests (
+  trip INTEGER UNIQUE REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
+  num_people INTEGER,
+  snacks INTEGER,
+  breakfast INTEGER,
+  lunch INTEGER,
+  dinner INTEGER,
+  other_costs TEXT DEFAULT '[]'
+);
+
 CREATE TABLE member_gear_requests (
   trip INTEGER NOT NULL,
   user INTEGER NOT NULL,
-  gear INTEGER NOT NULL REFERENCES required_trip_gear ON DELETE CASCADE ON UPDATE CASCADE,
+  gear INTEGER NOT NULL REFERENCES trip_required_gear ON DELETE CASCADE ON UPDATE CASCADE,
   PRIMARY KEY (user, gear),
   FOREIGN KEY (trip, user) REFERENCES trip_members(trip, user) ON DELETE CASCADE ON UPDATE CASCADE
 ) STRICT;
