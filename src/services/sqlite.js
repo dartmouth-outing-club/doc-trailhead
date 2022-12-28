@@ -27,7 +27,14 @@ export function start (name) {
   if (db !== undefined) throw new Error('ERROR: tried to start sqlite db that was already running')
 
   const dbName = name || ':memory:'
-  db = new Database(dbName)
+  try {
+    db = new Database(dbName, { fileMustExist: true })
+  } catch (err) {
+    if (err.code === 'SQLITE_CANTOPEN') {
+      console.error(err)
+      throw new Error(`Failed to open db ${dbName}. Did you remember to initialize the database?`)
+    }
+  }
   db.pragma('journal_mode = WAL')
   db.pragma('foreign_keys = ON')
   console.log(`Starting sqlite database from file: ${getDatabaseFile()}`)
