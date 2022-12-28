@@ -7,8 +7,7 @@ Trailhead runs on Node 18.
 
 Development commands:
 * `npm i` - install dependencies
-* `npm run dev` - run in development mode (requires local mongo server to be running)
-* `npm run prod` - run in development mode (requires local mongo server to be running)
+* `npm run dev` - run in development mode
 * `npm start` - run in production mode (requires `.env` file)
 * `npm run lint` - run the linter
 * `npm run format` - run the linter in `--fix` mode (might alter the code)
@@ -24,18 +23,24 @@ remotely close to this. The fact that Trailhead is a mission-critical applicatio
 I've been brought in to fix is a testament to original team that worked on it, and Ziray Hao in
 particular.
 
-When I was handed this application, it consisted of a React frontend, an Express
-backend, and a MongoDB database that the backend connected to via the Mongoose ORM. The primary
-problem affecting the service was that over two years of use it had grown unbearably slow to use,
-with each page load taking 5-15 seconds. It also suffered from the occasional database
-inconsistencies, such as trips with no leaders, that left the application in a bad state and users
-stuck.
+When I was handed this application, it consisted of a React frontend, an Express backend, and a
+MongoDB database that the backend connected to via the Mongoose ORM. The primary problem affecting
+the service was that over two years of use it had grown unbearably slow to use, with each page load
+taking 5-15 seconds. It also suffered from the occasional database inconsistencies, such as trips
+with no leaders, that left the application in a bad state and users stuck.
 
 The root cause of these issues is that MongoDB is a poor persistence choice for this application,
 and the backend server had architected various solutions to compensate, solutions that frequently
 blocked the NodeJS event loop. It is, of course, possible to use MongoDB without blocking the event
 loop, but a lot of the complexity of the application resulted from trying to reconnect relations
 between data that should have been stored relationally in the first place.
+
+Other problems include a wildly over-engineered frontend (different repo) that holds huge amounts of
+information in state and crashes entirely if any of those fields are missing, and pretty chunky
+security holes that make it possible for users without the correct level of permissions to access or
+alter other user information. The most private thing we have on here is users' self-reported dietary
+restrictions and medical conditions, which doesn't represent a massive risk (compared with actual
+medical records, SSNs, etc) but is nonetheless something we should endeavor to protect.
 
 ## Roadmap
 If for some reason I have to stop working on this application and you find yourself in the process
@@ -51,10 +56,13 @@ of wondering why I did the things that I did, here is my plan for the service:
    Because I haven't changed the frontend at all, this requires that I then map the DB table into a
    nested structure that the frontend is expecting. This is annoying, but it does actually use less
    code than we were using before, and it's well worth the benefits of data consistency and speed.
-3. Remove the frontend entirely and serve HTML with an HTML-based API. This concept is probably best
-   represented by [HTMX](https://htmx.org/), the JS library that I'm going to use for it, so check
-   out [this blog](https://htmx.org/essays/how-did-rest-come-to-mean-the-opposite-of-rest/) if
-   you're unfamiliar with the approach.
+3. (**I am here**) Remove the frontend entirely and serve HTML with an HTML-based API. This concept
+   is probably best represented by [HTMX](https://htmx.org/), the JS library that I'm going to use
+   for it, so check out
+   [this blog](https://htmx.org/essays/how-did-rest-come-to-mean-the-opposite-of-rest/) if you're
+   unfamiliar with the approach. Most of the code left in the application deals with the process of
+   translating SQL queries to the JSON that the frontend expects; once this step is finished a ton
+   of boilerplate can be deleted and the application will be very small.
 4. Now that we have a single deployable application with a lightweight UI, start implementing
    features!
 
