@@ -499,6 +499,7 @@ export function replaceRequestedVehicles (vehicleRequestId, requestedVehicles) {
 
 export function getVehicleRequestById (id) {
   const vehicleRequest = db.prepare('SELECT * FROM vehiclerequests WHERE id = ?').get(id)
+  if (!vehicleRequest) return undefined
   vehicleRequest.requestedVehicles = db
     .prepare('SELECT * FROM requested_vehicles WHERE vehiclerequest = ?')
     .all(id)
@@ -506,36 +507,38 @@ export function getVehicleRequestById (id) {
   return formatVehicleRequest(vehicleRequest)
 }
 
-export function getVehicleRequestByTripId (id) {
-  const vehicleRequest = db.prepare('SELECT * FROM vehiclerequests WHERE trip = ?').get(id)
-  if (!vehicleRequest) return undefined
-
-  vehicleRequest.requestedVehicles = db
-    .prepare('SELECT * FROM requested_vehicles WHERE vehiclerequest = ?')
-    .all(vehicleRequest.id)
-    .map(formatRequestedVehicle)
-  vehicleRequest.assignments = getAssignmentsForVehicleRequest(vehicleRequest.id)
-  return formatVehicleRequest(vehicleRequest)
+export function getVehicleRequestByTripId (tripId) {
+  const { id } = db.prepare('SELECT * FROM vehiclerequests WHERE trip = ?').get(tripId)
+  return getVehicleRequestById(id)
 }
 
-export function getVehicleRequestsByRequester (requester) {
-  const vehicleRequest = db
-    .prepare('SELECT * FROM vehiclerequests WHERE requester = ?')
-    .get(requester)
-  vehicleRequest.requestedVehicles = db
-    .prepare('SELECT * FROM requested_vehicles WHERE vehiclerequest = ?')
-    .all(vehicleRequest.id)
-    .map(formatRequestedVehicle)
-  return formatVehicleRequest(vehicleRequest)
+export function getUserVehicleRequests (userId) {
+  return db.prepare('SELECT id FROM vehiclerequests WHERE requester = ?')
+    .all(userId)
+    .map(request => getVehicleRequestById(request.id))
+    .map(request => ({ ...request, trip: getTripById(request.trip) }))
 }
 
-export function insertVehicleRequest (vehicleRequest) {
+export function insertVehicleRequest (vehicleRequest, requestedVehicles) {
   const info = db.prepare(`
   INSERT INTO vehiclerequests
-    (requester, request_details, mileage, num_participants, trip, request_type)
-  VALUES (@requester, @request_details, @mileage, @num_participants, @trip, @request_type)
+    (requester, request_details, mileage, trip, request_type)
+  VALUES (@requester, @request_details, @mileage, @trip, @request_type)
   `).run(vehicleRequest)
-  return info.lastInsertRowid
+  const requestId = info.lastInsertRowid
+
+  requestedVehicles.forEach(vehicle => {
+    vehicle.vehiclerequest = requestId
+    vehicle.details = vehicle.vehicleDetails || null
+    db.prepare(`
+    INSERT INTO requested_vehicles
+      (vehiclerequest, type, details, trailer_needed, pass_needed, pickup_time, return_time)
+    VALUES (@vehiclerequest, @type, @details, @trailer_needed, @pass_needed, @pickup_time,
+      @return_time)
+    `).run(vehicle)
+  })
+
+  return requestId
 }
 
 export function updateVehicleRequest (vehicleRequest, vehicles) {
@@ -764,6 +767,7 @@ function getTripGroupGearRequests (tripId) {
 
 export function getTripById (tripId, showUserData = false) {
   const trip = db.prepare('SELECT * FROM trips WHERE id = ?').get(tripId)
+  if (!trip) return undefined
   const vehicleRequest = getVehicleRequestByTripId(tripId)
   const { owner, leaders, members, pending } = getTripParticipants(tripId, trip.owner, showUserData)
 
@@ -1025,7 +1029,7 @@ export function getFullTripView (tripId, forUser) {
 
 export function getTripByVehicleRequest (vehicleRequestId) {
   const { trip } = db.prepare('SELECT trip FROM vehiclerequests WHERE id = ?').get(vehicleRequestId)
-  return getTripById(trip)
+  return trip ? getTripById(trip) : undefined
 }
 
 export function insertTrip (trip, leaders, trip_required_gear, group_gear_requests, pcard_request) {
@@ -1133,28 +1137,6 @@ function replaceTripPcardRequest (tripId, pcard_request) {
   insertTripPcardRequest(tripId, pcard_request)
 }
 
-export function createVehicleRequestForTrip (vehicleRequest, requestedVehicles) {
-  const info = db.prepare(`
-  INSERT INTO vehiclerequests
-    (requester, request_details, mileage, trip, request_type)
-  VALUES (@requester, @request_details, @mileage, @trip, @request_type)
-  `).run(vehicleRequest)
-  const requestId = info.lastInsertRowid
-
-  requestedVehicles.forEach(vehicle => {
-    vehicle.vehiclerequest = requestId
-    vehicle.details = vehicle.vehicleDetails || null
-    db.prepare(`
-    INSERT INTO requested_vehicles
-      (vehiclerequest, type, details, trailer_needed, pass_needed, pickup_time, return_time)
-    VALUES (@vehiclerequest, @type, @details, @trailer_needed, @pass_needed, @pickup_time,
-      @return_time)
-    `).run(vehicle)
-  })
-
-  return requestId
-}
-
 export function getUserTrips (userId) {
   const trips = db.prepare(`
   SELECT trip
@@ -1163,21 +1145,6 @@ export function getUserTrips (userId) {
   `).all(userId)
 
   return trips.map(item => getTripById(item.trip))
-}
-
-export function getUserVehicleRequests (userId) {
-  const vehicleRequests = db.prepare(`
-  SELECT *
-  FROM vehiclerequests
-  WHERE requester = ?
-  `).all(userId)
-
-  return vehicleRequests
-    .map(vehicleRequest => {
-      const trip = getTripById(vehicleRequest.trip)
-      return { ...vehicleRequest, trip }
-    })
-    .map(formatVehicleRequest)
 }
 
 export function getCalendarAssignments () {

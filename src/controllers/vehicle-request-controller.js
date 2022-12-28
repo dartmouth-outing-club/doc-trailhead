@@ -7,10 +7,6 @@ export function getVehicleRequestById (id) {
   return db.getVehicleRequestById(id)
 }
 
-export function getVehicleRequestsByRequester (requesterId) {
-  return db.getVehicleRequestsByRequester(requesterId)
-}
-
 export function getVehicleWithAssignments (id) {
   const vehicleRequest = db.getVehicleRequestById(id)
   const requester = db.getUserById(vehicleRequest.requester)
@@ -48,17 +44,27 @@ function getCurrentVehicleRequests () {
  * right now.
  */
 export function createNewVehicleRequest (requestObject) {
-  const { requester, requestDetails, mileage, noOfPeople, requestType, associatedTrip } = requestObject
   const vehicleRequest = {
-    requester,
-    request_details: requestDetails,
-    mileage,
-    num_participants: noOfPeople,
-    request_type: requestType,
-    trip: associatedTrip
+    requester: requestObject.requester.id,
+    request_details: requestObject.requestDetails,
+    mileage: requestObject.mileage,
+    num_participants: requestObject.noOfPeople,
+    request_type: requestObject.requestType,
+    trip: null
   }
 
-  const insertedId = db.insertVehicleRequest(vehicleRequest)
+  if (requestObject.mileage) vehicleRequest.mileage = requestObject.mileage
+
+  const requestedVehicles = requestObject.requestedVehicles.map((vehicle) => ({
+    type: vehicle.vehicleType,
+    details: vehicle.vehicleDetails,
+    trailer_needed: vehicle.trailerNeeded ? 1 : 0,
+    pass_needed: vehicle.passNeeded ? 1 : 0,
+    pickup_time: constants.createIntegerDateObject(vehicle.pickupDate, vehicle.pickupTime),
+    return_time: constants.createIntegerDateObject(vehicle.returnDate, vehicle.returnTime)
+  }))
+
+  const insertedId = db.insertVehicleRequest(vehicleRequest, requestedVehicles)
   return db.getVehicleRequestById(insertedId)
 }
 
@@ -109,7 +115,7 @@ export async function handleGetVehicleRequest (req, res) {
 
 export async function handlePostVehicleRequests (req, res) {
   const savedRequest = await createNewVehicleRequest(req.body)
-  const { email } = db.getUserById(req.body.requester)
+  const { email } = db.getUserById(req.user.id)
   mailer.sendVehicleRequestCreatedEmail(savedRequest, [email])
   return res.json(savedRequest)
 }
