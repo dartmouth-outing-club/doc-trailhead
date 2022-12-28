@@ -1,3 +1,4 @@
+#!/bin/bash
 # Name: download-and-build.sh
 # Author: Alexander Petros
 # Download the mongodb database and build it as a sqlite3 database in the same directory
