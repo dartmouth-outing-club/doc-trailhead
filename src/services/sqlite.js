@@ -808,7 +808,6 @@ export function getTripById (tripId, showUserData = false) {
 
   const pcard_request = db.prepare('SELECT * from trip_pcard_requests WHERE trip = ?').get(tripId)
   if (pcard_request) {
-    console.log(pcard_request)
     if (pcard_request.is_approved === null) enhancedTrip.pcardStatus = 'pending'
     if (pcard_request.is_approved === 1) enhancedTrip.pcardStatus = 'approved'
     if (pcard_request.is_approved === 0) enhancedTrip.pcardStatus = 'denied'
