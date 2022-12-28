@@ -146,8 +146,6 @@ function formatTrip (trip) {
     endDateAndTime: convertSqlDate(trip.end_time),
     experienceNeeded: trip.experience_needed,
     coLeaderCanEditTrip: trip.coleader_can_edit,
-    pcard: JSON.parse(trip.pcard),
-    pcardStatus: trip.pcard_status,
     sent_emails: JSON.parse(trip.sent_emails)
   }
 }
@@ -790,11 +788,6 @@ export function getTripById (tripId, showUserData = false) {
     ON trip = id where id = ?
     `).get(tripId)
 
-  // If the status are null, then use the "pending" or "N/A" status
-  const gearStatus = num_group_gear_requests.status
-  const trippeeGearStatus = num_trippee_gear_requests.status
-  const vehicleStatus = getVehicleRequestByTripId(trip.id)?.status || 'N/A'
-
   const enhancedTrip = {
     ...trip,
     club: getClubName(trip.club),
@@ -805,9 +798,27 @@ export function getTripById (tripId, showUserData = false) {
     pending,
     OPOGearRequests: getTripGroupGearRequests(trip.id),
     trippeeGear: getTripIndividualGear(trip.id),
-    gearStatus,
-    trippeeGearStatus,
-    vehicleStatus
+    gearStatus: num_group_gear_requests.status,
+    trippeeGearStatus: num_trippee_gear_requests.status,
+    pcard: [],
+    pcardStatus: 'N/A',
+    pcardAssigned: 'None',
+    vehicleStatus: getVehicleRequestByTripId(trip.id)?.status || 'N/A'
+  }
+
+  const pcard_request = db.prepare('SELECT * from trip_pcard_requests WHERE trip = ?').get(tripId)
+  if (pcard_request) {
+    console.log(pcard_request)
+    if (pcard_request.is_approved === null) enhancedTrip.pcardStatus = 'pending'
+    if (pcard_request.is_approved === 1) enhancedTrip.pcardStatus = 'approved'
+    if (pcard_request.is_approved === 0) enhancedTrip.pcardStatus = 'denied'
+
+    enhancedTrip.pcardAssigned = pcard_request.assigned_pcard
+    enhancedTrip.pcard = [{
+      ...pcard_request,
+      numPeople: pcard_request.num_people,
+      otherCosts: JSON.parse(pcard_request.other_costs)
+    }]
   }
 
   return formatTrip(enhancedTrip)
@@ -884,10 +895,10 @@ export function setTripIndividualGearStatus (tripId, status) {
   return db.prepare('UPDATE trips SET member_gear_approved = ? WHERE id = ?').run(status, tripId)
 }
 
-export function setTripPcardStatus (tripId, pcard_status, pcard_assigned) {
+export function setTripPcardStatus (tripId, is_approved, assigned_pcard) {
   return db
-    .prepare('UPDATE trips SET pcard_status = ?, pcard_assigned = ? WHERE id = ?')
-    .run(pcard_status, pcard_assigned, tripId)
+    .prepare('UPDATE trip_pcard_requests SET is_approved = ?, assigned_pcard = ? WHERE trip = ?')
+    .run(is_approved, assigned_pcard, tripId)
 }
 
 export function markTripEmailSent (tripId, emailName) {
@@ -1018,12 +1029,12 @@ export function getTripByVehicleRequest (vehicleRequestId) {
   return getTripById(trip)
 }
 
-export function insertTrip (trip, leaders, trip_required_gear, group_gear_requests) {
+export function insertTrip (trip, leaders, trip_required_gear, group_gear_requests, pcard_request) {
   const info = db.prepare(`
   INSERT INTO trips (title, private, start_time, end_time, owner, description, club, cost,
-    experience_needed, location, pickup, dropoff, coleader_can_edit, pcard)
+    experience_needed, location, pickup, dropoff, coleader_can_edit)
   VALUES (@title, @private, @start_time, @end_time, @owner, @description, @club, @cost,
-    @experience_needed, @location, @pickup, @dropoff, @coleader_can_edit, @pcard)
+    @experience_needed, @location, @pickup, @dropoff, @coleader_can_edit)
   `).run(trip)
   const id = info.lastInsertRowid
 
@@ -1032,16 +1043,18 @@ export function insertTrip (trip, leaders, trip_required_gear, group_gear_reques
       .run(id, leaderId, 1, 0)
   })
 
-  trip_required_gear.forEach(gear => inserttripRequiredGear(id, gear.name, gear.sizeType))
+  trip_required_gear.forEach(gear => insertTripRequiredGear(id, gear.name, gear.sizeType))
   group_gear_requests.forEach(request => {
     db.prepare('INSERT INTO group_gear_requests (trip, name, quantity) VALUES (?, ?, ?)')
       .run(id, request.name, request.quantity)
   })
 
+  if (pcard_request) insertTripPcardRequest(id, pcard_request)
+
   return id
 }
 
-export function updateTrip (trip, trip_required_gear, group_gear_requests) {
+export function updateTrip (trip, trip_required_gear, group_gear_requests, pcard_request) {
   if (!trip.id) throw new Error(`Error, invalid trip ${trip.id} provided`)
   const info = db.prepare(`
   UPDATE trips
@@ -1057,8 +1070,7 @@ export function updateTrip (trip, trip_required_gear, group_gear_requests) {
     pickup = ifnull(@pickup, pickup),
     dropoff = ifnull(@dropoff, dropoff),
     cost = ifnull(@cost, cost),
-    experience_needed = ifnull(@experience_needed, experience_needed),
-    pcard = ifnull(@pcard, pcard)
+    experience_needed = ifnull(@experience_needed, experience_needed)
   WHERE id = @id
   `).run(trip)
 
@@ -1069,12 +1081,14 @@ export function updateTrip (trip, trip_required_gear, group_gear_requests) {
     return !trip_required_gear.some(item => item.id === gear.id)
   })
 
-  toAdd.forEach(gear => inserttripRequiredGear(trip.id, gear.name, gear.sizeType))
+  toAdd.forEach(gear => insertTripRequiredGear(trip.id, gear.name, gear.sizeType))
   toDelete.forEach(gear => deletetripRequiredGearFromList(trip.id, gear.id))
 
   // Replace group gear requests
   db.prepare('DELETE FROM group_gear_requests WHERE trip = ?').run(trip.id)
   group_gear_requests.forEach(request => insertGroupGearRequest(trip.id, request.name, request.quantity))
+
+  if (pcard_request) replaceTripPcardRequest(trip.id, pcard_request)
 
   return info.changes
 }
@@ -1096,7 +1110,7 @@ function insertGroupGearRequest (tripId, name, quantity) {
     .run(tripId, name, quantity)
 }
 
-function inserttripRequiredGear (trip, name, sizeType) {
+function insertTripRequiredGear (trip, name, sizeType) {
   return db.prepare('INSERT INTO trip_required_gear (trip, name, size_type) VALUES (?, ?, ?)')
     .run(trip, name, sizeType)
 }
@@ -1104,6 +1118,20 @@ function inserttripRequiredGear (trip, name, sizeType) {
 function deletetripRequiredGearFromList (tripId, gearId) {
   return db.prepare('DELETE FROM trip_required_gear WHERE trip = ? AND id = ?')
     .run(tripId, gearId)
+}
+
+function insertTripPcardRequest (tripId, pcard_request) {
+  pcard_request.trip = tripId
+  return db.prepare(`
+    INSERT INTO trip_pcard_requests
+      (trip, num_people, snacks, breakfast, lunch, dinner, other_costs)
+    VALUES (@trip, @num_people, @snacks, @breakfast, @lunch, @dinner, @other_costs)
+  `).run(pcard_request)
+}
+
+function replaceTripPcardRequest (tripId, pcard_request) {
+  db.prepare('DELETE FROM trip_pcard_requests WHERE trip = ?').run(tripId)
+  insertTripPcardRequest(tripId, pcard_request)
 }
 
 export function createVehicleRequestForTrip (vehicleRequest, requestedVehicles) {
@@ -1193,7 +1221,6 @@ export function getUserEmails (ids) {
 }
 
 export function getTripLeaderEmails (tripId) {
-  console.log(tripId)
   return db.prepare(`
   SELECT email
   FROM users

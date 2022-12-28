@@ -70,6 +70,11 @@ SET user = users.id
 FROM users
 WHERE users._id = user;
 
+UPDATE trip_pcard_requests
+SET trip = trips.id
+FROM trips
+WHERE trips._id = trip;
+
 UPDATE trip_required_gear
 SET trip = trips.id
 FROM trips

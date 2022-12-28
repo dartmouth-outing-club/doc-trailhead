@@ -21,34 +21,6 @@ CREATE TABLE clubs (
   active INTEGER DEFAULT TRUE
 ) STRICT;
 
-CREATE TABLE trips (
-  id INTEGER PRIMARY KEY,
-  _id TEXT,
-  title TEXT DEFAULT 'Untitled trip',
-  private INTEGER DEFAULT FALSE,
-  past INTEGER DEFAULT FALSE,
-  left INTEGER DEFAULT FALSE,
-  returned INTEGER DEFAULT FALSE,
-  marked_late INTEGER DEFAULT FALSE,
-  club INTEGER REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
-  owner INTEGER NOT NULL REFERENCES users ON DELETE RESTRICT ON UPDATE CASCADE,
-  start_time INTEGER,
-  end_time INTEGER,
-  location TEXT,
-  pickup TEXT,
-  dropoff TEXT,
-  cost INTEGER DEFAULT 0,
-  description TEXT,
-  experience_needed INTEGER DEFAULT FALSE,
-  coleader_can_edit INTEGER DEFAULT FALSE,
-  group_gear_approved INTEGER, -- NULL means that it's pending or N/A
-  member_gear_approved INTEGER,
-  pcard TEXT DEFAULT '[]',
-  pcard_status TEXT DEFAULT 'N/A',
-  pcard_assigned TEXT DEFAULT 'NONE',
-  sent_emails TEXT DEFAULT '[]'
-) STRICT;
-
 CREATE TABLE users (
   id INTEGER primary key,
   _id TEXT,
@@ -64,13 +36,13 @@ CREATE TABLE users (
   clothe_size TEXT,
   shoe_size TEXT,
   height TEXT,
-  is_opo INTEGER DEFAULT FALSE
+  is_opo INTEGER NOT NULL DEFAULT FALSE
 ) STRICT;
 
 CREATE TABLE user_certs (
   user INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
   cert TEXT, -- MICROBUS, VAN, TRAILER
-  is_approved INTEGER DEFAULT FALSE,
+  is_approved INTEGER NOT NULL DEFAULT FALSE,
   PRIMARY KEY (user, cert)
 ) STRICT;
 
@@ -97,7 +69,7 @@ CREATE TABLE vehiclerequests (
 CREATE TABLE club_leaders (
   user INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
   club INTEGER REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
-  is_approved INTEGER DEFAULT FALSE,
+  is_approved INTEGER NOT NULL DEFAULT FALSE,
   PRIMARY KEY (user, club)
 ) STRICT;
 
@@ -109,6 +81,31 @@ CREATE TABLE requested_vehicles (
   return_time INTEGER,
   trailer_needed INTEGER NOT NULL DEFAULT FALSE,
   pass_needed INTEGER NOT NULL DEFAULT FALSE
+) STRICT;
+
+CREATE TABLE trips (
+  id INTEGER PRIMARY KEY,
+  _id TEXT,
+  title TEXT DEFAULT 'Untitled trip',
+  private INTEGER DEFAULT FALSE,
+  past INTEGER DEFAULT FALSE,
+  left INTEGER DEFAULT FALSE,
+  returned INTEGER DEFAULT FALSE,
+  marked_late INTEGER DEFAULT FALSE,
+  club INTEGER REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
+  owner INTEGER NOT NULL REFERENCES users ON DELETE RESTRICT ON UPDATE CASCADE,
+  start_time INTEGER,
+  end_time INTEGER,
+  location TEXT,
+  pickup TEXT,
+  dropoff TEXT,
+  cost INTEGER DEFAULT 0,
+  description TEXT,
+  experience_needed INTEGER DEFAULT FALSE,
+  coleader_can_edit INTEGER DEFAULT FALSE,
+  group_gear_approved INTEGER, -- NULL means that it's pending or N/A
+  member_gear_approved INTEGER,
+  sent_emails TEXT DEFAULT '[]'
 ) STRICT;
 
 CREATE TABLE trip_members (
@@ -130,13 +127,15 @@ CREATE TABLE trip_required_gear (
 ) STRICT;
 
 CREATE TABLE trip_pcard_requests (
-  trip INTEGER UNIQUE REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
+  trip INTEGER UNIQUE NOT NULL REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
+  is_approved INTEGER,
+  assigned_pcard TEXT,
   num_people INTEGER,
   snacks INTEGER,
   breakfast INTEGER,
   lunch INTEGER,
   dinner INTEGER,
-  other_costs TEXT DEFAULT '[]'
+  other_costs TEXT NOT NULL DEFAULT '[]'
 );
 
 CREATE TABLE member_gear_requests (

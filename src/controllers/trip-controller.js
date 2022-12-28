@@ -69,15 +69,27 @@ export async function createTrip (creator, data) {
     pickup: data.pickup,
     dropoff: data.dropoff,
     mileage: data.mileage,
-    coleader_can_edit: data.coLeaderCanEditTrip ? 1 : 0,
-    pcard: JSON.stringify(data.pcard)
+    coleader_can_edit: data.coLeaderCanEditTrip ? 1 : 0
+  }
+
+  let pcard_request
+  if (data.pcard?.at(0)) {
+    const request = data.pcard?.at(0)
+    pcard_request = {
+      snacks: request.snacks,
+      breakfast: request.breakfast,
+      lunch: request.lunch,
+      dinner: request.dinner,
+      num_people: request.numPeople,
+      other_costs: request.otherCosts ? JSON.stringify(request.otherCosts) : '[]'
+    }
   }
 
   const coLeaders = data.leaders.map(db.getUserByEmail).map(user => user.id)
   const allLeaders = [...coLeaders, creator.id]
   const trip_required_gear = data.trippeeGear || []
   const group_gear_requests = data.gearRequests || []
-  const tripId = db.insertTrip(trip, allLeaders, trip_required_gear, group_gear_requests)
+  const tripId = db.insertTrip(trip, allLeaders, trip_required_gear, group_gear_requests, pcard_request)
 
   const leaderEmails = [creator.email] // Used to send out initial email
   const savedTrip = { ...trip, id: tripId, _id: tripId }
@@ -139,14 +151,7 @@ export async function updateTrip (req, res) {
     pickup: req.body.pickup,
     dropoff: req.body.dropoff,
     cost: req.body.cost,
-    experience_needed: req.body.experienceNeeded,
-    pcard: JSON.stringify(req.body.pcard)
-  }
-
-  if (trip.pcardStatus === 'N/A' && req.body.pcard.length > 0) {
-    newTrip.pcard_status = 'pending'
-  } else if (trip.pcardStatus === 'pending' && req.body.pcard.length === 0) {
-    newTrip.pcard_status = 'N/A'
+    experience_needed: req.body.experienceNeeded
   }
 
   if (req.body.changedVehicles) {
@@ -198,9 +203,22 @@ export async function updateTrip (req, res) {
   }
   db.replaceTripLeaders(trip.id, newLeaders)
 
+  let pcard_request
+  if (req.body.pcard?.at(0)) {
+    const request = req.body.pcard?.at(0)
+    pcard_request = {
+      snacks: request.snacks,
+      breakfast: request.breakfast,
+      lunch: request.lunch,
+      dinner: request.dinner,
+      num_people: request.numPeople,
+      other_costs: request.otherCosts ? JSON.stringify(request.otherCosts) : '[]'
+    }
+  }
+
   const trip_required_gear = req.body.trippeeGear || []
   const group_gear_requests = req.body.gearRequests || []
-  db.updateTrip(newTrip, trip_required_gear, group_gear_requests)
+  db.updateTrip(newTrip, trip_required_gear, group_gear_requests, pcard_request)
   return res.json(db.getTripById(trip.id))
 }
 
@@ -534,7 +552,12 @@ export async function respondToTrippeeGearRequest (req, res) {
 export async function respondToPCardRequest (req, res) {
   const tripId = req.params.tripID
   const { pcardStatus, pcardAssigned } = req.body
-  db.setTripPcardStatus(tripId, pcardStatus, pcardAssigned)
+
+  let is_approved = null
+  if (pcardStatus === 'approved') is_approved = 1
+  if (pcardStatus === 'denied') is_approved = 0
+
+  db.setTripPcardStatus(tripId, is_approved, pcardAssigned)
 
   const trip = db.getFullTripView(tripId, req.params.user)
   const leaderEmails = db.getTripLeaderEmails(tripId)

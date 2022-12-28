@@ -2,17 +2,17 @@ import fs from 'node:fs'
 
 const vehicles = getRecordsFromFile('./tables/vehicles.bson.json')
 const vehicleFields = ['_id', 'name', 'type', 'active']
-console.log(getInsertStatementFromRecords(vehicles, vehicleFields, 'vehicles'))
+printInsertStatements(vehicles, vehicleFields, 'vehicles')
 
 const clubs = getRecordsFromFile('./tables/clubs.bson.json')
 const clubFields = ['_id', 'name', 'active']
-console.log(getInsertStatementFromRecords(clubs, clubFields, 'clubs'))
+printInsertStatements(clubs, clubFields, 'clubs')
 
 const users = getRecordsFromFile('./tables/users.bson.json')
 const userFields = ['_id', ['casID', 'cas_id'], 'email', 'password', 'name', 'photo_url',
   'pronoun', 'dash_number', 'allergies_dietary_restrictions', 'medical_conditions', 'clothe_size',
   'shoe_size', 'height', ['role', 'is_opo']]
-console.log(getInsertStatementFromRecords(users, userFields, 'users'))
+printInsertStatements(users, userFields, 'users')
 
 const user_certs = users.flatMap(user => {
   const certs = []
@@ -29,13 +29,13 @@ const user_certs = users.flatMap(user => {
   }
   return certs
 })
-console.log(getInsertStatementFromRecords(user_certs, ['user', 'cert', 'is_approved'], 'user_certs'))
+printInsertStatements(user_certs, ['user', 'cert', 'is_approved'], 'user_certs')
 
 const club_leaders = users
   .flatMap(user => user?.leader_for?.map(club => ({ user: user._id.$oid, club: club.$oid, is_approved: true })))
   .filter(record => record)
   .filter(record => record.user && record.club)
-console.log(getInsertStatementFromRecords(club_leaders, ['user', 'club', 'is_approved'], 'club_leaders'))
+printInsertStatements(club_leaders, ['user', 'club', 'is_approved'], 'club_leaders')
 
 const club_requested_leaders = users
   .flatMap(user => user?.requested_clubs?.map(club => ({
@@ -45,7 +45,7 @@ const club_requested_leaders = users
   })))
   .filter(record => record)
   .filter(record => record.user && record.club)
-console.log(getInsertStatementFromRecords(club_requested_leaders, ['user', 'club', 'is_approved'], 'club_leaders'))
+printInsertStatements(club_requested_leaders, ['user', 'club', 'is_approved'], 'club_leaders')
 
 const vehicleRequests = getRecordsFromFile('./tables/vehiclerequests.bson.json').map(request => {
   let is_approved
@@ -62,7 +62,7 @@ const vehicleRequests = getRecordsFromFile('./tables/vehiclerequests.bson.json')
 })
 const vehicleRequestFields = ['_id', 'requester', ['requestDetails', 'request_details'], 'mileage',
   'num_participants', 'trip', ['requestType', 'request_type'], 'is_approved']
-console.log(getInsertStatementFromRecords(vehicleRequests, vehicleRequestFields, 'vehiclerequests'))
+printInsertStatements(vehicleRequests, vehicleRequestFields, 'vehiclerequests')
 
 const requestedVehicles = vehicleRequests.flatMap(request => {
   // console.log(request.requested_vehicles)
@@ -87,7 +87,7 @@ const requestedVehicleFields = [
   ['trailerNeeded', 'trailer_needed'],
   ['passNeeded', 'pass_needed']
 ]
-console.log(getInsertStatementFromRecords(requestedVehicles, requestedVehicleFields, 'requested_vehicles'))
+printInsertStatements(requestedVehicles, requestedVehicleFields, 'requested_vehicles')
 
 const assignments = getRecordsFromFile('./tables/assignments.bson.json').map(assignment => ({
   ...assignment,
@@ -102,7 +102,7 @@ const assignments = getRecordsFromFile('./tables/assignments.bson.json').map(ass
 }))
 const assignmentFields = ['_id', 'vehiclerequest', 'requester', 'pickup_time', 'return_time',
   ['assigned_key', 'vehicle_key'], 'vehicle', 'picked_up', 'returned', 'response_index']
-console.log(getInsertStatementFromRecords(assignments, assignmentFields, 'assignments'))
+printInsertStatements(assignments, assignmentFields, 'assignments')
 
 const trips = getRecordsFromFile('./tables/trips.bson.json').map(trip => {
   let group_gear_approved, member_gear_approved
@@ -137,10 +137,9 @@ const tripFields = [
   '_id', 'title', 'private', 'past', 'left', 'returned', ['markedLate', 'marked_late'], 'club',
   'owner', 'start_time', 'end_time', 'location', 'pickup', 'dropoff', 'cost', 'description',
   ['experienceNeeded', 'experience_needed'], ['coLeaderCanEditTrip', 'coleader_can_edit'],
-  'group_gear_approved', 'member_gear_approved', 'pcard', ['pcardStatus', 'pcard_status'],
-  ['pcardAssigned', 'pcard_assigned'], ['sentEmails', 'sent_emails']
+  'group_gear_approved', 'member_gear_approved', ['sentEmails', 'sent_emails']
 ]
-console.log(getInsertStatementFromRecords(trips, tripFields, 'trips'))
+printInsertStatements(trips, tripFields, 'trips')
 
 const tripRequiredGear = trips.flatMap(trip => {
   return trip.trippeeGear.map(gear => {
@@ -152,7 +151,25 @@ const tripRequiredGear = trips.flatMap(trip => {
     }
   })
 })
-console.log(getInsertStatementFromRecords(tripRequiredGear, ['_id', 'name', 'trip', 'size_type'], 'trip_required_gear'))
+printInsertStatements(tripRequiredGear, ['_id', 'name', 'trip', 'size_type'], 'trip_required_gear')
+
+const tripPcardRequests = trips
+  .filter(trip => trip.pcard.at(0))
+  .map(trip => {
+    const pcard = trip.pcard.at(0)
+    const other_costs = pcard.otherCosts.map(item => ({ title: item.title, cost: item.cost.$numberInt }))
+    return {
+      trip: trip._id.$oid,
+      num_people: pcard.numPeople.$numberInt,
+      snacks: pcard.snacks?.$numberInt,
+      breakfast: pcard.breakfass?.$numberInt,
+      lunch: pcard.luncs?.$numberInt,
+      dinner: pcard.dinnes?.$numberInt,
+      assigned_pcard: trip.pcardAssigned,
+      other_costs: JSON.stringify(other_costs)
+    }
+  })
+printInsertStatements(tripPcardRequests, ['trip', 'num_people', 'snacks', 'breakfast', 'lunch', 'dinner', 'other_costs', 'assigned_pcard'], 'trip_pcard_requests')
 
 const group_gear_requests = trips.flatMap(trip => {
   return trip.OPOGearRequests.map(gear => {
@@ -163,7 +180,7 @@ const group_gear_requests = trips.flatMap(trip => {
     }
   })
 })
-console.log(getInsertStatementFromRecords(group_gear_requests, ['name', 'trip', 'quantity'], 'group_gear_requests'))
+printInsertStatements(group_gear_requests, ['name', 'trip', 'quantity'], 'group_gear_requests')
 
 const tripMembers = trips.flatMap(trip => {
   const leaders = trip.leaders?.map(leader => leader.$oid) || []
@@ -183,7 +200,7 @@ const tripMembers = trips.flatMap(trip => {
     }
   }) || []
 }).filter(item => item)
-console.log(getInsertStatementFromRecords(tripMembers, ['trip', 'user', 'leader', 'attended', 'pending'], 'trip_members'))
+printInsertStatements(tripMembers, ['trip', 'user', 'leader', 'attended', 'pending'], 'trip_members')
 
 const member_gear_requests = tripMembers.flatMap(member => (
   member.requested_gear.map(gear => {
@@ -191,7 +208,7 @@ const member_gear_requests = tripMembers.flatMap(member => (
     return { trip: member.trip, user: member.user, gear: gearId }
   })
 ))
-console.log(getInsertStatementFromRecords(member_gear_requests, ['trip', 'user', 'gear'], 'member_gear_requests'))
+printInsertStatements(member_gear_requests, ['trip', 'user', 'gear'], 'member_gear_requests')
 
 function getRecordsFromFile (fileName) {
   const contents = fs.readFileSync(fileName).toString()
@@ -202,7 +219,7 @@ function getRecordsFromFile (fileName) {
   return records
 }
 
-function getInsertStatementFromRecords (records, fields, tableName) {
+function printInsertStatements (records, fields, tableName) {
   const recordFields = records.map(record => (
     fields.map(field => {
       if (field === '_id') {
@@ -215,10 +232,11 @@ function getInsertStatementFromRecords (records, fields, tableName) {
   ))
   const fieldNames = fields.map(field => typeof field === 'string' ? field : field[1])
   const inserts = recordFields.map(record => `(${record.join(',')})`)
-  return `
+  const statements = `
 INSERT OR IGNORE INTO ${tableName} (${fieldNames.join(',')}) VALUES
 ${inserts.join(',\n')};
 `
+  console.log(statements)
 }
 
 function sqlize (value) {
