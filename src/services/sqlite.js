@@ -600,6 +600,7 @@ export function markTripVehicleAssignmentsPickedUp (tripId) {
 
 export function markTripVehicleAssignmentsReturned (tripId) {
   const vehicleRequestId = getVehicleRequestByTripId(tripId)
+  if (!vehicleRequestId) return undefined
   return db
     .prepare('UPDATE assignments SET returned = true WHERE vehiclerequest = ?')
     .run(vehicleRequestId)
