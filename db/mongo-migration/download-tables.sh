@@ -28,4 +28,4 @@ mv dump/main/*.bson.json tables
 
 # Clean up tables directory and database dump
 # If you want to save the mongo stuff you can just comment this out
-rm -rf dump
+# rm -rf dump
