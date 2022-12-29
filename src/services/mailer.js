@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 
 import { tokenForUser } from '../controllers/user-controller.js'
 import * as constants from '../constants.js'
-import * as users from '../controllers/user-controller.js'
+import * as db from '../services/sqlite.js'
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -31,14 +31,14 @@ const transporter = nodemailer.createTransport({
  */
 export function createRecurringEmailSender (name, tripsFunc, emailFunc, markFunc) {
   return async () => {
-    const tripsInWindow = await tripsFunc()
+    const tripsInWindow = tripsFunc()
     console.log(`[Mailer] Sending emails for ${tripsInWindow.length} trips`)
 
     // Doing this as a for loop so that it happens entirely sychrnously
     // Otherwise we'll create too many simultaneous connections
     for (const trip of tripsInWindow) {
       try {
-        const leaderEmails = await users.getUserEmails(trip.leaders)
+        const leaderEmails = db.getTripLeaderEmails(trip.id)
         console.log(`[Mailer] Sending ${name} email to: ` + leaderEmails.join(', '))
         const token = tokenForUser(trip.leaders[0], 'mobile', trip.id)
         await emailFunc(trip, leaderEmails, token)
