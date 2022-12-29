@@ -846,7 +846,7 @@ export function getTripsPendingCheckOutEmail () {
   SELECT *
   FROM trips
   WHERE start_time > ? AND start_time < ? AND sent_emails NOT LIKE '%CHECK_OUT%'
-  `).run(now, emailWindow)
+  `).run(now.getTime(), emailWindow.getTime())
 }
 
 export function getTripsPendingCheckInEmail () {
@@ -856,7 +856,7 @@ export function getTripsPendingCheckInEmail () {
   SELECT *
   FROM trips
   WHERE end_time > ? AND end_time < ? AND sent_emails NOT LIKE '%CHECK_IN%'
-  `).run(now, emailWindow)
+  `).run(now.getTime(), emailWindow.getTime())
 }
 
 export function getTripsPending90MinEmail () {
@@ -866,7 +866,7 @@ export function getTripsPending90MinEmail () {
   SELECT *
   FROM trips
   WHERE end_time > ? AND returned = false AND sent_emails NOT LIKE '%LATE_90%'
-  `).run(returnWindow)
+  `).run(returnWindow.getTime())
 }
 
 export function getTripsPending3HourEmail () {
@@ -876,7 +876,7 @@ export function getTripsPending3HourEmail () {
   SELECT *
   FROM trips
   WHERE end_time > ? AND returned = false AND sent_emails NOT LIKE '%LATE_180%'
-  `).run(returnWindow)
+  `).run(returnWindow.getTime())
 }
 
 export function setTripLeftStatus (tripId, left) {
