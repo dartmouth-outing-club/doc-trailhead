@@ -751,7 +751,7 @@ export function getAllTrips (getPastTrips = false, showUserData = false) {
   const date = getPastTrips ? subtract(new Date(), 30, 'day') : new Date()
   const start_time = date.getTime()
   const showPrivate = showUserData ? 1 : 0
-  return db.prepare('SELECT id FROM trips WHERE start_time > ? AND private = ?')
+  return db.prepare('SELECT id FROM trips WHERE end_time > ? AND private = ?')
     .all(start_time, showPrivate)
     .map(trip => getTripById(trip.id, showUserData))
 }
