@@ -515,8 +515,8 @@ export function getVehicleRequestById (id) {
 }
 
 export function getVehicleRequestByTripId (tripId) {
-  const { id } = db.prepare('SELECT * FROM vehiclerequests WHERE trip = ?').get(tripId)
-  return getVehicleRequestById(id)
+  const request = db.prepare('SELECT id FROM vehiclerequests WHERE trip = ?').get(tripId)
+  return request ? getVehicleRequestById(request.id) : undefined
 }
 
 export function getUserVehicleRequests (userId) {
@@ -747,8 +747,9 @@ export function getPublicTrips () {
 export function getAllTrips (getPastTrips = false, showUserData = false) {
   const date = getPastTrips ? subtract(new Date(), 30, 'day') : new Date()
   const start_time = date.getTime()
-  return db.prepare('SELECT id FROM trips WHERE start_time > ?')
-    .all(start_time)
+  const showPrivate = showUserData ? 1 : 0
+  return db.prepare('SELECT id FROM trips WHERE start_time > ? AND private = ?')
+    .all(start_time, showPrivate)
     .map(trip => getTripById(trip.id, showUserData))
 }
 
