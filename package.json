@@ -8,7 +8,6 @@
     "format": "eslint src --fix",
     "lint": "eslint src",
     "init-db": "cat ./db/db-schema.sql | sqlite3 trailhead.db",
-    "download-tables": "./db/mongo-migration/download-tables.sh",
     "import-db": "./db/mongo-migration/convert-mongo-to-sql.sh",
     "start": "node src/server.js"
   },

@@ -865,21 +865,21 @@ export function getTripsPendingCheckInEmail () {
 
 export function getTripsPending90MinEmail () {
   const now = new Date()
-  const returnWindow = new Date(now.getTime() + _90_MINS_IN_MS)
+  const returnWindow = new Date(now.getTime() - _90_MINS_IN_MS)
   return db.prepare(`
   SELECT *
   FROM trips
-  WHERE end_time > ? AND returned = false AND sent_emails NOT LIKE '%LATE_90%'
+  WHERE end_time < ? AND returned = false AND sent_emails NOT LIKE '%LATE_90%'
   `).all(returnWindow.getTime())
 }
 
 export function getTripsPending3HourEmail () {
   const now = new Date()
-  const returnWindow = new Date(now.getTime() + _3_HOURS_IN_MS)
+  const returnWindow = new Date(now.getTime() - _3_HOURS_IN_MS)
   return db.prepare(`
   SELECT *
   FROM trips
-  WHERE end_time > ? AND returned = false AND sent_emails NOT LIKE '%LATE_180%'
+  WHERE end_time < ? AND returned = false AND sent_emails NOT LIKE '%LATE_180%'
   `).all(returnWindow.getTime())
 }
 
