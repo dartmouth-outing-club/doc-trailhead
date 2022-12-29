@@ -451,9 +451,9 @@ export async function toggleTripLeftStatus (req, res) {
  */
 export async function toggleTripReturnedStatus (req, res) {
   const tripId = req.params.tripID
-  const returned = req.body.status
   const now = new Date()
 
+  const returned = req.body.status === true ? 1 : 0
   db.setTripReturnedStatus(tripId, returned)
 
   if (returned) {
