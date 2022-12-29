@@ -730,7 +730,7 @@ export function getPublicTrips () {
   const trips = db.prepare(`
     SELECT location, club,  title, description, start_time, end_time
     FROM trips
-    WHERE start_time > ?
+    WHERE start_time > ? AND private = 0
     ORDER BY start_time ASC
     LIMIT 15`)
     .all(now)
