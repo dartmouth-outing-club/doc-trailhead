@@ -1194,6 +1194,16 @@ export function getUserEmails (ids) {
   })
 }
 
+export function getTripLeaderIds (tripId) {
+  return db.prepare(`
+  SELECT user
+  FROM users
+  LEFT JOIN trip_members ON user = users.id
+  WHERE leader = true AND trip = ?
+  `).all(tripId)
+    .map(user => user.user)
+}
+
 export function getTripLeaderEmails (tripId) {
   return db.prepare(`
   SELECT email
