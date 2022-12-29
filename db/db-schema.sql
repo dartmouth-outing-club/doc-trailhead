@@ -65,6 +65,7 @@ CREATE TABLE vehiclerequests (
   request_type TEXT,
   is_approved INTEGER
 ) STRICT;
+CREATE INDEX idx_trip ON vehiclerequests (trip);
 
 CREATE TABLE club_leaders (
   user INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
