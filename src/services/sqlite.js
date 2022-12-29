@@ -592,18 +592,19 @@ export function resetTripVehicleStatus (id) {
 }
 
 export function markTripVehicleAssignmentsPickedUp (tripId) {
-  const vehicleRequestId = getVehicleRequestByTripId(tripId)
+  const vehicleRequest = getVehicleRequestByTripId(tripId)
+  if (!vehicleRequest) return undefined
   return db
     .prepare('UPDATE assignments SET picked_up = true WHERE vehiclerequest = ?')
-    .run(vehicleRequestId)
+    .run(vehicleRequest.id)
 }
 
 export function markTripVehicleAssignmentsReturned (tripId) {
-  const vehicleRequestId = getVehicleRequestByTripId(tripId)
-  if (!vehicleRequestId) return undefined
+  const vehicleRequest = getVehicleRequestByTripId(tripId)
+  if (!vehicleRequest) return undefined
   return db
     .prepare('UPDATE assignments SET returned = true WHERE vehiclerequest = ?')
-    .run(vehicleRequestId)
+    .run(vehicleRequest.id)
 }
 
 export function markOldTripsAsPast () {
