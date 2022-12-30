@@ -18,8 +18,8 @@ app.use(cors())
 // enable/disable http request logging
 app.use(morgan('dev'))
 
-// enable only if you want static assets from folder static
-app.use(express.static('static'))
+// enable static assets (new frontend) only on development mode
+if (process.env.NODE_ENV === 'development') app.use(express.static('static'))
 
 // enable json message body for posting data to API
 app.use(bodyParser.urlencoded({ extended: true }))

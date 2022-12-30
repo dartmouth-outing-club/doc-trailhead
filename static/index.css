@@ -1,0 +1,94 @@
+@font-face {
+  font-family: 'Nunito Sans';
+  font-style: normal;
+  src: url('/fonts/NunitoSans-Regular.ttf') format('truetype');
+}
+
+html {
+  background-image: url('/images/background-no-brand.svg');
+  background-size: cover;
+  font-family: 'Nunito Sans', 'Open Sans', sans-serif;
+  height: 100vh;
+  width: 100vw;
+}
+
+section {
+  text-align: center;
+}
+
+h1 {
+  font-size: 3em;
+}
+
+h2 {
+  font-size: 2em;
+  color: rgb(3, 55, 36);
+}
+
+hr {
+  color: gray;
+}
+
+.login-card, .trip-card {
+  background-color: white;
+  border-radius: 10px;
+  margin: 25px;
+  padding: 25px;
+}
+
+.login-card p {
+  font-size: 1.1em;
+}
+
+.login-card img {
+  width: 100px;
+}
+
+.login-card form button {
+  appearance: button;
+  background-color: #0CA074;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: white;
+  padding: 0.7em;
+}
+
+.trip-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.trip-card img {
+  opacity: 0.07;
+  transform: rotate(28.1187deg);
+  height: 200px;
+  width: 200px;
+  right: -40px;
+  top: 0px;
+  position: absolute;
+  z-index: 1;
+}
+
+@media screen and (min-width: 800px) {
+  body {
+    display: flex;
+    flex-direction: row-reverse;
+  }
+
+  #login {
+    align-self: center;
+    flex: 1 1 0;
+  }
+
+  #up-next {
+    flex: 2 1 0;
+  }
+
+  .trip-card {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
