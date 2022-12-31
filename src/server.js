@@ -8,6 +8,7 @@ import * as constants from './constants.js'
 import * as db from './services/sqlite.js'
 import * as mailer from './services/mailer.js'
 import apiRouter from './router.js'
+import restRouter from './rest-router.js'
 
 process.env.TZ = 'America/New_York'
 
@@ -26,6 +27,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
 app.use('/', apiRouter)
+app.use('/rest', restRouter)
 app.use(handleError)
 
 // Open database connection

@@ -17,29 +17,10 @@ publish your own trips as a leader. See you in the out o’ doors!
 
 <section id=up-next>
 <h1>Up Next</h1>
-<div class=trip-card>
-  <img src="/icons/doc.png">
-  <h2>Dartmouth Skiway</h2>
-  <hr/>
-  <div>
-    <h3>Club Ski Preseason Day 1</h3>
-    <p>
-    <time datetime="2023-01-02">Mon, 1/2 7:30 AM</time> -
-    <time datetime="2023-01-02">Mon, 1/2 4:00 PM</time>
-    </p>
-  </div>
-</div>
-
-<div class=trip-card>
-  <img src="/icons/doc.png">
-  <h2>Dartmouth Skiway</h2>
-  <hr/>
-  <div>
-    <h3>Club Ski Preseason Day 2</h3>
-    <p>
-    <time datetime="2023-01-03">Mon, 1/3 7:30 AM</time> -
-    <time datetime="2023-01-03">Mon, 1/3 4:00 PM</time>
-  </div>
-  </p>
-</div>
 </section>
+
+<script>
+fetch('/rest/index')
+  .then(res => res.text())
+  .then(html => { document.getElementById('up-next').insertAdjacentHTML('beforeend', html) })
+</script>

@@ -40,6 +40,9 @@ export function start (name) {
   console.log(`Starting sqlite database from file: ${getDatabaseFile()}`)
 }
 
+// Return the DB so that rest modules can interact with it directly
+export const getDb = () => db
+
 export const getDatabaseFile = () => db.pragma('database_list')[0].file
 
 export function stop () {
