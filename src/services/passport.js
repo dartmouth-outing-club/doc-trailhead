@@ -21,7 +21,7 @@ export function signinCAS (req, res, next) {
       res.redirect(`${constants.frontendURL}?token=${Users.tokenForUser(insertedId, 'normal')}&userId=${insertedId}&new?=yes`)
     } else {
       console.log(`Logging in user ${casId}`)
-      res.redirect(`${constants.frontendURL}?token=${Users.tokenForUser(user._id, 'normal')}&userId=${casId}`)
+      res.redirect(`${constants.frontendURL}?token=${Users.tokenForUser(user.id, 'normal')}&userId=${casId}`)
     }
   })(req, res, next)
 }
