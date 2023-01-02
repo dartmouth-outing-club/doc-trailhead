@@ -27,7 +27,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
 app.use('/', apiRouter)
-app.use('/rest', restRouter)
+if (process.env.NODE_ENV === 'development') app.use('/rest', restRouter)
 app.use(handleError)
 
 // Open database connection

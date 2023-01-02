@@ -18,10 +18,18 @@ export function signinCAS (req, res, next) {
     if (!user) {
       const insertedId = db.insertUser(casId)
       console.log(`Created new user ${insertedId} for ${casId}`)
-      res.redirect(`${constants.frontendURL}?token=${Users.tokenForUser(insertedId, 'normal')}&userId=${insertedId}&new?=yes`)
+      if (process.env.NODE_ENV === 'development') {
+        return res.redirect('/home.html')
+      } else {
+        return res.redirect(`${constants.frontendURL}?token=${Users.tokenForUser(insertedId, 'normal')}&userId=${insertedId}&new?=yes`)
+      }
     } else {
       console.log(`Logging in user ${casId}`)
-      res.redirect(`${constants.frontendURL}?token=${Users.tokenForUser(user.id, 'normal')}&userId=${casId}`)
+      if (process.env.NODE_ENV === 'development') {
+        return res.redirect('/home.html')
+      } else {
+        return res.redirect(`${constants.frontendURL}?token=${Users.tokenForUser(user.id, 'normal')}&userId=${casId}`)
+      }
     }
   })(req, res, next)
 }

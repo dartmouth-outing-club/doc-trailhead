@@ -2,7 +2,6 @@ import * as sqlite from '../services/sqlite.js'
 import { escapeProperties } from '../templates.js'
 
 function getIcon (clubName) {
-  console.log(clubName)
   switch (clubName) {
     case 'OPO':
       return '/icons/opo.jpg'

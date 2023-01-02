@@ -15,7 +15,10 @@ const router = Router()
 
 router.get('/sign-s3', signS3)
 
-router.get('/', (_req, res) => {
+router.get('/', (req, res) => {
+  if (process.env.NODE_ENV === 'development') {
+    return req.user ? res.redirect('/home.html') : res.redirect('/')
+  }
   res.json({ message: 'welcome to our doc app!' })
 })
 
