@@ -1,0 +1,43 @@
+@font-face {
+  font-family: 'Nunito Sans';
+  font-style: normal;
+  src: url('/fonts/NunitoSans-Regular.ttf') format('truetype');
+}
+
+html {
+  font-family: 'Nunito Sans', 'Open Sans', sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+.site-nav {
+  background-image: url('/images/nav-background.svg');
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.site-nav ul {
+  margin: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  list-style: none;
+}
+
+.site-nav li {
+  padding: 20px 15px;
+}
+
+.site-nav li:hover > a, .site-nav li.selected > a {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+}
+
+.site-nav a {
+  text-decoration: none;
+  color: white;
+}
+

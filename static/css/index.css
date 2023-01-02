@@ -1,13 +1,6 @@
-@font-face {
-  font-family: 'Nunito Sans';
-  font-style: normal;
-  src: url('/fonts/NunitoSans-Regular.ttf') format('truetype');
-}
-
 body {
   background-image: url('/images/background-no-brand.svg');
   background-size: cover;
-  font-family: 'Nunito Sans', 'Open Sans', sans-serif;
   min-height: 100vh;
   width: 100vw;
 }
