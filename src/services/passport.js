@@ -9,6 +9,16 @@ import * as db from '../services/sqlite.js'
 import * as constants from '../constants.js'
 import * as Users from '../controllers/user-controller.js'
 
+function getRedirectUrl (userId, casId, isNew) {
+  if (process.env.NODE_ENV === 'development') {
+    const user = db.getUserById(userId)
+    return user.is_opo === 1 ? '/opo-home.html' : '/home.html'
+  }
+
+  const token = Users.tokenForUser(userId, 'normal')
+  return `${constants.frontendURL}?token=${token}&userId=${casId}&new?=${isNew ? 'yes' : 'no'}`
+}
+
 export function signinCAS (req, res, next) {
   passport.authenticate('cas', async (error, casId) => {
     if (error) { return error }
@@ -18,18 +28,10 @@ export function signinCAS (req, res, next) {
     if (!user) {
       const insertedId = db.insertUser(casId)
       console.log(`Created new user ${insertedId} for ${casId}`)
-      if (process.env.NODE_ENV === 'development') {
-        return res.redirect('/home.html')
-      } else {
-        return res.redirect(`${constants.frontendURL}?token=${Users.tokenForUser(insertedId, 'normal')}&userId=${insertedId}&new?=yes`)
-      }
+      return res.redirect(getRedirectUrl(insertedId, casId, true))
     } else {
       console.log(`Logging in user ${casId}`)
-      if (process.env.NODE_ENV === 'development') {
-        return res.redirect('/home.html')
-      } else {
-        return res.redirect(`${constants.frontendURL}?token=${Users.tokenForUser(user.id, 'normal')}&userId=${casId}`)
-      }
+      return res.redirect(getRedirectUrl(user.id, casId, false))
     }
   })(req, res, next)
 }
