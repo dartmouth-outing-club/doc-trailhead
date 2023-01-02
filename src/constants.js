@@ -32,3 +32,11 @@ export function formatDateAndTime (date, mode) {
     return dateFormat(date, 'm/d/yy, h:MM TT')
   }
 }
+
+export function getTimeElement (unixTime) {
+  const date = new Date(unixTime)
+  const minutes = date.getMinutes()
+  const dateString = `${date.getMonth() + 1}/${date.getDate()}`
+  const timeString = `${date.getHours()}:${minutes < 10 ? '0' + minutes : minutes}`
+  return `<time datetime="${date.toISOString()}">${dateString} ${timeString}</time>`
+}

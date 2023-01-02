@@ -1,4 +1,5 @@
 import * as sqlite from '../services/sqlite.js'
+import * as constants from '../constants.js'
 import { escapeProperties } from '../templates.js'
 
 function getIcon (clubName) {
@@ -30,14 +31,6 @@ function getIcon (clubName) {
   }
 }
 
-function getTimeElement (unixTime) {
-  const date = new Date(unixTime)
-  const minutes = date.getMinutes()
-  const dateString = `${date.getMonth() + 1}/${date.getDate()}`
-  const timeString = `${date.getHours()}:${minutes < 10 ? '0' + minutes : minutes}`
-  return `<time datetime="${date.toISOString()}">${dateString} ${timeString}</time>`
-}
-
 export function get (_req, res) {
   const now = new Date()
   const publicTrips = sqlite.getDb().prepare(`
@@ -60,8 +53,8 @@ export function get (_req, res) {
   <div>
     <h3>${trip.location}</h3>
     <p>
-    ${getTimeElement(trip.start_time)} -
-    ${getTimeElement(trip.end_time)}
+    ${constants.getTimeElement(trip.start_time)} -
+    ${constants.getTimeElement(trip.end_time)}
     </p>
   </div>
 </div>

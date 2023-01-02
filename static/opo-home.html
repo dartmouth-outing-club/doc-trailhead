@@ -35,23 +35,19 @@
   <th>Trip</th>
   <th>Start Time</th>
   <th>Subclub</th>
-  <th>Leader</th>
-  <th>Gear</th>
+  <th>Owner</th>
+  <th>Group Gear</th>
   <th>Vehicles</th>
   <th>P-Card</th>
-</tr>
-
-<tr>
-  <td>Mountaineering Skills PE</td>
-  <td>Sat, 1,28 @9AM EST</td>
-  <td>OPO</td>
-  <td>Robert D Caldwell</td>
-  <td>N/A</td>
-  <td><img class="badge" alt="Green badge with checkmark icon" src="/icons/pending-badge.svg"></td>
-  <td><img class="badge" alt="Yellow badge with clock icon" src="/icons/approved-badge.svg"></td>
 </tr>
 
 </table>
 </section>
 
 </main>
+
+<script>
+fetch('/rest/opo/pending-trips')
+  .then(res => res.text())
+  .then(html => { document.querySelector('tbody').insertAdjacentHTML('beforeend', html) })
+</script>

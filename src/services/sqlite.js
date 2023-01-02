@@ -1219,3 +1219,16 @@ export function getTripLeaderEmails (tripId) {
   `).all(tripId)
     .map(user => user.email)
 }
+
+/**
+ * REST functions
+ */
+export function getTripLeaderNames (tripId) {
+  return db.prepare(`
+  SELECT name
+  FROM users
+  LEFT JOIN trip_members ON user = users.id
+  WHERE leader = true AND trip = ?
+  `).all(tripId)
+    .map(user => user.name).join(', ')
+}

@@ -70,17 +70,17 @@ th, td {
   padding: 10px 0px;
 }
 
-tr:hover {
+tr:not(:first-child):hover {
   background-color: rgba(0,0,0,.075);
 }
 
-tr:first-child th {
-  border-bottom-color: black; /* Changing the border color keeps the box from shifting on hover */
+tr th {
+  border-bottom-color: black;
   border-bottom-style: solid;
   border-bottom-width: 2px;
 }
 
-tr:not:last-child td {
+tr:not(:last-child) td {
   border-bottom-color: #535658;
   border-bottom-style: solid;
   border-bottom-width: 1px;
