@@ -25,12 +25,10 @@
 </nav>
 
 <main>
-<h1>Trip Approvals</h1>
 
-<section class="info-card">
-<h2>Pending Trips</h2>
+<section class="pending info-card">
+<h1>Pending Trips</h1>
 <table>
-
 <tr>
   <th>Trip</th>
   <th>Start Time</th>
@@ -40,7 +38,21 @@
   <th>Vehicles</th>
   <th>P-Card</th>
 </tr>
+</table>
+</section>
 
+<section class="past info-card">
+<h1>Reviewed & Past Trips</h1>
+<table>
+<tr>
+  <th>Trip</th>
+  <th>Start Time</th>
+  <th>Subclub</th>
+  <th>Owner</th>
+  <th>Group Gear</th>
+  <th>Vehicles</th>
+  <th>P-Card</th>
+</tr>
 </table>
 </section>
 
@@ -49,5 +61,9 @@
 <script>
 fetch('/rest/opo/pending-trips')
   .then(res => res.text())
-  .then(html => { document.querySelector('tbody').insertAdjacentHTML('beforeend', html) })
+  .then(html => { document.querySelector('.pending tbody').insertAdjacentHTML('beforeend', html) })
+
+fetch('/rest/opo/pending-trips?show_past=true')
+  .then(res => res.text())
+  .then(html => { document.querySelector('.past tbody').insertAdjacentHTML('beforeend', html) })
 </script>

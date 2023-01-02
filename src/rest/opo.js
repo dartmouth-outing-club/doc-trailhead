@@ -3,9 +3,8 @@ import * as sqlite from '../services/sqlite.js'
 import { escapeProperties } from '../templates.js'
 import { getBadgeImgElement } from '../utils.js'
 
-export function getTripsPendingApproval (_req, res) {
-  const now = new Date()
-  const trips = sqlite.getDb().prepare(`
+const _30_DAYS_IN_MS = 2592000000
+const OPO_TRIPS_QUERY = `
     SELECT trips.id,
       title,
       location,
@@ -31,10 +30,9 @@ export function getTripsPendingApproval (_req, res) {
     LEFT JOIN vehiclerequests AS vr ON vr.trip = trips.id
     LEFT JOIN (SELECT trip, count(*) as count FROM group_gear_requests GROUP BY trip) AS gg
       ON gg.trip = trips.id
-    WHERE start_time > ?
-    ORDER BY start_time ASC
-  `).all(now.getTime())
+`
 
+function convertTripsToTable (trips) {
   const rows = trips
     .map(escapeProperties)
     .map(trip => {
@@ -51,5 +49,31 @@ export function getTripsPendingApproval (_req, res) {
 `
     }).join('')
 
+  return rows
+}
+
+export function getTripsPendingApproval (req, res) {
+  const now = new Date()
+  let trips
+  if (req.query.show_past === 'true') {
+    const timeWindow = new Date(now.getTime() - _30_DAYS_IN_MS)
+    // Show old trips that needed reviews (even if you didn't) and upcoming trips that were reviewed
+    trips = sqlite.getDb().prepare(`
+      ${OPO_TRIPS_QUERY}
+      WHERE start_time > @low_time
+       AND (
+        (start_time < @high_time AND (gg_status != 'N/A' OR pc_status != 'N/A' OR vr_status != 'N/A')) OR
+        (start_time > @high_time AND (gg_status != 'pending' AND pc_status != 'pending' AND vr_status != 'pending')))
+      ORDER BY start_time DESC
+    `).all({ low_time: timeWindow.getTime(), high_time: now.getTime() })
+  } else {
+    trips = sqlite.getDb().prepare(`
+    ${OPO_TRIPS_QUERY}
+    WHERE start_time > ?
+    ORDER BY start_time ASC
+  `).all(now.getTime())
+  }
+
+  const rows = convertTripsToTable(trips)
   res.send(rows).status(200)
 }

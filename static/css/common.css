@@ -28,6 +28,10 @@ h1, h2 {
   font-weight: normal;
 }
 
+h1 {
+  font-size: 2em;
+}
+
 .site-nav {
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
   background-image: url('/images/nav-background.svg');

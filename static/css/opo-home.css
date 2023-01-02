@@ -56,6 +56,7 @@ img.badge {
 .info-card {
   max-width: 2000px;
   padding: 10px 20px 10px 20px;
+  margin-bottom: 70px;
 }
 
 table {
@@ -67,6 +68,7 @@ table {
 }
 
 th, td {
+  min-width: 105px;
   padding: 10px 0px;
 }
 
