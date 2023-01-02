@@ -4,6 +4,12 @@
   src: url('/fonts/NunitoSans-Regular.ttf') format('truetype');
 }
 
+@font-face {
+  font-family: 'Nunito Sans Bold';
+  font-style: normal;
+  src: url('/fonts/NunitoSans-Bold.ttf') format('truetype');
+}
+
 html {
   font-family: 'Nunito Sans', 'Open Sans', sans-serif;
 }
@@ -12,10 +18,20 @@ body {
   margin: 0;
 }
 
+main {
+  padding: 20px;
+}
+
+h1, h2 {
+  color: rgb(3, 55, 36);
+  font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
+  font-weight: normal;
+}
+
 .site-nav {
+  font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
   background-image: url('/images/nav-background.svg');
   font-size: 1.2em;
-  font-weight: bold;
 }
 
 .site-nav ul {
@@ -39,5 +55,11 @@ body {
 .site-nav a {
   text-decoration: none;
   color: white;
+}
+
+.info-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 5px 5px 20px rgba(0,0,0,.25);
 }
 

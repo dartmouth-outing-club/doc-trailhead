@@ -1,10 +1,11 @@
 body {
-  background-color: rgb(237, 237, 237)
+  background-color: rgb(237, 237, 237);
 }
 
 .opo-nav {
   background-color: white;
   box-shadow: 5px 5px 20px rgba(0,0,0,.25);
+  font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
 }
 
 .opo-nav ul {
@@ -35,7 +36,6 @@ body {
 
 .opo-nav a {
   font-size: 1.2em;
-  font-weight: bold;
   text-decoration: none;
   color: black;
 }
@@ -48,3 +48,40 @@ body {
   color: #0ca074;
 }
 
+img.badge {
+  height: 36px;
+  width: 36px;
+}
+
+.info-card {
+  max-width: 2000px;
+  padding: 10px 20px 10px 20px;
+}
+
+table {
+  border-collapse: collapse;
+  overflow-x: scroll;
+  /* min-width: 1200px; */
+  width: 100%;
+  text-align: center;
+}
+
+th, td {
+  padding: 10px 0px;
+}
+
+tr:hover {
+  background-color: rgba(0,0,0,.075);
+}
+
+tr:first-child th {
+  border-bottom-color: black; /* Changing the border color keeps the box from shifting on hover */
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+}
+
+tr:not:last-child td {
+  border-bottom-color: #535658;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
