@@ -3,22 +3,7 @@ import * as sqlite from '../services/sqlite.js'
 import { escapeProperties } from '../templates.js'
 import { getBadgeImgElement } from '../utils.js'
 
-function getGroupGearRequestsBadge (tripId) {
-  const group_gear_status = sqlite.getDb().prepare(`
-    SELECT iif(group_gear_approved IS NULL,
-               iif(count IS NULL, 'N/A', 'pending'),
-               iif(group_gear_approved = 1, 'approved', 'denied')) as status
-    FROM trips
-    LEFT JOIN (
-      SELECT trip, count(*) as count
-      FROM group_gear_requests
-      GROUP BY trip)
-    ON trip = id where id = ?
-    `).get(tripId)?.status
-  return getBadgeImgElement(group_gear_status)
-}
-
-export function getTripsPendingApproval (req, res) {
+export function getTripsPendingApproval (_req, res) {
   const now = new Date()
   const trips = sqlite.getDb().prepare(`
     SELECT trips.id,
@@ -35,15 +20,19 @@ export function getTripsPendingApproval (req, res) {
       iif(pc.rowid IS NULL,
         'N/A',
         iif(pc.is_approved IS NULL, 'pending', iif(pc.is_approved = 0, 'denied', 'approved'))
-      ) AS pc_status
+      ) AS pc_status,
+    iif(trips.group_gear_approved IS NULL,
+      iif(gg.count IS NULL, 'N/A', 'pending'),
+      iif(trips.group_gear_approved = 1, 'approved', 'denied')) as gg_status
     FROM trips
     LEFT JOIN users on trips.owner = users.id
     LEFT JOIN clubs ON trips.club = clubs.id
     LEFT JOIN trip_pcard_requests AS pc ON pc.trip = trips.id
     LEFT JOIN vehiclerequests AS vr ON vr.trip = trips.id
-    WHERE start_time > ? AND private = 0
+    LEFT JOIN (SELECT trip, count(*) as count FROM group_gear_requests GROUP BY trip) AS gg
+      ON gg.trip = trips.id
+    WHERE start_time > ?
     ORDER BY start_time ASC
-    LIMIT 5
   `).all(now.getTime())
 
   const rows = trips
@@ -55,7 +44,7 @@ export function getTripsPendingApproval (req, res) {
 <td>${constants.getTimeElement(trip.start_time)}
 <td>${trip.club}
 <td>${trip.owner}
-<td>${getGroupGearRequestsBadge(trip.id)}
+<td>${getBadgeImgElement(trip.gg_status)}
 <td>${getBadgeImgElement(trip.vr_status)}
 <td>${getBadgeImgElement(trip.pc_status)}
 </tr>
