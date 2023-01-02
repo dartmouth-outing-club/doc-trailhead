@@ -30,7 +30,7 @@ export async function handleGetTrips (req, res) {
  */
 export async function handleGetOpoTrips (req, res) {
   const getPastTrips = req.query.getOldTrips !== 'false'
-  const allTrips = db.getAllTrips(getPastTrips)
+  const allTrips = db.getAllTrips(getPastTrips, true)
 
   const filteredTrips = allTrips.filter(trip => {
     const { trippeeGearStatus, gearStatus, pcardStatus, vehicleStatus } = trip
