@@ -89,3 +89,8 @@ tr:not(:last-child) td {
   border-bottom-style: solid;
   border-bottom-width: 1px;
 }
+
+tr.htmx-swapping td {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+}
