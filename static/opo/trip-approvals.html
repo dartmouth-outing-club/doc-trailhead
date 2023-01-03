@@ -4,23 +4,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="/css/common.css">
 <link rel="stylesheet" href="/css/opo.css">
+<script src="https://unpkg.com/htmx.org@1.8.4"></script>
 
 <nav class=site-nav>
 <ul>
-  <li class="selected"><a href="/opo/trip-approvals.html">Approvals</a></li>
-  <li><a href="/calendar.html">Calendar</a></li>
-  <li><a href="/manage-fleet.html">Fleet</a></li>
-  <li><a href="/all-trips.html">All Trips</a></li>
-  <li><a href="/my-trips.html">My Trips</a></li>
-  <li><a href="/profile.html">Profile</a></li>
+  <li class="selected"><a href="/opo/trip-approvals.html">Approvals</a>
+  <li><a href="/calendar.html">Calendar</a>
+  <li><a href="/manage-fleet.html">Fleet</a>
+  <li><a href="/all-trips.html">All Trips</a>
+  <li><a href="/my-trips.html">My Trips</a>
+  <li><a href="/profile.html">Profile</a>
 </ul>
 </nav>
 
 <nav class=opo-nav>
 <ul>
-  <li class="selected"><img src="/icons/trip-icon.svg"><a href="/opo/trip-approvals.html">Trip Approvals</a></li>
-  <li><img src="/icons/vehicle-icon.svg"><a href="/opo/vehicle-requests.html">Vehicle Requests</a></li>
-  <li><img src="/icons/cert-icon.svg"><a href="/opo/profile-approvals.html">Profile Approvals</a></li>
+  <li class="selected"><img src="/icons/trip-icon.svg"><a href="/opo/trip-approvals.html">Trip Approvals</a>
+  <li><img src="/icons/vehicle-icon.svg"><a href="/opo/vehicle-requests.html">Vehicle Requests</a>
+  <li><img src="/icons/cert-icon.svg"><a href="/opo/profile-approvals.html">Profile Approvals</a>
 </ul>
 </nav>
 
@@ -29,7 +30,7 @@
 <section class="pending info-card">
 <h1>Pending Trips</h1>
 <table>
-<tr>
+<thead><tr>
   <th>Trip</th>
   <th>Start Time</th>
   <th>Subclub</th>
@@ -37,14 +38,15 @@
   <th>Group Gear</th>
   <th>Vehicles</th>
   <th>P-Card</th>
-</tr>
+</tr></thead>
+<tbody hx-get="/rest/opo/trip-approvals" hx-trigger="load" hx-swap="innerHTML">
 </table>
 </section>
 
 <section class="past info-card">
 <h1>Reviewed & Past Trips</h1>
 <table>
-<tr>
+<thead><tr>
   <th>Trip</th>
   <th>Start Time</th>
   <th>Subclub</th>
@@ -52,18 +54,10 @@
   <th>Group Gear</th>
   <th>Vehicles</th>
   <th>P-Card</th>
-</tr>
+</tr></thead>
+<tbody hx-get="/rest/opo/trip-approvals?show_past=true" hx-trigger="load" hx-swap="innerHTML">
 </table>
 </section>
 
 </main>
 
-<script>
-fetch('/rest/opo/trip-approvals')
-  .then(res => res.text())
-  .then(html => { document.querySelector('.pending tbody').insertAdjacentHTML('beforeend', html) })
-
-fetch('/rest/opo/trip-approvals?show_past=true')
-  .then(res => res.text())
-  .then(html => { document.querySelector('.past tbody').insertAdjacentHTML('beforeend', html) })
-</script>

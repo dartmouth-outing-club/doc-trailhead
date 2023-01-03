@@ -74,7 +74,7 @@ th, td {
   padding: 10px 0px;
 }
 
-tr:not(:first-child):hover {
+tbody tr:hover {
   background-color: rgba(0,0,0,.075);
 }
 

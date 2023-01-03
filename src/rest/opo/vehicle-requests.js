@@ -1,0 +1,51 @@
+import * as constants from '../../constants.js'
+import * as sqlite from '../../services/sqlite.js'
+import { escapeProperties } from '../../templates.js'
+import { getBadgeImgElement } from '../../utils.js'
+
+function getVehicleRequests (showReviewed) {
+  const now = new Date()
+  return sqlite.getDb().prepare(`
+    SELECT
+      users.name as requester_name,
+      iif(trips.id IS NOT NULL, trips.title, request_details) as reason,
+      first_pickup,
+      last_return,
+      iif(is_approved IS NULL, 'pending', iif(is_approved = 1, 'approved', 'denied')) as status
+    FROM vehiclerequests
+    LEFT JOIN (
+      SELECT vehiclerequest, min(pickup_time) AS first_pickup, max(return_time) AS last_return
+      FROM requested_vehicles
+      GROUP BY vehiclerequest
+    ) ON vehiclerequest = vehiclerequests.id
+    LEFT JOIN users ON users.id = vehiclerequests.requester
+    LEFT JOIN trips ON trips.id = vehiclerequests.trip
+    WHERE last_return > ? AND is_approved ${showReviewed ? 'IS NOT' : 'IS'} NULL
+    ORDER BY first_pickup ASC
+`).all(now.getTime())
+}
+
+function convertRequestsToTable (trips, showStatus) {
+  const rows = trips
+    .map(escapeProperties)
+    .map(request => {
+      return `
+<tr>
+<td>${request.requester_name}
+<td>${request.reason}
+<td>${constants.getTimeElement(request.first_pickup)}
+<td>${constants.getTimeElement(request.last_return)}
+${showStatus ? `<td>${getBadgeImgElement(request.status)}` : ''}
+</tr>
+`
+    }).join('')
+
+  return rows
+}
+
+export function get (req, res) {
+  const showReviewed = req.query.show_reviewed === 'true'
+  const trips = getVehicleRequests(showReviewed)
+  const rows = convertRequestsToTable(trips, showReviewed)
+  res.send(rows).status(200)
+}

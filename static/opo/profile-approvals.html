@@ -20,27 +20,26 @@
 <nav class=opo-nav>
 <ul>
   <li><img src="/icons/trip-icon.svg"><a href="/opo/trip-approvals.html">Trip Approvals</a></li>
-  <li class="selected"><img src="/icons/vehicle-icon.svg"><a href="/opo/vehicle-requests.html">Vehicle Requests</a></li>
-  <li><img src="/icons/cert-icon.svg"><a href="/opo/profile-approvals.html">Profile Approvals</a></li>
+  <li><img src="/icons/vehicle-icon.svg"><a href="/opo/vehicle-requests.html">Vehicle Requests</a></li>
+  <li class="selected"><img src="/icons/cert-icon.svg"><a href="/opo/profile-approvals.html">Profile Approvals</a></li>
 </ul>
 </nav>
 
 <main>
 
-<section class="pending info-card">
-<h1>Pending Vehicle Requests</h1>
+<section class="leaders info-card">
+<h1>Leadership requests</h1>
 <table>
-<thead><tr><th>Requester<th>Reason<th>Pickup<th>Return
-<tbody hx-get="/rest/opo/vehicle-requests" hx-trigger="load" hx-swap="innerHTML">
+<thead><tr><th>Person<th>Request<th>Action</tr></thead>
+<tbody hx-get="/rest/opo/profile-approvals/leaders" hx-trigger="load" hx-swap="innerHTML">
 </table>
 </section>
 
-<section class="reviewed info-card">
-<h1>Reviewed Vehicle Requests</h1>
+<section class="certs info-card">
+<h1>Vehicle certification requests</h1>
 <table>
-<thead><tr><th>Requester<th>Reason<th>Pickup<th>Return<th>Status
-<tbody hx-get="/rest/opo/vehicle-requests?show_reviewed=true" hx-trigger="load" hx-swap="innerHTML">
-</tr>
+<thead><tr><th>Person<th>Request<th>Action</tr></thead>
+<tbody hx-get="/rest/opo/profile-approvals/certs" hx-trigger="load" hx-swap="innerHTML">
 </table>
 </section>
 
