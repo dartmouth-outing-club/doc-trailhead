@@ -1,7 +1,7 @@
-import * as constants from '../constants.js'
-import * as sqlite from '../services/sqlite.js'
-import { escapeProperties } from '../templates.js'
-import { getBadgeImgElement } from '../utils.js'
+import * as constants from '../../constants.js'
+import * as sqlite from '../../services/sqlite.js'
+import { escapeProperties } from '../../templates.js'
+import { getBadgeImgElement } from '../../utils.js'
 
 const _30_DAYS_IN_MS = 2592000000
 const OPO_TRIPS_QUERY = `
@@ -52,7 +52,7 @@ function convertTripsToTable (trips) {
   return rows
 }
 
-export function getTripsPendingApproval (req, res) {
+export function get (req, res) {
   const now = new Date()
   let trips
   if (req.query.show_past === 'true') {

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang=en>
+<title>Home - DOC Trailhead</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/css/common.css">
+<link rel="stylesheet" href="/css/opo.css">
+
+<nav class=site-nav>
+<ul>
+  <li class="selected"><a href="/opo/trip-approvals.html">Approvals</a></li>
+  <li><a href="/calendar.html">Calendar</a></li>
+  <li><a href="/manage-fleet.html">Fleet</a></li>
+  <li><a href="/all-trips.html">All Trips</a></li>
+  <li><a href="/my-trips.html">My Trips</a></li>
+  <li><a href="/profile.html">Profile</a></li>
+</ul>
+</nav>
+
+<nav class=opo-nav>
+<ul>
+  <li><img src="/icons/trip-icon.svg"><a href="/opo/trip-approvals.html">Trip Approvals</a></li>
+  <li class="selected"><img src="/icons/vehicle-icon.svg"><a href="/opo/vehicle-requests.html">Vehicle Requests</a></li>
+  <li><img src="/icons/cert-icon.svg"><a href="/opo/profile-approvals.html">Profile Approvals</a></li>
+</ul>
+</nav>
+
+<main>
+
+<section class="pending info-card">
+<h1>Pending Vehicle Requests</h1>
+<table>
+<tr>
+  <th>Requester</th>
+  <th>Reason</th>
+  <th>Pickup</th>
+  <th>Return</th>
+</tr>
+</table>
+</section>
+
+<section class="reviewed info-card">
+<h1>Reviewed Vehicle Requests</h1>
+<table>
+<tr>
+  <th>Requester</th>
+  <th>Reason</th>
+  <th>Pickup</th>
+  <th>Return</th>
+  <th>Status</th>
+</tr>
+</table>
+</section>
+
+</main>
+
+<script>
+fetch('/rest/opo/vehicle-requests')
+  .then(res => res.text())
+  .then(html => { document.querySelector('.pending tbody').insertAdjacentHTML('beforeend', html) })
+
+fetch('/rest/opo/vehicle-requests?show_reviewed=true')
+  .then(res => res.text())
+  .then(html => { document.querySelector('.reviewed tbody').insertAdjacentHTML('beforeend', html) })
+</script>
+

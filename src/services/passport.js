@@ -12,7 +12,7 @@ import * as Users from '../controllers/user-controller.js'
 function getRedirectUrl (userId, casId, isNew) {
   if (process.env.NODE_ENV === 'development') {
     const user = db.getUserById(userId)
-    return user.is_opo === 1 ? '/opo-home.html' : '/home.html'
+    return user.is_opo === 1 ? '/opo/trip-approvals.html' : '/home.html'
   }
 
   const token = Users.tokenForUser(userId, 'normal')
