@@ -524,10 +524,22 @@ export function getVehicleRequestByTripId (tripId) {
 }
 
 export function getUserVehicleRequests (userId) {
-  return db.prepare('SELECT id FROM vehiclerequests WHERE requester = ?')
-    .all(userId)
+  const now = new Date()
+  const yesterday = subtract(now, 1, 'day')
+  const res = db.prepare(`
+      SELECT id
+      FROM vehiclerequests
+      LEFT JOIN (
+        SELECT vehiclerequest, count(type) AS num_vehicles, max(return_time) AS last_return
+        FROM requested_vehicles
+        GROUP BY vehiclerequest
+      ) ON vehiclerequest = id
+      WHERE requester = ? AND last_return > ?
+    `)
+    .all(userId, yesterday.getTime())
     .map(request => getVehicleRequestById(request.id))
-    .map(request => ({ ...request, trip: getTripById(request.trip) }))
+    .map(request => ({ ...request, associatedTrip: getTripById(request.trip) }))
+  return res
 }
 
 export function insertVehicleRequest (vehicleRequest, requestedVehicles) {
@@ -1152,11 +1164,14 @@ function replaceTripPcardRequest (tripId, pcard_request) {
 }
 
 export function getUserTrips (userId) {
+  const now = new Date()
+  const yesterday = subtract(now, 1, 'day')
   const trips = db.prepare(`
   SELECT trip
   FROM trip_members
-  WHERE user = ?
-  `).all(userId)
+  LEFT JOIN trips on trip_members.trip = trips.id
+  WHERE user = ? AND end_time > ?
+  `).all(userId, yesterday.getTime())
 
   return trips.map(item => getTripById(item.trip))
 }
