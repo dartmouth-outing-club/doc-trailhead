@@ -334,7 +334,7 @@ export function getLeadersPendingApproval () {
 }
 
 export function requestDriverCert (userId, cert) {
-  if (cert !== 'VAN' || cert !== 'MICROBUS') throw new Error(`Invalid cert ${cert} provided`)
+  if (cert !== 'VAN' && cert !== 'MICROBUS') throw new Error(`Invalid cert ${cert} provided`)
   db.prepare(`
   INSERT OR REPLACE into user_certs
     (user, cert, is_approved)
