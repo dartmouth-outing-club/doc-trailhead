@@ -125,8 +125,8 @@ export async function sendTripDeletedEmail (trip, ownerEmail, trippeeEmails, rea
 export async function sendVehicleRequestCreatedEmail (vehicleRequest, recipients) {
   const email = {
     address: recipients,
-    subject: `New V-Req #${vehicleRequest.number} created`,
-    message: `Hello,\n\nYou've created a new vehicle request, V-Req #${vehicleRequest.number}: ${vehicleRequest.requestDetails}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest.id}\n\nThis request is not associated with any trip.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    subject: `New V-Req #${vehicleRequest.id} created`,
+    message: `Hello,\n\nYou've created a new vehicle request, V-Req #${vehicleRequest.id}: ${vehicleRequest.requestDetails}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest.id}\n\nThis request is not associated with any trip.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   send(email, 'Vehicle Request Created Email')
@@ -154,7 +154,7 @@ export async function sendVehicleRequestProcessedEmail (vehicleRequest, emails) 
   const email = {
     address: emails,
     subject: 'V-Req Update: Important changes to your vehicle request',
-    message: `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been processed (or changed) by OPO staff. It may have been approved at your requested time, or at a different time assigned by OPO. Therefore, it is important for you to review the V-Req: ${constants.frontendURL}/vehicle-request/${vehicleRequest.id}.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello,\n\nYour [V-Req #${vehicleRequest.id}] has been processed (or changed) by OPO staff. It may have been approved at your requested time, or at a different time assigned by OPO. Therefore, it is important for you to review the V-Req: ${constants.frontendURL}/vehicle-request/${vehicleRequest.id}.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   send(email, 'Vehicle Request Processed')
@@ -164,7 +164,7 @@ export async function sendVehicleRequestDeniedEmail (vehicleRequest, emails) {
   const email = {
     address: emails,
     subject: 'Your vehicle requests got denied',
-    message: `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been denied by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest.id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello,\n\nYour [V-Req #${vehicleRequest.id}] has been denied by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest.id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   send(email, 'Vehicle Request Denied Email')
@@ -184,7 +184,7 @@ export async function sendNewVehicleRequestEmail (trip, leaderEmails, vehicleReq
   const email = {
     address: leaderEmails,
     subject: `re: New Trip #${trip.id} created`,
-    message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${vehicleRequest.number}: ${trip.title} that is linked to your Trip #${trip.id}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest.id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello,\n\nYou've also created a new vehicle request, V-Req #${vehicleRequest.id}: ${trip.title} that is linked to your Trip #${trip.id}! You will receive email notifications when it is approved by OPO staff.\n\nView the request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest.id}\n\nThis request is associated with the trip, and is deleted if the trip is deleted.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'New vehicle request')
@@ -196,8 +196,8 @@ export async function sendVehicleRequestChangedEmail (vehicleRequest) {
   ))
   const email = {
     address: constants.OPOEmails,
-    subject: `V-Req #${vehicleRequest.number} updated`,
-    message: `Hello,\n\nThe leaders of V-Req #${vehicleRequest.number} (which was approved) just changed their requested vehicles.\n\nThe original ${vehicleRequest.assignments.length} vehicle assignment${vehicleRequest.assignments.length > 1 ? 's' : ''} now have all been unscheduled.\n\nDeleted assignments:\n${assignmentsList}\n\nYou will have to approve this request again at ${constants.frontendURL}/opo-vehicle-request/${vehicleRequest.id.toString()}.\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    subject: `V-Req #${vehicleRequest.id} updated`,
+    message: `Hello,\n\nThe leaders of V-Req #${vehicleRequest.id} (which was approved) just changed their requested vehicles.\n\nThe original ${vehicleRequest.assignments.length} vehicle assignment${vehicleRequest.assignments.length > 1 ? 's' : ''} now have all been unscheduled.\n\nDeleted assignments:\n${assignmentsList}\n\nYou will have to approve this request again at ${constants.frontendURL}/opo-vehicle-request/${vehicleRequest.id.toString()}.\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Vehicle request changed')
@@ -206,8 +206,8 @@ export async function sendVehicleRequestChangedEmail (vehicleRequest) {
 export async function sendVehicleRequestDeletedEmail (vehicleRequest, leaderEmail, reason) {
   const email = {
     address: [leaderEmail],
-    subject: `V-Req #${vehicleRequest.number} deleted`,
-    message: `Hello,\n\nYour [V-Req #${vehicleRequest.number}] has been deleted.\n\nReason: ${reason}\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    subject: `V-Req #${vehicleRequest.id} deleted`,
+    message: `Hello,\n\nYour [V-Req #${vehicleRequest.id}] has been deleted.\n\nReason: ${reason}\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Vehicle request deleted')
@@ -217,7 +217,7 @@ export async function sendVehicleRequestCancelledEmail (vehicleRequest, recipien
   const email = {
     address: recipients,
     subject: 'Your vehicle requests got cancelled',
-    message: `Hello,\n\nYour [V-Req #${vehicleRequest.number}]'s assignments have been cancelled by OPO staff. You can send the staff member who reviewed the request an email at mailto:${cancellerEmail}.\n\nView the vehicle request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest.id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello,\n\nYour [V-Req #${vehicleRequest.id}]'s assignments have been cancelled by OPO staff. You can send the staff member who reviewed the request an email at mailto:${cancellerEmail}.\n\nView the vehicle request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest.id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   send(email, 'Vehicle request cancelled')
