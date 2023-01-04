@@ -94,3 +94,35 @@ tr.htmx-swapping td {
   opacity: 0;
   transition: opacity 1s ease-out;
 }
+
+table button {
+  border: 0;
+  border-radius: 6px;
+  color: white;
+  font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
+  font-size: 1.1em;
+  padding: .5em 1em;
+}
+
+table button:last-child {
+  margin-right: 15px;
+}
+
+button.approve {
+  background-color: #0ca074;
+}
+
+button.deny {
+  background-color: #ee6e52;
+}
+
+.notice {
+  color: #909090;
+  font-size: 1.2em;
+  margin: 20px 0px;
+  width: fit-content;
+}
+
+.leaders td:last-child, .certs td:last-child {
+  text-align: right;
+}

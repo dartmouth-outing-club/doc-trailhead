@@ -12,24 +12,32 @@ function convertRequestsToTable (trips, route) {
 <td>${requested_item}
 <td>
   <button
+    class="deny"
     hx-confirm="Deny ${requester_name} as a leader for ${requested_item}?"
     hx-delete="/rest/opo/profile-approvals/${route}/${req_id}"
     hx-target="closest tr"
-    hx-swap="outerHTML swap:1s"
+    hx-swap="outerHTML swap:.5s"
     >Deny
   </button>
   <button
+    class="approve"
     hx-confirm="Approve ${requester_name} as a leader for ${requested_item}?"
     hx-put="/rest/opo/profile-approvals/${route}/${req_id}"
     hx-target="closest tr"
-    hx-swap="outerHTML swap:1s"
+    hx-swap="outerHTML swap:.5s"
     >Approve
   </button>
 </tr>
 `
-    }).join('')
+    })
 
-  return rows
+  // Show a little notice if the table is empty
+  if (rows.length === 0) {
+    const selector = route === 'leaders' ? '.leaders table' : '.certs table'
+    return `<div hx-swap-oob="outerHTML:${selector}"><div class=notice>All set for now</div></div>`
+  }
+
+  return rows.join('')
 }
 
 export function getLeadershipRequests (_req, res) {
@@ -77,6 +85,6 @@ export function approveCertRequest (req, res) {
 export function denyCertRequest (req, res) {
   const rowid = req.params.req_id
   if (!rowid) return res.sendStatus(400)
-  sqlite.getDb().prepare('DELETE FROM user_certs SET WHERE rowid = ?').run(rowid)
+  sqlite.getDb().prepare('DELETE FROM user_certs WHERE rowid = ?').run(rowid)
   return res.status(200).send('')
 }

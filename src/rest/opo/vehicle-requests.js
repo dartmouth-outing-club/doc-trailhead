@@ -38,9 +38,15 @@ function convertRequestsToTable (trips, showStatus) {
 ${showStatus ? `<td>${getBadgeImgElement(request.status)}` : ''}
 </tr>
 `
-    }).join('')
+    })
 
-  return rows
+  // Show a little notice if the table is empty
+  if (rows.length === 0) {
+    const selector = showStatus ? '.reviewed table' : '.pending table'
+    return `<div hx-swap-oob="outerHTML:${selector}"><div class=notice>All set for now</div></div>`
+  }
+
+  return rows.join('')
 }
 
 export function get (req, res) {

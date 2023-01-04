@@ -47,15 +47,16 @@ function convertTripsToTable (trips) {
 <td>${getBadgeImgElement(trip.pc_status)}
 </tr>
 `
-    }).join('')
+    })
 
   return rows
 }
 
 export function get (req, res) {
   const now = new Date()
+  const showPast = req.query.show_past === 'true'
   let trips
-  if (req.query.show_past === 'true') {
+  if (showPast) {
     const timeWindow = new Date(now.getTime() - _30_DAYS_IN_MS)
     // Show old trips that needed reviews (even if you didn't) and upcoming trips that were reviewed
     trips = sqlite.getDb().prepare(`
@@ -75,5 +76,13 @@ export function get (req, res) {
   }
 
   const rows = convertTripsToTable(trips)
-  res.send(rows).status(200)
+
+  // Show a little notice if the table is empty
+  if (rows.length === 0) {
+    const selector = showPast ? '.past table' : '.pending table'
+    return `<div hx-swap-oob="outerHTML:${selector}"><div class=notice>All set for now</div></div>`
+  }
+
+  const html = rows.join('')
+  res.send(html).status(200)
 }
