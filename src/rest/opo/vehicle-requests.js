@@ -1,11 +1,10 @@
 import * as constants from '../../constants.js'
 import * as sqlite from '../../services/sqlite.js'
-import { escapeProperties } from '../../templates.js'
 import { getBadgeImgElement } from '../../utils.js'
 
 function getVehicleRequests (showReviewed) {
   const now = new Date()
-  return sqlite.getDb().prepare(`
+  return sqlite.all(`
     SELECT
       users.name as requester_name,
       iif(trips.id IS NOT NULL, trips.title, request_details) as reason,
@@ -22,12 +21,11 @@ function getVehicleRequests (showReviewed) {
     LEFT JOIN trips ON trips.id = vehiclerequests.trip
     WHERE last_return > ? AND is_approved ${showReviewed ? 'IS NOT' : 'IS'} NULL
     ORDER BY first_pickup ASC
-`).all(now.getTime())
+`, now.getTime())
 }
 
 function convertRequestsToTable (trips, showStatus) {
   const rows = trips
-    .map(escapeProperties)
     .map(request => {
       return `
 <tr>

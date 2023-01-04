@@ -1,6 +1,5 @@
 import * as constants from '../../constants.js'
 import * as sqlite from '../../services/sqlite.js'
-import { escapeProperties } from '../../templates.js'
 import { getBadgeImgElement } from '../../utils.js'
 
 const _30_DAYS_IN_MS = 2592000000
@@ -34,7 +33,6 @@ const OPO_TRIPS_QUERY = `
 
 function convertTripsToTable (trips) {
   const rows = trips
-    .map(escapeProperties)
     .map(trip => {
       return `
 <tr>
@@ -58,19 +56,19 @@ export function get (req, res) {
   let trips
   if (showPast) {
     const timeWindow = new Date(now.getTime() - _30_DAYS_IN_MS)
-    trips = sqlite.getDb().prepare(`
+    trips = sqlite.all(`
       ${OPO_TRIPS_QUERY}
       WHERE start_time > @low_time
         AND start_time < @high_time
         AND (gg_status != 'N/A' OR pc_status != 'N/A' OR vr_status != 'N/A')
       ORDER BY start_time DESC
-    `).all({ low_time: timeWindow.getTime(), high_time: now.getTime() })
+    `, { low_time: timeWindow.getTime(), high_time: now.getTime() })
   } else {
-    trips = sqlite.getDb().prepare(`
+    trips = sqlite.all(`
     ${OPO_TRIPS_QUERY}
     WHERE start_time > ? AND (gg_status != 'N/A' OR pc_status != 'N/A' OR vr_status != 'N/A')
     ORDER BY start_time ASC
-  `).all(now.getTime())
+  `, now.getTime())
   }
 
   const rows = convertTripsToTable(trips)

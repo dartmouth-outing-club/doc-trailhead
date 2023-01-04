@@ -20,6 +20,7 @@
 import fs from 'node:fs'
 import Database from 'better-sqlite3'
 import { subtract } from 'date-arithmetic'
+import { escapeProperties } from '../templates.js'
 
 let db
 
@@ -40,9 +41,6 @@ export function start (name) {
   console.log(`Starting sqlite database from file: ${getDatabaseFile()}`)
 }
 
-// Return the DB so that rest modules can interact with it directly
-export const getDb = () => db
-
 export const getDatabaseFile = () => db.pragma('database_list')[0].file
 
 export function stop () {
@@ -55,6 +53,25 @@ export function execFile (filePath) {
   return db.exec(statements)
 }
 
+/**
+ * REST functions
+ */
+export function get (query, ...params) {
+  const result = db.prepare(query).get(...params)
+  return escapeProperties(result)
+}
+
+export function all (query, ...params) {
+  return db.prepare(query).all(...params).map(escapeProperties)
+}
+
+export function run (query, ...params) {
+  return db.prepare(query).run(...params)
+}
+
+/**
+ * Legacy functions
+ */
 function convertSqlDate (unixDate) {
   if (!unixDate) return undefined
   try {
@@ -1233,17 +1250,4 @@ export function getTripLeaderEmails (tripId) {
   WHERE leader = true AND trip = ?
   `).all(tripId)
     .map(user => user.email)
-}
-
-/**
- * REST functions
- */
-export function getTripLeaderNames (tripId) {
-  return db.prepare(`
-  SELECT name
-  FROM users
-  LEFT JOIN trip_members ON user = users.id
-  WHERE leader = true AND trip = ?
-  `).all(tripId)
-    .map(user => user.name).join(', ')
 }

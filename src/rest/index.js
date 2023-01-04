@@ -1,6 +1,5 @@
 import * as sqlite from '../services/sqlite.js'
 import * as constants from '../constants.js'
-import { escapeProperties } from '../templates.js'
 
 function getIcon (clubName) {
   switch (clubName) {
@@ -33,17 +32,16 @@ function getIcon (clubName) {
 
 export function get (_req, res) {
   const now = new Date()
-  const publicTrips = sqlite.getDb().prepare(`
+  const publicTrips = sqlite.all(`
     SELECT title, location, start_time, end_time, clubs.name as club
     FROM trips
     LEFT JOIN clubs on trips.club = clubs.id
     WHERE start_time > ? AND private = 0
     ORDER BY start_time ASC
     LIMIT 5
-  `).all(now.getTime())
+  `, now.getTime())
 
   const cards = publicTrips
-    .map(escapeProperties)
     .map(trip => ({ ...trip, iconPath: getIcon(trip.club) }))
     .map(trip => `
 <div class=trip-card>
