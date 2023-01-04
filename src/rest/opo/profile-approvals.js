@@ -14,7 +14,7 @@ function convertRequestsToTable (trips, route) {
     hx-confirm="Deny ${requester_name} as a leader for ${requested_item}?"
     hx-delete="/rest/opo/profile-approvals/${route}/${req_id}"
     hx-target="closest tr"
-    hx-swap="outerHTML swap:.5s"
+    hx-swap="outerHTML swap:.7s"
     >Deny
   </button>
   <button
@@ -22,7 +22,7 @@ function convertRequestsToTable (trips, route) {
     hx-confirm="Approve ${requester_name} as a leader for ${requested_item}?"
     hx-put="/rest/opo/profile-approvals/${route}/${req_id}"
     hx-target="closest tr"
-    hx-swap="outerHTML swap:.5s"
+    hx-swap="outerHTML swap:.7s"
     >Approve
   </button>
 </tr>

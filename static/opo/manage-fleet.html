@@ -3,6 +3,7 @@
 <title>Home - DOC Trailhead</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="/css/common.css">
+<link rel="stylesheet" href="/css/manage-fleet.css">
 <script src="https://unpkg.com/htmx.org@1.8.4"></script>
 
 <nav class=site-nav>
@@ -18,7 +19,18 @@
 
 <main>
 
-<section class="pending info-card">
+<section class="add-vehicle info-card">
+<h1>Add Vehicle</h1>
+<form action=post>
+  <label for=name>Vehicle Name</label>
+  <input type=text id=name name=name placeholder="Van E">
+  <label for=type>Vehicle Type</label>
+  <select id=type name=type><option>Van<option>Microbus<option>Truck</select>
+  <button class="action approve">Add</button>
+</form>
+</section>
+
+<section class="fleet info-card">
 <h1>Vehicle Fleet</h1>
 <table>
 <thead><tr><th>Name<th>Type<th>

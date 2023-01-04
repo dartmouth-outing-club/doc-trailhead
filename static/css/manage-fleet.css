@@ -1,0 +1,72 @@
+.fleet td:last-child {
+  text-align: right;
+}
+
+.info-card {
+  margin: 0 0 50px 0;
+}
+
+.add-vehicle form > * {
+  display: block;
+}
+
+.add-vehicle label {
+  color: #494c50;
+  font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
+  font-size: 1.1em;
+  margin-bottom: 10px;
+}
+
+.add-vehicle input, .add-vehicle select {
+  margin-bottom: 15px;
+}
+
+.add-vehicle input[type=text] {
+  border: 2px solid #c4c4c4;
+  border-radius: 6px;
+  font-size: 1.1em;
+  outline: none;
+  padding: .5em 1em;
+}
+
+input[type=text]:focus, select:focus {
+  border: 2px solid #0ca074;
+}
+
+select {
+  background-color: white;
+  border: 2px solid #c4c4c4;
+  border-radius: 6px;
+  font-size: 1.1em;
+  outline: none;
+  padding: .5em 1em;
+}
+
+@media screen and (min-width: 800px) {
+  main {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+  }
+
+  /* .add-vehicle { */
+  /*   flex: 1 1 0; */
+  /* } */
+
+  .fleet {
+    flex: 2 1 0;
+    margin-right: 20px;
+  }
+
+  /* .trip-card { */
+  /*   display: flex; */
+  /*   flex-direction: row; */
+  /*   justify-content: space-between; */
+  /* } */
+
+  /* .trip-card > h2, .trip-card > div { */
+  /*   align-self: center; */
+  /*   flex: 1 1 0; */
+  /* } */
+}

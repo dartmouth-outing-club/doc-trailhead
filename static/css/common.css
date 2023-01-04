@@ -20,7 +20,7 @@ body {
 }
 
 main {
-  padding: 0px 20px;
+  padding: 50px 20px;
 }
 
 h1, h2 {
@@ -66,7 +66,78 @@ h1 {
   background: white;
   border-radius: 10px;
   box-shadow: 5px 5px 20px rgba(0,0,0,.25);
-  margin: 70px auto;
+  margin: 0px auto 70px auto;
   max-width: 1200px;
   padding: 10px 20px 10px 20px;
 }
+
+button.approve {
+  background-color: #0ca074;
+}
+
+button.deny {
+  background-color: #ee6e52;
+}
+
+button:hover {
+  filter: brightness(110%);
+}
+
+table button, button.action {
+  border: 0;
+  border-radius: 6px;
+  color: white;
+  font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
+  font-size: 1.1em;
+  padding: .5em 1em;
+}
+
+table {
+  border-collapse: collapse;
+  overflow-x: scroll;
+  width: 100%;
+  text-align: center;
+}
+
+table img.badge {
+  height: 36px;
+  width: 36px;
+}
+
+tbody tr:hover {
+  background-color: rgba(0,0,0,.075);
+}
+
+th {
+  border-bottom-color: black;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+}
+
+th, td {
+  min-width: 105px;
+  padding: 10px 0px;
+}
+
+tr:not(:last-child) td {
+  border-bottom-color: #535658;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
+
+tr.htmx-swapping td {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+}
+
+table button:last-child {
+  margin-right: 15px;
+}
+
+.notice {
+  color: #909090;
+  font-size: 1.2em;
+  margin: 20px 0px;
+  width: fit-content;
+}
+

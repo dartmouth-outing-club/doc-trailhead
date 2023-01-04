@@ -3,6 +3,7 @@ import * as index from './rest/index.js'
 import * as tripApprovals from './rest/opo/trip-approvals.js'
 import * as vehicleRequests from './rest/opo/vehicle-requests.js'
 import * as profileApprovals from './rest/opo/profile-approvals.js'
+import * as manageFleet from './rest/opo/manage-fleet.js'
 
 const router = Router()
 
@@ -18,5 +19,7 @@ router.delete('/opo/profile-approvals/leaders/:req_id', profileApprovals.denyLea
 router.get('/opo/profile-approvals/certs', profileApprovals.getCertRequests)
 router.put('/opo/profile-approvals/certs/:req_id', profileApprovals.approveCertRequest)
 router.delete('/opo/profile-approvals/certs/:req_id', profileApprovals.denyCertRequest)
+
+router.get('/opo/manage-fleet', manageFleet.get)
 
 export default router
