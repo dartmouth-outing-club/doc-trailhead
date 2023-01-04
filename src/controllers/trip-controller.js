@@ -116,7 +116,7 @@ export async function createTrip (creator, data) {
     }))
 
     try {
-      const vehicleRequestId = db.createVehicleRequestForTrip(vehicleRequest, requestedVehicles)
+      const vehicleRequestId = db.insertVehicleRequest(vehicleRequest, requestedVehicles)
       await mailer.sendNewVehicleRequestEmail(trip, leaderEmails, vehicleRequestId)
 
       return db.getTripById(tripId)
@@ -178,7 +178,7 @@ export async function updateTrip (req, res) {
       }
     })
     if (trip.vehicleStatus === 'N/A' && vehicles.length > 0) {
-      db.createVehicleRequestForTrip(vehicleRequest, vehicles)
+      db.insertVehicleRequest(vehicleRequest, vehicles)
     } else {
       // If the request was previously approved, delete associated assignements and send an email
       if (trip.vehicleStatus === 'approved') {
