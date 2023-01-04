@@ -416,7 +416,8 @@ export async function toggleTripLeadership (req, res) {
 export async function setMemberAttendance (req, res) {
   const { tripID } = req.params
   const { memberID, status } = req.body
-  db.setTripMemberAttendance(tripID, memberID, status)
+  const attended = status === true ? 1 : 0
+  db.setTripMemberAttendance(tripID, memberID, attended)
   res.json({ status })
 }
 
@@ -429,7 +430,7 @@ export async function setMemberAttendance (req, res) {
  */
 export async function toggleTripLeftStatus (req, res) {
   const tripId = req.params.tripID
-  const left = req.body.status
+  const left = req.body.status === true ? 1 : 0
   const now = new Date()
 
   db.setTripLeftStatus(tripId, left)
