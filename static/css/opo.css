@@ -55,33 +55,30 @@ img.badge {
 }
 
 .info-card {
-  max-width: 2000px;
   padding: 10px 20px 10px 20px;
-  margin-top: 70px;
-  margin-bottom: 70px;
+  margin: 70px auto;
 }
 
 table {
   border-collapse: collapse;
   overflow-x: scroll;
-  /* min-width: 1200px; */
   width: 100%;
   text-align: center;
-}
-
-th, td {
-  min-width: 105px;
-  padding: 10px 0px;
 }
 
 tbody tr:hover {
   background-color: rgba(0,0,0,.075);
 }
 
-tr th {
+th {
   border-bottom-color: black;
   border-bottom-style: solid;
   border-bottom-width: 2px;
+}
+
+th, td {
+  min-width: 105px;
+  padding: 10px 0px;
 }
 
 tr:not(:last-child) td {

@@ -58,19 +58,17 @@ export function get (req, res) {
   let trips
   if (showPast) {
     const timeWindow = new Date(now.getTime() - _30_DAYS_IN_MS)
-    // Show old trips that needed reviews (even if you didn't) and upcoming trips that were reviewed
     trips = sqlite.getDb().prepare(`
       ${OPO_TRIPS_QUERY}
       WHERE start_time > @low_time
-       AND (
-        (start_time < @high_time AND (gg_status != 'N/A' OR pc_status != 'N/A' OR vr_status != 'N/A')) OR
-        (start_time > @high_time AND (gg_status != 'pending' AND pc_status != 'pending' AND vr_status != 'pending')))
+        AND start_time < @high_time
+        AND (gg_status != 'N/A' OR pc_status != 'N/A' OR vr_status != 'N/A')
       ORDER BY start_time DESC
     `).all({ low_time: timeWindow.getTime(), high_time: now.getTime() })
   } else {
     trips = sqlite.getDb().prepare(`
     ${OPO_TRIPS_QUERY}
-    WHERE start_time > ?
+    WHERE start_time > ? AND (gg_status != 'N/A' OR pc_status != 'N/A' OR vr_status != 'N/A')
     ORDER BY start_time ASC
   `).all(now.getTime())
   }
