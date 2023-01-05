@@ -2,10 +2,6 @@ body {
   background-color: rgb(237, 237, 237);
 }
 
-.info-card {
-  margin: 0px auto 70px auto;
-}
-
 .opo-nav {
   background-color: white;
   box-shadow: 5px 5px 20px rgba(0,0,0,.25);
