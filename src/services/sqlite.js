@@ -1143,10 +1143,20 @@ export function deleteTrip (id) {
   db.prepare('DELETE FROM trips WHERE id = ?').run(id)
 }
 
-export function replaceTripLeaders (tripId, leaders) {
-  db.prepare('DELETE FROM trip_members WHERE trip = ? and leader = true').run(tripId)
-  leaders.forEach(userId => {
-    db.prepare('INSERT INTO trip_members (trip, user, leader) VALUES (?, ?, true)')
+export function replaceTripLeaders (tripId, newLeaders) {
+  const currentLeaders = db.prepare('SELECT user FROM trip_members WHERE trip = ? AND leader = 1')
+    .all(tripId)
+    .map(row => row.user)
+
+  const ownerId = db.prepare('SELECT owner FROM trips WHERE id = ?').get(tripId).owner
+  const toDelete = currentLeaders.filter(userId => !newLeaders.includes(userId) && userId !== ownerId)
+  toDelete.forEach(userId => {
+    db.prepare('DELETE FROM trip_members WHERE trip = ? and user = ?').run(tripId, userId)
+  })
+
+  newLeaders.forEach(userId => {
+    db.prepare('UPDATE trip_members SET leader = 1 WHERE trip = ? and user = ?').run(tripId, userId)
+    db.prepare('INSERT OR IGNORE INTO trip_members (trip, user, leader, pending) VALUES (?, ?, true, false)')
       .run(tripId, userId)
   })
 }

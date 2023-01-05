@@ -219,7 +219,7 @@ export async function updateTrip (req, res) {
   const trip_required_gear = req.body.trippeeGear || []
   const group_gear_requests = req.body.gearRequests || []
   db.updateTrip(newTrip, trip_required_gear, group_gear_requests, pcard_request)
-  return res.json(db.getTripById(trip.id))
+  return res.json(db.getFullTripView(trip.id))
 }
 
 /**
@@ -406,7 +406,7 @@ export async function toggleTripLeadership (req, res) {
     mailer.sendCoLeaderConfirmation(trip, user)
   }
 
-  const newTrip = db.getFullTripView(tripId, user)
+  const newTrip = db.getFullTripView(tripId, req.user)
   return res.json(newTrip)
 }
 
