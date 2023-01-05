@@ -22,3 +22,9 @@ export function post (req, res) {
   sqlite.run('INSERT INTO vehicles (name, type) VALUES (?, ?)', name, type)
   return get(req, res)
 }
+
+export function del (req, res) {
+  const id = req.params.id
+  sqlite.run('UPDATE vehicles SET active = 0 WHERE id = ?', id)
+  return res.send('').status(200)
+}

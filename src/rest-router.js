@@ -22,5 +22,6 @@ router.delete('/opo/profile-approvals/certs/:req_id', profileApprovals.denyCertR
 
 router.get('/opo/manage-fleet', manageFleet.get)
 router.post('/opo/manage-fleet', manageFleet.post)
+router.delete('/opo/manage-fleet/:id', manageFleet.del)
 
 export default router
