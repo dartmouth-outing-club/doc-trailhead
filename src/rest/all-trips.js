@@ -5,7 +5,7 @@ import { getClubIcon } from '../utils.js'
 export function get (_req, res) {
   const now = new Date()
   const publicTrips = sqlite.all(`
-    SELECT title, location, start_time, end_time, clubs.name as club
+    SELECT trips.id, title, location, start_time, end_time, description, clubs.name as club
     FROM trips
     LEFT JOIN clubs on trips.club = clubs.id
     WHERE start_time > ? AND private = 0
@@ -15,19 +15,21 @@ export function get (_req, res) {
 
   const cards = publicTrips
     .map(trip => ({ ...trip, iconPath: getClubIcon(trip.club) }))
-    .map(trip => `
+    .map(trip => {
+      const title = trip.title.length < 38 ? trip.title : trip.title.substring(0, 38) + '...'
+      return `
 <div class=trip-card>
   <img src="${trip.iconPath}">
-  <h2>${trip.title}</h2>
-  <hr/>
+  <header>Trip #${trip.id}</header>
+  <h2>${title}</h2>
   <div>
-    <h3>${trip.location}</h3>
-    <p>
     ${constants.getTimeElement(trip.start_time)} -
     ${constants.getTimeElement(trip.end_time)}
-    </p>
   </div>
-</div>
-`).join('')
+  <div class="club-tag">${trip.club}</div>
+  <p>${trip.description.substring(0, 190)}...</p>
+</div>`
+    })
+    .join('')
   res.send(cards).status(200)
 }

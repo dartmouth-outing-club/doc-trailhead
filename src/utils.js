@@ -21,3 +21,32 @@ export function getBadgeImgElement (name) {
       return '<span>-</span>'
   }
 }
+
+export function getClubIcon (clubName) {
+  switch (clubName) {
+    case 'OPO':
+      return '/icons/opo.jpg'
+    case 'Cabin and Trail':
+      return '/icons/cnt.png'
+    case 'Women in the Wilderness':
+      return '/icons/wiw.png'
+    case 'Surf Club':
+      return '/icons/surf.png'
+    case 'Mountain Biking':
+      return '/icons/dmbc.png'
+    case 'Winter Sports':
+      return '/icons/wsc.png'
+    case 'Timber Team':
+      return '/icons/wood.png'
+    case 'Mountaineering':
+      return '/icons/mountain.png'
+    case 'Ledyard':
+      return '/icons/ledyard.png'
+    case 'People of Color Outdoors':
+      return '/icons/poco.png'
+    case 'Bait and Bullet':
+      return '/icons/bnb.png'
+    default:
+      return '/icons/doc.png'
+  }
+}
