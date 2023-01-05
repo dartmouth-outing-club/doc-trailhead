@@ -1,3 +1,13 @@
+.info-card {
+  display: flex;
+  align-items: center;
+  margin: 0 auto 40px auto;
+}
+
+.info-card h1 {
+  margin: 20px;
+}
+
 section.trips {
   display: flex;
   flex-direction: row;
