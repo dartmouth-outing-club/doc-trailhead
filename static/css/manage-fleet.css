@@ -50,23 +50,8 @@ select {
     justify-content: center;
   }
 
-  /* .add-vehicle { */
-  /*   flex: 1 1 0; */
-  /* } */
-
   .fleet {
     flex: 2 1 0;
     margin-right: 20px;
   }
-
-  /* .trip-card { */
-  /*   display: flex; */
-  /*   flex-direction: row; */
-  /*   justify-content: space-between; */
-  /* } */
-
-  /* .trip-card > h2, .trip-card > div { */
-  /*   align-self: center; */
-  /*   flex: 1 1 0; */
-  /* } */
 }

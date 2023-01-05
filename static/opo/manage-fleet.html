@@ -21,7 +21,12 @@
 
 <section class="add-vehicle info-card">
 <h1>Add Vehicle</h1>
-<form action=post>
+<form action="/rest/opo/manage-fleet"
+      method=post
+      hx-boost=true
+      hx-target=tbody
+      hx-swap=innerHTML
+      hx-push-url=true>
   <label for=name>Vehicle Name</label>
   <input type=text id=name name=name placeholder="Van E">
   <label for=type>Vehicle Type</label>
