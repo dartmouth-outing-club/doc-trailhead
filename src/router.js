@@ -6,6 +6,9 @@ import * as trips from './controllers/trip-controller.js'
 import * as vehicleRequests from './controllers/vehicle-request-controller.js'
 import * as vehicles from './controllers/vehicle-controller.js'
 import * as assignments from './controllers/assignment-controller.js'
+
+import * as tripView from './rest/trip.js'
+
 import signS3 from './services/s3.js'
 import { requireAuth, signinSimple, signinCAS } from './services/passport.js'
 
@@ -21,6 +24,12 @@ router.get('/', (req, res) => {
   }
   res.json({ message: 'welcome to our doc app!' })
 })
+
+// Additional views for dev mode
+// TODO hide these behind authentication
+if (process.env.NODE_ENV === 'development') {
+  router.route('/trip/:id').get(tripView.get)
+}
 
 router.post('/signin-simple', signinSimple)
 router.get('/signin-cas', signinCAS)

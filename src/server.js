@@ -3,6 +3,7 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import cron from 'node-cron'
 import morgan from 'morgan'
+import nunjucks from 'nunjucks'
 
 import * as constants from './constants.js'
 import * as db from './services/sqlite.js'
@@ -18,9 +19,15 @@ app.use(cors())
 
 // enable/disable http request logging
 app.use(morgan('dev'))
+app.use(express.static('static'))
 
 // enable static assets (new frontend) only on development mode
-if (process.env.NODE_ENV === 'development') app.use(express.static('static'))
+if (process.env.NODE_ENV === 'development') {
+  nunjucks.configure('views', {
+    autoescape: true,
+    express: app
+  })
+}
 
 // enable json message body for posting data to API
 app.use(bodyParser.urlencoded({ extended: true }))

@@ -33,6 +33,18 @@ h1 {
   font-size: 2em;
 }
 
+button.approve {
+  background-color: #0ca074;
+}
+
+button.deny {
+  background-color: #ee6e52;
+}
+
+button:hover {
+  filter: brightness(110%);
+}
+
 .site-nav {
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
   background-image: url('/images/nav-background.svg');
@@ -71,19 +83,7 @@ h1 {
   padding: 10px 20px 10px 20px;
 }
 
-button.approve {
-  background-color: #0ca074;
-}
-
-button.deny {
-  background-color: #ee6e52;
-}
-
-button:hover {
-  filter: brightness(110%);
-}
-
-table button, button.action {
+.trip-table button, button.action {
   border: 0;
   border-radius: 6px;
   color: white;
@@ -92,45 +92,45 @@ table button, button.action {
   padding: .5em 1em;
 }
 
-table {
+.trip-table {
   border-collapse: collapse;
   overflow-x: scroll;
   width: 100%;
   text-align: center;
 }
 
-table img.badge {
+.trip-table img.badge {
   height: 36px;
   width: 36px;
 }
 
-tbody tr:hover {
+.trip-table tbody tr:hover {
   background-color: rgba(0,0,0,.075);
 }
 
-th {
+.trip-table th {
   border-bottom-color: black;
   border-bottom-style: solid;
   border-bottom-width: 2px;
 }
 
-th, td {
+.trip-table th, td {
   min-width: 105px;
   padding: 10px 0px;
 }
 
-tr:not(:last-child) td {
+.trip-table tr:not(:last-child) td {
   border-bottom-color: #535658;
   border-bottom-style: solid;
   border-bottom-width: 1px;
 }
 
-tr.htmx-swapping td {
+.trip-table tr.htmx-swapping td {
   opacity: 0;
   transition: opacity 1s ease-out;
 }
 
-table button:last-child {
+.trip-table button:last-child {
   margin-right: 15px;
 }
 

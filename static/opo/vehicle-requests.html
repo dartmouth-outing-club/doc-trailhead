@@ -29,7 +29,7 @@
 
 <section class="pending info-card">
 <h1>Pending Vehicle Requests</h1>
-<table>
+<table class=trip-table>
 <thead><tr><th>Requester<th>Reason<th>Pickup<th>Return
 <tbody hx-get="/rest/opo/vehicle-requests" hx-trigger="load" hx-swap="innerHTML">
 </table>
@@ -37,7 +37,7 @@
 
 <section class="reviewed info-card">
 <h1>Reviewed Vehicle Requests</h1>
-<table>
+<table class=trip-table>
 <thead><tr><th>Requester<th>Reason<th>Pickup<th>Return<th>Status
 <tbody hx-get="/rest/opo/vehicle-requests?show_reviewed=true" hx-trigger="load" hx-swap="innerHTML">
 </tr>

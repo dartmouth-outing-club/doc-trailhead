@@ -9,6 +9,19 @@ export function pick (object, keys) {
   return res
 }
 
+export function getBadgeImgUrl (name) {
+  switch (name) {
+    case 'approved':
+      return '/icons/approved-badge.svg'
+    case 'denied':
+      return '/icons/denied-badge.svg'
+    case 'pending':
+      return '/icons/pending-badge.svg'
+    default:
+      return undefined
+  }
+}
+
 export function getBadgeImgElement (name) {
   switch (name) {
     case 'approved':
