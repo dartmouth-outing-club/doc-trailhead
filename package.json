@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon src/server.js",
+    "dev": "NODE_ENV=development nodemon -e js,njs --watch src --watch views src/server.js",
     "format": "eslint src --fix",
     "lint": "eslint src",
     "init-db": "cat ./db/db-schema.sql | sqlite3 trailhead.db",

@@ -18,33 +18,35 @@
 </nav>
 
 <main>
-
+<section class=info-card>
 <header>Trip #{{ id }}</header>
 <h1>{{ title }}</h1>
-<div style="display:inline">
+<div class=action-row>
   <div class="club-tag">{{ club }}</div>
-  <img src="{{ icon_path }}">
+  <img class=badge src="{{ icon_path }}">
 </div>
-<hr>
+
 <h2>Description</h2>
 <p>{{ description }}</p>
 
 <h2>Details</h2>
-<table>
+<div class=dual-table-container>
+<table class=detail-table>
   <tr><th>Start<td>{{ start_time }}
   <tr><th>End<td>{{ end_time }}
   <tr><th>Pickup<td>{{ pickup }}
   <tr><th>Dropoff<td>{{ dropoff }}
   <tr><th>Destination<td>{{ location }}
 </table>
-<table>
+<table class=detail-table>
   <tr><th>Leader<td>{{ owner_name }}
   <tr><th>Co-Leader(s)<td>{{ leader_names }}
   <tr><th>Experience needed?<td>{{ experience_needed }}
   <tr><th>Subclub<td>{{ club }}
   <tr><th>Cost<td>{{ cost }}
 </table>
-<div></div>
+</div>
+</section>
 
 </main>
 

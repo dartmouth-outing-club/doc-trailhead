@@ -141,3 +141,9 @@ button:hover {
   width: fit-content;
 }
 
+.club-tag {
+  background-color: #e5cdbe;
+  border-radius: 5px;
+  padding: 3.5px 7px;
+  width: fit-content;
+}

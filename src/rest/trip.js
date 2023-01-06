@@ -3,20 +3,10 @@ import { getBadgeImgUrl } from '../utils.js'
 
 export async function get (req, res) {
   const tripId = req.params.id
-  console.log(req.params)
   const trip = sqlite.get(`
     SELECT
-      trips.id,
-      title,
-      clubs.name as club,
-      start_time,
-      end_time,
-      pickup,
-      dropoff,
-      location,
-      users.name as owner_name,
-      experience_needed,
-      cost
+      trips.id, title, clubs.name as club, start_time, end_time, pickup, description, dropoff,
+      location, users.name as owner_name, experience_needed, cost
     FROM trips
     LEFT JOIN clubs ON clubs.id = trips.club
     LEFT JOIN users ON users.id = trips.owner

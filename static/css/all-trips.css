@@ -31,6 +31,7 @@ section.trips {
 .trip-card > * {
   margin: 10px 0;
 }
+
 .trip-card img {
   opacity: 0.07;
   transform: rotate(28.1187deg);
@@ -47,11 +48,4 @@ section.trips {
 
 .trip-card header  {
   color: rgb(144, 144, 144);
-}
-
-.club-tag {
-  background-color: #e5cdbe;
-  border-radius: 5px;
-  padding: 3.5px 7px;
-  width: fit-content;
 }
