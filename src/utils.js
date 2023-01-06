@@ -63,3 +63,27 @@ export function getClubIcon (clubName) {
       return '/icons/doc.png'
   }
 }
+
+export function getLongTimeElement (unixTime) {
+  const date = new Date(unixTime)
+  const minutes = date.getMinutes()
+  const hours = date.getHours()
+
+  const dateString = `${date.getMonth() + 1}/${date.getDate()}`
+  const minutesString = minutes < 10 ? '0' + minutes : minutes
+  const hoursString = hours > 12 ? `${hours - 12}` : `${hours}`
+  const timeString = `${hoursString}:${minutesString} ${hours > 12 ? 'AM' : 'PM'}`
+  return `<time datetime="${date.toISOString()}">${dateString} @ ${timeString}</time>`
+}
+
+export function getShortTimeElement (unixTime) {
+  const date = new Date(unixTime)
+  const minutes = date.getMinutes()
+  const hours = date.getHours()
+
+  const dateString = `${date.getMonth() + 1}/${date.getDate()}`
+  const minutesString = minutes < 10 ? '0' + minutes : minutes
+  const hoursString = hours > 12 ? `${hours - 12}` : `${hours}`
+  const timeString = `${hoursString}:${minutesString} ${hours > 12 ? 'AM' : 'PM'}`
+  return `<time datetime="${date.toISOString()}">${dateString} @ ${timeString}</time>`
+}

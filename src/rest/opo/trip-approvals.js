@@ -1,4 +1,4 @@
-import * as constants from '../../constants.js'
+import * as utils from '../../utils.js'
 import * as sqlite from '../../services/sqlite.js'
 import { getBadgeImgElement } from '../../utils.js'
 
@@ -37,7 +37,7 @@ function convertTripsToTable (trips) {
       return `
 <tr>
 <td>${trip.title}
-<td>${constants.getTimeElement(trip.start_time)}
+<td>${utils.getTimeElement(trip.start_time)}
 <td>${trip.club}
 <td>${trip.owner}
 <td>${getBadgeImgElement(trip.gg_status)}

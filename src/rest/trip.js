@@ -1,5 +1,5 @@
 import * as sqlite from '../services/sqlite.js'
-import { getBadgeImgUrl } from '../utils.js'
+import * as utils from '../utils.js'
 
 export async function get (req, res) {
   const tripId = req.params.id
@@ -13,7 +13,9 @@ export async function get (req, res) {
     WHERE trips.id = ?
   `, tripId)
 
-  trip.icon_path = getBadgeImgUrl('approved')
+  trip.start_time = utils.getLongTimeElement(trip.start_time)
+  trip.end_time = utils.getLongTimeElement(trip.end_time)
+  trip.icon_path = utils.getBadgeImgUrl('approved')
   trip.leader_names = sqlite.get(`
   SELECT group_concat(name, ', ') as names
   FROM trip_members

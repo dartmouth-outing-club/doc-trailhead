@@ -21,7 +21,7 @@
 <section class=info-card>
 <header>Trip #{{ id }}</header>
 <h1>{{ title }}</h1>
-<div class=action-row>
+<div class=status-row>
   <div class="club-tag">{{ club }}</div>
   <img class=badge src="{{ icon_path }}">
 </div>

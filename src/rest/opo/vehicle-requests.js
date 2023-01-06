@@ -1,4 +1,4 @@
-import * as constants from '../../constants.js'
+import * as utils from '../../utils.js'
 import * as sqlite from '../../services/sqlite.js'
 import { getBadgeImgElement } from '../../utils.js'
 
@@ -31,8 +31,8 @@ function convertRequestsToTable (trips, showStatus) {
 <tr>
 <td>${request.requester_name}
 <td>${request.reason}
-<td>${constants.getTimeElement(request.first_pickup)}
-<td>${constants.getTimeElement(request.last_return)}
+<td>${utils.getTimeElement(request.first_pickup)}
+<td>${utils.getTimeElement(request.last_return)}
 ${showStatus ? `<td>${getBadgeImgElement(request.status)}` : ''}
 </tr>
 `

@@ -1,5 +1,5 @@
 import * as sqlite from '../services/sqlite.js'
-import * as constants from '../constants.js'
+import * as utils from '../utils.js'
 import { getClubIcon } from '../utils.js'
 
 export function get (_req, res) {
@@ -23,8 +23,8 @@ export function get (_req, res) {
   <header>Trip #${trip.id}</header>
   <h2>${title}</h2>
   <div>
-    ${constants.getTimeElement(trip.start_time)} -
-    ${constants.getTimeElement(trip.end_time)}
+    ${utils.getTimeElement(trip.start_time)} -
+    ${utils.getTimeElement(trip.end_time)}
   </div>
   <div class="club-tag">${trip.club}</div>
   <p>${trip.description.substring(0, 190)}...</p>
