@@ -23,7 +23,7 @@ app.use(express.static('static'))
 
 // enable static assets (new frontend) only on development mode
 if (process.env.NODE_ENV === 'development') {
-  nunjucks.configure('views', {
+  nunjucks.configure('templates', {
     autoescape: false, // The SQLITE rest methods already escape results
     express: app
   })
