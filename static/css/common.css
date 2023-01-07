@@ -84,6 +84,13 @@ button:hover {
   padding: 10px 20px 10px 20px;
 }
 
+.trip-table {
+  border-collapse: collapse;
+  overflow-x: scroll;
+  width: 100%;
+  text-align: center;
+}
+
 .trip-table button, button.action {
   border: 0;
   border-radius: 6px;
@@ -93,11 +100,8 @@ button:hover {
   padding: .5em 1em;
 }
 
-.trip-table {
-  border-collapse: collapse;
-  overflow-x: scroll;
-  width: 100%;
-  text-align: center;
+.trip-table button {
+  margin-right: 15px;
 }
 
 .trip-table img.badge {
@@ -129,10 +133,6 @@ button:hover {
 .trip-table tr.htmx-swapping td {
   opacity: 0;
   transition: opacity 1s ease-out;
-}
-
-.trip-table button:last-child {
-  margin-right: 15px;
 }
 
 .notice {

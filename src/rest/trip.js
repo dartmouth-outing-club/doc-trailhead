@@ -39,6 +39,7 @@ export async function get (req, res) {
   SELECT
     users.id,
     name,
+    leader,
     pending,
     iif(trips.start_time < unixepoch() * 1000,
         '-',
@@ -49,6 +50,7 @@ export async function get (req, res) {
   LEFT JOIN trips ON trips.id = trip_members.trip
   LEFT JOIN users ON users.id = trip_members.user
   WHERE trip = ?
+  ORDER BY leader DESC, name
   `, tripId)
 
   const membersWithGear = members.map(member => {

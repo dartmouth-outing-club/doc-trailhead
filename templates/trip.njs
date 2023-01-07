@@ -56,7 +56,7 @@
   <th>Allergies/Dietary Restrictions
   <th>Medical Conditions
   <th>Gear Requests
-  <th>Actions
+  <th>
 </tr>
 <tbody>
 {% for member in attending %}
@@ -66,7 +66,13 @@
   <td>{{ member.allergies_dietary_restrictions }}
   <td>{{ member.medical_conditions }}
   <td><ul>{{ member.requested_gear }}</ul>
-  <td>hold
+  <td>
+    <button>Un-admit</button>
+    {% if member.leader === 1 %}
+    <button>Make trippee</button>
+    {% else %}
+    <button>Make leader</button>
+    {% endif %}
 </tr>
 {% endfor %}
 </table>
@@ -80,7 +86,7 @@
   <th>Allergies/Dietary Restrictions
   <th>Medical Conditions
   <th>Gear Requests
-  <th>Actions
+  <th>
 </tr>
 <tbody>
 {% for member in pending %}
@@ -90,7 +96,9 @@
   <td>{{ member.allergies_dietary_restrictions }}
   <td>{{ member.medical_conditions }}
   <td><ul>{{ member.requested_gear }}</ul>
-  <td>hold
+  <td>
+    <button>Admit</button>
+    <button>Reject</button>
 </tr>
 {% endfor %}
 </table>

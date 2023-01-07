@@ -11,7 +11,7 @@ h1 {
 }
 
 .trip-table {
-  border: 2px solid #c4c4c4;
+  border: 3px solid #c4c4c4;
   text-align: left;
 }
 
@@ -22,6 +22,18 @@ h1 {
 .trip-table ul {
   margin: 0;
   padding: 0;
+}
+
+.trip-table button {
+  color: #0ca074;
+  background-color: white;
+  border: 2px solid #0ca074;
+  margin: 10px 0;
+  width: 150px;
+}
+
+.trip-table td:last-child {
+  text-align: right;
 }
 
 .status-row {
