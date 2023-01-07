@@ -1,4 +1,3 @@
-import {assign} from 'nodemailer/lib/shared/index.js'
 import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 
@@ -7,7 +6,6 @@ export async function get (req, res) {
   const trip = sqlite.get(`
     SELECT
       trips.id as trip_id,
-      vehiclerequests.id as request_id,
       title,
       clubs.name as club,
       start_time,
@@ -19,6 +17,8 @@ export async function get (req, res) {
       users.name as owner_name,
       experience_needed,
       cost,
+      vehiclerequests.id as vehiclerequest_id,
+      vehiclerequests.is_approved as vehiclerequest_status,
       member_gear_approved,
       group_gear_approved
     FROM trips
@@ -76,27 +76,39 @@ export async function get (req, res) {
   `, tripId)
 
   const tripPcardRequest = sqlite.get(`
-    SELECT assigned_pcard, snacks, breakfast, lunch, dinner, other_costs
+    SELECT assigned_pcard, is_approved, snacks, breakfast, lunch, dinner, other_costs
     FROM trip_pcard_requests
     WHERE trip = ?
   `, tripId)
 
   const requestedVehicles = sqlite.all(`
-    SELECT type, details, pickup_time, return_time FROM requested_vehicles WHERE vehiclerequest = ?
-  `, trip.request_id)
+    SELECT
+      type,
+      details,
+      pickup_time,
+      return_time,
+      iif(trailer_needed = 1, 'Yes', 'No') as trailer_needed,
+      iif(pass_needed = 1, 'Yes', 'No') as pass_needed
+    FROM requested_vehicles
+    WHERE vehiclerequest = ?
+  `, trip.vehiclerequest_id)
   // Note the ORDER BY ensures that the response_index is lined up
-  const assigned_vehicles = sqlite.all(`
-    SELECT vehicles.name as name, vehicle_key, pickup_time, return_time
+  const assignedVehicles = sqlite.all(`
+    SELECT
+      vehicles.name as name,
+      vehicle_key,
+      pickup_time as assigned_pickup_time,
+      return_time as assigned_return_time
     FROM assignments
     LEFT JOIN vehicles ON vehicles.id = assignments.vehicle
     WHERE vehiclerequest = ?
     ORDER BY response_index ASC
-  `, trip.request_id)
+  `, trip.vehiclerequest_id)
 
   // This is annoying holdover from the old frontend
   // Once we've migrated to the new frontend we can properly link these in the db
   const vehicles = requestedVehicles.map((requestedVehicle, index) => {
-    return { ...requestedVehicle, ...assigned_vehicles.at(index) }
+    return { ...requestedVehicle, ...assignedVehicles.at(index) }
   })
 
   trip.start_time = utils.getLongTimeElement(trip.start_time)
@@ -114,7 +126,20 @@ export async function get (req, res) {
     ? utils.getBadgeImgElement(trip.group_gear_approved)
     : '<span>-</span>'
   trip.pcard_request = tripPcardRequest
-  trip.requested_vehicles = vehicles
+  trip.vehiclerequest_status = utils.getBadgeImgElement(trip.vehiclerequest_status)
+
+  trip.requested_vehicles = vehicles.map(vehicle => {
+    return {
+      ...vehicle,
+      pickup_time: utils.getLongTimeElement(vehicle.pickup_time),
+      return_time: utils.getLongTimeElement(vehicle.return_time),
+      assigned_pickup_time: utils.getLongTimeElement(vehicle.assigned_pickup_time),
+      assigned_return_time: utils.getLongTimeElement(vehicle.assigned_return_time)
+    }
+  })
+  if (trip.pcard_request) {
+    trip.pcard_request.status = utils.getBadgeImgElement(trip.pcard_request.is_approved)
+  }
 
   res.render('trip.njs', trip)
 }

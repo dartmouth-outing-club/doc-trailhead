@@ -23,8 +23,8 @@ export function get (_req, res) {
   <div>
     <h3>${trip.location}</h3>
     <p>
-    ${utils.getTimeElement(trip.start_time)} -
-    ${utils.getTimeElement(trip.end_time)}
+    ${utils.getShortTimeElement(trip.start_time)} -
+    ${utils.getShortTimeElement(trip.end_time)}
     </p>
   </div>
 </div>

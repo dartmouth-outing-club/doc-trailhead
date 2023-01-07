@@ -37,7 +37,7 @@ function convertTripsToTable (trips) {
       return `
 <tr>
 <td>${trip.title}
-<td>${utils.getTimeElement(trip.start_time)}
+<td>${utils.getShortTimeElement(trip.start_time)}
 <td>${trip.club}
 <td>${trip.owner}
 <td>${getBadgeImgElement(trip.gg_status)}

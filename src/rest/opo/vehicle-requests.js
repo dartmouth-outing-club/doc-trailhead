@@ -31,8 +31,8 @@ function convertRequestsToTable (trips, showStatus) {
 <tr>
 <td>${request.requester_name}
 <td>${request.reason}
-<td>${utils.getTimeElement(request.first_pickup)}
-<td>${utils.getTimeElement(request.last_return)}
+<td>${utils.getShortTimeElement(request.first_pickup)}
+<td>${utils.getShortTimeElement(request.last_return)}
 ${showStatus ? `<td>${getBadgeImgElement(request.status)}` : ''}
 </tr>
 `

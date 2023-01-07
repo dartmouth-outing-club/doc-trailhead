@@ -19,7 +19,7 @@
 
 <main>
 <section class=info-card>
-<header>Trip #{{ id }}</header>
+<header>Trip #{{ trip_id }}</header>
 <h1>{{ title }}</h1>
 <div class=status-row>
   <div class="club-tag">{{ club }}</div>
@@ -116,7 +116,7 @@
 
 {%if pcard_request %}
 <div>
-  <div class=table-status-row><h2>P-Card Request</h2>{{ group_gear_status }}</div>
+  <div class=table-status-row><h2>P-Card Request</h2>{{ pcard_request.status }}</div>
   <table class="detail-table gear">
     <tr><th>Snacks<td>{{ pcard_request.snacks }}
     <tr><th>Breakfast<td>{{ pcard_request.breakfast }}
@@ -125,6 +125,34 @@
   </table>
 </div>
 {% endif %}
+
+{%if vehiclerequest_id %}
+<div>
+  <div class=table-status-row><h2>Vehicle Request (#{{ vehiclerequest_id }})</h2>{{
+    vehiclerequest_status }}</div>
+
+  {% for vehicle in requested_vehicles %}
+  <h3>Vehicle #{{ loop.index }}</h3>
+  <div class=dual-table-container>
+  <dl class=vehicle-table>
+    <dt>Vehicle Type<dd>{{ vehicle.type }}
+    <dt>Details<dd>{{ vehicle.details }}
+    <dt>Pickup Time<dd>{{ vehicle.pickup_time }}
+    <dt>Return Time<dd>{{ vehicle.return_time }}
+    <dt>WMNF Pass<dd>{{ vehicle.trailer_needed }}
+    <dt>Trailer Hitch<dd>{{ vehicle.pass_needed }}
+  </dl>
+  <dl class=vehicle-table>
+    <dt>Assigned Vehicle<dd>{{ vehicle.name }}
+    <dt>Vehicle Key #<dd>{{ vehicle.vehicle_key }}
+    <dt>Assigned Pickup<dd>{{ vehicle.pickup_time }}
+    <dt>Assigned Return<dd>{{ vehicle.return_time }}
+  </dl>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 
 </section>
 </main>

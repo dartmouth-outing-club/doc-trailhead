@@ -23,8 +23,8 @@ export function get (_req, res) {
   <header>Trip #${trip.id}</header>
   <h2>${title}</h2>
   <div>
-    ${utils.getTimeElement(trip.start_time)} -
-    ${utils.getTimeElement(trip.end_time)}
+    ${utils.getShortTimeElement(trip.start_time)} -
+    ${utils.getShortTimeElement(trip.end_time)}
   </div>
   <div class="club-tag">${trip.club}</div>
   <p>${trip.description.substring(0, 190)}...</p>

@@ -20,6 +20,7 @@ h1 {
 }
 
 .trip-table ul {
+  margin: 0;
   padding: 0;
 }
 
@@ -94,6 +95,25 @@ img.badge {
 .table-status-row h2 {
   margin-right: 20px;
   display: inline;
+}
+
+.vehicle-table dt {
+  color: rgb(3, 55, 36);
+  display: inline;
+  font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
+}
+
+.vehicle-table dt::after {
+    content: ": ";
+}
+
+.vehicle-table dd {
+  display: inline;
+}
+
+.vehicle-table dd::after {
+  content: "";
+  display: block;
 }
 
 @media screen and (min-width: 800px) {
