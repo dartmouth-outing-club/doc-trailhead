@@ -67,11 +67,11 @@
   <td>{{ member.medical_conditions }}
   <td><ul>{{ member.requested_gear }}</ul>
   <td>
-    <button>Un-admit</button>
+    <button hx-put="/rest/trip/{{ trip_id }}/waitlist/{{ member.id }}">Un-admit</button>
     {% if member.leader === 1 %}
-    <button>Make trippee</button>
+    <button hx-delete="/rest/trip/{{ trip_id }}/leader/{{ member.id }}">Make trippee</button>
     {% else %}
-    <button>Make leader</button>
+    <button hx-put="/rest/trip/{{ trip_id }}/leader/{{ member.id }}">Make leader</button>
     {% endif %}
 </tr>
 {% endfor %}
@@ -97,8 +97,8 @@
   <td>{{ member.medical_conditions }}
   <td><ul>{{ member.requested_gear }}</ul>
   <td>
-    <button>Admit</button>
-    <button>Reject</button>
+    <button hx-put="/rest/trip/{{ trip_id }}/member/{{ member.id }}">Admit</button>
+    <button hx-delete="/rest/trip/{{ trip_id }}/member/{{ member.id }}">Reject</button>
 </tr>
 {% endfor %}
 </table>
