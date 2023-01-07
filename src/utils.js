@@ -12,8 +12,10 @@ export function pick (object, keys) {
 export function getBadgeImgUrl (name) {
   switch (name) {
     case 'approved':
+    case 1:
       return '/icons/approved-badge.svg'
     case 'denied':
+    case 0:
       return '/icons/denied-badge.svg'
     case 'pending':
       return '/icons/pending-badge.svg'
@@ -25,8 +27,10 @@ export function getBadgeImgUrl (name) {
 export function getBadgeImgElement (name) {
   switch (name) {
     case 'approved':
+    case 1:
       return '<img class="badge" alt="Green badge with checkmark icon" src="/icons/approved-badge.svg">'
     case 'denied':
+    case 0:
       return '<img class="badge" alt="Red badge with a cross icon" src="/icons/denied-badge.svg">'
     case 'pending':
       return '<img class="badge" alt="Yellow badge with a clock icon" src="/icons/pending-badge.svg">'

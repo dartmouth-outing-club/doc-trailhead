@@ -23,7 +23,7 @@
 <h1>{{ title }}</h1>
 <div class=status-row>
   <div class="club-tag">{{ club }}</div>
-  <img class=badge src="{{ icon_path }}">
+  {{ trip_status }}
 </div>
 
 <h2>Description</h2>
@@ -46,7 +46,86 @@
   <tr><th>Cost<td>{{ cost }}
 </table>
 </div>
-</section>
 
+<h2>Approved trippes ({{ attending.length }})</h2>
+<table class=trip-table>
+<thead>
+<tr>
+  <th>Name
+  <th>Attended
+  <th>Allergies/Dietary Restrictions
+  <th>Medical Conditions
+  <th>Gear Requests
+  <th>Actions
+</tr>
+<tbody>
+{% for member in attending %}
+<tr>
+  <td>{{ member.name }}
+  <td>{{ member.attended }}
+  <td>{{ member.allergies_dietary_restrictions }}
+  <td>{{ member.medical_conditions }}
+  <td><ul>{{ member.requested_gear }}</ul>
+  <td>hold
+</tr>
+{% endfor %}
+</table>
+
+<h2>Pending trippes ({{ pending.length }})</h2>
+<table class=trip-table>
+<thead>
+<tr>
+  <th>Name
+  <th>Attended
+  <th>Allergies/Dietary Restrictions
+  <th>Medical Conditions
+  <th>Gear Requests
+  <th>Actions
+</tr>
+<tbody>
+{% for member in pending %}
+<tr>
+  <td>{{ member.name }}
+  <td>{{ member.attended }}
+  <td>{{ member.allergies_dietary_restrictions }}
+  <td>{{ member.medical_conditions }}
+  <td><ul>{{ member.requested_gear }}</ul>
+  <td>hold
+</tr>
+{% endfor %}
+</table>
+
+<div class=dual-table-container>
+<div>
+  <div class=table-status-row><h2>Individual Gear</h2>{{ individual_gear_status }}</div>
+  <table class="detail-table gear">
+    {% for item in individual_gear %}
+    <tr><th>{{ item.name }}<td>{{ item.quantity }}
+    {% endfor %}
+  </table>
+</div>
+<div>
+  <div class=table-status-row><h2>Group Gear</h2>{{ group_gear_status }}</div>
+  <table class="detail-table gear">
+    {% for item in group_gear %}
+    <tr><th>{{ item.name }}<td>{{ item.quantity }}
+    {% endfor %}
+  </table>
+</div>
+</div>
+
+{%if pcard_request %}
+<div>
+  <div class=table-status-row><h2>P-Card Request</h2>{{ group_gear_status }}</div>
+  <table class="detail-table gear">
+    <tr><th>Snacks<td>{{ pcard_request.snacks }}
+    <tr><th>Breakfast<td>{{ pcard_request.breakfast }}
+    <tr><th>Lunch<td>{{ pcard_request.lunch }}
+    <tr><th>Dinner<td>{{ pcard_request.dinner }}
+  </table>
+</div>
+{% endif %}
+
+</section>
 </main>
 

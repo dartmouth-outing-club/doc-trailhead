@@ -10,6 +10,19 @@ h1 {
   padding: 20px;
 }
 
+.trip-table {
+  border: 2px solid #c4c4c4;
+  text-align: left;
+}
+
+.trip-table th, .trip-table td {
+  padding: 10px;
+}
+
+.trip-table ul {
+  padding: 0;
+}
+
 .status-row {
   display: flex;
   align-items: center;
@@ -21,7 +34,7 @@ h1 {
   margin-right: 20px;
 }
 
-.status-row img.badge {
+img.badge {
   height: 36px;
   width: 36px;
 }
@@ -32,11 +45,15 @@ h1 {
   flex-wrap: wrap;
 }
 
-.detail-table {
-  border: 2px solid #c4c4c4;
+.dual-table-container > * {
+  flex: 1 1 0;
   min-width: 350px;
   margin: 15px;
-  flex: 1 1 0;
+}
+
+.detail-table {
+  border: 2px solid #c4c4c4;
+  width: 100%;
 }
 
 .detail-table tr {
@@ -50,10 +67,33 @@ h1 {
   border: 0;
 }
 
+.detail-table th {
+  margin-right: 30px;
+  text-align: left;
+}
+
 .detail-table td {
   color: #909090;
   padding: 0;
   text-align: right;
+}
+
+.detail-table.gear {
+  margin: 0;
+}
+
+.detail-table.gear th {
+  font-weight: normal;
+}
+
+.table-status-row {
+  display: flex;
+  align-items: center;
+}
+
+.table-status-row h2 {
+  margin-right: 20px;
+  display: inline;
 }
 
 @media screen and (min-width: 800px) {
