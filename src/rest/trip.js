@@ -1,8 +1,7 @@
 import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 
-export async function get (req, res) {
-  const tripId = req.params.id
+function getTripData (tripId) {
   const trip = sqlite.get(`
     SELECT
       trips.id as trip_id,
@@ -76,6 +75,7 @@ export async function get (req, res) {
   const groupGearRequests = sqlite.all(`
     SELECT name, quantity FROM group_gear_requests WHERE trip = ? ORDER BY quantity DESC
   `, tripId)
+  console.log(groupGearRequests)
 
   const tripPcardRequest = sqlite.get(`
     SELECT assigned_pcard, is_approved, snacks, breakfast, lunch, dinner, other_costs
@@ -122,10 +122,10 @@ export async function get (req, res) {
   trip.individual_gear = individualGearRequests
   trip.group_gear = groupGearRequests
   trip.individual_gear_status = individualGearRequests.length > 0
-    ? utils.getBadgeImgElement(trip.member_gear_approved)
+    ? utils.getBadgeImgElement(trip.member_gear_approved || 'pending')
     : '<span>-</span>'
   trip.group_gear_status = groupGearRequests.length > 0
-    ? utils.getBadgeImgElement(trip.group_gear_approved)
+    ? utils.getBadgeImgElement(trip.group_gear_approved || 'pending')
     : '<span>-</span>'
   trip.pcard_request = tripPcardRequest
   trip.vehiclerequest_status = utils.getBadgeImgElement(trip.vehiclerequest_status)
@@ -140,9 +140,16 @@ export async function get (req, res) {
     }
   })
   if (trip.pcard_request) {
-    trip.pcard_request.status = utils.getBadgeImgElement(trip.pcard_request.is_approved)
+    const is_approved = trip.pcard_request.is_approved || 'pending'
+    trip.pcard_request.status = utils.getBadgeImgElement(is_approved)
   }
 
+  return trip
+}
+
+export function get (req, res) {
+  const tripId = req.params.id
+  const trip = getTripData(tripId)
   res.render('trip.njs', trip)
 }
 
@@ -154,10 +161,11 @@ function updateTripMembers (req, res, field, value) {
     return res.sendStatus(400)
   }
 
-  sqlite.run(`UPDATE trip_members SET ${field} = ${value} WHERE trip = ? and user = ?`,
-    tripId, userId)
+  sqlite
+    .run(`UPDATE trip_members SET ${field} = ${value} WHERE trip = ? and user = ?`, tripId, userId)
 
-  return res.send('Test').status(200)
+  const trip = getTripData(tripId)
+  return res.render('partials/long-trip-card.njs', trip)
 }
 
 export const makeLeader = (req, res) => updateTripMembers(req, res, 'leader', 1)
@@ -173,5 +181,6 @@ export function reject (req, res) {
   }
 
   sqlite.run('DELETE FROM trip_members WHERE trip = ? and user = ?', tripId, userId)
-  return res.redirect(303, `/trip/${tripId}`)
+  const trip = getTripData(tripId)
+  return res.render('partials/long-trip-card.njs', trip)
 }
