@@ -5,6 +5,7 @@ import { requireAuth } from './services/authentication.js'
 import * as index from './rest/index.js'
 import * as allTrips from './rest/all-trips.js'
 import * as myTrips from './rest/my-trips.js'
+import * as profile from './rest/profile.js'
 import * as trip from './rest/trip.js'
 import * as tripApprovals from './rest/opo/trip-approvals.js'
 import * as vehicleRequests from './rest/opo/vehicle-requests.js'
@@ -32,6 +33,7 @@ router.delete('/opo/manage-fleet/:id', manageFleet.del)
 
 router.get('/all-trips', requireAuth, allTrips.get)
 router.get('/my-trips', requireAuth, myTrips.get)
+router.get('/profile', requireAuth, profile.get)
 
 router.put('/trip/:tripId/leader/:userId', trip.makeLeader)
 router.delete('/trip/:tripId/leader/:userId', trip.demote)

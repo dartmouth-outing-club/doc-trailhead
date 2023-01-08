@@ -26,7 +26,7 @@ export function signinCAS (req, res, next) {
 
     console.log(`Signed in user ${userId} for casId ${casId}`)
     const token = tokenForUser(userId, 'normal')
-    res.cookie('token', token)
+    res.cookie('token', token, { secure: true, sameSite: 'Lax' })
     return res.redirect('/')
   })(req, res, next)
 }
