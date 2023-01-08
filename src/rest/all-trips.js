@@ -18,7 +18,7 @@ export function get (_req, res) {
     .map(trip => {
       const title = trip.title.length < 38 ? trip.title : trip.title.substring(0, 38) + '...'
       return `
-<div class=trip-card>
+<a href=/trip/${trip.id} class=trip-card>
   <img src="${trip.iconPath}">
   <header>Trip #${trip.id}</header>
   <h2>${title}</h2>
@@ -28,7 +28,7 @@ export function get (_req, res) {
   </div>
   <div class="club-tag">${trip.club}</div>
   <p>${trip.description.substring(0, 190)}...</p>
-</div>`
+</a>`
     })
     .join('')
   res.send(cards).status(200)

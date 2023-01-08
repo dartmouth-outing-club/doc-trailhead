@@ -17,6 +17,16 @@ section.trips {
   margin: auto;
 }
 
+a.trip-card {
+  color: inherit;
+  display: block;
+  text-decoration: none;
+}
+
+.trip-card:hover {
+  filter: brightness(80%);
+}
+
 .trip-card {
   background-color: white;
   border-radius: 10px;

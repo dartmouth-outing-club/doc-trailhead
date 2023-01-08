@@ -54,7 +54,7 @@ export function getClubIcon (clubName) {
     case 'Winter Sports':
       return '/icons/wsc.png'
     case 'Timber Team':
-      return '/icons/wood.png'
+      return '/icons/woodsmen.png'
     case 'Mountaineering':
       return '/icons/mountain.png'
     case 'Ledyard':
@@ -69,6 +69,11 @@ export function getClubIcon (clubName) {
 }
 
 export function getLongTimeElement (unixTime) {
+  if (unixTime === undefined) return undefined
+  if (typeof unixTime !== 'number') {
+    throw new Error(`Unexpected argument ${unixTime} received`)
+  }
+
   const date = new Date(unixTime)
   const minutes = date.getMinutes()
   const hours = date.getHours()

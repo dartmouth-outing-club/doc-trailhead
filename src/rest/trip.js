@@ -75,7 +75,6 @@ function getTripData (tripId) {
   const groupGearRequests = sqlite.all(`
     SELECT name, quantity FROM group_gear_requests WHERE trip = ? ORDER BY quantity DESC
   `, tripId)
-  console.log(groupGearRequests)
 
   const tripPcardRequest = sqlite.get(`
     SELECT assigned_pcard, is_approved, snacks, breakfast, lunch, dinner, other_costs

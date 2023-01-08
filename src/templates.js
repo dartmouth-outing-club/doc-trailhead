@@ -64,6 +64,7 @@ export function html (strings, ...values) {
 }
 
 export function escapeProperties (object) {
+  if (object === undefined) return undefined
   const result = {}
   Object.entries(object).forEach(([key, value]) => {
     result[key] = sanitize(value)
