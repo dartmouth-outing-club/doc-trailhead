@@ -1,4 +1,4 @@
-<div class="profile-card">
+<div class="profile-card" hx-target=this hx-swap=outerHTML>
 <div class=profile-overview>
   <div class=profile-photo></div>
   <div class=profile-name>
@@ -16,4 +16,8 @@
   <dt>Medical Conditions<dd>{{ medical_conditions }}
   <dt>Driver Certifications<dd>{{ driver_certifications }}
 </dl>
+<div class=button-row>
+  <button class="action deny" hx-post="/logout">Logout</button>
+  <button class="action edit" hx-get="/rest/edit-profile">Edit profile</button>
+</div>
 </div>

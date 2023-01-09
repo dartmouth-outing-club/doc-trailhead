@@ -33,7 +33,10 @@ router.delete('/opo/manage-fleet/:id', manageFleet.del)
 
 router.get('/all-trips', requireAuth, allTrips.get)
 router.get('/my-trips', requireAuth, myTrips.get)
-router.get('/profile', requireAuth, profile.get)
+
+router.get('/profile', requireAuth, profile.getView)
+router.post('/profile', requireAuth, profile.post)
+router.get('/edit-profile', requireAuth, profile.getEditable)
 
 router.put('/trip/:tripId/leader/:userId', trip.makeLeader)
 router.delete('/trip/:tripId/leader/:userId', trip.demote)

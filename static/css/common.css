@@ -33,12 +33,29 @@ h1 {
   font-size: 2em;
 }
 
+button {
+  border: 2px solid white;
+  border-radius: 6px;
+  color: white;
+  font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
+  font-size: 1.1em;
+  padding: .5em 1em;
+}
+
 button.approve {
   background-color: #0ca074;
+  border-color: #0ca074;
 }
 
 button.deny {
   background-color: #ee6e52;
+  border-color: #ee6e52;
+}
+
+button.edit {
+  color: #0ca074;
+  background-color: white;
+  border: 2px solid #0ca074;
 }
 
 button:hover {
@@ -89,15 +106,6 @@ button:hover {
   overflow-x: scroll;
   width: 100%;
   text-align: center;
-}
-
-.trip-table button, button.action {
-  border: 0;
-  border-radius: 6px;
-  color: white;
-  font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
-  font-size: 1.1em;
-  padding: .5em 1em;
 }
 
 .trip-table button {
@@ -183,9 +191,11 @@ button:hover {
 }
 
 .profile-card dl {
+  border-bottom: 1px solid gray;
   display: grid;
   font-size: 1.2em;
-  /* grid-template-columns: 33% auto; */
+  margin: 0;
+  padding: 20px 0;
 }
 
 .profile-card dt, .profile-card dd {
@@ -196,7 +206,28 @@ button:hover {
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
   grid-column: 1;
 }
+
 .profile-card dd {
   grid-column: 2;
   text-align: right;
+}
+
+.profile-card .button-row {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.profile-card .button-row button:first-child {
+  margin-right: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.profile-card input[type=text] {
+  border: 2px solid #c4c4c4;
+  border-radius: 10px;
+  color: #494c50;
+  padding: .5em;
+  font-size: 1.1em;
 }

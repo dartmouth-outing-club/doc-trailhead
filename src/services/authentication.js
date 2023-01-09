@@ -31,6 +31,10 @@ export function signinCAS (req, res, next) {
   })(req, res, next)
 }
 
+export function logout (req, res, next) {
+
+}
+
 const jwtOptions = {
   secretOrKey: process.env.AUTH_SECRET,
   // Where to find the JWT token in the request
