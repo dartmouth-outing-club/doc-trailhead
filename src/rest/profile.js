@@ -8,6 +8,6 @@ export function get (req, res) {
     WHERE user = ?
   `, user.id)?.certs
 
-  user.driver_certifications = driver_certifications
-  return res.render('partials/user-card.njs', user)
+  user.driver_certifications = driver_certifications || 'none'
+  return res.render('partials/profile-card.njs', user)
 }
