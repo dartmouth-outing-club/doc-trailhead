@@ -3,7 +3,7 @@ import * as utils from '../utils.js'
 import { getClubIcon } from '../utils.js'
 
 export function get (req, res) {
-  const userId = req.user.id
+  const userId = req.user
   const now = new Date()
 
   const publicTrips = sqlite.all(`

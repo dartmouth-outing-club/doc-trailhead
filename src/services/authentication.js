@@ -1,16 +1,57 @@
+import crypto from 'node:crypto'
 import passport from 'passport'
-import { Strategy as JwtStrategy } from 'passport-jwt'
 import cas from 'passport-cas'
 import jwt from 'jwt-simple'
-import { add } from 'date-arithmetic'
 
 import * as db from '../services/sqlite.js'
+import * as sessions from '../services/sessions.js'
 import * as constants from '../constants.js'
 
-export function tokenForUser (userId, purpose, tripId) {
+export async function tokenForUser (userId, purpose, tripId) {
   const timestamp = new Date().getTime()
   if (!userId) throw new Error('Tried to encode a JWT but the userId was undefined')
   return jwt.encode({ sub: userId, iat: timestamp, purpose, tripId }, process.env.AUTH_SECRET)
+}
+
+async function generateAndInsertNewToken (userId) {
+  const token = await getKey()
+  sessions.insertOrReplaceToken(userId, token)
+  return token
+}
+
+async function getKey () {
+  return new Promise((resolve, reject) => {
+    crypto.randomBytes(256, (err, buf) => {
+      if (err) reject(err)
+      resolve(buf.toString('hex'))
+    })
+  })
+}
+
+function sendToLogin (_req, res, _next) {
+  // res.set('HX-Redirect', '/welcome.html')
+  return res.redirect('/welcome.html')
+}
+
+export function requireAuth (req, res, next) {
+  const cookies = req.get('cookie').split(';')
+
+  if (!cookies) {
+    console.warn('No cookies in request')
+    return sendToLogin(req, res, next)
+  }
+
+  const cookieToken = cookies.find(item => item.substring(0, 5) === 'token')?.substring(6)
+  const userId = sessions.getUserIdFromToken(cookieToken)
+  // If there is a valid user session for that token, then add the user to request and move on
+  if (userId) {
+    req.user = userId
+    return next()
+  }
+
+  // Otherwise, invalidate the token we received (redundant, but clean) and redirect to login
+  sessions.invalidateToken(cookieToken)
+  return sendToLogin(req, res, next)
 }
 
 export function signinCAS (req, res, next) {
@@ -24,71 +65,28 @@ export function signinCAS (req, res, next) {
       console.log(`Created new user ${userId} for casId ${casId}`)
     }
 
+    const token = await generateAndInsertNewToken(userId)
+    console.log(token)
     console.log(`Signed in user ${userId} for casId ${casId}`)
-    const token = tokenForUser(userId, 'normal')
+
     res.cookie('token', token, { secure: true, sameSite: 'Lax' })
     return res.redirect('/')
   })(req, res, next)
 }
 
-export function logout (req, res, next) {
-
+export function logout (req, res) {
+  sessions.invalidateUserToken(req.user)
+  console.log(`Invalidate token for ${req.user}`)
+  return sendToLogin(req, res)
 }
-
-const jwtOptions = {
-  secretOrKey: process.env.AUTH_SECRET,
-  // Where to find the JWT token in the request
-  jwtFromRequest: (req) => {
-    const cookies = req.get('cookie').split(';')
-    if (!cookies) {
-      console.warn('No cookies in request')
-      return undefined
-    }
-    const token = cookies.find(item => item.substring(0, 5) === 'token')?.substring(6)
-    return token
-  }
-}
-
-const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
-  try {
-    const user = db.getUserById(payload.sub)
-    if (!user) {
-      console.error(payload)
-      throw new Error(`User not found for id ${payload.sub}`)
-    }
-
-    if (payload.purpose === 'mobile') {
-      const trip = db.getTripById(payload.tripId)
-      if (!trip) {
-        console.error(payload)
-        throw new Error(`Trip not found for id ${payload.tripId}`)
-      }
-
-      const today = new Date()
-      if (today.getTime() <= add(trip.end_time, 30, 'days').getTime()) {
-        console.log('Mobile token is valid')
-        done(null, user)
-      } else {
-        throw new Error('Mobile token expired')
-      }
-    } else {
-      done(null, user)
-    }
-  } catch (err) {
-    done(err, false)
-  }
-})
 
 const casOptions = {
   ssoBaseURL: 'https://login.dartmouth.edu/cas',
   serverBaseURL: `${constants.backendURL}/signin-cas`
 }
+
 const casLogin = new cas.Strategy(casOptions, (user, done) => {
   return done(null, user)
 })
 
 passport.use(casLogin)
-passport.use(jwtLogin)
-
-export const requireAuth = passport.authenticate('jwt', { session: false, failureRedirect: '/welcome.html' })
-export const requireCAS = passport.authenticate('cas', { session: false })

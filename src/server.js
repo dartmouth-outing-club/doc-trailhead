@@ -1,12 +1,13 @@
 import express from 'express'
-import bodyParser from 'body-parser'
 import cors from 'cors'
 import cron from 'node-cron'
 import morgan from 'morgan'
 import nunjucks from 'nunjucks'
+import bodyParser from 'body-parser'
 
 import * as constants from './constants.js'
 import * as db from './services/sqlite.js'
+import * as sessions from './services/sessions.js'
 import * as mailer from './services/mailer.js'
 import apiRouter from './router.js'
 import restRouter from './rest-router.js'
@@ -21,6 +22,8 @@ app.use(cors())
 app.use(morgan('dev'))
 app.use(express.static('static'))
 
+app.use(bodyParser.urlencoded())
+
 // enable static assets (new frontend) only on development mode
 if (process.env.NODE_ENV === 'development') {
   nunjucks.configure('templates', {
@@ -29,17 +32,17 @@ if (process.env.NODE_ENV === 'development') {
   })
 }
 
-// enable json message body for posting data to API
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json())
-
 app.use('/', apiRouter)
 if (process.env.NODE_ENV === 'development') app.use('/rest', restRouter)
 app.use(handleError)
 
-// Open database connection
+// Open database connections
 db.start('trailhead.db')
-process.on('exit', () => db.stop())
+sessions.start()
+process.on('exit', () => {
+  db.stop()
+  sessions.stop()
+})
 process.on('SIGHUP', () => process.exit(128 + 1))
 process.on('SIGINT', () => process.exit(128 + 2))
 process.on('SIGTERM', () => process.exit(128 + 15))
