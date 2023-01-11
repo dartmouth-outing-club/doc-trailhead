@@ -22,7 +22,7 @@ app.use(cors())
 app.use(morgan('dev'))
 app.use(express.static('static'))
 
-app.use(bodyParser.urlencoded())
+app.use(bodyParser.urlencoded({ extended: true }))
 
 // enable static assets (new frontend) only on development mode
 if (process.env.NODE_ENV === 'development') {

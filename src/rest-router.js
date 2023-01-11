@@ -41,6 +41,7 @@ router.get('/profile/driver-cert', requireAuth, profile.getDriverCertRequest)
 router.post('/profile/driver-cert', requireAuth, profile.postDriverCertRequest)
 router.get('/profile/club-leadership', requireAuth, profile.getClubLeadershipRequest)
 router.post('/profile/club-leadership', requireAuth, profile.postClubLeadershipRequest)
+router.delete('/profile/club-leadership/:id', requireAuth, profile.deleteClubLeadershipRequest)
 
 router.put('/trip/:tripId/leader/:userId', trip.makeLeader)
 router.delete('/trip/:tripId/leader/:userId', trip.demote)

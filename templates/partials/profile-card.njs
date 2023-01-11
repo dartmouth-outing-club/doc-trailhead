@@ -22,14 +22,9 @@
     <dt>Driver Certifications<dd>{{ driver_certifications }}
     <dt>Leader For<dd>{{ leader_for }}
   </dl>
-  <div class=button-row>
-    <button class="action edit"
-            hx-swap=innerHTML
-            hx-target="closest section"
-            hx-get="/rest/profile/driver-cert"
-            >Request Driver Cert</button>
-    <button class="action edit"
-            hx-get="/rest/profile/club-leadership">Request Club Leadership</button>
+  <div hx-swap=innerHTML hx-target="closest section" class=button-row>
+    <button class="action edit" hx-get="/rest/profile/driver-cert">Request Driver Cert</button>
+    <button class="action edit" hx-get="/rest/profile/club-leadership">Request Club Leadership</button>
   </div>
 </section>
 <section>

@@ -91,6 +91,16 @@
     <tr><th>{{ item.name }}<td>{{ item.quantity }}
     {% endfor %}
   </table>
+  {% if show_individual_gear_approval_buttons %}
+  <div class=button-row>
+    <button class="action deny" hx-put="/rest/opo/member-gear/deny">Deny</button>
+    {% if member_gear_approved === 1 %}
+    <button class="action edit" hx-put="/rest/opo/member-gear/reset">Un-approve</button>
+    {% else %}
+    <button class="action approve" hx-put="/rest/opo/member-gear/approve">Approve</button>
+    {% endif %}
+  </div>
+  {% endif %}
 </div>
 <div>
   <div class=table-status-row><h2>Group Gear</h2>{{ group_gear_status }}</div>
@@ -99,6 +109,17 @@
     <tr><th>{{ item.name }}<td>{{ item.quantity }}
     {% endfor %}
   </table>
+  {% if show_group_gear_approval_buttons %}
+  <div class=button-row>
+    <button class="action deny" hx-put="/rest/opo/group-gear/deny">Deny</button>
+    {% if group_gear_approved === 1 %}
+    <button class="action edit" hx-put="/rest/opo/group-gear/reset">Un-approve</button>
+    {% else %}
+    <button class="action approve" hx-put="/rest/opo/group-gear/approve">Approve</button>
+    {% endif %}
+  </div>
+  {% endif %}
+  </div>
 </div>
 </div>
 
@@ -111,6 +132,16 @@
     <tr><th>Lunch<td>{{ pcard_request.lunch }}
     <tr><th>Dinner<td>{{ pcard_request.dinner }}
   </table>
+  {% if show_pcard_approval_buttons %}
+  <div class=button-row>
+    <button class="action deny" hx-put="/rest/opo/pcard/deny">Deny</button>
+    {% if pcard_request.is_approved === 1 %}
+    <button class="action edit" hx-put="/rest/opo/pcard/reset">Un-approve</button>
+    {% else %}
+    <button class="action approve" hx-put="/rest/opo/pcard/approve">Approve</button>
+    {% endif %}
+  </div>
+  {% endif %}
 </div>
 {% endif %}
 

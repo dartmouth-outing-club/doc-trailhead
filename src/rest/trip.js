@@ -1,7 +1,8 @@
 import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 
-function getTripData (tripId) {
+function getTripData (tripId, userId) {
+  const user = sqlite.get('SELECT * FROM users WHERE id = ?', userId)
   const trip = sqlite.get(`
     SELECT
       trips.id as trip_id,
@@ -129,6 +130,11 @@ function getTripData (tripId) {
   trip.pcard_request = tripPcardRequest
   trip.vehiclerequest_status = utils.getBadgeImgElement(trip.vehiclerequest_status)
 
+  // Show approval buttons if user is an OPO staffer
+  trip.show_individual_gear_approval_buttons = user.is_opo && individualGearRequests.length > 0
+  trip.show_group_gear_approval_buttons = user.is_opo && groupGearRequests.length > 0
+  trip.show_pcard_approval_buttons = user.is_opo && tripPcardRequest
+
   trip.requested_vehicles = vehicles.map(vehicle => {
     return {
       ...vehicle,
@@ -148,7 +154,7 @@ function getTripData (tripId) {
 
 export function get (req, res) {
   const tripId = req.params.id
-  const trip = getTripData(tripId)
+  const trip = getTripData(tripId, req.user)
   res.render('trip.njs', trip)
 }
 
@@ -163,7 +169,7 @@ function updateTripMembers (req, res, field, value) {
   sqlite
     .run(`UPDATE trip_members SET ${field} = ${value} WHERE trip = ? and user = ?`, tripId, userId)
 
-  const trip = getTripData(tripId)
+  const trip = getTripData(tripId, req.user)
   return res.render('partials/long-trip-card.njs', trip)
 }
 
@@ -180,6 +186,6 @@ export function reject (req, res) {
   }
 
   sqlite.run('DELETE FROM trip_members WHERE trip = ? and user = ?', tripId, userId)
-  const trip = getTripData(tripId)
+  const trip = getTripData(tripId, req.user)
   return res.render('partials/long-trip-card.njs', trip)
 }

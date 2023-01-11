@@ -117,10 +117,6 @@ button:hover {
   width: 36px;
 }
 
-.trip-table tbody tr:hover {
-  background-color: rgba(0,0,0,.075);
-}
-
 .trip-table th {
   border-bottom-color: black;
   border-bottom-style: solid;
@@ -214,13 +210,13 @@ button:hover {
 }
 
 .profile-card .button-row {
-  margin-top: 20px;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .button-row button {
+  margin-top: 20px;
   margin-right: 20px;
 }
 
@@ -232,6 +228,18 @@ button:hover {
   font-size: 1.1em;
 }
 
+.profile-card select, .profile-card input[type=number] {
+  border: 2px solid #c4c4c4;
+  border-radius: 10px;
+  background: white;
+  padding: .5em 1em;
+  font-size: 1.1em;
+}
+
+.profile-card input[type=number] {
+  width: 20%;
+}
+
 .driver-cert-request .checkbox-row {
   display: flex;
   font-size: 1.3em;
@@ -241,5 +249,31 @@ button:hover {
 .driver-cert-request input[type=checkbox]{
    border: 1px solid #939393;
    margin-left: 20px;
+}
+
+.club-leadership-request > * {
+  margin-bottom: 20px;
+}
+
+.club-leadership-request ul {
+  font-size: 1.1em;
+  list-style: none;
+  padding: 0;
+}
+
+/* .club-leadership-request li { */
+/*   display: flex; */
+/*   align-items: center; */
+/* } */
+
+.club-leadership-request ul button {
+  background-color: white;
+  border: none;
+  padding: 0;
+}
+
+.club-leadership-request ul img {
+  height: 15px;
+  margin: 0;
 }
 
