@@ -10,6 +10,7 @@ import * as trip from './rest/trip.js'
 import * as tripApprovals from './rest/opo/trip-approvals.js'
 import * as vehicleRequests from './rest/opo/vehicle-requests.js'
 import * as profileApprovals from './rest/opo/profile-approvals.js'
+import * as gearApprovals from './rest/opo/gear-approvals.js'
 import * as manageFleet from './rest/opo/manage-fleet.js'
 
 const router = Router()
@@ -27,9 +28,21 @@ router.get('/opo/profile-approvals/certs', profileApprovals.getCertRequests)
 router.put('/opo/profile-approvals/certs/:req_id', profileApprovals.approveCertRequest)
 router.delete('/opo/profile-approvals/certs/:req_id', profileApprovals.denyCertRequest)
 
-router.get('/opo/manage-fleet', manageFleet.get)
-router.post('/opo/manage-fleet', manageFleet.post)
-router.delete('/opo/manage-fleet/:id', manageFleet.del)
+router.get('/opo/manage-fleet', requireAuth, manageFleet.get)
+router.post('/opo/manage-fleet', requireAuth, manageFleet.post)
+router.delete('/opo/manage-fleet/:id', requireAuth, manageFleet.del)
+
+router.put('/opo/member-gear/:id/approve', requireAuth, gearApprovals.approveMemberGear)
+router.put('/opo/member-gear/:id/deny', requireAuth, gearApprovals.denyMemberGear)
+router.put('/opo/member-gear/:id/reset', requireAuth, gearApprovals.resetMemberGear)
+
+router.put('/opo/group-gear/:id/approve', requireAuth, gearApprovals.approveGroupGear)
+router.put('/opo/group-gear/:id/deny', requireAuth, gearApprovals.denyGroupGear)
+router.put('/opo/group-gear/:id/reset', requireAuth, gearApprovals.resetGroupGear)
+
+router.put('/opo/pcard/:id/approve', requireAuth, gearApprovals.approvePcard)
+router.put('/opo/pcard/:id/deny', requireAuth, gearApprovals.denyPcard)
+router.put('/opo/pcard/:id/reset', requireAuth, gearApprovals.resetPcard)
 
 router.get('/all-trips', requireAuth, allTrips.get)
 router.get('/my-trips', requireAuth, myTrips.get)

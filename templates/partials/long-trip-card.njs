@@ -93,11 +93,11 @@
   </table>
   {% if show_individual_gear_approval_buttons %}
   <div class=button-row>
-    <button class="action deny" hx-put="/rest/opo/member-gear/deny">Deny</button>
+    <button class="action deny" hx-put="/rest/opo/member-gear/{{ trip_id }}/deny">Deny</button>
     {% if member_gear_approved === 1 %}
-    <button class="action edit" hx-put="/rest/opo/member-gear/reset">Un-approve</button>
+    <button class="action edit" hx-put="/rest/opo/member-gear/{{ trip_id }}/reset">Un-approve</button>
     {% else %}
-    <button class="action approve" hx-put="/rest/opo/member-gear/approve">Approve</button>
+    <button class="action approve" hx-put="/rest/opo/member-gear/{{ trip_id }}/approve">Approve</button>
     {% endif %}
   </div>
   {% endif %}
@@ -111,11 +111,11 @@
   </table>
   {% if show_group_gear_approval_buttons %}
   <div class=button-row>
-    <button class="action deny" hx-put="/rest/opo/group-gear/deny">Deny</button>
+    <button class="action deny" hx-put="/rest/opo/group-gear/{{ trip_id }}/deny">Deny</button>
     {% if group_gear_approved === 1 %}
-    <button class="action edit" hx-put="/rest/opo/group-gear/reset">Un-approve</button>
+    <button class="action edit" hx-put="/rest/opo/group-gear/{{ trip_id }}/reset">Un-approve</button>
     {% else %}
-    <button class="action approve" hx-put="/rest/opo/group-gear/approve">Approve</button>
+    <button class="action approve" hx-put="/rest/opo/group-gear/{{ trip_id }}/approve">Approve</button>
     {% endif %}
   </div>
   {% endif %}
@@ -134,11 +134,11 @@
   </table>
   {% if show_pcard_approval_buttons %}
   <div class=button-row>
-    <button class="action deny" hx-put="/rest/opo/pcard/deny">Deny</button>
+    <button class="action deny" hx-put="/rest/opo/pcard/{{ trip_id }}/deny">Deny</button>
     {% if pcard_request.is_approved === 1 %}
-    <button class="action edit" hx-put="/rest/opo/pcard/reset">Un-approve</button>
+    <button class="action edit" hx-put="/rest/opo/pcard/{{ trip_id }}/reset">Un-approve</button>
     {% else %}
-    <button class="action approve" hx-put="/rest/opo/pcard/approve">Approve</button>
+    <button class="action approve" hx-put="/rest/opo/pcard/{{ trip_id }}/approve">Approve</button>
     {% endif %}
   </div>
   {% endif %}
