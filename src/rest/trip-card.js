@@ -83,36 +83,7 @@ export function getTripCardData (tripId, userId) {
     WHERE trip = ?
   `, tripId)
 
-  const requestedVehicles = sqlite.all(`
-    SELECT
-      type,
-      details,
-      pickup_time,
-      return_time,
-      iif(trailer_needed = 1, 'Yes', 'No') as trailer_needed,
-      iif(pass_needed = 1, 'Yes', 'No') as pass_needed
-    FROM requested_vehicles
-    WHERE vehiclerequest = ?
-  `, trip.vehiclerequest_id)
-  // Note the ORDER BY ensures that the response_index is lined up
-  const assignedVehicles = sqlite.all(`
-    SELECT
-      vehicles.name as name,
-      vehicle_key,
-      pickup_time as assigned_pickup_time,
-      return_time as assigned_return_time
-    FROM assignments
-    LEFT JOIN vehicles ON vehicles.id = assignments.vehicle
-    WHERE vehiclerequest = ?
-    ORDER BY response_index ASC
-  `, trip.vehiclerequest_id)
-
-  // This is annoying holdover from the old frontend
-  // Once we've migrated to the new frontend we can properly link these in the db
-  const vehicles = requestedVehicles.map((requestedVehicle, index) => {
-    return { ...requestedVehicle, ...assignedVehicles.at(index) }
-  })
-
+  trip.is_on_trip = sqlite.isSignedUpForTrip(tripId, userId)
   trip.start_time = utils.getLongTimeElement(trip.start_time)
   trip.end_time = utils.getLongTimeElement(trip.end_time)
   trip.trip_status = utils.getBadgeImgElement('approved') // TODO dynamically create
@@ -130,20 +101,12 @@ export function getTripCardData (tripId, userId) {
   trip.pcard_request = tripPcardRequest
   trip.vehiclerequest_status = utils.getBadgeImgElement(trip.vehiclerequest_status)
 
-  // Show approval buttons if user is an OPO staffer
+  // Show approval buttons if user is an OPO staffer and there is something to approve
+  trip.is_opo = user.is_opo
   trip.show_individual_gear_approval_buttons = user.is_opo && individualGearRequests.length > 0
   trip.show_group_gear_approval_buttons = user.is_opo && groupGearRequests.length > 0
   trip.show_pcard_approval_buttons = user.is_opo && tripPcardRequest
 
-  trip.requested_vehicles = vehicles.map(vehicle => {
-    return {
-      ...vehicle,
-      pickup_time: utils.getLongTimeElement(vehicle.pickup_time),
-      return_time: utils.getLongTimeElement(vehicle.return_time),
-      assigned_pickup_time: utils.getLongTimeElement(vehicle.assigned_pickup_time),
-      assigned_return_time: utils.getLongTimeElement(vehicle.assigned_return_time)
-    }
-  })
   // TODO Refactor the badge method to make this less annoying
   if (trip.pcard_request) {
     trip.pcard_request.status = trip.pcard_request.is_approved === null
@@ -151,10 +114,58 @@ export function getTripCardData (tripId, userId) {
       : utils.getBadgeImgElement(trip.pcard_request.is_approved)
   }
 
+  // Add vehicle request stuff
+  if (trip.vehiclerequest_id) {
+    const requestedVehicles = sqlite.all(`
+      SELECT
+        type,
+        details,
+        pickup_time,
+        return_time,
+        iif(trailer_needed = 1, 'Yes', 'No') as trailer_needed,
+        iif(pass_needed = 1, 'Yes', 'No') as pass_needed
+      FROM requested_vehicles
+      WHERE vehiclerequest = ?
+  `, trip.vehiclerequest_id)
+    // Note the ORDER BY ensures that the response_index is lined up
+    const assignedVehicles = sqlite.all(`
+      SELECT
+        vehicles.name as name,
+        vehicle_key,
+        pickup_time as assigned_pickup_time,
+        return_time as assigned_return_time
+      FROM assignments
+      LEFT JOIN vehicles ON vehicles.id = assignments.vehicle
+      WHERE vehiclerequest = ?
+      ORDER BY response_index ASC
+  `, trip.vehiclerequest_id)
+
+    // This is annoying holdover from the old frontend
+    // Once we've migrated to the new frontend we can properly link these in the db
+    const vehicles = requestedVehicles.map((requestedVehicle, index) => {
+      return { ...requestedVehicle, ...assignedVehicles.at(index) }
+    })
+
+    trip.requested_vehicles = vehicles.map(vehicle => {
+      return {
+        ...vehicle,
+        pickup_time: utils.getLongTimeElement(vehicle.pickup_time),
+        return_time: utils.getLongTimeElement(vehicle.return_time),
+        assigned_pickup_time: utils.getLongTimeElement(vehicle.assigned_pickup_time),
+        assigned_return_time: utils.getLongTimeElement(vehicle.assigned_return_time)
+      }
+    })
+  }
+
   return trip
 }
 
-export function renderTripCard (res, tripId, userId) {
+export function renderSignupTripCard (res, tripId, userId) {
   const trip = getTripCardData(tripId, userId)
-  return res.render('partials/long-trip-card.njs', trip)
+  return res.render('trip/signup-trip-card.njs', trip)
+}
+
+export function renderAdminTripCard (res, tripId, userId) {
+  const trip = getTripCardData(tripId, userId)
+  return res.render('trip/admin-trip-card.njs', trip)
 }

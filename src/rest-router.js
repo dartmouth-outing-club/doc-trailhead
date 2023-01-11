@@ -17,6 +17,27 @@ const router = Router()
 
 router.get('/index', index.get)
 
+router.get('/profile', requireAuth, profile.getProfileView)
+router.post('/profile', requireAuth, profile.post)
+router.get('/profile/edit-profile', requireAuth, profile.getProfileEditable)
+router.get('/profile/driver-cert', requireAuth, profile.getDriverCertRequest)
+router.post('/profile/driver-cert', requireAuth, profile.postDriverCertRequest)
+router.get('/profile/club-leadership', requireAuth, profile.getClubLeadershipRequest)
+router.post('/profile/club-leadership', requireAuth, profile.postClubLeadershipRequest)
+router.delete('/profile/club-leadership/:id', requireAuth, profile.deleteClubLeadershipRequest)
+
+router.get('/all-trips', requireAuth, allTrips.get)
+router.get('/my-trips', requireAuth, myTrips.get)
+
+router.post('/trip/:tripId/signup', requireAuth, trip.signup)
+router.delete('/trip/:tripId/signup', requireAuth, trip.leave)
+
+router.put('/trip/:tripId/leader/:userId', trip.makeLeader)
+router.delete('/trip/:tripId/leader/:userId', trip.demote)
+router.put('/trip/:tripId/waitlist/:userId', trip.sendToWaitlist)
+router.put('/trip/:tripId/member/:userId', trip.admit)
+router.delete('/trip/:tripId/member/:userId', trip.reject)
+
 router.get('/opo/trip-approvals', tripApprovals.get)
 router.get('/opo/vehicle-requests', vehicleRequests.get)
 
@@ -43,23 +64,5 @@ router.put('/opo/group-gear/:id/reset', requireAuth, gearApprovals.resetGroupGea
 router.put('/opo/pcard/:id/approve', requireAuth, gearApprovals.approvePcard)
 router.put('/opo/pcard/:id/deny', requireAuth, gearApprovals.denyPcard)
 router.put('/opo/pcard/:id/reset', requireAuth, gearApprovals.resetPcard)
-
-router.get('/all-trips', requireAuth, allTrips.get)
-router.get('/my-trips', requireAuth, myTrips.get)
-
-router.get('/profile', requireAuth, profile.getProfileView)
-router.post('/profile', requireAuth, profile.post)
-router.get('/profile/edit-profile', requireAuth, profile.getProfileEditable)
-router.get('/profile/driver-cert', requireAuth, profile.getDriverCertRequest)
-router.post('/profile/driver-cert', requireAuth, profile.postDriverCertRequest)
-router.get('/profile/club-leadership', requireAuth, profile.getClubLeadershipRequest)
-router.post('/profile/club-leadership', requireAuth, profile.postClubLeadershipRequest)
-router.delete('/profile/club-leadership/:id', requireAuth, profile.deleteClubLeadershipRequest)
-
-router.put('/trip/:tripId/leader/:userId', trip.makeLeader)
-router.delete('/trip/:tripId/leader/:userId', trip.demote)
-router.put('/trip/:tripId/waitlist/:userId', trip.sendToWaitlist)
-router.put('/trip/:tripId/member/:userId', trip.admit)
-router.delete('/trip/:tripId/member/:userId', trip.reject)
 
 export default router

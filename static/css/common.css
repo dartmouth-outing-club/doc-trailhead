@@ -40,6 +40,8 @@ button {
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
   font-size: 1.1em;
   padding: .5em 1em;
+  margin-top: 20px;
+  margin-right: 20px;
 }
 
 button.approve {
@@ -213,11 +215,6 @@ button:hover {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-}
-
-.button-row button {
-  margin-top: 20px;
-  margin-right: 20px;
 }
 
 .profile-card input[type=text] {

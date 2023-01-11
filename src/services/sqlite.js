@@ -143,6 +143,20 @@ export function insertUser (casId) {
   return info.lastInsertRowid
 }
 
+export function isOpo (userId) {
+  return get('SELECT is_opo FROM users WHERE id = ?', userId).is_opo === 1
+}
+
+export function isSignedUpForTrip (tripId, userId) {
+  return get('SELECT 1 FROM trip_members WHERE trip = ? AND user = ?',
+    tripId, userId) !== undefined
+}
+
+export function isLeaderForTrip (tripId, userId) {
+  return get('SELECT 1 FROM trip_members WHERE trip = ? AND user = ? AND leader = TRUE',
+    tripId, userId) !== undefined
+}
+
 export function getTripLeaderIds (tripId) {
   return db.prepare(`
   SELECT user

@@ -1,4 +1,8 @@
-{% include "partials/admin-header.njs" %}
+{% include "admin-header.njs" %}
 <main hx-target=this>
-{% include "partials/long-trip-card.njs" %}
+{% if leader %}
+  {% include "trip/leader-trip-card.njs" %}
+{% else %}
+  {% include "trip/signup-trip-card.njs" %}
+{% endif %}
 </main>

@@ -8,6 +8,7 @@
 
 <h2>Description</h2>
 <p>{{ description }}</p>
+{% if is_opo %}<a href="/trip/{{ trip_id }}">View trip signup</a>{% endif %}
 
 <h2>Details</h2>
 <div class=dual-table-container>
