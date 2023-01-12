@@ -32,8 +32,20 @@
 <p>Sign up for this trip here. Below is the required gear - only request what you need!
 <form action="/rest/trip/{{ trip_id }}/signup" method=post hx-boost=true hx-push-url=false>
 <table class=detail-table>
-  {% for item in group_gear %}
-  <tr><th>{{ item.name }}<td><label>Request <input name="{{ item.name }}" type=checkbox></label>
+  {% for item in required_gear %}
+  <tr>
+    <th>{{ item.name }}</th>
+    <td>
+      <label>Request
+        <input value="{{ item.id }}"
+               name="{{ item.name }}"
+               type=checkbox
+               autocomplete=off
+               disabled
+               {% if item.is_requested == 1%}checked{% endif %}
+               ></label>
+    </td>
+  </tr>
   {% endfor %}
 </table>
 
@@ -43,9 +55,22 @@
         hx-delete="/rest/trip/{{ trip_id }}/signup"
         hx-confirm="Are you sure you want to remove yourself from the trip?"
         >Leave Trip</button>
+<button class="action edit" type=button onclick="enableForm(this)">Edit Gear Request</button>
 {% else %}
 <button class="action approve" type=submit>Sign Up</button>
 {% endif %}
 </form>
 
 </section>
+
+<script>
+function enableForm(oldButton) {
+  const checkboxes = document.querySelectorAll('form input[type=checkbox]')
+  checkboxes.forEach(input => input.removeAttribute('disabled'))
+
+  const newButton = document.createElement('button')
+  newButton.classList.add('action', 'approve')
+  newButton.innerText = 'Save'
+  oldButton.replaceWith(newButton)
+}
+</script>

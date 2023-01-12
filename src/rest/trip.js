@@ -3,12 +3,9 @@ import * as tripCard from './trip-card.js'
 
 export function get (req, res) {
   const tripId = req.params.id
-
   // No point in showing trip leaders the "regular" view of their trip
   if (sqlite.isLeaderForTrip(tripId, req.user)) return res.redirect(`/leader/trip/${tripId}`)
-
-  const trip = tripCard.getTripCardData(tripId, req.user)
-  return res.render('trip.njs', trip)
+  tripCard.renderSignupPage(res, tripId, req.user)
 }
 
 export function getLeaderView (req, res) {
@@ -18,9 +15,8 @@ export function getLeaderView (req, res) {
   const is_opo = sqlite.isOpo(req.user)
   const is_leader = sqlite.isLeaderForTrip(tripId, req.user)
 
-  const trip = tripCard.getTripCardData(tripId, req.user)
   return is_opo || is_leader
-    ? res.render('trip.njs', { ...trip, leader: true })
+    ? tripCard.renderLeaderPage(res, tripId, req.user)
     : res.sendStatus(403)
 }
 
@@ -51,20 +47,24 @@ export function reject (req, res) {
   }
 
   sqlite.run('DELETE FROM trip_members WHERE trip = ? and user = ?', tripId, userId)
-  return tripCard.renderTripCard(res, tripId, req.user)
+  return tripCard.renderSignupCard(res, tripId, req.user)
 }
 
 export function signup (req, res) {
   const tripId = req.params.tripId
   if (!tripId) return res.sendStatus(400)
 
-  // TODO add gear requests and make it possible to edit them
-  console.log(req.body)
+  sqlite.run(`
+    INSERT OR REPLACE INTO trip_members (trip, user, leader, pending)
+      VALUES (?, ?, false, false)`, tripId, req.user)
 
-  sqlite.run('INSERT INTO trip_members (trip, user, leader, pending) VALUES (?, ?, false, false)',
-    tripId, req.user)
+  for (const property in req.body) {
+    const gearId = parseInt(req.body[property])
+    sqlite.run('INSERT INTO member_gear_requests (trip, user, gear) VALUES (?, ?, ?)',
+      tripId, req.user, gearId)
+  }
 
-  return tripCard.renderSignupTripCard(res, tripId, req.user)
+  return tripCard.renderSignupCard(res, tripId, req.user)
 }
 
 export function leave (req, res) {
@@ -74,5 +74,5 @@ export function leave (req, res) {
   const { changes } = sqlite.run('DELETE FROM trip_members WHERE trip = ? and user = ?',
     tripId, req.user)
   if (changes === 0) console.warn(`Unnecessary delete requested for trip ${tripId}`)
-  return tripCard.renderSignupTripCard(res, tripId, req.user)
+  return tripCard.renderSignupCard(res, tripId, req.user)
 }

@@ -86,13 +86,13 @@
 
 <div class=dual-table-container>
 <div>
-  <div class=table-status-row><h2>Individual Gear</h2>{{ individual_gear_status }}</div>
+  <div class=table-status-row><h2>Individual Gear</h2>{{ member_gear_status }}</div>
   <table class="detail-table gear">
-    {% for item in individual_gear %}
+    {% for item in member_requested_gear %}
     <tr><th>{{ item.name }}<td>{{ item.quantity }}
     {% endfor %}
   </table>
-  {% if show_individual_gear_approval_buttons %}
+  {% if show_member_gear_approval_buttons %}
   <div class=button-row>
     <button class="action deny" hx-put="/rest/opo/member-gear/{{ trip_id }}/deny">Deny</button>
     {% if member_gear_approved === 1 %}

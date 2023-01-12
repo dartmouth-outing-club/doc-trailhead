@@ -1,7 +1,7 @@
 import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 
-export function getTripCardData (tripId, userId) {
+function getLeaderData (tripId, userId) {
   const user = sqlite.get('SELECT is_opo FROM users WHERE id = ?', userId)
   const trip = sqlite.get(`
     SELECT
@@ -64,7 +64,7 @@ export function getTripCardData (tripId, userId) {
     return { ...member, requested_gear }
   })
 
-  const individualGearRequests = sqlite.all(`
+  const memberRequestedGear = sqlite.all(`
     SELECT name, count(gear) as quantity
     FROM member_gear_requests
     LEFT JOIN trip_required_gear ON trip_required_gear.id = member_gear_requests.gear
@@ -72,6 +72,8 @@ export function getTripCardData (tripId, userId) {
     GROUP BY gear
     ORDER BY quantity DESC
   `, tripId)
+
+  const requiredGear = sqlite.all('SELECT id, name FROM trip_required_gear WHERE trip = ?', tripId)
 
   const groupGearRequests = sqlite.all(`
     SELECT name, quantity FROM group_gear_requests WHERE trip = ? ORDER BY quantity DESC
@@ -90,9 +92,10 @@ export function getTripCardData (tripId, userId) {
   trip.leader_names = leaderNames
   trip.attending = membersWithGear.filter(member => member.pending === 0)
   trip.pending = membersWithGear.filter(member => member.pending === 1)
-  trip.individual_gear = individualGearRequests
+  trip.required_gear = requiredGear
+  trip.member_requested_gear = memberRequestedGear
   trip.group_gear = groupGearRequests
-  trip.individual_gear_status = individualGearRequests.length > 0
+  trip.member_gear_status = memberRequestedGear.length > 0
     ? utils.getBadgeImgElement(trip.member_gear_approved !== null ? trip.member_gear_approved : 'pending')
     : '<span>-</span>'
   trip.group_gear_status = groupGearRequests.length > 0
@@ -103,7 +106,7 @@ export function getTripCardData (tripId, userId) {
 
   // Show approval buttons if user is an OPO staffer and there is something to approve
   trip.is_opo = user.is_opo
-  trip.show_individual_gear_approval_buttons = user.is_opo && individualGearRequests.length > 0
+  trip.show_member_gear_approval_buttons = user.is_opo && memberRequestedGear.length > 0
   trip.show_group_gear_approval_buttons = user.is_opo && groupGearRequests.length > 0
   trip.show_pcard_approval_buttons = user.is_opo && tripPcardRequest
 
@@ -160,12 +163,79 @@ export function getTripCardData (tripId, userId) {
   return trip
 }
 
-export function renderSignupTripCard (res, tripId, userId) {
-  const trip = getTripCardData(tripId, userId)
+function getSignupData (tripId, userId) {
+  const user = sqlite.get('SELECT is_opo FROM users WHERE id = ?', userId)
+  const trip = sqlite.get(`
+    SELECT
+      trips.id as trip_id,
+      title,
+      clubs.name as club,
+      start_time,
+      end_time,
+      pickup,
+      description,
+      dropoff,
+      location,
+      users.name as owner_name,
+      experience_needed,
+      cost,
+      vehiclerequests.id as vehiclerequest_id,
+      vehiclerequests.is_approved as vehiclerequest_status,
+      member_gear_approved,
+      group_gear_approved
+    FROM trips
+    LEFT JOIN clubs ON clubs.id = trips.club
+    LEFT JOIN users ON users.id = trips.owner
+    LEFT JOIN vehiclerequests ON vehiclerequests.trip = trips.id
+    WHERE trips.id = ?
+  `, tripId)
+
+  const leaderNames = sqlite.get(`
+    SELECT group_concat(name, ', ') as names
+    FROM trip_members
+    LEFT JOIN users ON users.id = user
+    WHERE leader = 1 AND trip = ?
+  `, tripId).names
+
+  const requiredGear = sqlite.all(`
+    SELECT id, name, iif(mgr.gear IS NULL, 0, 1) AS is_requested
+    FROM trip_required_gear as trg
+    LEFT JOIN (
+      SELECT gear FROM member_gear_requests WHERE user = @user
+    ) AS mgr ON mgr.gear = trg.id
+    WHERE trip = @trip
+  `, { trip: tripId, user: userId })
+
+  console.log(requiredGear)
+
+  trip.is_on_trip = sqlite.isSignedUpForTrip(tripId, userId)
+  trip.start_time = utils.getLongTimeElement(trip.start_time)
+  trip.end_time = utils.getLongTimeElement(trip.end_time)
+  trip.trip_status = utils.getBadgeImgElement('approved') // TODO dynamically create
+  trip.leader_names = leaderNames
+  trip.required_gear = requiredGear
+
+  // Show approval buttons if user is an OPO staffer and there is something to approve
+  trip.is_opo = user.is_opo
+  return trip
+}
+
+export function renderSignupCard (res, tripId, userId) {
+  const trip = getSignupData(tripId, userId)
   return res.render('trip/signup-trip-card.njs', trip)
 }
 
-export function renderAdminTripCard (res, tripId, userId) {
-  const trip = getTripCardData(tripId, userId)
-  return res.render('trip/admin-trip-card.njs', trip)
+export function renderLeaderCard (res, tripId, userId) {
+  const trip = getLeaderData(tripId, userId)
+  return res.render('trip/leader-trip-card.njs', trip)
+}
+
+export function renderSignupPage (res, tripId, userId) {
+  const trip = getSignupData(tripId, userId)
+  return res.render('trip.njs', trip)
+}
+
+export function renderLeaderPage (res, tripId, userId) {
+  const trip = getLeaderData(tripId, userId)
+  return res.render('leader-trip.njs', trip)
 }
