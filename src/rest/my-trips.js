@@ -6,7 +6,7 @@ export function get (req, res) {
   const userId = req.user
   const now = new Date()
 
-  const publicTrips = sqlite.all(`
+  const trips = sqlite.all(`
     SELECT trips.id, title, location, start_time, end_time, description, clubs.name as club
     FROM trip_members
     LEFT JOIN trips ON trips.id = trip_members.trip
@@ -16,13 +16,13 @@ export function get (req, res) {
     LIMIT 5
   `, userId, now.getTime())
 
-  const cards = publicTrips
+  const cards = trips
     .map(trip => ({ ...trip, iconPath: getClubIcon(trip.club) }))
     .map(trip => {
       const title = trip.title.length < 38 ? trip.title : trip.title.substring(0, 38) + '...'
       return `
 <a href=/trip/${trip.id} class=trip-card>
-  <img src="${trip.iconPath}">
+  <img class=club-logo src="${trip.iconPath}">
   <header>Trip #${trip.id}</header>
   <h2>${title}</h2>
   <div>

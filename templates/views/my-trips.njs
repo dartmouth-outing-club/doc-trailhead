@@ -14,7 +14,11 @@
 <h1>Your Upcoming Trips</h1>
 </section>
 
-<section class="trips" hx-get="/rest/my-trips" hx-swap=innerHTML hx-trigger=load>
+<section class="trips" hx-get="/rest/my-trips" hx-swap=beforeend hx-trigger=load>
+  <a href="/" class=trip-card>
+    <h2>Create a Trip</h2>
+    <img src="/icons/createtrip.svg">
+  </a>
 </section>
 
 </main>

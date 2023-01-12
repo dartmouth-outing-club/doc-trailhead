@@ -19,7 +19,7 @@ export function get (_req, res) {
       const title = trip.title.length < 38 ? trip.title : trip.title.substring(0, 38) + '...'
       return `
 <a href=/trip/${trip.id} class=trip-card>
-  <img src="${trip.iconPath}">
+  <img class=club-logo src="${trip.iconPath}">
   <header>Trip #${trip.id}</header>
   <h2>${title}</h2>
   <div>

@@ -17,7 +17,7 @@ export function get (_req, res) {
     .map(trip => ({ ...trip, iconPath: getClubIcon(trip.club) }))
     .map(trip => `
 <div class=trip-card>
-  <img src="${trip.iconPath}">
+  <img class=club-logo src="${trip.iconPath}">
   <h2>${trip.title}</h2>
   <hr/>
   <div>
