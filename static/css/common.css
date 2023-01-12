@@ -23,6 +23,10 @@ main {
   padding: 30px 20px;
 }
 
+main > * {
+  margin: 0px auto 70px auto;
+}
+
 h1, h2, h3 {
   color: rgb(3, 55, 36);
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
@@ -96,7 +100,6 @@ button:hover {
   background: white;
   border-radius: 10px;
   box-shadow: 5px 5px 20px rgba(0,0,0,.25);
-  margin: 0px auto 70px auto;
   max-width: 1200px;
   padding: 10px 20px 10px 20px;
 }
