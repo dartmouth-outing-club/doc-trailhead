@@ -6,17 +6,7 @@
 <link rel="stylesheet" href="/css/all-trips.css">
 <script src="https://unpkg.com/htmx.org@1.8.4"></script>
 
-<nav class=site-nav>
-<ul>
-  <li><a href="/opo/trip-approvals.html">Approvals</a></li>
-  <li><a href="/opo/calendar.html">Calendar</a>
-  <li><a href="/opo/manage-fleet.html">Fleet</a>
-  <li><a href="/all-trips.html">All Trips</a></li>
-  <li class="selected"><a href="/my-trips.html">My Trips</a></li>
-  <li><a href="/profile.html">Profile</a></li>
-</ul>
-</nav>
-
+{% include "../common/header.njs" %}
 <main>
 
 <section class="info-card">

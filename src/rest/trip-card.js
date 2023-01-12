@@ -230,10 +230,10 @@ export function renderLeaderCard (res, tripId, userId) {
 
 export function renderSignupPage (res, tripId, userId) {
   const trip = getSignupData(tripId, userId)
-  return res.render('trip.njs', trip)
+  return res.render('views/trip.njs', trip)
 }
 
 export function renderLeaderPage (res, tripId, userId) {
   const trip = getLeaderData(tripId, userId)
-  return res.render('leader-trip.njs', trip)
+  return res.render('views/leader-trip.njs', trip)
 }

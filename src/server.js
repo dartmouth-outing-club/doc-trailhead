@@ -5,7 +5,6 @@ import morgan from 'morgan'
 import nunjucks from 'nunjucks'
 import bodyParser from 'body-parser'
 
-import * as constants from './constants.js'
 import * as db from './services/sqlite.js'
 import * as sessions from './services/sessions.js'
 import * as mailer from './services/mailer.js'
@@ -23,13 +22,14 @@ app.use(cors())
 // enable/disable http request logging
 app.use(morgan('dev'))
 app.use(express.static('static'))
-
 app.use(bodyParser.urlencoded({ extended: true }))
 
 nunjucks.configure('templates', {
   autoescape: false, // The SQLITE rest methods already escape results
   express: app
 })
+
+app.set('views', '/templates/views')
 
 app.use('/', apiRouter)
 app.use('/rest', requireAuth, restRouter) // All REST methods require authentication
@@ -48,9 +48,9 @@ process.on('SIGTERM', () => process.exit(128 + 15))
 
 // START THE SERVER
 // =============================================================================
-const port = process.env.PORT || 9090
+const port = process.env.PORT || 8080
 app.listen(port)
-console.log(`Server running at ${process.env.NODE_ENV !== 'development' ? constants.backendURL : 'localhost'}:${port}`)
+console.log(`Server running at localhost:${port}`)
 console.error(`Starting up at ${new Date()}`)
 
 const checkOutEmails = mailer.createRecurringEmailSender('trip check-out',

@@ -8,9 +8,11 @@
 
 <nav class=site-nav>
 <ul>
+  {% if is_opo %}
   <li><a href="/opo/trip-approvals.html">Approvals</a></li>
   <li><a href="/opo/calendar.html">Calendar</a>
   <li><a href="/opo/manage-fleet.html">Fleet</a>
+  {% endif %}
   <li><a href="/all-trips.html">All Trips</a></li>
   <li><a href="/my-trips.html">My Trips</a></li>
   <li><a href="/profile.html">Profile</a></li>

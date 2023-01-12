@@ -3,7 +3,7 @@ import passport from 'passport'
 import cas from 'passport-cas'
 import jwt from 'jwt-simple'
 
-import * as db from '../services/sqlite.js'
+import * as sqlite from '../services/sqlite.js'
 import * as sessions from '../services/sessions.js'
 import * as constants from '../constants.js'
 
@@ -29,12 +29,11 @@ async function getKey () {
 }
 
 function sendToLogin (_req, res, _next) {
-  // res.set('HX-Redirect', '/welcome.html')
-  return res.redirect('/welcome.html')
+  return res.redirect('/welcome')
 }
 
 export function requireAuth (req, res, next) {
-  const cookies = req.get('cookie').split(';')
+  const cookies = req.get('cookie')?.split(';')
 
   if (!cookies) {
     console.warn('No cookies in request')
@@ -46,6 +45,8 @@ export function requireAuth (req, res, next) {
   // If there is a valid user session for that token, then add the user to request and move on
   if (userId) {
     req.user = userId
+    // This gets automatically included as a variable for all the templates
+    res.locals.is_opo = sqlite.get('SELECT is_opo FROM users WHERE id = ?', userId).is_opo
     return next()
   }
 
@@ -59,9 +60,9 @@ export function signinCAS (req, res, next) {
     if (error) { return error }
     if (!casId) { return res.redirect(constants.frontendURL) }
 
-    let userId = db.getUserByCasId(casId)?.id
+    let userId = sqlite.getUserByCasId(casId)?.id
     if (!userId) {
-      userId = db.insertUser(casId)
+      userId = sqlite.insertUser(casId)
       console.log(`Created new user ${userId} for casId ${casId}`)
     }
 
