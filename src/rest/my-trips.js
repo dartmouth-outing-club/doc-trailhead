@@ -11,7 +11,7 @@ export function get (req, res) {
     FROM trip_members
     LEFT JOIN trips ON trips.id = trip_members.trip
     LEFT JOIN clubs ON trips.club = clubs.id
-    WHERE end_time > ? AND leader = 1 AND trip_members.user = ?
+    WHERE trip_members.user = ? AND end_time > ?
     ORDER BY start_time ASC
     LIMIT 5
   `, userId, now.getTime())

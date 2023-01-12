@@ -206,8 +206,6 @@ function getSignupData (tripId, userId) {
     WHERE trip = @trip
   `, { trip: tripId, user: userId })
 
-  console.log(requiredGear)
-
   trip.is_on_trip = sqlite.isSignedUpForTrip(tripId, userId)
   trip.start_time = utils.getLongTimeElement(trip.start_time)
   trip.end_time = utils.getLongTimeElement(trip.end_time)
