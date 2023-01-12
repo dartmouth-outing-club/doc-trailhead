@@ -79,19 +79,17 @@ button:hover {
   list-style: none;
 }
 
-.site-nav li {
+.site-nav a {
+  display: block;
+  text-decoration: none;
   padding: 20px 15px;
+  color: white;
 }
 
-.site-nav li:hover > a, .site-nav li.selected > a {
+.site-nav a:hover, .site-nav a.selected {
   text-decoration: underline;
   text-decoration-thickness: 3px;
   text-underline-offset: 6px;
-}
-
-.site-nav a {
-  text-decoration: none;
-  color: white;
 }
 
 .info-card {
@@ -257,11 +255,6 @@ button:hover {
   list-style: none;
   padding: 0;
 }
-
-/* .club-leadership-request li { */
-/*   display: flex; */
-/*   align-items: center; */
-/* } */
 
 .club-leadership-request ul button {
   background-color: white;
