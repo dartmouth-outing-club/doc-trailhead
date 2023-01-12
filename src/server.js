@@ -12,6 +12,8 @@ import * as mailer from './services/mailer.js'
 import apiRouter from './router.js'
 import restRouter from './rest-router.js'
 
+import { requireAuth } from './services/authentication.js'
+
 process.env.TZ = 'America/New_York'
 
 const app = express()
@@ -24,16 +26,13 @@ app.use(express.static('static'))
 
 app.use(bodyParser.urlencoded({ extended: true }))
 
-// enable static assets (new frontend) only on development mode
-if (process.env.NODE_ENV === 'development') {
-  nunjucks.configure('templates', {
-    autoescape: false, // The SQLITE rest methods already escape results
-    express: app
-  })
-}
+nunjucks.configure('templates', {
+  autoescape: false, // The SQLITE rest methods already escape results
+  express: app
+})
 
 app.use('/', apiRouter)
-if (process.env.NODE_ENV === 'development') app.use('/rest', restRouter)
+app.use('/rest', requireAuth, restRouter) // All REST methods require authentication
 app.use(handleError)
 
 // Open database connections

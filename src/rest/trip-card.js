@@ -236,7 +236,6 @@ export function renderSignupPage (res, tripId, userId) {
 }
 
 export function renderLeaderPage (res, tripId, userId) {
-  console.log('leader pag')
   const trip = getLeaderData(tripId, userId)
   return res.render('leader-trip.njs', trip)
 }

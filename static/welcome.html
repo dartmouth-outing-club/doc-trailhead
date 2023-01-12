@@ -22,7 +22,7 @@ publish your own trips as a leader. See you in the out o’ doors!
 </section>
 
 <script>
-fetch('/rest/index')
+fetch('/public-trips')
   .then(res => res.text())
   .then(html => { document.getElementById('up-next').insertAdjacentHTML('beforeend', html) })
 </script>

@@ -22,7 +22,7 @@ function get (req, res, isEditable) {
     LEFT JOIN clubs ON club_leaders.club = clubs.id
     WHERE user = ?
   `, req.user)?.clubs || 'none'
-  return res.render(`partials/profile-card${isEditable ? '-editable' : ''}.njs`, user)
+  return res.render(`profile/profile-card${isEditable ? '-editable' : ''}.njs`, user)
 }
 
 export function getProfileView (req, res) {

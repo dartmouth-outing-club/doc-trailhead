@@ -1,5 +1,6 @@
 import { Router } from 'express'
 
+import * as index from './rest/index.js'
 import * as sqlite from './services/sqlite.js'
 import * as tripView from './rest/trip.js'
 
@@ -15,6 +16,8 @@ router.get('/', requireAuth, (req, res) => {
   const url = is_opo === 1 ? '/opo/trip-approvals.html' : '/welcome.html'
   res.redirect(url)
 })
+
+router.get('/public-trips', index.get)
 
 router.get('/signin-cas', signinCAS)
 router.post('/logout', requireAuth, logout)
