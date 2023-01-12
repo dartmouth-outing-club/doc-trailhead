@@ -10,7 +10,7 @@
 
 <main>
 <a href="/my-trips" class=top-link>Back to trips page</a>
-<form class=info-card action=POST>
+<form class=info-card action=/rest/trip method=post>
 <h1>Create new trip</h1>
 <h2>Basic Info</h2>
 <label>Trip Title<input name=title type=text required></label>
@@ -38,7 +38,7 @@
 </ul>
 
 
-<button class="action approve" type=submit>Request</button>
+<button class="action approve" type=submit>Create Trip</button>
 
 </form>
 </main>

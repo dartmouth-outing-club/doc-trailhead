@@ -54,7 +54,7 @@ textarea {
   height: 200px;
 }
 
-input:focus, textarea:focus {
+input:not([type=checkbox]):focus, textarea:focus {
   outline: 3px solid #0ca074;
 }
 

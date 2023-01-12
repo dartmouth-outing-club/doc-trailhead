@@ -37,6 +37,14 @@ h1 {
   font-size: 2em;
 }
 
+input[type=checkbox]:hover {
+  accent-color: rgba(182,236,175,.658);
+}
+
+input[type=checkbox]:checked {
+  accent-color: #0ca074;
+}
+
 button {
   border: 2px solid white;
   border-radius: 6px;

@@ -20,6 +20,11 @@ export function getLeaderView (req, res) {
     : res.sendStatus(403)
 }
 
+export function createTrip (req, res) {
+  console.log(req.body)
+  res.redirect('/my-trips') // TODO redirect to new trip
+}
+
 // TODO refactor this with universal validation but individual handlers
 function updateTripMembers (req, res, field, value) {
   const { tripId, userId } = req.params

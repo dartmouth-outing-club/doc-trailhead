@@ -24,6 +24,7 @@ router.delete('/profile/club-leadership/:id', profile.deleteClubLeadershipReques
 router.get('/all-trips', allTrips.get)
 router.get('/my-trips', myTrips.get)
 
+router.post('/trip', trip.createTrip)
 router.post('/trip/:tripId/signup', trip.signup)
 router.delete('/trip/:tripId/signup', trip.leave)
 
