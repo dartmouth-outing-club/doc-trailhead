@@ -36,7 +36,7 @@ function convertTripsToTable (trips) {
     .map(trip => {
       return `
 <tr>
-<td><a href="/trip/${trip.id}">${trip.title}</a>
+<td><a href="/leader/trip/${trip.id}">${trip.title}</a>
 <td>${utils.getShortTimeElement(trip.start_time)}
 <td>${trip.club}
 <td>${trip.owner}
