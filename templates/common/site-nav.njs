@@ -1,0 +1,12 @@
+<nav class=site-nav>
+<ul>
+  {% if is_opo %}
+  <li><a href="/opo/trip-approvals">Approvals</a></li>
+  <li><a href="/opo/calendar">Calendar</a>
+  <li><a href="/opo/manage-fleet">Fleet</a>
+  {% endif %}
+  <li><a href="/all-trips">All Trips</a></li>
+  <li><a href="/my-trips">My Trips</a></li>
+  <li><a href="/profile">Profile</a></li>
+</ul>
+</nav>

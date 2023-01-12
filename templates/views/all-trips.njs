@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="/css/all-trips.css">
 <script src="https://unpkg.com/htmx.org@1.8.4"></script>
 
-{% include "../common/header.njs" %}
+{% include "common/site-nav.njs" %}
 <main>
 
 <section class="info-card">

@@ -6,17 +6,7 @@
 <link rel="stylesheet" href="/css/manage-fleet.css">
 <script src="https://unpkg.com/htmx.org@1.8.4"></script>
 
-<nav class=site-nav>
-<ul>
-  <li><a href="/opo/trip-approvals.html">Approvals</a>
-  <li><a href="/opo/calendar.html">Calendar</a>
-  <li class="selected"><a href="/opo/manage-fleet.html">Fleet</a>
-  <li><a href="/all-trips.html">All Trips</a>
-  <li><a href="/my-trips.html">My Trips</a>
-  <li><a href="/profile.html">Profile</a>
-</ul>
-</nav>
-
+{% include "common/site-nav.njs" %}
 <main>
 
 <section class="add-vehicle info-card">

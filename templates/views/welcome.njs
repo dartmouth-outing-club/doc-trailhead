@@ -8,7 +8,7 @@
 <section id=login>
 <div class=login-card>
 <div><img src="/icons/tree-icon.svg" alt="Vector image of a few trees"></div>
-<h2>Hello {{ name }}!</h2>
+<h2>Hello Traveler!</h2>
 <p>Welcome to Trailhead, the Dartmouth Outing Club and Outdoor Programs Office's digital platform.
 Come and find some upcoming hikes to Balch Hill or visits to the Norwich farmer's market. On
 Trailhead you can browse trips, sort by date, activity, or required experience, and create and

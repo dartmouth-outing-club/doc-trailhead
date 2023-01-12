@@ -6,24 +6,8 @@
 <link rel="stylesheet" href="/css/approvals.css">
 <script src="https://unpkg.com/htmx.org@1.8.4"></script>
 
-<nav class=site-nav>
-<ul>
-  <li class="selected"><a href="/opo/trip-approvals.html">Approvals</a></li>
-  <li><a href="/opo/calendar.html">Calendar</a>
-  <li><a href="/opo/manage-fleet.html">Fleet</a>
-  <li><a href="/all-trips.html">All Trips</a></li>
-  <li><a href="/my-trips.html">My Trips</a></li>
-  <li><a href="/profile.html">Profile</a></li>
-</ul>
-</nav>
-
-<nav class=opo-nav>
-<ul>
-  <li><a href="/opo/trip-approvals.html"><img src="/icons/trip-icon.svg">Trip Approvals</a>
-  <li class="selected"><a href="/opo/vehicle-requests.html"><img src="/icons/vehicle-icon.svg">Vehicle Requests</a>
-  <li><a href="/opo/profile-approvals.html"><img src="/icons/cert-icon.svg">Profile Approvals</a>
-</ul>
-</nav>
+{% include "common/site-nav.njs" %}
+{% include "common/opo-nav.njs" %}
 
 <main>
 
