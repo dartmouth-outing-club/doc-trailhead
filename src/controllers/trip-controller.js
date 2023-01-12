@@ -140,8 +140,8 @@ export async function updateTrip (req, res) {
   const newTrip = {
     id: trip.id,
     title: req.body.title,
-    private: req.body.private,
-    returned: req.body.returned,
+    private: req.body.private ? 1 : 0,
+    returned: req.body.returned ? 1 : 0,
     start_time: constants.createIntegerDateObject(req.body.startDate, req.body.startTime),
     end_time: constants.createIntegerDateObject(req.body.endDate, req.body.endTime),
     description: req.body.description,
