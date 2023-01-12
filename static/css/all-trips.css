@@ -19,7 +19,6 @@ section.trips {
 
 a.trip-card {
   color: inherit;
-  display: block;
   text-decoration: none;
 }
 
@@ -30,9 +29,10 @@ a.trip-card {
 .trip-card {
   background-color: white;
   border-radius: 10px;
+  box-sizing: border-box;
   box-shadow: 5px 5px 10px rgba(0,0,0,.25);
-  height: 330px;
-  width: 286px;
+  height: 370px;
+  width: 310px;
   margin: 15px;
   padding: 15px;
   position: relative;
@@ -45,7 +45,7 @@ a.trip-card {
 .trip-card img.club-logo {
   opacity: 0.07;
   transform: rotate(28.1187deg);
-  height: 130pxclub-logo
+  height: 130px;
   width: 130px;
   right: 5px;
   position: absolute;
@@ -58,4 +58,16 @@ a.trip-card {
 
 .trip-card header  {
   color: rgb(144, 144, 144);
+}
+
+.new-trip {
+  border: 3px dashed #909090;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.new-trip h2 {
+  color: #909090;
 }

@@ -15,7 +15,7 @@
 </section>
 
 <section class="trips" hx-get="/rest/my-trips" hx-swap=beforeend hx-trigger=load>
-  <a href="/" class=trip-card>
+  <a href="/create-trip" class="trip-card new-trip">
     <h2>Create a Trip</h2>
     <img src="/icons/createtrip.svg">
   </a>
