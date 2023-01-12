@@ -19,7 +19,7 @@ router.get('/', requireAuth, (req, res) => {
 router.get('/signin-cas', signinCAS)
 router.post('/logout', requireAuth, logout)
 
-router.route('/trip/:id').get(requireAuth, tripView.get)
+router.route('/trip/:id').get(requireAuth, tripView.getSignupView)
 router.route('/leader/trip/:id').get(requireAuth, tripView.getLeaderView)
 
 export default router

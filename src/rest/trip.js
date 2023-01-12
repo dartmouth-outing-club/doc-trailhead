@@ -1,7 +1,7 @@
 import * as sqlite from '../services/sqlite.js'
 import * as tripCard from './trip-card.js'
 
-export function get (req, res) {
+export function getSignupView (req, res) {
   const tripId = req.params.id
   // No point in showing trip leaders the "regular" view of their trip
   if (sqlite.isLeaderForTrip(tripId, req.user)) return res.redirect(`/leader/trip/${tripId}`)
@@ -31,7 +31,7 @@ function updateTripMembers (req, res, field, value) {
   sqlite
     .run(`UPDATE trip_members SET ${field} = ${value} WHERE trip = ? and user = ?`, tripId, userId)
 
-  return tripCard.renderTripCard(res, tripId, req.user)
+  return tripCard.renderLeaderCard(res, tripId, req.user)
 }
 
 export const makeLeader = (req, res) => updateTripMembers(req, res, 'leader', 1)
