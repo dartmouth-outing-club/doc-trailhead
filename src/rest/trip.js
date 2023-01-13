@@ -48,7 +48,7 @@ export function createTrip (req, res) {
       title: req.body.title,
       cost: req.body.cost,
       owner: req.user,
-      club: req.body.club,
+      club: req.body.club > 0 ? req.body.club : null,
       coleader_can_edit: req.body.edit_access === 'on' ? 1 : 0,
       experience_needed: req.body.experience_needed === 'on' ? 1 : 0,
       private: req.body.is_private === 'on' ? 1 : 0,

@@ -1,3 +1,4 @@
+/* If you're looking for the method to create a trip, that's in /rest/trip.js */
 import * as sqlite from '../services/sqlite.js'
 
 const _12_HOURS_IN_MS = 25600000
