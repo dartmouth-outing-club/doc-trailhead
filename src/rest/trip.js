@@ -27,7 +27,6 @@ export function getLeaderView (req, res) {
   const tripId = req.params.id
   const isValidTrip = sqlite.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
   if (!isValidTrip) return res.render('views/missing-trip.njs')
-  console.log(isValidTrip)
 
   // Leader view is available only if the user is the leader of that trip or on OPO
   const is_opo = sqlite.isOpo(req.user)
@@ -67,7 +66,6 @@ export function createTrip (req, res) {
     return res.sendStatus(400)
   }
 
-  console.log(trip)
   const info = sqlite.run(`
     INSERT INTO trips (
       title, cost, owner, club, coleader_can_edit, experience_needed, private, start_time, end_time,
@@ -80,9 +78,9 @@ export function createTrip (req, res) {
 
   const tripId = info.lastInsertRowid
   const leaders = [trip.owner] // TODO add other leaders
-  const values = leaders.map(userId => `(${tripId},${userId}, 1, 0)`).join(', ')
+  const values = leaders.map(userId => [tripId, userId, 1, 0])
   sqlite
-    .run(`INSERT INTO trip_members (trip, user, leader, pending) VALUES ${values}`, tripId, values)
+    .runMany('INSERT INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)', values)
 
   res.redirect(`/trip/${tripId}`)
 }
@@ -95,5 +93,6 @@ export function deleteTrip (req, res) {
   if (tripOwner !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   sqlite.run('DELETE FROM trips WHERE id = ?', tripId)
-  return res.redirect(303, '/my-trips')
+  res.set('HX-Redirect', '/my-trips')
+  return res.sendStatus(200)
 }

@@ -15,7 +15,7 @@
 <h2>Basic Info</h2>
 <label>Trip Title<input name=title type=text required></label>
 <label>Subclub
-  <select id="" name="">
+  <select name=club>
   <option value=0>--None--
   {% for club in clubs %}<option value="{{ club.id }}">{{ club.name }}
   {% endfor %}
@@ -35,7 +35,7 @@
 
 <h2>Date and Location</h2>
 <label>Start Time (EST)<input min="{{ today }}" name=start_time type=datetime-local required></label>
-<label>End Time (EST)<input name="{{ today }}" name=end_time type=datetime-local required></label>
+<label>End Time (EST)<input min="{{ today }}" name=end_time type=datetime-local required></label>
 <label>Trip Location<input name=location type=text required></label>
 <label>Pickup Location<input name=pickup type=text required></label>
 <label>Dropoff Location<input name=dropoff type=text required></label>

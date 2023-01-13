@@ -49,6 +49,13 @@ export function run (query, ...params) {
   return db.prepare(query).run(...params)
 }
 
+export function runMany (query, values) {
+  const statement = db.prepare(query)
+  values.forEach(parameters => {
+    statement.run(...parameters)
+  })
+}
+
 const _48_HOURS_IN_MS = 172800000
 const _2_HOURS_IN_MS = 7200000
 const _90_MINS_IN_MS = 5400000
