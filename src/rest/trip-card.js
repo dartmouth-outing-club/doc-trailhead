@@ -103,7 +103,7 @@ function getLeaderData (tripId, userId) {
     ? utils.getBadgeImgElement(trip.group_gear_approved !== null ? trip.group_gear_approved : 'pending')
     : '<span>-</span>'
   trip.pcard_request = tripPcardRequest
-  trip.vehiclerequest_status = utils.getBadgeImgElement(trip.vehiclerequest_status)
+  trip.vehiclerequest_badge = utils.getBadgeImgElement(trip.vehiclerequest_status)
 
   // Add vehicle request stuff
   if (trip.vehiclerequest_id) {

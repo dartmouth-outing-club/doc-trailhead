@@ -148,8 +148,10 @@
 
 {%if vehiclerequest_id %}
 <div>
-  <div class=table-status-row><h2>Vehicle Request (#{{ vehiclerequest_id }})</h2>{{
-    vehiclerequest_status }}</div>
+  <div class=table-status-row>
+    <h2>Vehicle Request (#{{ vehiclerequest_id }})</h2>
+    {{ vehiclerequest_badge }}
+  </div>
 
   {% for vehicle in requested_vehicles %}
   <h3>Vehicle #{{ loop.index }}</h3>
@@ -173,11 +175,11 @@
 
   {% if show_vehicle_approval_buttons %}
   <div class=button-row>
-    <button class="action deny" hx-put="/rest/opo/pcard/{{ trip_id }}/deny">Deny</button>
-    {% if vehiclerequest.is_approved === 1 %}
-    <button class="action edit" hx-put="/rest/opo/pcard/{{ trip_id }}/reset">Un-approve</button>
+    <button class="action deny" hx-put="/rest/opo/vehiclerequest/{{ trip_id }}/deny">Deny</button>
+    {% if vehiclerequest_status === 1 %}
+    <button class="action edit" hx-put="/rest/opo/vehiclerequest/{{ trip_id }}/reset">Un-approve</button>
     {% else %}
-    <button class="action approve" hx-put="/rest/opo/pcard/{{ trip_id }}/approve">Approve</button>
+    <button class="action approve" hx-put="/rest/opo/vehiclerequest/{{ trip_id }}/approve">Approve</button>
     {% endif %}
   </div>
   {% endif %}

@@ -51,16 +51,20 @@ router.get('/opo/manage-fleet', manageFleet.get)
 router.post('/opo/manage-fleet', manageFleet.post)
 router.delete('/opo/manage-fleet/:id', manageFleet.del)
 
-router.put('/opo/member-gear/:id/approve', gearApprovals.approveMemberGear)
-router.put('/opo/member-gear/:id/deny', gearApprovals.denyMemberGear)
-router.put('/opo/member-gear/:id/reset', gearApprovals.resetMemberGear)
+router.put('/opo/vehiclerequest/:tripId/approve', gearApprovals.approveVehicleRequest)
+router.put('/opo/vehiclerequest/:tripId/deny', gearApprovals.denyVehicleRequest)
+router.put('/opo/vehiclerequest/:tripId/reset', gearApprovals.resetVehicleRequest)
 
-router.put('/opo/group-gear/:id/approve', gearApprovals.approveGroupGear)
-router.put('/opo/group-gear/:id/deny', gearApprovals.denyGroupGear)
-router.put('/opo/group-gear/:id/reset', gearApprovals.resetGroupGear)
+router.put('/opo/member-gear/:tripId/approve', gearApprovals.approveMemberGear)
+router.put('/opo/member-gear/:tripId/deny', gearApprovals.denyMemberGear)
+router.put('/opo/member-gear/:tripId/reset', gearApprovals.resetMemberGear)
 
-router.put('/opo/pcard/:id/approve', gearApprovals.approvePcard)
-router.put('/opo/pcard/:id/deny', gearApprovals.denyPcard)
-router.put('/opo/pcard/:id/reset', gearApprovals.resetPcard)
+router.put('/opo/group-gear/:tripId/approve', gearApprovals.approveGroupGear)
+router.put('/opo/group-gear/:tripId/deny', gearApprovals.denyGroupGear)
+router.put('/opo/group-gear/:tripId/reset', gearApprovals.resetGroupGear)
+
+router.put('/opo/pcard/:tripId/approve', gearApprovals.approvePcard)
+router.put('/opo/pcard/:tripId/deny', gearApprovals.denyPcard)
+router.put('/opo/pcard/:tripId/reset', gearApprovals.resetPcard)
 
 export default router
