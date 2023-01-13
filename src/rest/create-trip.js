@@ -8,7 +8,7 @@ export function get (_req, res) {
   // TODO *FINALLY* limit this to just active users
   const emails = sqlite.all('SELECT id, email FROM users WHERE email IS NOT NULL')
 
-  // Tiny hack that basically doesn't let you set times before now(ish)
+  // Tiny client-side hack that that keeps you from setting times before now(ish)
   const now = new Date()
   const today = (new Date(now.getTime() - _12_HOURS_IN_MS)).toISOString().substring(0, 16)
 

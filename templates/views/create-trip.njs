@@ -35,7 +35,7 @@
 
 <h2>Date and Location</h2>
 <label>Start Time (EST)<input min="{{ today }}" name=start_time type=datetime-local required></label>
-<label>End Time (EST)<input name="{{ today }}" type=datetime-local required></label>
+<label>End Time (EST)<input name="{{ today }}" name=end_time type=datetime-local required></label>
 <label>Trip Location<input name=location type=text required></label>
 <label>Pickup Location<input name=pickup type=text required></label>
 <label>Dropoff Location<input name=dropoff type=text required></label>

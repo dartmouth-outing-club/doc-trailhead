@@ -173,4 +173,11 @@
 </div>
 {% endif %}
 
+<div><button
+      class="action deny"
+      hx-delete="/rest/trip/{{ trip_id }}"
+      hx-confirm="Are you sure you want to delete trip {{ title }}? Keep in mind that this will delete the associated vehicle request. This action cannot be reversed."
+      >Delete Trip
+</button></div>
+
 </section>

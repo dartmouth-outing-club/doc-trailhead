@@ -4,6 +4,7 @@ import * as allTrips from './rest/all-trips.js'
 import * as myTrips from './rest/my-trips.js'
 import * as profile from './rest/profile.js'
 import * as trip from './rest/trip.js'
+import * as tripMembers from './rest/trip-members.js'
 import * as tripApprovals from './rest/opo/trip-approvals.js'
 import * as vehicleRequests from './rest/opo/vehicle-requests.js'
 import * as profileApprovals from './rest/opo/profile-approvals.js'
@@ -25,14 +26,14 @@ router.get('/all-trips', allTrips.get)
 router.get('/my-trips', myTrips.get)
 
 router.post('/trip', trip.createTrip)
-router.post('/trip/:tripId/signup', trip.signup)
-router.delete('/trip/:tripId/signup', trip.leave)
 
-router.put('/trip/:tripId/leader/:userId', trip.makeLeader)
-router.delete('/trip/:tripId/leader/:userId', trip.demote)
-router.put('/trip/:tripId/waitlist/:userId', trip.sendToWaitlist)
-router.put('/trip/:tripId/member/:userId', trip.admit)
-router.delete('/trip/:tripId/member/:userId', trip.reject)
+router.post('/trip/:tripId/signup', tripMembers.signup)
+router.delete('/trip/:tripId/signup', tripMembers.leave)
+router.put('/trip/:tripId/leader/:userId', tripMembers.makeLeader)
+router.delete('/trip/:tripId/leader/:userId', tripMembers.demote)
+router.put('/trip/:tripId/waitlist/:userId', tripMembers.sendToWaitlist)
+router.put('/trip/:tripId/member/:userId', tripMembers.admit)
+router.delete('/trip/:tripId/member/:userId', tripMembers.reject)
 
 router.get('/opo/trip-approvals', tripApprovals.get)
 router.get('/opo/vehicle-requests', vehicleRequests.get)
