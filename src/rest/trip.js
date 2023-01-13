@@ -1,8 +1,23 @@
 import * as sqlite from '../services/sqlite.js'
 import * as tripCard from './trip-card.js'
 
+function canCreateTripForClub (userId, clubId) {
+  if (sqlite.isOpo(userId)) return true
+
+  const userClubs = sqlite
+    .get('SELECT club FROM club_leaders WHERE user = ?', userId)
+    .map(item => item.club)
+
+  if (clubId === 0 && userClubs.length > 0) return true // Any leader can create a "none" trip
+  if (userClubs.includes(clubId)) return true
+  return false
+}
+
 export function getSignupView (req, res) {
   const tripId = req.params.id
+  const isValidTrip = sqlite.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
+  if (!isValidTrip) return res.render('views/missing-trip.njs')
+
   // No point in showing trip leaders the "regular" view of their trip
   if (sqlite.isLeaderForTrip(tripId, req.user)) return res.redirect(`/leader/trip/${tripId}`)
   tripCard.renderSignupPage(res, tripId, req.user)
@@ -10,6 +25,10 @@ export function getSignupView (req, res) {
 
 export function getLeaderView (req, res) {
   const tripId = req.params.id
+  const isValidTrip = sqlite.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
+  if (!isValidTrip) return res.render('views/missing-trip.njs')
+  console.log(isValidTrip)
+
   // Leader view is available only if the user is the leader of that trip or on OPO
   const is_opo = sqlite.isOpo(req.user)
   const is_leader = sqlite.isLeaderForTrip(tripId, req.user)
@@ -19,12 +38,18 @@ export function getLeaderView (req, res) {
 }
 
 export function createTrip (req, res) {
+  if (!canCreateTripForClub(req.user, req.body.club)) {
+    console.warn(`User ${req.user} tried to create a trip for ${req.body.club}, which they cannot.`)
+    return res.sendStatus(403)
+  }
+
   let trip
   try {
     trip = {
       title: req.body.title,
       cost: req.body.cost,
       owner: req.user,
+      club: req.body.club,
       coleader_can_edit: req.body.edit_access === 'on' ? 1 : 0,
       experience_needed: req.body.experience_needed === 'on' ? 1 : 0,
       private: req.body.is_private === 'on' ? 1 : 0,
@@ -43,7 +68,7 @@ export function createTrip (req, res) {
   }
 
   console.log(trip)
-  const { lastInsertRowid } = sqlite.run(`
+  const info = sqlite.run(`
     INSERT INTO trips (
       title, cost, owner, club, coleader_can_edit, experience_needed, private, start_time, end_time,
       location, pickup, dropoff, description)
@@ -52,7 +77,23 @@ export function createTrip (req, res) {
       @end_time, @location, @pickup, @dropoff, @description
     )
   `, trip)
-  sqlite.run('INSERT INTO ')
 
-  res.redirect(`/trip/${lastInsertRowid}`)
+  const tripId = info.lastInsertRowid
+  const leaders = [trip.owner] // TODO add other leaders
+  const values = leaders.map(userId => `(${tripId},${userId}, 1, 0)`).join(', ')
+  sqlite
+    .run(`INSERT INTO trip_members (trip, user, leader, pending) VALUES ${values}`, tripId, values)
+
+  res.redirect(`/trip/${tripId}`)
+}
+
+export function deleteTrip (req, res) {
+  const tripId = req.params.tripId
+  if (!tripId || tripId < 1) return res.sendStatus(400)
+
+  const tripOwner = sqlite.get('SELECT owner FROM trips WHERE id = ?', tripId)
+  if (tripOwner !== req.user && !res.locals.is_opo) return res.sendStatus(403)
+
+  sqlite.run('DELETE FROM trips WHERE id = ?', tripId)
+  return res.redirect(303, '/my-trips')
 }

@@ -50,7 +50,7 @@ select {
     justify-content: center;
   }
 
-  .fleet {
+  main > .fleet {
     flex: 2 1 0;
     margin-right: 20px;
   }

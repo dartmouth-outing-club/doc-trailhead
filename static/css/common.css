@@ -23,7 +23,7 @@ main {
   padding: 30px 20px;
 }
 
-main > * {
+main > .info-card, main > .trip-card {
   margin: 0px auto 70px auto;
 }
 
