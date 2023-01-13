@@ -41,7 +41,7 @@
                name="{{ item.name }}"
                type=checkbox
                autocomplete=off
-               disabled
+               {% if is_on_trip %}disabled{% endif %}
                {% if item.is_requested == 1%}checked{% endif %}
                ></label>
     </td>
