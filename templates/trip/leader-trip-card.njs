@@ -170,14 +170,40 @@
   </dl>
   </div>
   {% endfor %}
+
+  {% if show_vehicle_approval_buttons %}
+  <div class=button-row>
+    <button class="action deny" hx-put="/rest/opo/pcard/{{ trip_id }}/deny">Deny</button>
+    {% if vehiclerequest.is_approved === 1 %}
+    <button class="action edit" hx-put="/rest/opo/pcard/{{ trip_id }}/reset">Un-approve</button>
+    {% else %}
+    <button class="action approve" hx-put="/rest/opo/pcard/{{ trip_id }}/approve">Approve</button>
+    {% endif %}
+  </div>
+  {% endif %}
 </div>
 {% endif %}
 
-<div><button
-      class="action deny"
-      hx-delete="/rest/trip/{{ trip_id }}"
-      hx-confirm="Are you sure you want to delete trip {{ title }}? Keep in mind that this will delete the associated vehicle request. This action cannot be reversed."
-      >Delete Trip
-</button></div>
+{% if can_delete %}
+<h2>Delete Trip</h2>
+Click this checkbox to enable the delete button:
+
+<input type=checkbox autocomplete=off onchange="toggleDeleteButton(this)">
+<button
+    class="action deny delete-trip"
+    disabled
+    autocomplete=off
+    hx-delete="/rest/trip/{{ trip_id }}"
+    hx-confirm="Are you sure you want to delete trip {{ title }}? Keep in mind that this will delete the associated vehicle request. This action cannot be reversed."
+    >Delete Trip
+</button>
+{% endif %}
 
 </section>
+
+<script>
+function toggleDeleteButton(checkbox) {
+  const button = document.querySelector('.delete-trip')
+  button.disabled = !checkbox.checked
+}
+</script>

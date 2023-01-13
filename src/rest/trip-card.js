@@ -8,6 +8,7 @@ function getLeaderData (tripId, userId) {
       trips.id as trip_id,
       title,
       clubs.name as club,
+      owner,
       start_time,
       end_time,
       pickup,
@@ -104,19 +105,6 @@ function getLeaderData (tripId, userId) {
   trip.pcard_request = tripPcardRequest
   trip.vehiclerequest_status = utils.getBadgeImgElement(trip.vehiclerequest_status)
 
-  // Show approval buttons if user is an OPO staffer and there is something to approve
-  trip.is_opo = user.is_opo
-  trip.show_member_gear_approval_buttons = user.is_opo && memberRequestedGear.length > 0
-  trip.show_group_gear_approval_buttons = user.is_opo && groupGearRequests.length > 0
-  trip.show_pcard_approval_buttons = user.is_opo && tripPcardRequest
-
-  // TODO Refactor the badge method to make this less annoying
-  if (trip.pcard_request) {
-    trip.pcard_request.status = trip.pcard_request.is_approved === null
-      ? utils.getBadgeImgElement('pending')
-      : utils.getBadgeImgElement(trip.pcard_request.is_approved)
-  }
-
   // Add vehicle request stuff
   if (trip.vehiclerequest_id) {
     const requestedVehicles = sqlite.all(`
@@ -158,6 +146,21 @@ function getLeaderData (tripId, userId) {
         assigned_return_time: utils.getLongTimeElement(vehicle.assigned_return_time)
       }
     })
+  }
+
+  // Show approval buttons if user is an OPO staffer and there is something to approve
+  trip.is_opo = user.is_opo
+  trip.can_delete = user.is_opo || trip.owner === userId
+  trip.show_vehicle_approval_buttons = user.is_opo && trip.requested_vehicles
+  trip.show_member_gear_approval_buttons = user.is_opo && memberRequestedGear.length > 0
+  trip.show_group_gear_approval_buttons = user.is_opo && groupGearRequests.length > 0
+  trip.show_pcard_approval_buttons = user.is_opo && tripPcardRequest
+
+  // TODO Refactor the badge method to make this less annoying
+  if (trip.pcard_request) {
+    trip.pcard_request.status = trip.pcard_request.is_approved === null
+      ? utils.getBadgeImgElement('pending')
+      : utils.getBadgeImgElement(trip.pcard_request.is_approved)
   }
 
   return trip

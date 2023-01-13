@@ -125,6 +125,10 @@ img.badge {
   display: block;
 }
 
+button.delete-trip {
+  display: block;
+}
+
 @media screen and (min-width: 800px) {
   .info-card {
     padding: 40px;
