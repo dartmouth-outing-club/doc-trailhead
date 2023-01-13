@@ -36,10 +36,15 @@ label.block {
   display: block;
 }
 
-input, textarea {
+input, textarea, select {
   border-radius: 6px;
   border: 1px solid gray;
-  padding: 5px;
+  padding: 7px;
+}
+
+select {
+  background: white;
+  box-sizing: content-box;
 }
 
 input[type=number] {
@@ -48,8 +53,8 @@ input[type=number] {
 
 input[type=checkbox] {
   display: inline-block;
-  height: 1em;
-  width: 1em;
+  height: 1.2em;
+  width: 1.2em;
 }
 
 textarea {
@@ -73,7 +78,7 @@ input:not([type=checkbox]):focus, textarea:focus {
     width: fit-content;
   }
 
-  label > input[type=text] {
+  label > input[type=text], label > select {
     width: 50%;
   }
 
