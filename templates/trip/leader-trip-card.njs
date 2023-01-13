@@ -79,7 +79,10 @@
   <td><ul>{{ member.requested_gear }}</ul>
   <td>
     <button class="action edit" hx-put="/rest/trip/{{ trip_id }}/member/{{ member.id }}">Admit</button>
-    <button class="action edit" hx-delete="/rest/trip/{{ trip_id }}/member/{{ member.id }}">Reject</button>
+    <button class="action edit"
+            hx-delete="/rest/trip/{{ trip_id }}/member/{{ member.id }}"
+            hx-confirm="Are you sure you want to reject {{ member.name }}? Keep in mind that doing so will also remove their gear request."
+            >Reject</button>
 </tr>
 {% endfor %}
 </table>

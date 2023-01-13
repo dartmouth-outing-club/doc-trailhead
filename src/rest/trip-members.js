@@ -22,13 +22,13 @@ export const sendToWaitlist = (req, res) => updateTripMembers(req, res, 'pending
 
 export function reject (req, res) {
   const { tripId, userId } = req.params
-  if (!tripId || !userId || typeof tripId !== 'number' || typeof userId !== 'number') {
+  if (!tripId || !userId) {
     console.warn('Bad request detected', tripId, userId)
     return res.sendStatus(400)
   }
 
   sqlite.run('DELETE FROM trip_members WHERE trip = ? and user = ?', tripId, userId)
-  return tripCard.renderSignupCard(res, tripId, req.user)
+  return tripCard.renderLeaderCard(res, tripId, req.user)
 }
 
 export function signup (req, res) {
