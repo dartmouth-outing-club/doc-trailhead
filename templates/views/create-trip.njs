@@ -15,7 +15,7 @@
 <h2>Basic Info</h2>
 <label>Trip Title<input name=title type=text required></label>
 <label>Subclub<input name=club type=text required></label> <!-- include none option-->
-<label>Cost (in USD)<input name=cost type=number required></label>
+<label>Cost (in USD)<input name=cost type=number min=0 value=0 required></label>
 <label>Co-leaders<input type=text></label>
 <label>Give leaders edit access?<input name=edit_access type=checkbox></label>
 <label>Prior experience required?<input name=experience_needed type=checkbox></label>
@@ -27,7 +27,7 @@
 <label>Trip Location<input name=location type=text required></label>
 <label>Pickup Location<input name=pickup type=text required></label>
 <label>Dropoff Location<input name=dropoff type=text required></label>
-<label class=block>Description<textarea name=description required></textarea></label>
+<h2>Trip Description</h2>
 <p>Things you must include:
 <ul>
   <li>What you'll be doing on the trip
@@ -36,6 +36,7 @@
   <li>Rough itinerary - this is your trip plan on file, so please include route plan details like
     where the vehicle will be parked, main and alternate routes, in case of emergency.
 </ul>
+<label class=block>Description<textarea name=description required></textarea></label>
 
 
 <button class="action approve" type=submit>Create Trip</button>

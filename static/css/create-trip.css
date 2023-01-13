@@ -16,18 +16,19 @@ a.top-link:visited {
 }
 
 form {
-  font-size: 1.3em;
+  font-size: 1.1em;
   color: rgb(3, 55, 36);
 }
 
 label {
-  display: flex;
-  justify-content: space-between;
+  display: block;
   margin: 10px;
 }
 
 label > * {
   align-self: flex-end;
+  display: block;
+  width: 90%;
   font-size: 1.1em;
 }
 
@@ -41,13 +42,17 @@ input, textarea {
   padding: 5px;
 }
 
+input[type=number] {
+  width: 4em;
+}
+
 input[type=checkbox] {
+  display: inline-block;
   height: 1em;
   width: 1em;
 }
 
 textarea {
-  display: block;
   font-size: 1em;
   resize: vertical;
   width: 100%;
@@ -58,3 +63,18 @@ input:not([type=checkbox]):focus, textarea:focus {
   outline: 3px solid #0ca074;
 }
 
+@media screen and (min-width: 800px) {
+  label {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  label > input[type=datetime-local] {
+    width: fit-content;
+  }
+
+  label > input[type=text] {
+    width: 50%;
+  }
+
+}
