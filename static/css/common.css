@@ -125,7 +125,7 @@ button:hover:not([disabled]) {
 }
 
 .trip-table button {
-  margin-right: 15px;
+  margin-top: 0;
 }
 
 .trip-table img.badge {

@@ -7,7 +7,7 @@ export function get (_req, res) {
   <td>${vehicle.name}
   <td>${vehicle.type}
   <td><button
-      class="deny"
+      class="action deny"
       hx-confirm="Delete ${vehicle.name} from list?"
       hx-delete="/rest/opo/manage-fleet/${vehicle.id}"
       hx-target="closest tr"

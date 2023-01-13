@@ -10,7 +10,7 @@ function convertRequestsToTable (trips, route) {
 <td>${requested_item}
 <td>
   <button
-    class="deny"
+    class="action deny"
     hx-confirm="Deny ${requester_name} as a leader for ${requested_item}?"
     hx-delete="/rest/opo/profile-approvals/${route}/${req_id}"
     hx-target="closest tr"
@@ -18,7 +18,7 @@ function convertRequestsToTable (trips, route) {
     >Deny
   </button>
   <button
-    class="approve"
+    class="action approve"
     hx-confirm="Approve ${requester_name} as a leader for ${requested_item}?"
     hx-put="/rest/opo/profile-approvals/${route}/${req_id}"
     hx-target="closest tr"
