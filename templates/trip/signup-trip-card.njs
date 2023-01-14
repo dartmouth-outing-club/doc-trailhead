@@ -50,6 +50,7 @@
 </table>
 
 {% if is_on_trip %}
+<div class=button-row>
 <button class="action deny"
         type=button
         hx-delete="/rest/trip/{{ trip_id }}/signup"
@@ -59,6 +60,7 @@
 {% else %}
 <button class="action approve" type=submit>Sign Up</button>
 {% endif %}
+</div>
 </form>
 
 </section>

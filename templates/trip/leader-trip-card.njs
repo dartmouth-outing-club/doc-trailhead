@@ -190,10 +190,18 @@
 {% endif %}
 
 {% if can_delete %}
-<h2>Delete Trip</h2>
-Click this checkbox to enable the delete button:
+<h2>Modify Trip</h2>
+<div class="edit-row">
+  <button class="action edit" hx-get="">Edit Trip</button>
+  <button class="action edit" hx-get="">Edit Vehicle Request</button>
+  <button class="action edit" hx-get="">Edit Gear/Pcard Request</button>
+</div>
+{% endif %}
 
+<h2>Delete Trip</h2>
+<p>Click this checkbox to enable the delete button:
 <input type=checkbox autocomplete=off onchange="toggleDeleteButton(this)">
+<div class="edit-row">
 <button
     class="action deny delete-trip"
     disabled
@@ -202,7 +210,7 @@ Click this checkbox to enable the delete button:
     hx-confirm="Are you sure you want to delete trip {{ title }}? Keep in mind that this will delete the associated vehicle request. This action cannot be reversed."
     >Delete Trip
 </button>
-{% endif %}
+</div>
 
 </section>
 

@@ -52,7 +52,6 @@ button.action {
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
   font-size: 1.1em;
   padding: .5em 1em;
-  margin-top: 20px;
   margin-right: 20px;
 }
 
@@ -225,10 +224,11 @@ button:hover:not([disabled]) {
   text-align: right;
 }
 
-.profile-card .button-row {
+.button-row {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
+  margin-top: 10px;
 }
 
 .profile-card input[type=text] {
