@@ -52,8 +52,9 @@ router.enableView('/opo/trip-approvals', 'opo')
 router.enableView('/opo/vehicle-requests', 'opo')
 
 // Somewhat more complicated views
-router.route('/trip/:id').get(requireAuth, tripView.getSignupView)
-router.route('/leader/trip/:id').get(requireAuth, tripView.getLeaderView)
-router.route('/create-trip').get(requireAuth, createTripView.get)
+router.route('/create-trip').get(requireAuth, createTripView.getCreateView)
+router.route('/trip/:tripId').get(requireAuth, tripView.getSignupView)
+router.route('/trip/:tripId/edit').get(requireAuth, createTripView.getEditView)
+router.route('/leader/trip/:tripId').get(requireAuth, tripView.getLeaderView)
 
 export default router

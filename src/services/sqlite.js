@@ -164,6 +164,10 @@ export function isLeaderForTrip (tripId, userId) {
     tripId, userId) !== undefined
 }
 
+export function isOpoOrLeaderForTrip (tripId, userId) {
+  return isOpo(userId) || isLeaderForTrip(tripId, userId)
+}
+
 export function getTripLeaderIds (tripId) {
   return db.prepare(`
   SELECT user

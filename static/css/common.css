@@ -74,6 +74,7 @@ button.edit {
 button[disabled] {
   border-color: gray;
   background-color: gray;
+  color: white;
 }
 
 button:hover:not([disabled]) {

@@ -125,8 +125,11 @@ img.badge {
   display: block;
 }
 
-.edit-row button {
+.edit-row {
   margin-top: 15px;
+}
+
+.edit-row button {
   margin-right: 15px;
 }
 

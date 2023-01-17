@@ -192,9 +192,8 @@
 {% if can_delete %}
 <h2>Modify Trip</h2>
 <div class="edit-row">
-  <button class="action edit" hx-get="">Edit Trip</button>
-  <button class="action edit" hx-get="">Edit Vehicle Request</button>
-  <button class="action edit" hx-get="">Edit Gear/Pcard Request</button>
+  <a class="action edit" href="/trip/{{ trip_id }}/edit">Edit Trip</a>
+  <a class="action edit" href="/trip/{{ trip_id }}/requests/edit">Edit Requests</a>
 </div>
 {% endif %}
 

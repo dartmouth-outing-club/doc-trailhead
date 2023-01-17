@@ -85,3 +85,19 @@ export function getShortTimeElement (unixTime) {
   const timeString = `${hoursString}:${minutesString} ${hours > 12 ? 'AM' : 'PM'}`
   return `<time datetime="${date.toISOString()}">${dateString} @ ${timeString}</time>`
 }
+
+const _12_HOURS_IN_MS = 25600000
+export function getDatetimeValueForNow () {
+  // Tiny client-side hack that that keeps you from setting times before now(ish)
+  const now = new Date()
+  const today = (new Date(now.getTime() - _12_HOURS_IN_MS)).toISOString().substring(0, 16)
+  return today
+}
+
+const _5_HOURS_IN_MS = 1.8e+7
+export function getDatetimeValueForUnixTime (unixTime) {
+  // Subtract 5 hours so we get that time string in EST
+  // All of the time handling code in this app is very hacky, I know that
+  const date = new Date(unixTime - _5_HOURS_IN_MS)
+  return date.toISOString().substring(0, 16)
+}

@@ -13,8 +13,38 @@ function canCreateTripForClub (userId, clubId) {
   return false
 }
 
+function convertFormInputToDbInput (input, userId) {
+  try {
+    const club = input.club > 0 ? input.club : null
+    const coleader_can_edit = input.edit_access === 'on' ? 1 : 0
+    const experience_needed = input.experience_needed === 'on' ? 1 : 0
+    const is_private = input.is_private === 'on' ? 1 : 0
+    // Eventually, when JS gets better date handling, this should probably be replaced
+    const start_time = (new Date(input.start_time)).getTime()
+    const end_time = (new Date(input.end_time)).getTime()
+    return {
+      title: input.title,
+      cost: input.cost,
+      owner: userId,
+      club,
+      coleader_can_edit,
+      experience_needed,
+      private: is_private,
+      start_time,
+      end_time,
+      location: input.location,
+      pickup: input.pickup,
+      dropoff: input.dropoff,
+      description: input.description
+    }
+  } catch {
+    console.warn('Malformed request to create trip, unable to parse body')
+    console.warn(input)
+  }
+}
+
 export function getSignupView (req, res) {
-  const tripId = req.params.id
+  const tripId = req.params.tripId
   const isValidTrip = sqlite.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
   if (!isValidTrip) return res.render('views/missing-trip.njs')
 
@@ -24,7 +54,7 @@ export function getSignupView (req, res) {
 }
 
 export function getLeaderView (req, res) {
-  const tripId = req.params.id
+  const tripId = req.params.tripId
   const isValidTrip = sqlite.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
   if (!isValidTrip) return res.render('views/missing-trip.njs')
 
@@ -42,29 +72,8 @@ export function createTrip (req, res) {
     return res.sendStatus(403)
   }
 
-  let trip
-  try {
-    trip = {
-      title: req.body.title,
-      cost: req.body.cost,
-      owner: req.user,
-      club: req.body.club > 0 ? req.body.club : null,
-      coleader_can_edit: req.body.edit_access === 'on' ? 1 : 0,
-      experience_needed: req.body.experience_needed === 'on' ? 1 : 0,
-      private: req.body.is_private === 'on' ? 1 : 0,
-      // Eventually, when JS gets better date handling, this should probably be replaced
-      start_time: (new Date(req.body.start_time)).getTime(),
-      end_time: (new Date(req.body.end_time)).getTime(),
-      location: req.body.location,
-      pickup: req.body.pickup,
-      dropoff: req.body.dropoff,
-      description: req.body.description
-    }
-  } catch {
-    console.warn('Malformed request to create trip, unable to parse body')
-    console.warn(req.body)
-    return res.sendStatus(400)
-  }
+  const trip = convertFormInputToDbInput(req.body, req.user)
+  if (!trip) return res.sendStatus(400)
 
   const info = sqlite.run(`
     INSERT INTO trips (
@@ -83,6 +92,26 @@ export function createTrip (req, res) {
     .runMany('INSERT INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)', values)
 
   res.redirect(`/trip/${tripId}`)
+}
+
+export function editTrip (req, res) {
+  const tripId = req.params.tripId
+  if (!sqlite.isOpoOrLeaderForTrip(tripId, req.user)) return res.sendStatus(401)
+
+  // TODO verify that user is OPO orleader for club. Not a security priority, just nice to have
+  const trip = convertFormInputToDbInput(req.body, req.user)
+  trip.id = tripId
+  sqlite.run(`
+    UPDATE trips
+    SET
+      title = @title, club = @club, cost = @cost, start_time = @start_time, end_time = @end_time,
+      location = @location, coleader_can_edit = @coleader_can_edit, experience_needed =
+      @experience_needed, private = @private, pickup = @pickup, dropoff = @dropoff, description =
+      @description
+    WHERE id = @id
+  `, trip)
+  res.set('location', `/leader/trip/${tripId}`)
+  return res.sendStatus(303)
 }
 
 export function deleteTrip (req, res) {
