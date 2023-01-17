@@ -36,6 +36,12 @@
 </label>
 <label>Cost (in USD)<input name=cost type=number min=0 value="{{ trip.cost or 0 }}" required></label>
 
+{% if trip.leaders %}
+<div class=existing-leaders>
+  <div>Existing leaders</div>
+  <div>{{ trip.leaders }}</div>
+</div>
+{% endif %}
 <button id="add-leader" type=button onclick="addLeader()">Add New Co-Leader</button>
 
 <label>Give leaders edit access?<input name=edit_access {% if trip.coleader_can_edit %}checked {% endif %}type=checkbox></label>

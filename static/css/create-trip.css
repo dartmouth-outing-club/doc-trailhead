@@ -46,6 +46,12 @@ button#add-leader {
   margin: 10px;
 }
 
+.existing-leaders {
+  margin: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
 .additional-leader-row {
   display: flex;
   align-items: center;

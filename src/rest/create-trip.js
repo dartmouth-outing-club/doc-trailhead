@@ -30,13 +30,20 @@ export function getEditView (req, res) {
 
   const emails = sqlite.all('SELECT id, email FROM users WHERE email IS NOT NULL')
   const clubs = getClubs(req.user, res.locals.is_opo)
-
   const trip = sqlite.get(`
     SELECT id, title, club, cost, coleader_can_edit, experience_needed, private, start_time,
     end_time, location, pickup, dropoff, description
     FROM trips
     WHERE id = ?
   `, tripId)
+  trip.leaders = sqlite.all(`
+    SELECT name
+    FROM trip_members
+    LEFT JOIN users on trip_members.user = users.id
+    WHERE trip = ? AND leader = TRUE
+  `, tripId)
+    .map(item => item.name)
+    .join(', ')
 
   trip.start_time = utils.getDatetimeValueForUnixTime(trip.start_time)
   trip.end_time = utils.getDatetimeValueForUnixTime(trip.end_time)
