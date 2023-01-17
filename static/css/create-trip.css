@@ -42,6 +42,32 @@ input, textarea, select {
   padding: 7px;
 }
 
+button#add-leader {
+  margin: 10px;
+}
+
+.additional-leader-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.additional-leader-row button {
+  border: none;
+  background-color: white;
+  margin-left: 10px;
+}
+
+.additional-leader-row input {
+  flex-grow: 1;
+}
+
+.additional-leader-row img {
+  flex-grow: 0;
+  width: 20px;
+}
+
 select {
   background: white;
   box-sizing: content-box;
@@ -79,6 +105,16 @@ input:not([type=checkbox]):focus, textarea:focus {
   }
 
   label > input[type=text], label > select {
+    width: 50%;
+  }
+
+  button#add-leader {
+    display: block;
+    margin-left: auto;
+    margin-right: 10px;
+  }
+
+  .additional-leader-row {
     width: 50%;
   }
 

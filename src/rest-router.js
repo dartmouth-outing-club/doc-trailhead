@@ -26,7 +26,7 @@ router.get('/all-trips', allTrips.get)
 router.get('/my-trips', myTrips.get)
 
 router.post('/trip', trip.createTrip)
-router.post('/trip/:tripId', trip.editTrip)
+router.put('/trip/:tripId', trip.editTrip)
 router.delete('/trip/:tripId', trip.deleteTrip)
 
 router.post('/trip/:tripId/signup', tripMembers.signup)

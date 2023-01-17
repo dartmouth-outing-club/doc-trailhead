@@ -45,7 +45,7 @@ input[type=checkbox]:checked {
   accent-color: #0ca074;
 }
 
-button.action {
+button.action, a.action {
   border: 2px solid white;
   border-radius: 6px;
   color: white;
@@ -55,17 +55,21 @@ button.action {
   margin-right: 20px;
 }
 
-button.approve {
+a.action {
+  text-decoration: none;
+}
+
+button.approve, a.approve {
   background-color: #0ca074;
   border-color: #0ca074;
 }
 
-button.deny {
+button.deny, a.deny {
   background-color: #ee6e52;
   border-color: #ee6e52;
 }
 
-button.edit {
+button.edit, a.edit {
   color: #0ca074;
   background-color: white;
   border: 2px solid #0ca074;

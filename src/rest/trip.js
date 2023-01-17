@@ -110,8 +110,8 @@ export function editTrip (req, res) {
       @description
     WHERE id = @id
   `, trip)
-  res.set('location', `/leader/trip/${tripId}`)
-  return res.sendStatus(303)
+  res.set('HX-Redirect', `/leader/trip/${tripId}`)
+  return res.sendStatus(200)
 }
 
 export function deleteTrip (req, res) {
