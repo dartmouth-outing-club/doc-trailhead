@@ -33,6 +33,10 @@ h1 {
   text-align: right;
 }
 
+.trip-table tr.leader-row {
+  background-color: rgba(182,236,175,.658);
+}
+
 .status-row {
   display: flex;
   align-items: center;

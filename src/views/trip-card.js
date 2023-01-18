@@ -51,8 +51,8 @@ function getLeaderData (tripId, userId) {
   LEFT JOIN trips ON trips.id = trip_members.trip
   LEFT JOIN users ON users.id = trip_members.user
   WHERE trip = ?
-  ORDER BY leader DESC, name
-  `, tripId)
+  ORDER BY trip_members.leader DESC, trip_members.rowid
+  `, tripId) // Display order is leaders first, followed by signup order
 
   const membersWithGear = members.map(member => {
     const gearRequests = sqlite.all(`

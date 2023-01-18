@@ -41,7 +41,7 @@
 </tr>
 <tbody>
 {% for member in attending %}
-<tr>
+<tr {% if member.leader === 1%}class="leader-row"{% endif %}>
   <td>{{ member.name }}
   <td>{{ member.attended }}
   <td>{{ member.allergies_dietary_restrictions }}
