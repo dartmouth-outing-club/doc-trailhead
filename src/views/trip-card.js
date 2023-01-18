@@ -87,7 +87,9 @@ function getLeaderData (tripId, userId) {
   `, tripId)
 
   trip.is_on_trip = sqlite.isSignedUpForTrip(tripId, userId)
+  trip.start_datetime = utils.getDatetimeValueForUnixTime(trip.start_time)
   trip.start_time = utils.getLongTimeElement(trip.start_time)
+  trip.end_datetime = utils.getDatetimeValueForUnixTime(trip.end_time)
   trip.end_time = utils.getLongTimeElement(trip.end_time)
   trip.trip_status = utils.getBadgeImgElement('approved') // TODO dynamically create
   trip.leader_names = leaderNames
@@ -103,10 +105,12 @@ function getLeaderData (tripId, userId) {
     ? utils.getBadgeImgElement(trip.group_gear_approved !== null ? trip.group_gear_approved : 'pending')
     : '<span>-</span>'
   trip.pcard_request = tripPcardRequest
-  trip.vehiclerequest_badge = utils.getBadgeImgElement(trip.vehiclerequest_status)
+  trip.vehiclerequest_badge = utils.getBadgeImgElement(trip.vehiclerequest_status || 'pending')
 
   // Add vehicle request stuff
   if (trip.vehiclerequest_id) {
+    const available_vehicles = sqlite.all('SELECT id, name FROM vehicles WHERE active = TRUE ORDER BY name')
+    // Note the ORDER BY ensures that the response_index is lined up
     const requestedVehicles = sqlite.all(`
       SELECT
         type,
@@ -118,9 +122,9 @@ function getLeaderData (tripId, userId) {
       FROM requested_vehicles
       WHERE vehiclerequest = ?
   `, trip.vehiclerequest_id)
-    // Note the ORDER BY ensures that the response_index is lined up
     const assignedVehicles = sqlite.all(`
       SELECT
+        vehicles.id as id,
         vehicles.name as name,
         vehicle_key,
         pickup_time as assigned_pickup_time,
@@ -137,13 +141,14 @@ function getLeaderData (tripId, userId) {
       return { ...requestedVehicle, ...assignedVehicles.at(index) }
     })
 
+    trip.available_vehicles = available_vehicles
     trip.requested_vehicles = vehicles.map(vehicle => {
       return {
         ...vehicle,
         pickup_time: utils.getLongTimeElement(vehicle.pickup_time),
         return_time: utils.getLongTimeElement(vehicle.return_time),
-        assigned_pickup_time: utils.getLongTimeElement(vehicle.assigned_pickup_time),
-        assigned_return_time: utils.getLongTimeElement(vehicle.assigned_return_time)
+        assigned_pickup_time: utils.getDatetimeValueForUnixTime(vehicle.assigned_pickup_time),
+        assigned_return_time: utils.getDatetimeValueForUnixTime(vehicle.assigned_return_time)
       }
     })
   }
@@ -151,7 +156,6 @@ function getLeaderData (tripId, userId) {
   // Show approval buttons if user is an OPO staffer and there is something to approve
   trip.is_opo = user.is_opo
   trip.can_delete = user.is_opo || trip.owner === userId
-  trip.show_vehicle_approval_buttons = user.is_opo && trip.requested_vehicles
   trip.show_member_gear_approval_buttons = user.is_opo && memberRequestedGear.length > 0
   trip.show_group_gear_approval_buttons = user.is_opo && groupGearRequests.length > 0
   trip.show_pcard_approval_buttons = user.is_opo && tripPcardRequest

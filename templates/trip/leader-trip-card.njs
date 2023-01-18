@@ -150,7 +150,7 @@
 {% endif %}
 
 {%if vehiclerequest_id %}
-<div>
+<form hx-put="/rest/opo/vehiclerequest/{{ trip_id }}/approve">
   <div class=table-status-row>
     <h2>Vehicle Request (#{{ vehiclerequest_id }})</h2>
     {{ vehiclerequest_badge }}
@@ -168,25 +168,72 @@
     <dt>Trailer Hitch<dd>{{ vehicle.pass_needed }}
   </dl>
   <dl class=vehicle-table>
+  {%if is_opo %}
+    <dt><label for="vehicle-{{ loop.index }}">Assigned Vehicle</label></dt>
+    <dd>
+      <select id="vehicle-{{ loop.index }}"
+              name="vehicle-{{ loop.index }}"
+              {% if vehiclerequest_status != null %}disabled{% endif %}
+              autocomplete=off
+              required
+              >
+        {% for v in available_vehicles %}
+        <option {% if v.id === vehicle.id %}selected {% endif %}value="{{v.id}}">{{v.name}}</option>
+        {% endfor %}
+      </select>
+    </dd>
+    <dt><label for="key-{{ loop.index }}">Assigned Key #</label></dt>
+    <dd><input id="key-{{ loop.index }}"
+               name="key-{{ loop.index }}"
+               type=text
+               value="{{ vehicle.vehicle_key }}"
+               {% if vehiclerequest_status != null %}disabled{% endif %}
+               autocomplete=off
+               required></dd>
+    <dt><label for="pickup-{{ loop.index }}">Assigned Pickup</label></dt>
+    <dd>
+      <input min="{{ today }}"
+             id="pickup-{{ loop.index }}"
+             name="pickup-{{ loop.index }}"
+             value="{{ vehicle.assigned_pickup_time }}"
+             type=datetime-local
+             {% if vehiclerequest_status != null %}disabled{% endif %}
+             autocomplete=off
+             required
+             >
+    </dd>
+    <dt>Assigned Return</dt>
+    <dd><input min="{{ today }}"
+               id="return-{{ loop.index }}"
+               name="return-{{ loop.index }}"
+               value="{{ vehicle.assigned_return_time }}"
+               type=datetime-local
+               {% if vehiclerequest_status != null %}disabled{% endif %}
+               autocomplete=off
+               required
+               >
+    </dd>
+  {% else %}
     <dt>Assigned Vehicle<dd>{{ vehicle.name }}
-    <dt>Vehicle Key #<dd>{{ vehicle.vehicle_key }}
+    <dt>Assigned Key #<dd>{{ vehicle.vehicle_key }}
     <dt>Assigned Pickup<dd>{{ vehicle.pickup_time }}
     <dt>Assigned Return<dd>{{ vehicle.return_time }}
+  {% endif %}
   </dl>
   </div>
   {% endfor %}
 
-  {% if show_vehicle_approval_buttons %}
+  {% if is_opo %}
   <div class=button-row>
-    <button class="action deny" hx-put="/rest/opo/vehiclerequest/{{ trip_id }}/deny">Deny</button>
+    <button class="action deny" type=button hx-put="/rest/opo/vehiclerequest/{{ trip_id }}/deny">Deny</button>
     {% if vehiclerequest_status === 1 %}
-    <button class="action edit" hx-put="/rest/opo/vehiclerequest/{{ trip_id }}/reset">Un-approve</button>
+    <button class="action edit" type=button hx-put="/rest/opo/vehiclerequest/{{ trip_id }}/reset">Un-approve</button>
     {% else %}
-    <button class="action approve" hx-put="/rest/opo/vehiclerequest/{{ trip_id }}/approve">Approve</button>
+    <button class="action approve" type=submit>Assign Vehicles</button>
     {% endif %}
   </div>
   {% endif %}
-</div>
+</form>
 {% endif %}
 
 {% if can_delete %}

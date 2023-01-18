@@ -3,6 +3,42 @@ import * as tripCard from '../../views/trip-card.js'
 
 export function approveVehicleRequest (req, res) {
   if (!req.params.tripId) return res.sendStatus(400)
+  const vehiclerequest = sqlite
+    .get('SELECT id FROM vehiclerequests WHERE trip = ?', req.params.tripId)
+    .id
+
+  const input = { ...req.body }
+  const assignments = []
+  let index = 1
+  try {
+    while (input[`vehicle-${index}`]) {
+      const assignment = {
+        vehiclerequest,
+        requester: req.user,
+        vehicle: input[`vehicle-${index}`],
+        vehicle_key: input[`key-${index}`],
+        pickup_time: new Date(input[`pickup-${index}`]).getTime(),
+        return_time: new Date(input[`return-${index}`]).getTime(),
+        response_index: index - 1
+      }
+      assignments.push(assignment)
+      index++
+    }
+  } catch (error) {
+    console.warn(error)
+    console.warn('Incorrect input error')
+    console.warn(input)
+    return res.sendStatus(400)
+  }
+
+  console.log(assignments)
+  sqlite.run('DELETE FROM assignments WHERE vehiclerequest = ?', vehiclerequest)
+  sqlite.runMany(`
+    INSERT INTO assignments (vehiclerequest, requester, pickup_time, return_time, vehicle,
+      vehicle_key, response_index)
+    VALUES (@vehiclerequest, @requester, @pickup_time, @return_time, @vehicle, @vehicle_key,
+      @response_index)
+  `, assignments)
   sqlite.run('UPDATE vehiclerequests SET is_approved = true WHERE trip = ?', req.params.tripId)
   tripCard.renderLeaderCard(res, req.params.tripId, req.user)
 }

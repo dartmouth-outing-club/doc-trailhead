@@ -52,7 +52,13 @@ export function run (query, ...params) {
 export function runMany (query, values) {
   const statement = db.prepare(query)
   values.forEach(parameters => {
-    statement.run(...parameters)
+    // Spread an array if using ? parameters
+    if (Array.isArray(parameters)) {
+      statement.run(...parameters)
+    // Otherwise use named parameters
+    } else {
+      statement.run(parameters)
+    }
   })
 }
 
