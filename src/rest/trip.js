@@ -1,28 +1,4 @@
 import * as sqlite from '../services/sqlite.js'
-import * as tripCard from './trip-card.js'
-
-export function getSignupView (req, res) {
-  const tripId = req.params.tripId
-  const isValidTrip = sqlite.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
-  if (!isValidTrip) return res.render('views/missing-trip.njs')
-
-  // No point in showing trip leaders the "regular" view of their trip
-  if (sqlite.isLeaderForTrip(tripId, req.user)) return res.redirect(`/leader/trip/${tripId}`)
-  tripCard.renderSignupPage(res, tripId, req.user)
-}
-
-export function getLeaderView (req, res) {
-  const tripId = req.params.tripId
-  const isValidTrip = sqlite.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
-  if (!isValidTrip) return res.render('views/missing-trip.njs')
-
-  // Leader view is available only if the user is the leader of that trip or on OPO
-  const is_opo = sqlite.isOpo(req.user)
-  const is_leader = sqlite.isLeaderForTrip(tripId, req.user)
-  return is_opo || is_leader
-    ? tripCard.renderLeaderPage(res, tripId, req.user)
-    : res.sendStatus(403)
-}
 
 export function createTrip (req, res) {
   if (!canCreateTripForClub(req.user, req.body.club)) {

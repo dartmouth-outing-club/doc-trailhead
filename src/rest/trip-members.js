@@ -1,5 +1,5 @@
 import * as sqlite from '../services/sqlite.js'
-import * as tripCard from './trip-card.js'
+import * as tripCard from '../views/trip-card.js'
 
 // TODO refactor this with universal validation but individual handlers
 function updateTripMembers (req, res, field, value) {

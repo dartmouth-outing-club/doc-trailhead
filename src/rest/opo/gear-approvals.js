@@ -1,5 +1,5 @@
 import * as sqlite from '../../services/sqlite.js'
-import * as tripCard from '../trip-card.js'
+import * as tripCard from '../../views/trip-card.js'
 
 export function approveVehicleRequest (req, res) {
   if (!req.params.tripId) return res.sendStatus(400)
