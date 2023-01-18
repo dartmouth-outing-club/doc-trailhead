@@ -64,6 +64,12 @@ button.approve, a.approve {
   border-color: #0ca074;
 }
 
+button.remove, a.remove {
+  background-color: white;
+  border: 2px solid #ee6e52;
+  color: #ee6e52;
+}
+
 button.deny, a.deny {
   background-color: #ee6e52;
   border-color: #ee6e52;

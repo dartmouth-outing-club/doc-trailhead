@@ -3,6 +3,7 @@ import { Router } from 'express'
 import * as index from './rest/index.js'
 import * as sqlite from './services/sqlite.js'
 import * as tripView from './views/trip.js'
+import * as requestsView from './views/requests.js'
 
 import signS3 from './services/s3.js'
 import { requireAuth, signinCAS, logout } from './services/authentication.js'
@@ -54,6 +55,7 @@ router.enableView('/opo/vehicle-requests', 'opo')
 router.route('/create-trip').get(requireAuth, tripView.getCreateView)
 router.route('/trip/:tripId').get(requireAuth, tripView.getSignupView)
 router.route('/trip/:tripId/edit').get(requireAuth, tripView.getEditView)
+router.route('/trip/:tripId/requests').get(requireAuth, requestsView.getRequestsView)
 router.route('/leader/trip/:tripId').get(requireAuth, tripView.getLeaderView)
 
 export default router

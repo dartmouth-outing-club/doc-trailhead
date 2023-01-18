@@ -193,3 +193,7 @@ export function getTripLeaderEmails (tripId) {
   `).all(tripId)
     .map(user => user.email)
 }
+
+export function getActiveVehicles () {
+  return all('SELECT id, name FROM vehicles WHERE active = TRUE ORDER BY name')
+}

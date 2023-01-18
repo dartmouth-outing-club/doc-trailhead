@@ -1,0 +1,46 @@
+label {
+  display: block;
+}
+
+form {
+  font-size: 1.1em;
+  color: rgb(3, 55, 36);
+}
+
+label {
+  display: block;
+  margin: 10px;
+}
+
+label > * {
+  align-self: flex-end;
+  display: block;
+  width: 90%;
+  font-size: 1.1em;
+}
+
+input, textarea, select {
+  border-radius: 6px;
+  border: 1px solid gray;
+  padding: 7px;
+}
+
+input:not([type=checkbox]):focus, textarea:focus {
+  outline: 3px solid #0ca074;
+}
+
+.button-row {
+  margin-top: 20px;
+}
+
+button.remove {
+  margin: 10px;
+  font-size: 1em;
+  padding: .25em .5em;
+}
+
+/* .button-row { */
+/*   justify-content: flex-start; */
+/*   width: fit-content; */
+/* } */
+

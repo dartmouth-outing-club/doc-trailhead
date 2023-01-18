@@ -109,7 +109,7 @@ function getLeaderData (tripId, userId) {
 
   // Add vehicle request stuff
   if (trip.vehiclerequest_id) {
-    const available_vehicles = sqlite.all('SELECT id, name FROM vehicles WHERE active = TRUE ORDER BY name')
+    const available_vehicles = sqlite.getActiveVehicles()
     // Note the ORDER BY ensures that the response_index is lined up
     const requestedVehicles = sqlite.all(`
       SELECT

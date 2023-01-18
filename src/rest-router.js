@@ -5,6 +5,7 @@ import * as myTrips from './rest/my-trips.js'
 import * as profile from './rest/profile.js'
 import * as trip from './rest/trip.js'
 import * as tripMembers from './rest/trip-members.js'
+import * as tripRequests from './rest/trip-requests.js'
 import * as tripApprovals from './rest/opo/trip-approvals.js'
 import * as vehicleRequests from './rest/opo/vehicle-requests.js'
 import * as profileApprovals from './rest/opo/profile-approvals.js'
@@ -36,6 +37,8 @@ router.delete('/trip/:tripId/leader/:userId', tripMembers.demote)
 router.put('/trip/:tripId/waitlist/:userId', tripMembers.sendToWaitlist)
 router.put('/trip/:tripId/member/:userId', tripMembers.admit)
 router.delete('/trip/:tripId/member/:userId', tripMembers.reject)
+
+router.put('/trip/:tripId/vehiclerequest', tripRequests.putVehicleRequest)
 
 router.get('/opo/trip-approvals', tripApprovals.get)
 router.get('/opo/vehicle-requests', vehicleRequests.get)

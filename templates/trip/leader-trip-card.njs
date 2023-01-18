@@ -240,7 +240,7 @@
 <h2>Modify Trip</h2>
 <div class="edit-row">
   <a class="action edit" href="/trip/{{ trip_id }}/edit">Edit Trip</a>
-  <a class="action edit" href="/trip/{{ trip_id }}/requests/edit">Edit Requests</a>
+  <a class="action edit" href="/trip/{{ trip_id }}/requests">Edit Requests</a>
 </div>
 {% endif %}
 
