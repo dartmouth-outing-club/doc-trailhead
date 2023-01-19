@@ -8,11 +8,14 @@ form {
 }
 
 label {
-  display: block;
   margin: 10px;
 }
 
-label > * {
+label.block {
+  display: block;
+}
+
+label.block > * {
   align-self: flex-end;
   display: block;
   width: 90%;
@@ -29,8 +32,15 @@ input:not([type=checkbox]):focus, textarea:focus {
   outline: 3px solid #0ca074;
 }
 
+input[type=checkbox] {
+  display: inline-block;
+  height: 1.2em;
+  width: 1.2em;
+}
+
 .button-row {
   margin-top: 20px;
+  justify-content: flex-start;
 }
 
 button.remove {

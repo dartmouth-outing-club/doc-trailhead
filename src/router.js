@@ -3,7 +3,7 @@ import { Router } from 'express'
 import * as index from './rest/index.js'
 import * as sqlite from './services/sqlite.js'
 import * as tripView from './views/trip.js'
-import * as requestsView from './views/requests.js'
+import * as requestsView from './views/trip-requests.js'
 
 import signS3 from './services/s3.js'
 import { requireAuth, signinCAS, logout } from './services/authentication.js'
