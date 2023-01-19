@@ -18,10 +18,27 @@ export function renderGroupGearView (tripId, res) {
 
 export function getRequestsView (req, res) {
   const tripId = req.params.tripId
-  const vehicleData = getVehicleRequestData(tripId)
-  const individualGearData = getIndividualGearData(tripId)
-  const groupGearData = getGroupGearData(tripId)
-  res.render('views/trip-requests.njs', { ...vehicleData, ...individualGearData, ...groupGearData })
+  const statuses = sqlite.get(`
+    SELECT
+      member_gear_approved,
+      group_gear_approved,
+      vehiclerequests.is_approved AS vehiclerequest_approved,
+      trip_pcard_requests.is_approved AS pcard_approved
+    FROM trips
+    LEFT JOIN vehiclerequests ON trips.id = vehiclerequests.trip
+    LEFT JOIN trip_pcard_requests ON trips.id = trip_pcard_requests.trip
+    WHERE trips.id = ?
+  `, tripId)
+  const vehicleData = statuses.vehiclerequest_approved ? { vehiclerequest_locked: true } : getVehicleRequestData(tripId)
+  const individualGearData = statuses.member_gear_approved ? { individual_gear_locked: true } : getIndividualGearData(tripId)
+  const groupGearData = statuses.group_gear_approved ? { group_gear_locked: true } : getGroupGearData(tripId)
+  // const pcardData = statuses.pcard_approved ? { pcard_locked: true } : getPcardData(tripId)
+  res.render('views/trip-requests.njs', {
+    trip_id: tripId,
+    ...vehicleData,
+    ...individualGearData,
+    ...groupGearData
+  })
 }
 
 function getVehicleRequestData (tripId) {
