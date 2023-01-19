@@ -9,6 +9,6 @@
 {% include "common/site-nav.njs" %}
 
 <main>
-<a href="/my-trips" class=top-link>Back to trips page</a>
+<a href="/leader/trip/{{trip.id}}" class=top-link>Back to trip #{{trip.id}}</a>
 {% include "trip/trip-form.njs" %}
 </main>

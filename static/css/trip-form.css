@@ -3,18 +3,6 @@
   max-width: 800px;
 }
 
-a.top-link {
-  color: rgb(3, 55, 36);
-  display: block;
-  font-size: 1.1em;
-  margin: 0px auto 30px auto;
-  max-width: 830px;
-}
-
-a.top-link:visited {
-  color: inherit;
-}
-
 form {
   font-size: 1.1em;
   color: rgb(3, 55, 36);
@@ -44,6 +32,11 @@ input, textarea, select {
 
 button#add-leader {
   margin: 10px;
+}
+
+a.top-link {
+  margin: 0px auto 30px auto;
+  max-width: 830px;
 }
 
 .existing-leaders {

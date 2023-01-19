@@ -91,6 +91,17 @@ button:hover:not([disabled]) {
   filter: brightness(110%);
 }
 
+a.top-link {
+  color: rgb(3, 55, 36);
+  margin: 10px;
+  display: block;
+  font-size: 1.1em;
+}
+
+a.top-link:visited {
+  color: inherit;
+}
+
 .hidden {
   display: none;
 }

@@ -7,7 +7,8 @@
 <script src="https://unpkg.com/htmx.org@1.8.4"></script>
 
 {% include "common/site-nav.njs" %}
-<main >
+<main>
+<a href="/leader/trip/{{trip_id}}" class=top-link>Back to trip #{{trip_id}}</a>
 {% include "requests/vehicle-request.njs" %}
 {% include "requests/individual-gear.njs" %}
 {% include "requests/group-gear.njs" %}

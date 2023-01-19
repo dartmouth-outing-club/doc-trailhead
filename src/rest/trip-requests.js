@@ -45,6 +45,7 @@ export function putIndividualGear (req, res) {
   const measurements = Array.isArray(input.measurement) ? input.measurement : [input.measurement]
 
   if (items.length !== measurements.length) return res.sendStatus(400)
+  if (!items[0]) return res.sendStatus(204)
 
   const gear = items.map((item, index) => {
     return { trip: tripId, name: item, size_type: measurements[index] }
@@ -70,8 +71,8 @@ export function putGroupGear (req, res) {
   const items = Array.isArray(input.item) ? input.item : [input.item]
   const quantities = Array.isArray(input.quantity) ? input.quantity : [input.quantity]
 
-  console.log(input)
   if (items.length !== quantities.length) return res.sendStatus(400)
+  if (!items[0]) return res.sendStatus(204)
 
   const gear = items.map((item, index) => {
     return { trip: tripId, name: item, quantity: quantities[index] }
