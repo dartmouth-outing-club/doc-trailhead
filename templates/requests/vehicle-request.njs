@@ -103,8 +103,8 @@
       const template = document.querySelector('#additional-vehicle')
       const form = document.querySelector('form.vehicle-form')
       const vehicleButton = document.querySelector('#add-vehicle')
-      const leaderInput = template.content.cloneNode(true)
-      form.insertBefore(leaderInput, vehicleButton)
+      const newRow = template.content.cloneNode(true)
+      form.insertBefore(newRow, vehicleButton)
       resetFormNumbers()
     }
 

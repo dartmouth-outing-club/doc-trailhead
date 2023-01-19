@@ -37,3 +37,56 @@ export function putVehicleRequest (req, res) {
 
   tripRequests.renderVehicleRequestView(tripId, res)
 }
+
+export function putIndividualGear (req, res) {
+  const tripId = req.params.tripId
+  const input = { ...req.body }
+  const items = Array.isArray(input.item) ? input.item : [input.item]
+  const measurements = Array.isArray(input.measurement) ? input.measurement : [input.measurement]
+
+  if (items.length !== measurements.length) return res.sendStatus(400)
+
+  const gear = items.map((item, index) => {
+    return { trip: tripId, name: item, size_type: measurements[index] }
+  })
+
+  sqlite.runMany(`
+    INSERT INTO trip_required_gear (trip, name, size_type)
+    VALUES (@trip, @name, @size_type)
+  `, gear)
+
+  tripRequests.renderIndividualGearView(tripId, res)
+}
+
+export function deleteIndividualGear (req, res) {
+  const { tripId, gearId } = req.params
+  sqlite.run('DELETE FROM trip_required_gear WHERE id = ? AND trip = ?', gearId, tripId)
+  tripRequests.renderIndividualGearView(tripId, res)
+}
+
+export function putGroupGear (req, res) {
+  const tripId = req.params.tripId
+  const input = { ...req.body }
+  const items = Array.isArray(input.item) ? input.item : [input.item]
+  const quantities = Array.isArray(input.quantity) ? input.quantity : [input.quantity]
+
+  console.log(input)
+  if (items.length !== quantities.length) return res.sendStatus(400)
+
+  const gear = items.map((item, index) => {
+    return { trip: tripId, name: item, quantity: quantities[index] }
+  })
+
+  sqlite.runMany(`
+    INSERT INTO group_gear_requests (trip, name, quantity)
+    VALUES (@trip, @name, @quantity)
+  `, gear)
+
+  tripRequests.renderGroupGearView(tripId, res)
+}
+
+export function deleteGroupGear (req, res) {
+  const { tripId, gearId } = req.params
+  sqlite.run('DELETE FROM group_gear_requests WHERE rowid = ? AND trip = ?', gearId, tripId)
+  tripRequests.renderGroupGearView(tripId, res)
+}

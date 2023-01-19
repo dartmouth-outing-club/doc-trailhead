@@ -9,6 +9,9 @@
 {% include "common/site-nav.njs" %}
 <main >
 {% include "requests/vehicle-request.njs" %}
+{% include "requests/individual-gear.njs" %}
+{% include "requests/group-gear.njs" %}
+{% include "requests/pcard-request.njs" %}
 
 </main>
 

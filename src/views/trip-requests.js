@@ -6,10 +6,22 @@ export function renderVehicleRequestView (tripId, res) {
   res.render('requests/vehicle-request.njs', { ...data })
 }
 
+export function renderIndividualGearView (tripId, res) {
+  const data = getIndividualGearData(tripId)
+  res.render('requests/individual-gear.njs', { ...data })
+}
+
+export function renderGroupGearView (tripId, res) {
+  const data = getGroupGearData(tripId)
+  res.render('requests/group-gear.njs', { ...data })
+}
+
 export function getRequestsView (req, res) {
   const tripId = req.params.tripId
-  const data = getVehicleRequestData(tripId)
-  res.render('views/requests.njs', { ...data })
+  const vehicleData = getVehicleRequestData(tripId)
+  const individualGearData = getIndividualGearData(tripId)
+  const groupGearData = getGroupGearData(tripId)
+  res.render('views/trip-requests.njs', { ...vehicleData, ...individualGearData, ...groupGearData })
 }
 
 function getVehicleRequestData (tripId) {
@@ -35,4 +47,15 @@ function getVehicleRequestData (tripId) {
     default_pickup_time: utils.getDatetimeValueForUnixTime(times.start_time),
     default_return_time: utils.getDatetimeValueForUnixTime(times.end_time)
   }
+}
+
+function getIndividualGearData (tripId) {
+  const gear = sqlite.all('SELECT id, name, size_type FROM trip_required_gear WHERE trip = ?', tripId)
+  return { trip_id: tripId, individual_gear: gear }
+}
+
+function getGroupGearData (tripId) {
+  const gear = sqlite.all('SELECT rowid as id, name, quantity FROM group_gear_requests WHERE trip = ?', tripId)
+  console.log(gear)
+  return { trip_id: tripId, group_gear: gear }
 }

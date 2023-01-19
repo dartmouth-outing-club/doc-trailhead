@@ -34,13 +34,8 @@ input:not([type=checkbox]):focus, textarea:focus {
 
 input[type=checkbox] {
   display: inline-block;
-  height: 1.2em;
-  width: 1.2em;
-}
-
-.button-row {
-  margin-top: 20px;
-  justify-content: flex-start;
+  height: 20px;
+  width: 20px;
 }
 
 button.remove {
@@ -49,8 +44,27 @@ button.remove {
   padding: .25em .5em;
 }
 
-/* .button-row { */
-/*   justify-content: flex-start; */
-/*   width: fit-content; */
-/* } */
+.button-row {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  justify-content: flex-start;
+}
 
+.gear-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.gear-row > * {
+  margin-right: 10px;
+}
+
+.gear-row button {
+  background: none;
+  border: none;
+}
+
+.gear-row ul img {
+  height: 15px;
+}
