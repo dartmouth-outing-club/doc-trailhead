@@ -1,4 +1,5 @@
 import * as sqlite from '../services/sqlite.js'
+import * as mailer from '../services/mailer.js'
 
 export function createTrip (req, res) {
   if (!canCreateTripForClub(req.user, req.body.club)) {
@@ -20,11 +21,14 @@ export function createTrip (req, res) {
   `, trip)
 
   const tripId = info.lastInsertRowid
-  const leaders = [trip.owner, ...getLeadersFromInput(req.body)]
+  const leaders = [trip.owner, ...getLeaderIds(req.body)]
   const values = leaders.map(userId => [tripId, userId, 1, 0])
+  console.log(values)
   sqlite
     .runMany('INSERT INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)', values)
 
+  const leaderEmails = sqlite.getTripLeaderEmails(tripId)
+  mailer.sendNewTripEmail(tripId, trip.title, leaderEmails)
   res.redirect(`/trip/${tripId}`)
 }
 
@@ -46,7 +50,7 @@ export function editTrip (req, res) {
   `, trip)
 
   // Add new leaders
-  const leaders = getLeadersFromInput(req.body)
+  const leaders = getLeaderIds(req.body)
   console.log(leaders)
   const values = leaders.map(userId => [tripId, userId, 1, 0])
   sqlite
@@ -60,10 +64,9 @@ export function deleteTrip (req, res) {
   const tripId = req.params.tripId
   if (!tripId || tripId < 1) return res.sendStatus(400)
 
-  const tripOwner = sqlite.get('SELECT owner FROM trips WHERE id = ?', tripId)
-  if (tripOwner !== req.user && !res.locals.is_opo) return res.sendStatus(403)
-
+  const trip = sqlite.getTripEmailInfo(tripId)
   sqlite.run('DELETE FROM trips WHERE id = ?', tripId)
+  mailer.sendTripDeletedEmail(trip.id, trip.title, trip.owner_email, trip.member_emails)
   res.set('HX-Redirect', '/my-trips')
   return res.sendStatus(200)
 }
@@ -114,11 +117,11 @@ function convertFormInputToDbInput (input, userId) {
  * Parse the input body and return and array of new leaders to add.
  * Guaranteed to return an array.
  */
-function getLeadersFromInput (input) {
+function getLeaderIds (input) {
   const leaders = typeof input.leader === 'string' ? [input.leader] : input.leader
-  const ids = leaders || []
-  const emails = ids
-    .map(id => sqlite.get('SELECT id FROM users WHERE email = ?', id))
+  const emails = leaders || []
+  const ids = emails
+    .map(email => sqlite.get('SELECT id FROM users WHERE email = ?', email))
     .map(item => item.id)
-  return emails
+  return ids
 }

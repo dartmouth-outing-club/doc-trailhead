@@ -112,11 +112,21 @@ export async function send3HourLateEmail (trip, leaderEmails) {
   return send(email, '3 hour late')
 }
 
-export async function sendTripDeletedEmail (trip, ownerEmail, trippeeEmails, reason) {
+export async function sendNewTripEmail (id, title, leaderEmails) {
   const email = {
-    address: trippeeEmails,
-    subject: `Trip #${trip.id} deleted`,
-    message: `Hello,\n\nThe Trip #${trip.id}: ${trip.title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${ownerEmail}.\n\nReason: ${reason || 'no reason provided.'}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    address: leaderEmails,
+    subject: `New Trip #${id} created`,
+    message: `Hello,\n\nYou've created a new Trip #${id}: ${title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${id}\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave: ${constants.frontendURL}/trip-check-out/${id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+  }
+
+  return send(email, 'New trip')
+}
+
+export async function sendTripDeletedEmail (id, title, ownerEmail, memberEmails) {
+  const email = {
+    address: memberEmails,
+    subject: `Trip #${id} deleted`,
+    message: `Hello,\n\nThe Trip #${id}: ${title} which you have been signed up for (or requested to be on) has been deleted. The original trip leader can be reached at ${ownerEmail}.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Trip deleted')
@@ -168,16 +178,6 @@ export async function sendVehicleRequestDeniedEmail (vehicleRequest, emails) {
   }
 
   send(email, 'Vehicle Request Denied Email')
-}
-
-export async function sendNewTripEmail (trip, leaderEmails, creator) {
-  const email = {
-    address: leaderEmails,
-    subject: `New Trip #${trip.id} created`,
-    message: `Hello,\n\nYou've created a new Trip #${trip.id}: ${trip.title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${trip.id}\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave ${trip.pickup}:: ${constants.frontendURL}/trip-check-out/${trip.id}?token=${tokenForUser(creator.id, 'mobile', trip.id)}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
-  }
-
-  return send(email, 'New trip')
 }
 
 export async function sendNewVehicleRequestEmail (trip, leaderEmails, vehicleRequest) {

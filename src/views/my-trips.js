@@ -34,6 +34,5 @@ export function get (req, res) {
       end_time: utils.getShortTimeElement(trip.end_time)
     }
   })
-  console.log(tripsForUser)
   res.render('views/my-trips.njs', { can_create_trip, trips })
 }

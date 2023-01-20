@@ -197,3 +197,19 @@ export function getTripLeaderEmails (tripId) {
 export function getActiveVehicles () {
   return all('SELECT id, name FROM vehicles WHERE active = TRUE ORDER BY name')
 }
+
+export function getTripEmailInfo (tripId) {
+  const trip = get(`
+    SELECT trips.id, title, users.email as owner_email
+    FROM trips
+    LEFT JOIN users ON owner = users.id
+    WHERE trips.id = ?`, tripId)
+  trip.member_emails = all(`
+    SELECT email
+    FROM trip_members
+    LEFT JOIN users ON trip_members.user = users.id
+    WHERE trip_members.trip = ?
+  `, tripId).map(item => item.email)
+
+  return trip
+}
