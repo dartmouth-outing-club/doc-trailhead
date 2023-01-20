@@ -1,6 +1,6 @@
 import { Router } from 'express'
 
-import { requireOpo } from './services/authentication.js'
+import { requireAnyLeader, requireTripLeader, requireOpo } from './services/authentication.js'
 import * as allTrips from './rest/all-trips.js'
 import * as profile from './rest/profile.js'
 import * as trip from './rest/trip.js'
@@ -14,6 +14,9 @@ import * as manageFleet from './rest/opo/manage-fleet.js'
 
 const router = Router()
 
+/**********************
+ * User Profile Routes
+ **********************/
 router.get('/profile', profile.getProfileView)
 router.post('/profile', profile.post)
 router.get('/profile/edit-profile', profile.getProfileEditable)
@@ -25,26 +28,32 @@ router.delete('/profile/club-leadership/:id', profile.deleteClubLeadershipReques
 
 router.get('/all-trips', allTrips.get) // TODO move this to views
 
-router.post('/trip', trip.createTrip)
-router.put('/trip/:tripId', trip.editTrip)
-router.delete('/trip/:tripId', trip.deleteTrip)
+/*********************
+ * Trip Leader Routes
+ *********************/
+router.post('/trip', requireAnyLeader, trip.createTrip)
+router.put('/trip/:tripId', requireTripLeader, trip.editTrip)
+router.delete('/trip/:tripId', requireTripLeader, trip.deleteTrip)
 
-router.post('/trip/:tripId/signup', tripMembers.signup)
-router.delete('/trip/:tripId/signup', tripMembers.leave)
-router.put('/trip/:tripId/leader/:userId', tripMembers.makeLeader)
-router.delete('/trip/:tripId/leader/:userId', tripMembers.demote)
-router.put('/trip/:tripId/waitlist/:userId', tripMembers.sendToWaitlist)
-router.put('/trip/:tripId/member/:userId', tripMembers.admit)
-router.delete('/trip/:tripId/member/:userId', tripMembers.reject)
+router.post('/trip/:tripId/signup', requireTripLeader, tripMembers.signup)
+router.delete('/trip/:tripId/signup', requireTripLeader, tripMembers.leave)
+router.put('/trip/:tripId/leader/:userId', requireTripLeader, tripMembers.makeLeader)
+router.delete('/trip/:tripId/leader/:userId', requireTripLeader, tripMembers.demote)
+router.put('/trip/:tripId/waitlist/:userId', requireTripLeader, tripMembers.sendToWaitlist)
+router.put('/trip/:tripId/member/:userId', requireTripLeader, tripMembers.admit)
+router.delete('/trip/:tripId/member/:userId', requireTripLeader, tripMembers.reject)
 
-router.put('/trip/:tripId/vehiclerequest', tripRequests.putVehicleRequest)
-router.put('/trip/:tripId/individual-gear', tripRequests.putIndividualGear)
-router.delete('/trip/:tripId/individual-gear/:gearId', tripRequests.deleteIndividualGear)
-router.put('/trip/:tripId/group-gear', tripRequests.putGroupGear)
-router.delete('/trip/:tripId/group-gear/:gearId', tripRequests.deleteGroupGear)
-router.put('/trip/:tripId/pcard-request', tripRequests.putPcardRequest)
-router.delete('/trip/:tripId/pcard-request', tripRequests.deletePcardRequest)
+router.put('/trip/:tripId/vehiclerequest', requireTripLeader, tripRequests.putVehicleRequest)
+router.put('/trip/:tripId/individual-gear', requireTripLeader, tripRequests.putIndividualGear)
+router.delete('/trip/:tripId/individual-gear/:gearId', requireTripLeader, tripRequests.deleteIndividualGear)
+router.put('/trip/:tripId/group-gear', requireTripLeader, tripRequests.putGroupGear)
+router.delete('/trip/:tripId/group-gear/:gearId', requireTripLeader, tripRequests.deleteGroupGear)
+router.put('/trip/:tripId/pcard-request', requireTripLeader, tripRequests.putPcardRequest)
+router.delete('/trip/:tripId/pcard-request', requireTripLeader, tripRequests.deletePcardRequest)
 
+/*************
+ * OPO Routes
+ *************/
 router.get('/opo/trip-approvals', requireOpo, tripApprovals.get)
 router.get('/opo/vehicle-requests', requireOpo, vehicleRequests.get)
 

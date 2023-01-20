@@ -75,10 +75,10 @@ function canCreateTripForClub (userId, clubId) {
   if (sqlite.isOpo(userId)) return true
 
   const userClubs = sqlite
-    .get('SELECT club FROM club_leaders WHERE user = ?', userId)
+    .all('SELECT club FROM club_leaders WHERE user = ?', userId)
     .map(item => item.club)
 
-  if (clubId === 0 && userClubs.length > 0) return true // Any leader can create a "none" trip
+  if (clubId === 0 || userClubs.length > 0) return true // Any leader can create a "none" trip
   if (userClubs.includes(clubId)) return true
   return false
 }

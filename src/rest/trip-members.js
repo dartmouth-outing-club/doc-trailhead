@@ -8,6 +8,7 @@ function updateTripMembers (req, res, field, value) {
     console.warn('Bad request detected', tripId, userId)
     return res.sendStatus(400)
   }
+  if (req.user === userId) return res.sendStatus(400) // TODO error message
 
   sqlite
     .run(`UPDATE trip_members SET ${field} = ${value} WHERE trip = ? and user = ?`, tripId, userId)
