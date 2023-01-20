@@ -16,6 +16,11 @@ export function renderGroupGearView (tripId, res) {
   res.render('requests/group-gear.njs', { ...data })
 }
 
+export function renderPcardView (tripId, res) {
+  const data = getPcardData(tripId)
+  res.render('requests/pcard-request.njs', { ...data })
+}
+
 export function getRequestsView (req, res) {
   const tripId = req.params.tripId
   const statuses = sqlite.get(`
@@ -32,12 +37,13 @@ export function getRequestsView (req, res) {
   const vehicleData = statuses.vehiclerequest_approved ? { vehiclerequest_locked: true } : getVehicleRequestData(tripId)
   const individualGearData = statuses.member_gear_approved ? { individual_gear_locked: true } : getIndividualGearData(tripId)
   const groupGearData = statuses.group_gear_approved ? { group_gear_locked: true } : getGroupGearData(tripId)
-  // const pcardData = statuses.pcard_approved ? { pcard_locked: true } : getPcardData(tripId)
+  const pcardData = statuses.pcard_approved ? { pcard_locked: true } : getPcardData(tripId)
   res.render('views/trip-requests.njs', {
     trip_id: tripId,
     ...vehicleData,
     ...individualGearData,
-    ...groupGearData
+    ...groupGearData,
+    ...pcardData
   })
 }
 
@@ -75,4 +81,13 @@ function getGroupGearData (tripId) {
   const gear = sqlite.all('SELECT rowid as id, name, quantity FROM group_gear_requests WHERE trip = ?', tripId)
   console.log(gear)
   return { trip_id: tripId, group_gear: gear }
+}
+
+function getPcardData (tripId) {
+  const pcard = sqlite.get(`
+    SELECT is_approved, num_people, snacks, breakfast, lunch, dinner
+    FROM trip_pcard_requests
+    WHERE trip = ?
+  `, tripId)
+  return { trip_id: tripId, pcard_request: pcard }
 }

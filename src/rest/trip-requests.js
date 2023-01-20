@@ -91,3 +91,13 @@ export function deleteGroupGear (req, res) {
   sqlite.run('DELETE FROM group_gear_requests WHERE rowid = ? AND trip = ?', gearId, tripId)
   tripRequests.renderGroupGearView(tripId, res)
 }
+
+export function putPcardRequest (req, res) {
+
+}
+
+export function deletePcardRequest (req, res) {
+  const tripId = req.params.tripId
+  sqlite.run('DELETE FROM trip_pcard_requests WHERE trip = ?', tripId)
+  tripRequests.renderPcardView(tripId, res)
+}

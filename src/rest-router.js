@@ -40,10 +40,11 @@ router.delete('/trip/:tripId/member/:userId', tripMembers.reject)
 
 router.put('/trip/:tripId/vehiclerequest', tripRequests.putVehicleRequest)
 router.put('/trip/:tripId/individual-gear', tripRequests.putIndividualGear)
-router.put('/trip/:tripId/group-gear', tripRequests.putGroupGear)
-
 router.delete('/trip/:tripId/individual-gear/:gearId', tripRequests.deleteIndividualGear)
+router.put('/trip/:tripId/group-gear', tripRequests.putGroupGear)
 router.delete('/trip/:tripId/group-gear/:gearId', tripRequests.deleteGroupGear)
+router.put('/trip/:tripId/pcard-request', tripRequests.putPcardRequest)
+router.delete('/trip/:tripId/pcard-request', tripRequests.deletePcardRequest)
 
 router.get('/opo/trip-approvals', tripApprovals.get)
 router.get('/opo/vehicle-requests', vehicleRequests.get)

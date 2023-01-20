@@ -32,6 +32,10 @@ input:not([type=checkbox]):focus, textarea:focus {
   outline: 3px solid #0ca074;
 }
 
+input[type=number] {
+  width: 50px;
+}
+
 input[type=checkbox] {
   display: inline-block;
   height: 20px;
@@ -42,6 +46,10 @@ button.remove {
   margin: 10px;
   font-size: 1em;
   padding: .25em .5em;
+}
+
+main > .info-card {
+  margin: 0px auto 30px auto;
 }
 
 .button-row {
@@ -67,4 +75,10 @@ button.remove {
 
 .gear-row ul img {
   height: 15px;
+}
+
+.number-row {
+  max-width: 300px;
+  display: flex;
+  justify-content: space-between;
 }
