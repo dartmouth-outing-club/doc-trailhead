@@ -1,5 +1,6 @@
 import * as sqlite from '../../services/sqlite.js'
 import * as tripCard from '../../views/trip-card.js'
+import * as mailer from '../../services/mailer.js'
 
 export function approveVehicleRequest (req, res) {
   if (!req.params.tripId) return res.sendStatus(400)
@@ -31,7 +32,6 @@ export function approveVehicleRequest (req, res) {
     return res.sendStatus(400)
   }
 
-  console.log(assignments)
   sqlite.run('DELETE FROM assignments WHERE vehiclerequest = ?', vehiclerequest)
   sqlite.runMany(`
     INSERT INTO assignments (vehiclerequest, requester, pickup_time, return_time, vehicle,
@@ -40,6 +40,8 @@ export function approveVehicleRequest (req, res) {
       @response_index)
   `, assignments)
   sqlite.run('UPDATE vehiclerequests SET is_approved = true WHERE trip = ?', req.params.tripId)
+  const leaderEmails = sqlite.getTripLeaderEmails(req.params.tripId)
+  mailer.sendTripVehicleRequestProcessedEmail(req.params.tripId, leaderEmails)
   tripCard.renderLeaderCard(res, req.params.tripId, req.user)
 }
 
