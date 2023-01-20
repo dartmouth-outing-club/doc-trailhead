@@ -29,8 +29,9 @@
 </div>
 
 <h2>Signup</h2>
-<p>Sign up for this trip here. Below is the required gear - only request what you need!
 <form action="/rest/trip/{{ trip_id }}/signup" method=post hx-boost=true hx-push-url=false>
+{% if required_gear.length %}
+<p>Sign up for this trip here. Below is the required gear - only request what you need!
 <table class=detail-table>
   {% for item in required_gear %}
   <tr>
@@ -43,22 +44,26 @@
                autocomplete=off
                {% if is_on_trip %}disabled{% endif %}
                {% if item.is_requested == 1%}checked{% endif %}
-               ></label>
+               >
+      </label>
     </td>
   </tr>
   {% endfor %}
 </table>
+{% endif %}
 
-{% if is_on_trip %}
 <div class=button-row>
-<button class="action deny"
-        type=button
-        hx-delete="/rest/trip/{{ trip_id }}/signup"
-        hx-confirm="Are you sure you want to remove yourself from the trip?"
-        >Leave Trip</button>
-<button class="action edit" type=button onclick="enableForm(this)">Edit Gear Request</button>
+{% if is_on_trip %}
+  <button class="action deny"
+          type=button
+          hx-delete="/rest/trip/{{ trip_id }}/signup"
+          hx-confirm="Are you sure you want to remove yourself from the trip?"
+          >Leave Trip</button>
+  {% if required_gear.length %}
+  <button class="action edit" type=button onclick="enableForm(this)">Edit Gear Request</button>
+  {% endif %}
 {% else %}
-<button class="action approve" type=submit>Sign Up</button>
+  <button class="action approve" type=submit>Sign Up</button>
 {% endif %}
 </div>
 </form>
