@@ -2,7 +2,6 @@ import { Router } from 'express'
 
 import { requireOpo } from './services/authentication.js'
 import * as allTrips from './rest/all-trips.js'
-import * as myTrips from './rest/my-trips.js'
 import * as profile from './rest/profile.js'
 import * as trip from './rest/trip.js'
 import * as tripMembers from './rest/trip-members.js'
@@ -24,8 +23,7 @@ router.get('/profile/club-leadership', profile.getClubLeadershipRequest)
 router.post('/profile/club-leadership', profile.postClubLeadershipRequest)
 router.delete('/profile/club-leadership/:id', profile.deleteClubLeadershipRequest)
 
-router.get('/all-trips', allTrips.get)
-router.get('/my-trips', myTrips.get)
+router.get('/all-trips', allTrips.get) // TODO move this to views
 
 router.post('/trip', trip.createTrip)
 router.put('/trip/:tripId', trip.editTrip)

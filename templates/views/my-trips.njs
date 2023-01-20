@@ -15,10 +15,25 @@
 </section>
 
 <section class="trips" hx-get="/rest/my-trips" hx-swap=beforeend hx-trigger=load>
+  {% if can_create_trip %}
   <a href="/create-trip" class="trip-card new-trip">
     <h2>Create a Trip</h2>
     <img src="/icons/createtrip.svg">
   </a>
+  {% endif %}
+  {% for trip in trips %}
+  <a href=/trip/{{trip.id}} class=trip-card>
+    <img class=club-logo src="{{trip.iconPath}}">
+    <header>Trip #{{ trip.id }}</header>
+    <h2>{{ trip.title }}</h2>
+    <div>
+      {{ trip.start_time }}
+      {{ trip.end_time }}
+    </div>
+    <div class="club-tag">{{ trip.club }}</div>
+    <p>{{ trip.description }}</p>
+  </a>
+  {% endfor %}
 </section>
 
 </main>

@@ -14,12 +14,12 @@ export async function tokenForUser (userId, purpose, tripId) {
 }
 
 async function generateAndInsertNewToken (userId) {
-  const token = await getKey()
+  const token = await getRandomKey()
   sessions.insertOrReplaceToken(userId, token)
   return token
 }
 
-async function getKey () {
+async function getRandomKey () {
   return new Promise((resolve, reject) => {
     crypto.randomBytes(256, (err, buf) => {
       if (err) reject(err)
@@ -36,7 +36,7 @@ export function requireAuth (req, res, next) {
   const cookies = req.get('cookie')?.split(';')
 
   if (!cookies) {
-    console.warn('No cookies in request')
+    console.warn('No cookies in request, sending user back to login page.')
     return sendToLogin(req, res, next)
   }
 
@@ -55,13 +55,22 @@ export function requireAuth (req, res, next) {
   return sendToLogin(req, res, next)
 }
 
+/** Allow the request if the user is a leader of ANY club, or an OPO staffer */
+export function requireAnyLeader (req, res, next) {
+  if (res.locals.is_opo === true) return next()
+  const isLeader = sqlite.get(`
+    SELECT 1 as is_leader
+    FROM club_leaders WHERE user = ? and is_approved = TRUE`, req.user)?.is_leader === 1
+  if (isLeader) return next()
+  return res.sendStatus(403)
+}
+
+/** Allow the request if the user is an OPO staffer */
 export function requireOpo (_req, res, next) {
   if (res.locals.is_opo === true) return next()
-
   if (typeof res.locals.is_opo !== 'boolean') {
     console.warn('OPO was required for a route, but that route has not been authenticated.')
   }
-
   return res.sendStatus(403)
 }
 
