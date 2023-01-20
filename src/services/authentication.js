@@ -46,13 +46,23 @@ export function requireAuth (req, res, next) {
   if (userId) {
     req.user = userId
     // This gets automatically included as a variable for all the templates
-    res.locals.is_opo = sqlite.get('SELECT is_opo FROM users WHERE id = ?', userId).is_opo
+    res.locals.is_opo = sqlite.get('SELECT is_opo FROM users WHERE id = ?', userId).is_opo === 1
     return next()
   }
 
   // Otherwise, invalidate the token we received (redundant, but clean) and redirect to login
   sessions.invalidateToken(cookieToken)
   return sendToLogin(req, res, next)
+}
+
+export function requireOpo (_req, res, next) {
+  if (res.locals.is_opo === true) return next()
+
+  if (typeof res.locals.is_opo !== 'boolean') {
+    console.warn('OPO was required for a route, but that route has not been authenticated.')
+  }
+
+  return res.sendStatus(403)
 }
 
 export function signinCAS (req, res, next) {
