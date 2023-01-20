@@ -6,6 +6,7 @@ function getVehicleRequests (showReviewed) {
   const now = new Date()
   return sqlite.all(`
     SELECT
+      vehiclerequests.id,
       users.name as requester_name,
       iif(trips.id IS NOT NULL, trips.title, request_details) as reason,
       first_pickup,
@@ -29,8 +30,8 @@ function convertRequestsToTable (trips, showStatus) {
     .map(request => {
       return `
 <tr>
+<td><a href="/vehicle-request/${request.id}">${request.reason}</a>
 <td>${request.requester_name}
-<td>${request.reason}
 <td>${utils.getShortTimeElement(request.first_pickup)}
 <td>${utils.getShortTimeElement(request.last_return)}
 ${showStatus ? `<td>${getBadgeImgElement(request.status)}` : ''}

@@ -16,7 +16,7 @@
     <p>Cannot edit vehicle request after OPO has reviewed it.
   </section>
 {% else %}
-  {% include "requests/vehicle-request.njs" %}
+  {% include "requests/vehicle-request-editable.njs" %}
 {% endif %}
 
 {% if individual_gear_locked %}

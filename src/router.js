@@ -3,6 +3,7 @@ import { Router } from 'express'
 import * as index from './rest/index.js'
 import * as sqlite from './services/sqlite.js'
 import * as tripView from './views/trip.js'
+import * as vehicleRequestView from './views/vehicle-request.js'
 import * as myTripsView from './views/my-trips.js'
 import * as requestsView from './views/trip-requests.js'
 
@@ -61,6 +62,7 @@ router.route('/create-trip').get(requireAuth, requireAnyLeader, tripView.getCrea
 router.route('/trip/:tripId').get(requireAuth, tripView.getSignupView)
 router.route('/trip/:tripId/edit').get(requireAuth, tripView.getEditView)
 router.route('/trip/:tripId/requests').get(requireAuth, requestsView.getRequestsView)
+router.route('/vehicle-request/:vehicleRequestId').get(requireAuth, vehicleRequestView.getVehicleRequestView)
 router.route('/leader/trip/:tripId').get(requireAuth, tripView.getLeaderView)
 
 export default router

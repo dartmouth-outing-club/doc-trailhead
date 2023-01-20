@@ -1,22 +1,22 @@
 import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 
-export function renderVehicleRequestView (tripId, res) {
+export function renderVehicleRequestCard (tripId, res) {
   const data = getVehicleRequestData(tripId)
   res.render('requests/vehicle-request.njs', { ...data })
 }
 
-export function renderIndividualGearView (tripId, res) {
+export function renderIndividualGearCard (tripId, res) {
   const data = getIndividualGearData(tripId)
   res.render('requests/individual-gear.njs', { ...data })
 }
 
-export function renderGroupGearView (tripId, res) {
+export function renderGroupGearCard (tripId, res) {
   const data = getGroupGearData(tripId)
   res.render('requests/group-gear.njs', { ...data })
 }
 
-export function renderPcardView (tripId, res) {
+export function renderPcardCard (tripId, res) {
   const data = getPcardData(tripId)
   res.render('requests/pcard-request.njs', { ...data })
 }

@@ -1,5 +1,6 @@
 import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
+import { getVehicleRequestData } from './vehicle-request.js'
 
 function getLeaderData (tripId, userId) {
   const user = sqlite.get('SELECT is_opo FROM users WHERE id = ?', userId)
@@ -19,7 +20,7 @@ function getLeaderData (tripId, userId) {
       experience_needed,
       cost,
       vehiclerequests.id as vehiclerequest_id,
-      vehiclerequests.is_approved as vehiclerequest_status,
+      vehiclerequests.is_approved as vehiclerequest_is_approved,
       member_gear_approved,
       group_gear_approved
     FROM trips
@@ -105,52 +106,13 @@ function getLeaderData (tripId, userId) {
     ? utils.getBadgeImgElement(trip.group_gear_approved !== null ? trip.group_gear_approved : 'pending')
     : '<span>-</span>'
   trip.pcard_request = tripPcardRequest
-  trip.vehiclerequest_badge = utils.getBadgeImgElement(trip.vehiclerequest_status || 'pending')
 
   // Add vehicle request stuff
   if (trip.vehiclerequest_id) {
-    const available_vehicles = sqlite.getActiveVehicles()
-    // Note the ORDER BY ensures that the response_index is lined up
-    const requestedVehicles = sqlite.all(`
-      SELECT
-        type,
-        details,
-        pickup_time,
-        return_time,
-        iif(trailer_needed = 1, 'Yes', 'No') as trailer_needed,
-        iif(pass_needed = 1, 'Yes', 'No') as pass_needed
-      FROM requested_vehicles
-      WHERE vehiclerequest = ?
-  `, trip.vehiclerequest_id)
-    const assignedVehicles = sqlite.all(`
-      SELECT
-        vehicles.id as id,
-        vehicles.name as name,
-        vehicle_key,
-        pickup_time as assigned_pickup_time,
-        return_time as assigned_return_time
-      FROM assignments
-      LEFT JOIN vehicles ON vehicles.id = assignments.vehicle
-      WHERE vehiclerequest = ?
-      ORDER BY response_index ASC
-  `, trip.vehiclerequest_id)
-
-    // This is annoying holdover from the old frontend
-    // Once we've migrated to the new frontend we can properly link these in the db
-    const vehicles = requestedVehicles.map((requestedVehicle, index) => {
-      return { ...requestedVehicle, ...assignedVehicles.at(index) }
-    })
-
-    trip.available_vehicles = available_vehicles
-    trip.requested_vehicles = vehicles.map(vehicle => {
-      return {
-        ...vehicle,
-        pickup_time: utils.getLongTimeElement(vehicle.pickup_time),
-        return_time: utils.getLongTimeElement(vehicle.return_time),
-        assigned_pickup_time: utils.getDatetimeValueForUnixTime(vehicle.assigned_pickup_time),
-        assigned_return_time: utils.getDatetimeValueForUnixTime(vehicle.assigned_return_time)
-      }
-    })
+    const vehicleRequestData = getVehicleRequestData(trip.vehiclerequest_id)
+    trip.available_vehicles = vehicleRequestData.available_vehicles
+    trip.requested_vehicles = vehicleRequestData.requested_vehicles
+    trip.vehiclerequest_badge = vehicleRequestData.vehiclerequest_badge
   }
 
   // Show approval buttons if user is an OPO staffer and there is something to approve
@@ -186,8 +148,6 @@ function getSignupData (tripId, userId) {
       users.name as owner_name,
       experience_needed,
       cost,
-      vehiclerequests.id as vehiclerequest_id,
-      vehiclerequests.is_approved as vehiclerequest_status,
       member_gear_approved,
       group_gear_approved
     FROM trips

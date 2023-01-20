@@ -35,7 +35,7 @@ export function putVehicleRequest (req, res) {
     VALUES (@vehiclerequest, @type, @pickup_time, @return_time, @trailer_needed, @pass_needed)
   `, vehicles)
 
-  tripRequests.renderVehicleRequestView(tripId, res)
+  tripRequests.renderVehicleRequestCard(tripId, res)
 }
 
 export function putIndividualGear (req, res) {
@@ -56,13 +56,13 @@ export function putIndividualGear (req, res) {
     VALUES (@trip, @name, @size_type)
   `, gear)
 
-  tripRequests.renderIndividualGearView(tripId, res)
+  tripRequests.renderIndividualGearCard(tripId, res)
 }
 
 export function deleteIndividualGear (req, res) {
   const { tripId, gearId } = req.params
   sqlite.run('DELETE FROM trip_required_gear WHERE id = ? AND trip = ?', gearId, tripId)
-  tripRequests.renderIndividualGearView(tripId, res)
+  tripRequests.renderIndividualGearCard(tripId, res)
 }
 
 export function putGroupGear (req, res) {
@@ -83,13 +83,13 @@ export function putGroupGear (req, res) {
     VALUES (@trip, @name, @quantity)
   `, gear)
 
-  tripRequests.renderGroupGearView(tripId, res)
+  tripRequests.renderGroupGearCard(tripId, res)
 }
 
 export function deleteGroupGear (req, res) {
   const { tripId, gearId } = req.params
   sqlite.run('DELETE FROM group_gear_requests WHERE rowid = ? AND trip = ?', gearId, tripId)
-  tripRequests.renderGroupGearView(tripId, res)
+  tripRequests.renderGroupGearCard(tripId, res)
 }
 
 export function putPcardRequest (req, res) {
@@ -101,11 +101,11 @@ export function putPcardRequest (req, res) {
     INSERT INTO trip_pcard_requests (trip, num_people, snacks, breakfast, lunch, dinner)
     VALUES (?, ?, ?, ?, ?, ?)
   `, tripId, people, snacks, breakfast, lunch, dinner)
-  tripRequests.renderPcardView(tripId, res)
+  tripRequests.renderPcardCard(tripId, res)
 }
 
 export function deletePcardRequest (req, res) {
   const tripId = req.params.tripId
   sqlite.run('DELETE FROM trip_pcard_requests WHERE trip = ?', tripId)
-  tripRequests.renderPcardView(tripId, res)
+  tripRequests.renderPcardCard(tripId, res)
 }

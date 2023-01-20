@@ -1,12 +1,12 @@
 import * as sqlite from '../../services/sqlite.js'
 import * as tripCard from '../../views/trip-card.js'
+import * as vehicleRequestView from '../../views/vehicle-request.js'
 import * as mailer from '../../services/mailer.js'
 
 export function approveVehicleRequest (req, res) {
-  if (!req.params.tripId) return res.sendStatus(400)
+  if (!req.params.requestId) return res.sendStatus(400)
   const vehiclerequest = sqlite
-    .get('SELECT id FROM vehiclerequests WHERE trip = ?', req.params.tripId)
-    .id
+    .get('SELECT id, trip FROM vehiclerequests WHERE id = ?', req.params.requestId)
 
   const input = { ...req.body }
   const assignments = []
@@ -14,7 +14,7 @@ export function approveVehicleRequest (req, res) {
   try {
     while (input[`vehicle-${index}`]) {
       const assignment = {
-        vehiclerequest,
+        vehiclerequest: vehiclerequest.id,
         requester: req.user,
         vehicle: input[`vehicle-${index}`],
         vehicle_key: input[`key-${index}`],
@@ -32,29 +32,32 @@ export function approveVehicleRequest (req, res) {
     return res.sendStatus(400)
   }
 
-  sqlite.run('DELETE FROM assignments WHERE vehiclerequest = ?', vehiclerequest)
+  sqlite.run('DELETE FROM assignments WHERE vehiclerequest = ?', vehiclerequest.id)
   sqlite.runMany(`
     INSERT INTO assignments (vehiclerequest, requester, pickup_time, return_time, vehicle,
       vehicle_key, response_index)
     VALUES (@vehiclerequest, @requester, @pickup_time, @return_time, @vehicle, @vehicle_key,
       @response_index)
   `, assignments)
-  sqlite.run('UPDATE vehiclerequests SET is_approved = true WHERE trip = ?', req.params.tripId)
-  const leaderEmails = sqlite.getTripLeaderEmails(req.params.tripId)
-  mailer.sendTripVehicleRequestProcessedEmail(req.params.tripId, leaderEmails)
-  tripCard.renderLeaderCard(res, req.params.tripId, req.user)
+  sqlite.run('UPDATE vehiclerequests SET is_approved = true WHERE id = ?', vehiclerequest.id)
+  const leaderEmails = sqlite.getTripLeaderEmails(vehiclerequest.trip)
+  mailer.sendTripVehicleRequestProcessedEmail(vehiclerequest.trip, leaderEmails)
+  vehicleRequestView.renderVehicleRequestTable(res, vehiclerequest.id)
 }
 
 export function denyVehicleRequest (req, res) {
-  if (!req.params.tripId) return res.sendStatus(400)
-  sqlite.run('UPDATE vehiclerequests SET is_approved = false WHERE trip = ?', req.params.tripId)
-  tripCard.renderLeaderCard(res, req.params.tripId, req.user)
+  if (!req.params.requestId) return res.sendStatus(400)
+  sqlite.run('UPDATE vehiclerequests SET is_approved = false WHERE id = ?', req.params.requestId)
+  sqlite.run('DELETE FROM assignments WHERE vehiclerequest = ?', req.params.requestId)
+  vehicleRequestView.renderVehicleRequestTable(res, req.params.requestId)
 }
 
 export function resetVehicleRequest (req, res) {
-  if (!req.params.tripId) return res.sendStatus(400)
-  sqlite.run('UPDATE vehiclerequests SET is_approved = null WHERE trip = ?', req.params.tripId)
-  tripCard.renderLeaderCard(res, req.params.tripId, req.user)
+  if (!req.params.requestId) return res.sendStatus(400)
+  sqlite.run('UPDATE vehiclerequests SET is_approved = null WHERE id = ?', req.params.requestId)
+  sqlite.run('DELETE FROM assignments WHERE vehiclerequest = ?', req.params.requestId)
+  sqlite.run('DELETE FROM assignments WHERE vehiclerequest = ?', req.params.requestId)
+  vehicleRequestView.renderVehicleRequestTable(res, req.params.requestId)
 }
 
 export function approveGroupGear (req, res) {

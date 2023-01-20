@@ -60,9 +60,9 @@ router.get('/opo/manage-fleet', requireOpo, manageFleet.get)
 router.post('/opo/manage-fleet', requireOpo, manageFleet.post)
 router.delete('/opo/manage-fleet/:id', requireOpo, manageFleet.del)
 
-router.put('/opo/vehiclerequest/:tripId/approve', requireOpo, gearApprovals.approveVehicleRequest)
-router.put('/opo/vehiclerequest/:tripId/deny', requireOpo, gearApprovals.denyVehicleRequest)
-router.put('/opo/vehiclerequest/:tripId/reset', requireOpo, gearApprovals.resetVehicleRequest)
+router.put('/opo/vehiclerequest/:requestId/approve', requireOpo, gearApprovals.approveVehicleRequest)
+router.put('/opo/vehiclerequest/:requestId/deny', requireOpo, gearApprovals.denyVehicleRequest)
+router.put('/opo/vehiclerequest/:requestId/reset', requireOpo, gearApprovals.resetVehicleRequest)
 
 router.put('/opo/member-gear/:tripId/approve', requireOpo, gearApprovals.approveMemberGear)
 router.put('/opo/member-gear/:tripId/deny', requireOpo, gearApprovals.denyMemberGear)
