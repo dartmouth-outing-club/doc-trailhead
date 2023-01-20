@@ -22,6 +22,8 @@ app.use(cors())
 // enable/disable http request logging
 app.use(morgan('dev'))
 app.use(express.static('static'))
+app.use(express.static('node_modules/htmx.org/dist'))
+app.use(express.static('node_modules/fullcalendar'))
 app.use(bodyParser.urlencoded({ extended: true }))
 
 nunjucks.configure('templates', {
