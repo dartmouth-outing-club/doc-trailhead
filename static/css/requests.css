@@ -52,6 +52,11 @@ main > .info-card {
   margin: 0px auto 30px auto;
 }
 
+a.top-link {
+  margin: 10px auto;
+  max-width: 1250px;
+}
+
 .button-row {
   margin-top: 20px;
   margin-bottom: 20px;

@@ -79,7 +79,6 @@ function getIndividualGearData (tripId) {
 
 function getGroupGearData (tripId) {
   const gear = sqlite.all('SELECT rowid as id, name, quantity FROM group_gear_requests WHERE trip = ?', tripId)
-  console.log(gear)
   return { trip_id: tripId, group_gear: gear }
 }
 

@@ -93,7 +93,15 @@ export function deleteGroupGear (req, res) {
 }
 
 export function putPcardRequest (req, res) {
+  const tripId = req.params.tripId
+  const { people, snacks, breakfast, lunch, dinner } = req.body
 
+  sqlite.run('DELETE FROM trip_pcard_requests WHERE trip = ?', tripId)
+  sqlite.run(`
+    INSERT INTO trip_pcard_requests (trip, num_people, snacks, breakfast, lunch, dinner)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `, tripId, people, snacks, breakfast, lunch, dinner)
+  tripRequests.renderPcardView(tripId, res)
 }
 
 export function deletePcardRequest (req, res) {
