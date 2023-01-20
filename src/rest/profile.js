@@ -122,7 +122,7 @@ export function getClubLeadershipRequest (req, res) {
   <li>${club.name}${club.is_approved === 0 ? ' (pending)' : ''}
   <button
           hx-delete="/rest/profile/club-leadership/${club.id}"
-          hx-confirm="Are you sure you want to remove yourself as a leader of ${club.name}?"
+          hx-confirm="Are you sure you want to remove yourself as a${club.is_approved === 0 ? ' (pending)' : ''} leader of ${club.name}?"
           hx-target="closest li"
           hx-swap="outerHTML"
   ><img src="/icons/close-icon.svg"></button>
