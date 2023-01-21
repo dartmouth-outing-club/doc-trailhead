@@ -3,12 +3,13 @@ import { Router } from 'express'
 import * as index from './rest/index.js'
 import * as sqlite from './services/sqlite.js'
 import * as tripView from './views/trip.js'
+import * as tripStatusView from './views/trip-status.js'
 import * as vehicleRequestView from './views/vehicle-request.js'
 import * as myTripsView from './views/my-trips.js'
 import * as requestsView from './views/trip-requests.js'
 
 import signS3 from './services/s3.js'
-import { requireAuth, requireAnyLeader, requireOpo, signinCAS, logout } from './services/authentication.js'
+import { requireAuth, requireAnyLeader, requireTripLeader, requireOpo, signinCAS, logout } from './services/authentication.js'
 
 const router = Router()
 
@@ -61,8 +62,10 @@ router.route('/my-trips').get(requireAuth, myTripsView.get)
 router.route('/create-trip').get(requireAuth, requireAnyLeader, tripView.getCreateView)
 router.route('/trip/:tripId').get(requireAuth, tripView.getSignupView)
 router.route('/trip/:tripId/edit').get(requireAuth, tripView.getEditView)
+router.route('/trip/:tripId/check-out').get(requireAuth, tripStatusView.getCheckOutView)
+router.route('/trip/:tripId/check-in').get(requireAuth, tripStatusView.getCheckInView)
 router.route('/trip/:tripId/requests').get(requireAuth, requestsView.getRequestsView)
 router.route('/vehicle-request/:vehicleRequestId').get(requireAuth, vehicleRequestView.getVehicleRequestView)
-router.route('/leader/trip/:tripId').get(requireAuth, tripView.getLeaderView)
+router.route('/leader/trip/:tripId').get(requireAuth, requireTripLeader, tripView.getLeaderView)
 
 export default router

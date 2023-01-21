@@ -67,17 +67,21 @@ export function requireAnyLeader (req, res, next) {
 
 /** Allow the request if the user is a leader the specific trip, or an OPO staffer */
 export function requireTripLeader (req, res, next) {
-  if (res.locals.is_opo === true) return next()
-
   const tripId = req.params.tripId
-  if (!tripId) console.warn('Trip Leader authorization used on a route without a trip. This is almost certainly a mistake.')
+  if (!tripId) console.error('Trip Leader authorization used on a route without a trip. This is almost certainly an error.')
 
   const isLeader = sqlite.get(`
     SELECT 1 as is_leader
     FROM trip_members WHERE user = ? AND trip = ? AND leader = 1
     `, req.user, tripId)?.is_leader === 1
 
-  if (isLeader) return next()
+  // Set a variable that says the current use is a leader for THIS trip
+  if (isLeader) res.locals.is_leader_for_trip = true
+
+  // Return true if the user is OPO or a trip leader
+  if (res.locals.is_opo === true || isLeader) return next()
+
+  // Return 403 FORBIDDEN otherwise
   return res.sendStatus(403)
 }
 

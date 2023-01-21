@@ -1,3 +1,13 @@
+/**
+ * All the REST functions for the application.
+ *
+ * This file contains all the actions that can be performed upon the application. Every one of these
+ * actions require the user to be signed in, so the router itself is secured behind an
+ * authorization function. Addition authorization functions (which assume that the user is at least
+ * authenticated) are added where appropriate. For instance, some of these routes edit trips,
+ * and they should only be * available to a leader of the partiuclar trip being edited (or an OPO
+ * staffer). Those routes have a "requiredTripLeader" authorization scheme.
+ */
 import { Router } from 'express'
 
 import { requireAnyLeader, requireTripLeader, requireOpo } from './services/authentication.js'
@@ -6,6 +16,7 @@ import * as profile from './rest/profile.js'
 import * as trip from './rest/trip.js'
 import * as tripMembers from './rest/trip-members.js'
 import * as tripRequests from './rest/trip-requests.js'
+import * as tripStatus from './rest/trip-status.js'
 import * as tripApprovals from './rest/opo/trip-approvals.js'
 import * as vehicleRequests from './rest/opo/vehicle-requests.js'
 import * as profileApprovals from './rest/opo/profile-approvals.js'
@@ -50,6 +61,9 @@ router.put('/trip/:tripId/group-gear', requireTripLeader, tripRequests.putGroupG
 router.delete('/trip/:tripId/group-gear/:gearId', requireTripLeader, tripRequests.deleteGroupGear)
 router.put('/trip/:tripId/pcard-request', requireTripLeader, tripRequests.putPcardRequest)
 router.delete('/trip/:tripId/pcard-request', requireTripLeader, tripRequests.deletePcardRequest)
+
+router.put('/trip/:tripId/present/:memberId', requireTripLeader, tripStatus.markUserPresent)
+router.delete('/trip/:tripId/present/:memberId', requireTripLeader, tripStatus.markUserAbsent)
 
 /*************
  * OPO Routes

@@ -116,7 +116,6 @@ function getLeaderData (tripId, userId) {
   }
 
   // Show approval buttons if user is an OPO staffer and there is something to approve
-  trip.is_opo = user.is_opo
   trip.can_delete = user.is_opo || trip.owner === userId
   trip.show_member_gear_approval_buttons = user.is_opo && memberRequestedGear.length > 0
   trip.show_group_gear_approval_buttons = user.is_opo && groupGearRequests.length > 0

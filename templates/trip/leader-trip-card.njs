@@ -6,9 +6,27 @@
   {{ trip_status }}
 </div>
 
+{% if is_leader_for_trip %}
+<h2>Check-In and Check-Out</h2>
+<p>It is very important to alert the Outdoor Programs Office that your trip is leaving and returning
+on time. 48 hours before trip-start you can begin checking out your trip.
+<div class=button-row>
+  <a href="/trip/{{trip_id}}/check-out"
+     class="action approve"
+     {% if not check_out_enabled %}disabled{% endif %}
+     >Check-Out
+  </a>
+    <a href="/trip/{{trip_id}}/check-in"
+     class="action approve"
+     {% if not check_in_enabled %}disabled{% endif %}
+     >Check-In
+  </a>
+</div>
+{% endif %}
+
 <h2>Description</h2>
 <p>{{ description }}</p>
-{% if is_opo %}<a href="/trip/{{ trip_id }}">View trip signup</a>{% endif %}
+{% if not is_leader_for_trip %}<a href="/trip/{{ trip_id }}">View trip signup</a>{% endif %}
 
 <h2>Details</h2>
 <div class=dual-table-container>
