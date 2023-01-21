@@ -81,10 +81,11 @@ button.edit, a.edit {
   border: 2px solid #0ca074;
 }
 
-button[disabled] {
+button[disabled], a:not([href]){
   border-color: gray;
   background-color: gray;
   color: white;
+  cursor: not-allowed;
 }
 
 button:hover:not([disabled]) {

@@ -34,8 +34,9 @@ If you had an incident or a near-miss on your trip,
 </button></div>
 <p>
 If you had an incident or a near-miss on your trip,
-<a href="https://docs.google.com/forms/u/1/d/e/1FAIpQLSeo9jIcTGNstZ1uADtovDjJT8kkPtS-YpRwzJC2MZkVkbH0hw/viewform">
-  click here to file an incident report.</a>
+<a href="https://docs.google.com/forms/u/1/d/e/1FAIpQLSeo9jIcTGNstZ1uADtovDjJT8kkPtS-YpRwzJC2MZkVkbH0hw/viewform"
+   target=_blank
+   >click here to file an incident report</a> (opens in a new tab).
 {% endif %}
 
 </section>

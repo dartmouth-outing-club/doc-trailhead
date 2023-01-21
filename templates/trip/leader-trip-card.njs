@@ -11,14 +11,13 @@
 <p>It is very important to alert the Outdoor Programs Office that your trip is leaving and returning
 on time. 48 hours before trip-start you can begin checking out your trip.
 <div class=button-row>
-  <a href="/trip/{{trip_id}}/check-out"
-     class="action approve"
-     {% if not check_out_enabled %}disabled{% endif %}
+  <a class="action approve"
+     {% if check_out_enabled %}href="/trip/{{trip_id}}/check-out"{% endif %}
      >Check-Out
   </a>
-    <a href="/trip/{{trip_id}}/check-in"
+    <a
      class="action approve"
-     {% if not check_in_enabled %}disabled{% endif %}
+     {% if check_in_enabled %}href="/trip/{{trip_id}}/check-in"{% endif %}
      >Check-In
   </a>
 </div>
@@ -31,8 +30,8 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 <h2>Details</h2>
 <div class=dual-table-container>
 <table class=detail-table>
-  <tr><th>Start<td>{{ start_time }}
-  <tr><th>End<td>{{ end_time }}
+  <tr><th>Start<td>{{ start_time_element }}
+  <tr><th>End<td>{{ end_time_element }}
   <tr><th>Pickup<td>{{ pickup }}
   <tr><th>Dropoff<td>{{ dropoff }}
   <tr><th>Destination<td>{{ location }}

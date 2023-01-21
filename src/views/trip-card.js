@@ -2,6 +2,8 @@ import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 import { getVehicleRequestData } from './vehicle-request.js'
 
+const _48_HOURS_IN_MS = 172800000
+
 function getLeaderData (tripId, userId) {
   const user = sqlite.get('SELECT is_opo FROM users WHERE id = ?', userId)
   const trip = sqlite.get(`
@@ -14,6 +16,8 @@ function getLeaderData (tripId, userId) {
       end_time,
       pickup,
       description,
+      left,
+      returned,
       dropoff,
       location,
       users.name as owner_name,
@@ -89,9 +93,9 @@ function getLeaderData (tripId, userId) {
 
   trip.is_on_trip = sqlite.isSignedUpForTrip(tripId, userId)
   trip.start_datetime = utils.getDatetimeValueForUnixTime(trip.start_time)
-  trip.start_time = utils.getLongTimeElement(trip.start_time)
+  trip.start_time_element = utils.getLongTimeElement(trip.start_time)
   trip.end_datetime = utils.getDatetimeValueForUnixTime(trip.end_time)
-  trip.end_time = utils.getLongTimeElement(trip.end_time)
+  trip.end_time_element = utils.getLongTimeElement(trip.end_time)
   trip.trip_status = utils.getBadgeImgElement('approved') // TODO dynamically create
   trip.leader_names = leaderNames
   trip.attending = membersWithGear.filter(member => member.pending === 0)
@@ -114,6 +118,13 @@ function getLeaderData (tripId, userId) {
     trip.requested_vehicles = vehicleRequestData.requested_vehicles
     trip.vehiclerequest_badge = vehicleRequestData.vehiclerequest_badge
   }
+
+  // Enable status buttons if we're close enough to trip-start
+  const now = (new Date()).getTime()
+  if (trip.start_time + _48_HOURS_IN_MS > now) trip.check_out_enabled = true
+  // Enable check-in if the trip has left; *disable* *check-out* if the trip has returned
+  if (trip.left === 1) trip.check_in_enabled = true
+  if (trip.returned === 1) trip.check_out_enabled = false
 
   // Show approval buttons if user is an OPO staffer and there is something to approve
   trip.can_delete = user.is_opo || trip.owner === userId

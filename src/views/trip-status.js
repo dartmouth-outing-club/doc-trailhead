@@ -7,6 +7,7 @@ export function renderAttendanceTable (res, tripId) {
 
 export function getCheckOutView (req, res) {
   const data = getAttendanceData(req.params.tripId)
+  console.log(data)
   res.render('views/trip-check-out.njs', data)
 }
 
@@ -21,10 +22,15 @@ export function getCheckInView (req, res) {
     FROM trips
     WHERE id = ?
   `, tripId)
-  res.render('views/trip-check-in.njs', { ...trip })
+  res.render('views/trip-check-in.njs', trip)
 }
 
 function getAttendanceData (tripId) {
+  const trip = sqlite.get(`
+    SELECT id AS trip_id, title, left AS checked_out, start_time
+    FROM trips
+    WHERE id = ?
+  `, tripId)
   const members = sqlite.all(`
     SELECT trips.title, users.id, users.name, attended, trips.left
     FROM trip_members
@@ -34,7 +40,5 @@ function getAttendanceData (tripId) {
     ORDER BY users.name
   `, tripId)
 
-  const title = members[0]?.title
-  const checked_out = members[0]?.left || false
-  return { trip_id: tripId, title, checked_out, members }
+  return { ...trip, members }
 }
