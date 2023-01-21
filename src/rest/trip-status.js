@@ -10,8 +10,29 @@ export function checkOut (req, res) {
 
 export function deleteCheckOut (req, res) {
   const tripId = req.params.tripId
+
+  const trip = sqlite.get('SELECT returned FROM trips WHERE id = ?', tripId)
+  if (trip.returned) {
+    console.warn(`User ${req.user} attempted to delete checkout from trip that has returend`)
+    return res.sendStatus(400)
+  }
+
   sqlite.run('UPDATE trips SET left = FALSE WHERE id = ?', tripId)
   res.set('HX-Redirect', `/trip/${tripId}/check-out`)
+  res.sendStatus(200)
+}
+
+export function checkIn (req, res) {
+  const tripId = req.params.tripId
+  sqlite.run('UPDATE trips SET returned = TRUE WHERE id = ?', tripId)
+  res.set('HX-Redirect', `/trip/${tripId}/check-in`)
+  res.sendStatus(200)
+}
+
+export function deleteCheckIn (req, res) {
+  const tripId = req.params.tripId
+  sqlite.run('UPDATE trips SET returned = FALSE WHERE id = ?', tripId)
+  res.set('HX-Redirect', `/trip/${tripId}/check-in`)
   res.sendStatus(200)
 }
 

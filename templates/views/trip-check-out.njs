@@ -10,9 +10,11 @@
 
 <main>
 <section class=info-card>
-<h1>Trip Check-Out</h1>
+  <h1>Trip Check-Out ({{ title }})</h1>
+<p><a href="/trip/{{trip_id}}">Return to the trip overview page</a>
 {% if checked_out %}
 <p>Your trip is all checked out and you are good to go!
+
 
 <p>If you checked out by mistake or your need to make changes to your attendance list, you can undo
 your check-out.
@@ -22,8 +24,7 @@ your check-out.
         >Undo Check-Out
 </button></div>
 {% else %}
-<p>
-Check-out your trippees before leaving. You MUST accurately mark which trippees are present on
+<p>Check-out your trippees before leaving. You MUST accurately mark which trippees are present on
 the day of the trip.
 
 {% include "trip/attendance-table.njs" %}
