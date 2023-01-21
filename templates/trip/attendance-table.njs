@@ -22,5 +22,4 @@
 {%endfor %}
 </tbody>
 </table>
-</section>
 

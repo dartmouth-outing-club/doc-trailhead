@@ -1,6 +1,20 @@
 import * as sqlite from '../services/sqlite.js'
 import * as tripStatusView from '../views/trip-status.js'
 
+export function checkOut (req, res) {
+  const tripId = req.params.tripId
+  sqlite.run('UPDATE trips SET left = TRUE WHERE id = ?', tripId)
+  res.set('HX-Redirect', `/trip/${tripId}/check-out`)
+  res.sendStatus(200)
+}
+
+export function deleteCheckOut (req, res) {
+  const tripId = req.params.tripId
+  sqlite.run('UPDATE trips SET left = FALSE WHERE id = ?', tripId)
+  res.set('HX-Redirect', `/trip/${tripId}/check-out`)
+  res.sendStatus(200)
+}
+
 export function markUserPresent (req, res) {
   const { tripId, memberId } = req.params
   const info = sqlite.run(`

@@ -62,6 +62,8 @@ router.delete('/trip/:tripId/group-gear/:gearId', requireTripLeader, tripRequest
 router.put('/trip/:tripId/pcard-request', requireTripLeader, tripRequests.putPcardRequest)
 router.delete('/trip/:tripId/pcard-request', requireTripLeader, tripRequests.deletePcardRequest)
 
+router.put('/trip/:tripId/check-out', requireTripLeader, tripStatus.checkOut)
+router.delete('/trip/:tripId/check-out', requireTripLeader, tripStatus.deleteCheckOut)
 router.put('/trip/:tripId/present/:memberId', requireTripLeader, tripStatus.markUserPresent)
 router.delete('/trip/:tripId/present/:memberId', requireTripLeader, tripStatus.markUserAbsent)
 

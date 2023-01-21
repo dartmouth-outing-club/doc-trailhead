@@ -16,10 +16,13 @@ export function getCheckInView (req, res) {
 
 function getAttendanceData (tripId) {
   const members = sqlite.all(`
-    SELECT users.id, users.name, attended
+    SELECT users.id, users.name, attended, trips.left
     FROM trip_members
     LEFT JOIN users ON users.id = trip_members.user
+    LEFT JOIN trips ON trips.id = trip_members.trip
     WHERE trip = ? AND pending = 0
+    ORDER BY users.name
   `, tripId)
-  return { trip_id: tripId, members }
+  const checked_out = members[0]?.left || false
+  return { trip_id: tripId, checked_out, members }
 }
