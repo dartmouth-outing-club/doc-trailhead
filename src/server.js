@@ -21,13 +21,15 @@ app.use(cors())
 
 // enable/disable http request logging
 app.use(morgan('dev'))
+
+// serve static files - move this to nginx eventually
 app.use(express.static('static'))
 app.use(express.static('node_modules/htmx.org/dist'))
 app.use(express.static('node_modules/fullcalendar'))
 app.use(bodyParser.urlencoded({ extended: true }))
 
 nunjucks.configure('templates', {
-  autoescape: false, // The SQLITE rest methods already escape results
+  autoescape: false, // The SQLite rest methods already escape results
   express: app
 })
 
