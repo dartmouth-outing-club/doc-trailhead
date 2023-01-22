@@ -1,4 +1,4 @@
-import {sendLateTripBackAnnouncement} from '../services/mailer.js'
+import * as mailer from '../services/mailer.js'
 import * as sqlite from '../services/sqlite.js'
 import * as tripStatusView from '../views/trip-status.js'
 
@@ -28,7 +28,7 @@ export function checkIn (req, res) {
   sqlite.run('UPDATE trips SET returned = TRUE WHERE id = ?', tripId)
 
   const trip = sqlite.get('SELECT marked_late FROM trips WHERE id = ?', tripId)
-  if (trip.marked_late) sendLateTripBackAnnouncement(tripId, true)
+  if (trip.marked_late) mailer.sendLateTripBackAnnouncement(tripId, true)
 
   res.set('HX-Redirect', `/trip/${tripId}/check-in`)
   res.sendStatus(200)
@@ -39,7 +39,7 @@ export function deleteCheckIn (req, res) {
   sqlite.run('UPDATE trips SET returned = FALSE WHERE id = ?', tripId)
 
   const trip = sqlite.get('SELECT marked_late FROM trips WHERE id = ?', tripId)
-  if (trip.marked_late) sendLateTripBackAnnouncement(tripId, false)
+  if (trip.marked_late) mailer.sendLateTripBackAnnouncement(tripId, false)
 
   res.set('HX-Redirect', `/trip/${tripId}/check-in`)
   res.sendStatus(200)

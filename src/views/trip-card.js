@@ -96,7 +96,6 @@ function getLeaderData (tripId, userId) {
   trip.start_time_element = utils.getLongTimeElement(trip.start_time)
   trip.end_datetime = utils.getDatetimeValueForUnixTime(trip.end_time)
   trip.end_time_element = utils.getLongTimeElement(trip.end_time)
-  trip.trip_status = utils.getBadgeImgElement('approved') // TODO dynamically create
   trip.leader_names = leaderNames
   trip.attending = membersWithGear.filter(member => member.pending === 0)
   trip.pending = membersWithGear.filter(member => member.pending === 1)
@@ -116,6 +115,7 @@ function getLeaderData (tripId, userId) {
     const vehicleRequestData = getVehicleRequestData(trip.vehiclerequest_id)
     trip.available_vehicles = vehicleRequestData.available_vehicles
     trip.requested_vehicles = vehicleRequestData.requested_vehicles
+    trip.vehiclerequest_is_approved = vehicleRequestData.vehiclerequest_is_approved
     trip.vehiclerequest_badge = vehicleRequestData.vehiclerequest_badge
   }
 
@@ -138,6 +138,15 @@ function getLeaderData (tripId, userId) {
       ? utils.getBadgeImgElement('pending')
       : utils.getBadgeImgElement(trip.pcard_request.is_approved)
   }
+
+  // True if all the status are approved or N/A, false otherwise
+  const tripFinalStatus =
+    (memberRequestedGear.length === 0 || trip.member_gear_approved === 1) &&
+    (groupGearRequests || trip.group_gear_approved === 1) &&
+    (!trip.pcard_request || trip.pcard_request.is_approved === 1) &&
+    (!trip.vehiclerequest_id || trip.vehiclerequest_is_approved === 1)
+  const badgeName = tripFinalStatus ? 'approved' : 'pending'
+  trip.trip_status = utils.getBadgeImgElement(badgeName)
 
   return trip
 }
@@ -186,7 +195,6 @@ function getSignupData (tripId, userId) {
   trip.is_on_trip = sqlite.isSignedUpForTrip(tripId, userId)
   trip.start_time = utils.getLongTimeElement(trip.start_time)
   trip.end_time = utils.getLongTimeElement(trip.end_time)
-  trip.trip_status = utils.getBadgeImgElement('approved') // TODO dynamically create
   trip.leader_names = leaderNames
   trip.required_gear = requiredGear
 
