@@ -291,11 +291,12 @@ export async function sendCoLeaderRemovalNotice (tripId, userId) {
   return send(email, 'Co-leader removal')
 }
 
-export async function sendLateTripBackAnnouncement (trip, status, time) {
+export async function sendLateTripBackAnnouncement (tripId, isBack) {
+  const trip = sqlite.get('SELECT id, title FROM trips WHERE id = ?', tripId)
   const email = {
     address: constants.OPOEmails,
-    subject: `Trip #${trip.id} ${!status ? 'un-' : ''}returned`,
-    message: `Hello,\n\nTrip #${trip.id}: ${trip.title}, has was marked as LATE, has now been marked as ${!status ? 'NOT' : ''} returned by the leader at ${constants.formatDateAndTime(time)}. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip.id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    subject: `Trip #${trip.id} ${!isBack ? 'un-' : ''}returned`,
+    message: `Hello,\n\nTrip #${trip.id}: ${trip.title}, was was marked as LATE, has now been marked as ${!isBack ? 'NOT' : ''} returned by the leader. Trip details can be found at:\n\n${constants.frontendURL}/trip/${trip.id}\n\nWe hope you enjoyed the outdoors!\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Late trip returned')
