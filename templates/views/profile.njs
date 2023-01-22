@@ -3,7 +3,6 @@
 <title>Home - DOC Trailhead</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="/css/common.css">
-<link rel="stylesheet" href="/css/all-trips.css">
 <script src="/htmx.js"></script>
 
 {% include "common/site-nav.njs" %}

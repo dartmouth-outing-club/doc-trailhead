@@ -1,30 +1,5 @@
 import * as sqlite from '../services/sqlite.js'
 
-function get (req, res, isEditable) {
-  const user = sqlite.get('SELECT * FROM users WHERE id = ?', req.user)
-  const certs = sqlite
-    .all('SELECT cert, is_approved FROM user_certs WHERE user = ?', req.user)
-    .map(item => `${item.cert}${item.is_approved === 0 ? ' (pending)' : ''}`)
-    .join(', ')
-
-  if (user.shoe_size) {
-    const split = user.shoe_size.split('-')
-    user.shoe_size_sex = split[0]
-    user.shoe_size_num = split[1]
-  }
-  user.driver_certifications = certs.length > 0 ? certs : 'none'
-  user.leader_for = sqlite.get(`
-    SELECT group_concat(
-      iif(is_approved = 1, name, name || ' (pending)'),
-      ', '
-    ) as clubs
-    FROM club_leaders
-    LEFT JOIN clubs ON club_leaders.club = clubs.id
-    WHERE user = ?
-  `, req.user)?.clubs || 'none'
-  return res.render(`profile/profile-card${isEditable ? '-editable' : ''}.njs`, user)
-}
-
 export function getProfileView (req, res) {
   return get(req, res, false)
 }
@@ -34,10 +9,11 @@ export function getProfileEditable (req, res) {
 }
 
 export function post (req, res) {
-  const formData = req.body
+  const formData = { ...req.body }
   formData.user_id = req.user
-  const { shoe_size_sex, shoe_size_num } = formData
-  if (shoe_size_sex && shoe_size_num) formData.shoe_size = `${shoe_size_sex}-${shoe_size_num}`
+  const { shoe_size_sex, shoe_size_num, feet, inches } = formData
+  formData.shoe_size = shoe_size_sex && shoe_size_num ? `${shoe_size_sex}-${shoe_size_num}` : null
+  formData.height = feet && inches ? `${feet}'${inches}"` : null
 
   sqlite.run(`
     UPDATE users
@@ -160,4 +136,39 @@ export function deleteClubLeadershipRequest (req, res) {
 
   if (changes < 1) return res.sendStatus(400)
   return res.send('').status(200)
+}
+
+function get (req, res, isEditable) {
+  const user = sqlite.get('SELECT * FROM users WHERE id = ?', req.user)
+  const certs = sqlite
+    .all('SELECT cert, is_approved FROM user_certs WHERE user = ?', req.user)
+    .map(item => `${item.cert}${item.is_approved === 0 ? ' (pending)' : ''}`)
+    .join(', ')
+
+  if (user.shoe_size) {
+    const split = user.shoe_size.split('-')
+    user.shoe_size_sex = split[0]
+    user.shoe_size_num = split[1]
+  }
+
+  // Nasty little hack to the height of out of escaped text form
+  // Will save this as an integer instead, soon
+  if (user.height) {
+    const arr = user.height.split('&')
+    user.feet = arr[0]
+    user.inches = arr[1].split(';')[1]
+  }
+
+  user.driver_certifications = certs.length > 0 ? certs : 'none'
+  user.leader_for = sqlite.get(`
+    SELECT group_concat(
+      iif(is_approved = 1, name, name || ' (pending)'),
+      ', '
+    ) as clubs
+    FROM club_leaders
+    LEFT JOIN clubs ON club_leaders.club = clubs.id
+    WHERE user = ?
+  `, req.user)?.clubs || 'none'
+
+  return res.render(`profile/profile-card${isEditable ? '-editable' : ''}.njs`, user)
 }

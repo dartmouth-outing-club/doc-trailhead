@@ -297,7 +297,9 @@ a.top-link:visited {
 }
 
 .profile-card input[type=number] {
-  width: 20%;
+  width: 15%;
+  padding: .5em 1em;
+  margin-right: 5px;
 }
 
 .driver-cert-request .checkbox-row {

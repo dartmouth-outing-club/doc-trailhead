@@ -36,7 +36,9 @@
         <option{% if shoe_size_sex == 'Women' %} selected{% endif %}>Women
       </select>
       <input type=number name="shoe_size_num" value="{{ shoe_size_num }}">
-  <dt>Height<dd><input type=text name="height" value="{{ height }}">
+  <dt>Height<dd>
+      <input type=number name="feet" value="{{ feet }}">ft.
+      <input type=number name="inches" value="{{ inches }}">in.
   <dt>Allergies/Dietary Restrictions<dd><input type=text name="allergies_dietary_restrictions" value="{{ allergies_dietary_restrictions }}">
   <dt>Medical Conditions<dd><input type=text name="medical_conditions" value="{{ medical_conditions }}">
 </dl>
