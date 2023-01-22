@@ -184,13 +184,19 @@ export function getTripLeaderIds (tripId) {
     .map(user => user.user)
 }
 
+export function getTripOwnerEmail (tripId) {
+  return get(
+    'SELECT email FROM trips LEFT JOIN users ON trips.owner = users.id WHERE trips.id = ?',
+    tripId).email
+}
+
 export function getTripLeaderEmails (tripId) {
-  return db.prepare(`
-  SELECT email
-  FROM users
-  LEFT JOIN trip_members ON user = users.id
-  WHERE leader = true AND trip = ?
-  `).all(tripId)
+  return all(`
+    SELECT email
+    FROM users
+    LEFT JOIN trip_members ON user = users.id
+    WHERE leader = true AND trip = ?
+  `, tripId)
     .map(user => user.email)
 }
 

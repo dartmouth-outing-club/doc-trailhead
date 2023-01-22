@@ -48,6 +48,7 @@ router.delete('/trip/:tripId', requireTripLeader, trip.deleteTrip)
 
 router.post('/trip/:tripId/signup', requireTripLeader, tripMembers.signup)
 router.delete('/trip/:tripId/signup', requireTripLeader, tripMembers.leave)
+
 router.put('/trip/:tripId/leader/:userId', requireTripLeader, tripMembers.makeLeader)
 router.delete('/trip/:tripId/leader/:userId', requireTripLeader, tripMembers.demote)
 router.put('/trip/:tripId/waitlist/:userId', requireTripLeader, tripMembers.sendToWaitlist)

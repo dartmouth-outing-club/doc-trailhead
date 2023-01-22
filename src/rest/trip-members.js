@@ -1,4 +1,5 @@
 import * as sqlite from '../services/sqlite.js'
+import * as mailer from '../services/mailer.js'
 import * as tripCard from '../views/trip-card.js'
 
 // TODO refactor this with universal validation but individual handlers
@@ -36,14 +37,25 @@ export function signup (req, res) {
   const tripId = req.params.tripId
   if (!tripId) return res.sendStatus(400)
 
-  sqlite.run(`
-    INSERT OR REPLACE INTO trip_members (trip, user, leader, pending)
-      VALUES (?, ?, false, false)`, tripId, req.user)
+  // Add the trip member if they weren't there before
+  const info = sqlite.run(`
+    INSERT OR IGNORE INTO trip_members (trip, user, leader, pending)
+      VALUES (?, ?, false, true)`, tripId, req.user)
 
+  // Reset the gear data and then add it again
+  sqlite.run('DELETE FROM member_gear_requests WHERE trip = ? AND user = ?', tripId, req.user)
   for (const property in req.body) {
     const gearId = parseInt(req.body[property])
     sqlite.run('INSERT INTO member_gear_requests (trip, user, gear) VALUES (?, ?, ?)',
       tripId, req.user, gearId)
+  }
+
+  // If the trip member was inserted, that means they just applied,
+  // otherwise it means they changed their gear request
+  if (info.changes === 1) {
+    mailer.sendTripApplicationConfirmation(tripId, req.user)
+  } else {
+    mailer.sendGearRequestChangedEmail(tripId)
   }
 
   return tripCard.renderSignupCard(res, tripId, req.user)
@@ -56,5 +68,7 @@ export function leave (req, res) {
   const { changes } = sqlite.run('DELETE FROM trip_members WHERE trip = ? and user = ?',
     tripId, req.user)
   if (changes === 0) console.warn(`Unnecessary delete requested for trip ${tripId}`)
+
+  mailer.sendUserLeftEmail(tripId, req.user)
   return tripCard.renderSignupCard(res, tripId, req.user)
 }

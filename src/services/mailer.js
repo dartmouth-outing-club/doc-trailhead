@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 
 import { tokenForUser } from '../services/authentication.js'
 import * as constants from '../constants.js'
-import * as db from '../services/sqlite.js'
+import * as sqlite from '../services/sqlite.js'
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -38,8 +38,8 @@ export function createRecurringEmailSender (name, tripsFunc, emailFunc, markFunc
     // Otherwise we'll create too many simultaneous connections
     for (const trip of tripsInWindow) {
       try {
-        const leaderIds = db.getTripLeaderIds(trip.id)
-        const leaderEmails = db.getTripLeaderEmails(trip.id)
+        const leaderIds = sqlite.getTripLeaderIds(trip.id)
+        const leaderEmails = sqlite.getTripLeaderEmails(trip.id)
         console.log(`[Mailer] Sending ${name} email to: ` + leaderEmails.join(', '))
         const token = tokenForUser(leaderIds[0], 'mobile', trip.id)
         await emailFunc(trip, leaderEmails, token)
@@ -132,7 +132,8 @@ export async function sendTripDeletedEmail (id, title, ownerEmail, memberEmails)
   return send(email, 'Trip deleted')
 }
 
-export async function sendTripVehicleRequestProcessedEmail (tripId, leaderEmails) {
+export async function sendTripVehicleRequestProcessedEmail (tripId) {
+  const leaderEmails = sqlite.getTripLeaderEmails(tripId)
   const email = {
     address: leaderEmails,
     subject: `Trip ${tripId}: Important changes to your vehicle request`,
@@ -151,9 +152,10 @@ export async function sendVehicleRequestProcessedEmail (vehicleRequestId, emails
   send(email, 'Vehicle Request Processed')
 }
 
-export async function sendVehicleRequestDeniedEmail (vehicleRequestId, emails) {
+export async function sendVehicleRequestDeniedEmail (vehicleRequestId) {
+  const recipients = sqlite.getEmailForVehicleRequest(vehicleRequestId)
   const email = {
-    address: emails,
+    address: recipients,
     subject: 'Your vehicle requests got denied',
     message: `Hello,\n\nYour [V-Req #${vehicleRequestId}] has been denied by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequestId}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
@@ -174,31 +176,39 @@ export async function sendVehicleRequestChangedEmail (vehicleRequest) {
   return send(email, 'Vehicle request changed')
 }
 
-export async function sendVehicleRequestDeletedEmail (vehicleRequest, leaderEmail, reason) {
-  const email = {
-    address: [leaderEmail],
-    subject: `V-Req #${vehicleRequest.id} deleted`,
-    message: `Hello,\n\nYour [V-Req #${vehicleRequest.id}] has been deleted.\n\nReason: ${reason}\n\nBest, DOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
-  }
+export async function sendGearRequestChangedEmail (tripId) {
+  const info = sqlite.get(`
+    SELECT title, users.name, users.email
+    FROM trip_members
+    LEFT JOIN users ON users.id = trip_members.user
+    LEFT JOIN trips ON trips.id = trip_members.trip
+    WHERE trip = ?
+  `, tripId)
 
-  return send(email, 'Vehicle request deleted')
-}
-
-export async function sendGearRequestChangedEmail (trip, leaderEmails, user) {
+  const leaderEmails = sqlite.getTripLeaderEmails(tripId)
   const email = {
     address: leaderEmails,
-    subject: `Trip #${trip.id}: ${user.name} changed gear requests`,
-    message: `Hello,\n\nTrippee ${user.name} for [Trip #${trip.id}: ${trip.title}] changed their gear requests. You can reach them at ${user.email}.\n\nView the change here: ${constants.frontendURL}/trip/${trip.id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    subject: `Trip #${tripId}: ${info.name} changed gear requests`,
+    message: `Hello,\n\nTrippee ${info.name} for [Trip #${tripId}: ${info.title}] changed their gear requests. You can reach them at ${info.email}.\n\nView the change here: ${constants.frontendURL}/trip/${tripId}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Gear request changed')
 }
 
-export async function sendTripApplicationConfirmation (trip, joiningUser, tripOwnerEmail) {
+export async function sendTripApplicationConfirmation (tripId, userId) {
+  const info = sqlite.get(`
+    SELECT title, users.name, users.email, owner_table.email as owner_email
+    FROM trip_members
+    LEFT JOIN users ON users.id = trip_members.user
+    LEFT JOIN trips ON trips.id = trip_members.trip
+    LEFT JOIN users AS owner_table ON trips.owner = users.id
+    WHERE trip = ? AND user = ?
+  `, tripId, userId)
+
   const email = {
-    address: joiningUser.email,
+    address: info.email,
     subject: 'Confirmation: You\'ve applied to go on a trip',
-    message: `Hello ${joiningUser.name},\n\nYou've applied to go on [Trip #${trip.id}: ${trip.title}]. However, this does not mean you have been approved for the trip. If you chose to no longer go on the trip, you can still remove yourself from the waitlist. Only once you receive an email about getting approved for this trip can you attend. \n\nView the trip here: ${constants.frontendURL}/trip/${trip.id}\n\nYou can reach the trip leader at ${tripOwnerEmail}.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello ${info.name},\n\nYou've applied to go on [Trip #${tripId}: ${info.title}]. However, this does not mean you have been approved for the trip. If you chose to no longer go on the trip, you can still remove yourself from the waitlist. Only once you receive an email about getting approved for this trip can you attend. \n\nView the trip here: ${constants.frontendURL}/trip/${tripId}\n\nYou can reach the trip leader at ${info.owner_email}.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Trip application confirmation')
@@ -234,11 +244,14 @@ export async function sendTripTooFullEmail (trip, user, tripOwnerEmail) {
   return send(email, 'Trip too full')
 }
 
-export async function sendUserLeftEmail (trip, leaderEmails, user) {
+export async function sendUserLeftEmail (tripId, userId) {
+  const trip = sqlite.get('SELECT id, title FROM trips WHERE id = ?', tripId)
+  const user = sqlite.get('SELECT name, email FROM users WHERE id = ?', userId)
+  const leaderEmails = sqlite.getTripLeaderEmails(tripId)
   const email = {
     address: leaderEmails,
-    subject: `Trip #${trip.id}: ${user.name} left your trip`,
-    message: `Hello,\n\nYour approved trippee ${user.name} for [Trip #${trip.id}: ${trip.title}] cancelled for this trip 🙁. You can reach them at ${user.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip.id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    subject: `Trip #${tripId}: ${user.name} left your trip`,
+    message: `Hello,\n\nYour approved trippee ${user.name} for [Trip #${tripId}: ${trip.title}] cancelled for this trip 🙁. You can reach them at ${user.email}.\n\nView the trip here: ${constants.frontendURL}/trip/${trip.id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'User left')

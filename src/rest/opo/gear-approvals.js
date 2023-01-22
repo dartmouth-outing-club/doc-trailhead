@@ -40,8 +40,7 @@ export function approveVehicleRequest (req, res) {
       @response_index)
   `, assignments)
   sqlite.run('UPDATE vehiclerequests SET is_approved = true WHERE id = ?', vehiclerequest.id)
-  const leaderEmails = sqlite.getTripLeaderEmails(vehiclerequest.trip)
-  mailer.sendTripVehicleRequestProcessedEmail(vehiclerequest.trip, leaderEmails)
+  mailer.sendTripVehicleRequestProcessedEmail(vehiclerequest.trip)
   vehicleRequestView.renderVehicleRequestTable(res, vehiclerequest.id)
 }
 
@@ -51,8 +50,7 @@ export function denyVehicleRequest (req, res) {
   sqlite.run('UPDATE vehiclerequests SET is_approved = false WHERE id = ?', req.params.requestId)
   sqlite.run('DELETE FROM assignments WHERE vehiclerequest = ?', req.params.requestId)
 
-  const email = sqlite.getEmailForVehicleRequest(vehicleRequestId)
-  mailer.sendVehicleRequestDeniedEmail(vehicleRequestId, email)
+  mailer.sendVehicleRequestDeniedEmail(vehicleRequestId)
   vehicleRequestView.renderVehicleRequestTable(res, vehicleRequestId)
 }
 
