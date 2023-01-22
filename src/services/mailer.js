@@ -151,11 +151,11 @@ export async function sendVehicleRequestProcessedEmail (vehicleRequestId, emails
   send(email, 'Vehicle Request Processed')
 }
 
-export async function sendVehicleRequestDeniedEmail (vehicleRequest, emails) {
+export async function sendVehicleRequestDeniedEmail (vehicleRequestId, emails) {
   const email = {
     address: emails,
     subject: 'Your vehicle requests got denied',
-    message: `Hello,\n\nYour [V-Req #${vehicleRequest.id}] has been denied by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest.id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello,\n\nYour [V-Req #${vehicleRequestId}] has been denied by OPO staff.\n\nView the v-request here: ${constants.frontendURL}/vehicle-request/${vehicleRequestId}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   send(email, 'Vehicle Request Denied Email')
@@ -182,16 +182,6 @@ export async function sendVehicleRequestDeletedEmail (vehicleRequest, leaderEmai
   }
 
   return send(email, 'Vehicle request deleted')
-}
-
-export async function sendVehicleRequestCancelledEmail (vehicleRequest, recipients, cancellerEmail) {
-  const email = {
-    address: recipients,
-    subject: 'Your vehicle requests got cancelled',
-    message: `Hello,\n\nYour [V-Req #${vehicleRequest.id}]'s assignments have been cancelled by OPO staff. You can send the staff member who reviewed the request an email at mailto:${cancellerEmail}.\n\nView the vehicle request here: ${constants.frontendURL}/vehicle-request/${vehicleRequest.id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
-  }
-
-  send(email, 'Vehicle request cancelled')
 }
 
 export async function sendGearRequestChangedEmail (trip, leaderEmails, user) {

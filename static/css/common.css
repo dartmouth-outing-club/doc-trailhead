@@ -87,7 +87,9 @@ button.demote, a.demote {
   border: 2px solid #ee6e52;
 }
 
-button[disabled], a:not([href]){
+button.action[disabled],
+button.action[disabled]:hover,
+a:not([href]) {
   border-color: gray;
   background-color: gray;
   color: white;
@@ -107,7 +109,8 @@ button.demote:hover {
 }
 
 /** Must come after the other button hovers so that it takes precendence */
-button.disabled:hover {
+{
+  background-color: gray;
   filter: none;
 }
 

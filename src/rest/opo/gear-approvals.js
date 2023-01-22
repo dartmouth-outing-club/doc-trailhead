@@ -46,10 +46,14 @@ export function approveVehicleRequest (req, res) {
 }
 
 export function denyVehicleRequest (req, res) {
-  if (!req.params.requestId) return res.sendStatus(400)
+  const vehicleRequestId = req.params.requestId
+  if (!vehicleRequestId) return res.sendStatus(400)
   sqlite.run('UPDATE vehiclerequests SET is_approved = false WHERE id = ?', req.params.requestId)
   sqlite.run('DELETE FROM assignments WHERE vehiclerequest = ?', req.params.requestId)
-  vehicleRequestView.renderVehicleRequestTable(res, req.params.requestId)
+
+  const email = sqlite.getEmailForVehicleRequest(vehicleRequestId)
+  mailer.sendVehicleRequestDeniedEmail(vehicleRequestId, email)
+  vehicleRequestView.renderVehicleRequestTable(res, vehicleRequestId)
 }
 
 export function resetVehicleRequest (req, res) {

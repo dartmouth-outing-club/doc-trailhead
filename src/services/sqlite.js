@@ -213,3 +213,14 @@ export function getTripEmailInfo (tripId) {
 
   return trip
 }
+
+export function getEmailForVehicleRequest (vehicleRequestId) {
+  const email = get(`
+    SELECT email
+    FROM vehiclerequests
+    LEFT JOIN users ON users.id = vehiclerequests.requester
+    WHERE vehiclerequests.id = ?
+  `, vehicleRequestId)?.email
+
+  return email
+}
