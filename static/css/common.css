@@ -81,6 +81,12 @@ button.edit, a.edit {
   border: 2px solid #0ca074;
 }
 
+button.demote, a.demote {
+  color: #ee6e52;
+  background-color: white;
+  border: 2px solid #ee6e52;
+}
+
 button[disabled], a:not([href]){
   border-color: gray;
   background-color: gray;
@@ -88,8 +94,21 @@ button[disabled], a:not([href]){
   cursor: not-allowed;
 }
 
-button:hover:not([disabled]) {
+button.approve:hover, button.deny:hover {
   filter: brightness(110%);
+}
+
+button.edit:hover {
+  background-color: #e6f5f1;
+}
+
+button.demote:hover {
+  background-color: #fdf0ed;
+}
+
+/** Must come after the other button hovers so that it takes precendence */
+button.disabled:hover {
+  filter: none;
 }
 
 a.top-link {

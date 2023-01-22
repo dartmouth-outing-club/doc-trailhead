@@ -67,7 +67,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   <td>
     <button class="action edit" hx-put="/rest/trip/{{ trip_id }}/waitlist/{{ member.id }}">Un-admit</button>
     {% if member.leader === 1 %}
-    <button class="action edit"
+    <button class="action demote"
             hx-delete="/rest/trip/{{ trip_id }}/leader/{{ member.id }}"
             {% if member.id === owner %}disabled{% endif %}
             >Make trippee
