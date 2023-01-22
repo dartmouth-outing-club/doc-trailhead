@@ -214,31 +214,40 @@ export async function sendTripApplicationConfirmation (tripId, userId) {
   return send(email, 'Trip application confirmation')
 }
 
-export async function sendTripApprovalEmail (trip, user, tripOwnerEmail) {
+export async function sendTripApprovalEmail (tripId, userId) {
+  const trip = sqlite.get('SELECT id, title FROM trips WHERE id = ?', tripId)
+  const user = sqlite.get('SELECT name, email FROM users WHERE id = ?', userId)
+  const ownerEmail = sqlite.getTripOwnerEmail(tripId)
   const email = {
     address: user.email,
     subject: `Trip #${trip.id}: You've been approved! 🙌`,
-    message: `Hello ${user.name},\n\nYou've been approved for [Trip #${trip.id}: ${trip.title}]! 🎉\n\nView the trip here: ${constants.frontendURL}/trip/${trip.id}\n\nYou can reach the trip leader at ${tripOwnerEmail}.\n\nStay Crunchy 🏔,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello ${user.name},\n\nYou've been approved for [Trip #${trip.id}: ${trip.title}]! 🎉\n\nView the trip here: ${constants.frontendURL}/trip/${trip.id}\n\nYou can reach the trip leader at ${ownerEmail}.\n\nStay Crunchy 🏔,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Trip approval')
 }
 
-export async function sendTripRemovalEmail (trip, user, tripOwnerEmail) {
+export async function sendTripRemovalEmail (tripId, userId) {
+  const trip = sqlite.get('SELECT id, title FROM trips WHERE id = ?', tripId)
+  const user = sqlite.get('SELECT name, email FROM users WHERE id = ?', userId)
+  const ownerEmail = sqlite.getTripOwnerEmail(tripId)
   const email = {
     address: user.email,
     subject: `Trip #${trip.id}: You've been un-admitted`,
-    message: `Hello ${user.name},\n\nYou've were previously approved for [Trip #${trip.id}: ${trip.title}], but the leader has put you back into pending status, which means you are not approved to attend this trip 🥺.\n\nView the trip here: ${constants.frontendURL}/trip/${trip.id}\n\nYou can reach the trip leader at ${tripOwnerEmail}.\n\nStay Crunchy 🚵‍♀️,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello ${user.name},\n\nYou've were previously approved for [Trip #${trip.id}: ${trip.title}], but the leader has put you back into pending status, which means you are not approved to attend this trip.\n\nView the trip here: ${constants.frontendURL}/trip/${trip.id}\n\nYou can reach the trip leader at ${ownerEmail}.\n\nStay Crunchy 🚵‍♀️,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Trip removal')
 }
 
-export async function sendTripTooFullEmail (trip, user, tripOwnerEmail) {
+export async function sendTripTooFullEmail (tripId, userId) {
+  const trip = sqlite.get('SELECT id, title FROM trips WHERE id = ?', tripId)
+  const user = sqlite.get('SELECT name, email FROM users WHERE id = ?', userId)
+  const ownerEmail = sqlite.getTripOwnerEmail(tripId)
   const email = {
     address: user.email,
     subject: `Trip #${trip.id}: it's too full`,
-    message: `Hello ${user.name},\n\nYou signed up for [Trip #${trip.id}: ${trip.title}], but unfortunately it's too full 😢. The leader wasn't able to admit you. \n\nView the trip here: ${constants.frontendURL}/trip/${trip.id}\n\nYou can reach the trip leader at ${tripOwnerEmail}.\n\nStay Crunchy 🌲,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply 🤖.`
+    message: `Hello ${user.name},\n\nYou signed up for [Trip #${trip.id}: ${trip.title}], but unfortunately it's too full 😢. The leader wasn't able to admit you. \n\nView the trip here: ${constants.frontendURL}/trip/${trip.id}\n\nYou can reach the trip leader at ${ownerEmail}.\n\nStay Crunchy 🌲,\nDOC Trailhead Platform\n\nThis is an auto-generated email, please do not reply 🤖.`
   }
 
   return send(email, 'Trip too full')
@@ -257,21 +266,26 @@ export async function sendUserLeftEmail (tripId, userId) {
   return send(email, 'User left')
 }
 
-export async function sendCoLeaderConfirmation (trip, user) {
+export async function sendCoLeaderConfirmation (tripId, userId) {
+  const trip = sqlite.get('SELECT id, title FROM trips WHERE id = ?', tripId)
+  const user = sqlite.get('SELECT name, email FROM users WHERE id = ?', userId)
+  const ownerEmail = sqlite.getTripOwnerEmail(tripId)
   const email = {
     address: [user.email],
     subject: `Trip #${trip.id}: you're now a co-leader!`,
-    message: `Hello ${user.name},\n\nCongrats - you've been made a co-leader for [Trip #${trip.id}: ${trip.title}] 👏. You can reach the trip leader at ${trip.owner.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${trip.id}\n\nStay Crunchy 🏞,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello ${user.name},\n\nCongrats - you've been made a co-leader for [Trip #${trip.id}: ${trip.title}] 👏. You can reach the trip leader at ${ownerEmail}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${trip.id}\n\nStay Crunchy 🏞,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Co-leader confirmation')
 }
 
-export async function sendCoLeaderRemovalNotice (trip, user) {
+export async function sendCoLeaderRemovalNotice (tripId, userId) {
+  const trip = sqlite.get('SELECT id, title FROM trips WHERE id = ?', tripId)
+  const user = sqlite.get('SELECT name, email FROM users WHERE id = ?', userId)
   const email = {
     address: [user.email],
     subject: `Trip #${trip.id}: co-leader change`,
-    message: `Hello,\n\nYou have been removed as a co-leader for [Trip #${trip.id}: ${trip.title}]. You can reach them at ${user.email}.\n\nYou can view the trip at ${constants.frontendURL}/trip/${trip.id}\n\nStay Crunchy ☀️,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello,\n\nYou have been removed as a co-leader for [Trip #${trip.id}: ${trip.title}].\n\nYou can view the trip at ${constants.frontendURL}/trip/${trip.id}\n\nStay Crunchy ☀️,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Co-leader removal')
