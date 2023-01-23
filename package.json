@@ -8,7 +8,6 @@
     "format": "eslint src --fix",
     "lint": "eslint src",
     "init-db": "cat ./db/db-schema.sql | sqlite3 trailhead.db",
-    "import-db": "./db/mongo-migration/convert-mongo-to-sql.sh",
     "start": "node src/server.js"
   },
   "license": "ISC",
@@ -18,7 +17,6 @@
   "type": "module",
   "dependencies": {
     "aws-sdk": "^2.675.0",
-    "bcryptjs": "^2.4.3",
     "better-sqlite3": "^8.0.0",
     "body-parser": "^1.20.1",
     "cors": "^2.8.5",
@@ -28,7 +26,6 @@
     "express": "^4.18.2",
     "fullcalendar-scheduler": "^6.0.3",
     "htmx.org": "^1.8.5",
-    "jwt-simple": "^0.5.5",
     "morgan": "^1.10.0",
     "node-cron": "^2.0.3",
     "nodemailer": "^6.8.0",
