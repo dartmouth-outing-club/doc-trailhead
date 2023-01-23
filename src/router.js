@@ -1,6 +1,7 @@
 import { Router } from 'express'
 
 import * as index from './rest/index.js'
+import * as assignments from './rest/assignments.js'
 import * as sqlite from './services/sqlite.js'
 import * as tripView from './views/trip.js'
 import * as tripStatusView from './views/trip-status.js'
@@ -67,5 +68,8 @@ router.route('/trip/:tripId/check-in').get(requireAuth, requireTripLeader, tripS
 router.route('/trip/:tripId/requests').get(requireAuth, requireTripLeader, requestsView.getRequestsView)
 router.route('/vehicle-request/:vehicleRequestId').get(requireAuth, vehicleRequestView.getVehicleRequestView)
 router.route('/leader/trip/:tripId').get(requireAuth, requireTripLeader, tripView.getLeaderView)
+
+// Look, JSON APIs! See, I'm not a zealot
+router.get('/json/calendar', requireAuth, requireOpo, assignments.get)
 
 export default router

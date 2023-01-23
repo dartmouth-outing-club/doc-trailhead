@@ -19,7 +19,10 @@
 </main>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  const res = await fetch('/json/calendar')
+  const body = await res.json()
+
   const calendarEl = document.getElementById('calendar')
   const calendar = new FullCalendar.Calendar(calendarEl, {
     headerToolbar: {
@@ -27,8 +30,9 @@ document.addEventListener('DOMContentLoaded', () => {
       center: 'title',
       right: 'resourceTimelineDay,resourceTimelineWeek,resourceTimelineMonth'
     },
+    events: body.events,
     initialView: 'resourceTimelineWeek',
-    resources: []
+    resources: body.resources
   })
   calendar.render()
 })

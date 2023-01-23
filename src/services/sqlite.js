@@ -45,6 +45,11 @@ export function all (query, ...params) {
   return db.prepare(query).all(...params).map(escapeProperties)
 }
 
+// Does not escape propertiers, ergo, do not use for HTML APIs
+export function allUnsafe (query, ...params) {
+  return db.prepare(query).all(...params)
+}
+
 export function run (query, ...params) {
   return db.prepare(query).run(...params)
 }
