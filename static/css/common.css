@@ -89,7 +89,7 @@ button.demote, a.demote {
 
 button.action[disabled],
 button.action[disabled]:hover,
-a:not([href]) {
+a.action:not([href]) {
   border-color: gray;
   background-color: gray;
   color: white;
@@ -188,7 +188,7 @@ a.top-link:visited {
   border-bottom-width: 2px;
 }
 
-.trip-table th, td {
+.trip-table th, .trip-table td {
   min-width: 105px;
   padding: 10px 0px;
 }
