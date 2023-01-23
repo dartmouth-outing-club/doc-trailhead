@@ -23,7 +23,7 @@ app.use(cors())
 app.use(morgan('dev'))
 
 // serve static files - move this to nginx eventually
-app.use(express.static('static'))
+app.use('/static', express.static('static'))
 app.use('/htmx', express.static('node_modules/htmx.org/dist'))
 app.use('/fullcalendar-scheduler', express.static('node_modules/fullcalendar-scheduler'))
 app.use(bodyParser.urlencoded({ extended: true }))

@@ -1,13 +1,13 @@
 @font-face {
   font-family: 'Nunito Sans';
   font-style: normal;
-  src: url('/fonts/NunitoSans-Regular.ttf') format('truetype');
+  src: url('/static/fonts/NunitoSans-Regular.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Nunito Sans Bold';
   font-style: normal;
-  src: url('/fonts/NunitoSans-Bold.ttf') format('truetype');
+  src: url('/static/fonts/NunitoSans-Bold.ttf') format('truetype');
 }
 
 html {
@@ -131,7 +131,7 @@ a.top-link:visited {
 
 .site-nav {
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
-  background-image: url('/images/nav-background.svg');
+  background-image: url('/static/images/nav-background.svg');
   background-size: cover;
   font-size: 1.2em;
 }

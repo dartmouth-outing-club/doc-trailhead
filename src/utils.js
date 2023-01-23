@@ -2,12 +2,12 @@ export function getBadgeImgUrl (name) {
   switch (name) {
     case 'approved':
     case 1:
-      return '/icons/approved-badge.svg'
+      return '/static/icons/approved-badge.svg'
     case 'denied':
     case 0:
-      return '/icons/denied-badge.svg'
+      return '/static/icons/denied-badge.svg'
     case 'pending':
-      return '/icons/pending-badge.svg'
+      return '/static/icons/pending-badge.svg'
     default:
       return undefined
   }
@@ -17,12 +17,12 @@ export function getBadgeImgElement (name) {
   switch (name) {
     case 'approved':
     case 1:
-      return '<img class="badge" alt="Green badge with checkmark icon" src="/icons/approved-badge.svg">'
+      return '<img class="badge" alt="Green badge with checkmark icon" src="/static/icons/approved-badge.svg">'
     case 'denied':
     case 0:
-      return '<img class="badge" alt="Red badge with a cross icon" src="/icons/denied-badge.svg">'
+      return '<img class="badge" alt="Red badge with a cross icon" src="/static/icons/denied-badge.svg">'
     case 'pending':
-      return '<img class="badge" alt="Yellow badge with a clock icon" src="/icons/pending-badge.svg">'
+      return '<img class="badge" alt="Yellow badge with a clock icon" src="/static/icons/pending-badge.svg">'
     default:
       return '<span>-</span>'
   }
@@ -31,29 +31,29 @@ export function getBadgeImgElement (name) {
 export function getClubIcon (clubName) {
   switch (clubName) {
     case 'OPO':
-      return '/icons/opo.jpg'
+      return '/static/icons/opo.jpg'
     case 'Cabin and Trail':
-      return '/icons/cnt.png'
+      return '/static/icons/cnt.png'
     case 'Women in the Wilderness':
-      return '/icons/wiw.png'
+      return '/static/icons/wiw.png'
     case 'Surf Club':
-      return '/icons/surf.png'
+      return '/static/icons/surf.png'
     case 'Mountain Biking':
-      return '/icons/dmbc.png'
+      return '/static/icons/dmbc.png'
     case 'Winter Sports':
-      return '/icons/wsc.png'
+      return '/static/icons/wsc.png'
     case 'Timber Team':
-      return '/icons/woodsmen.png'
+      return '/static/icons/woodsmen.png'
     case 'Mountaineering':
-      return '/icons/mountain.png'
+      return '/static/icons/mountain.png'
     case 'Ledyard':
-      return '/icons/ledyard.png'
+      return '/static/icons/ledyard.png'
     case 'People of Color Outdoors':
-      return '/icons/poco.png'
+      return '/static/icons/poco.png'
     case 'Bait and Bullet':
-      return '/icons/bnb.png'
+      return '/static/icons/bnb.png'
     default:
-      return '/icons/doc.png'
+      return '/static/icons/doc.png'
   }
 }
 

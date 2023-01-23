@@ -3,7 +3,7 @@
   <div class="additional-leader-row">
     <input name=leader list=user-emails type=text>
     <button type=button onclick="this.parentElement.parentElement.remove()">
-      <img alt="Close Icon" src="/icons/close-icon.svg">
+      <img alt="Close Icon" src="/static/icons/close-icon.svg">
     </button>
   </div>
 </label>

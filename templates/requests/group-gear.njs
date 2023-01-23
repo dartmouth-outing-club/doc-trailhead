@@ -4,7 +4,7 @@
       <input type=text name=item required>
       <input type=number name=quantity min=0 value=0 required>
       <button class=close-button type=button onclick="this.parentElement.remove()">
-        <img alt="Close Icon" src="/icons/close-icon.svg">
+        <img alt="Close Icon" src="/static/icons/close-icon.svg">
       </button>
     </div>
   </template>
@@ -20,7 +20,7 @@
                 type=button
                 hx-delete="/rest/trip/{{trip_id}}/group-gear/{{gear.id}}"
                 hx-confirm="Are you sure you want to delete {{gear.name}} from the list of required gear? This will remove it from all trippee gear requests as well." >
-          <img alt="Close Icon" src="/icons/close-icon.svg">
+          <img alt="Close Icon" src="/static/icons/close-icon.svg">
         </button>
       </li>
       {% endfor %}

@@ -3,7 +3,7 @@
   <div class=profile-photo></div>
   <div class=profile-name>
     <h1>{{ name }}</h1>
-    <div class=email-row><img src="/icons/email-icon.svg">{{ email }}</div>
+    <div class=email-row><img src="/static/icons/email-icon.svg">{{ email }}</div>
   </div>
 </section>
 <section>

@@ -101,7 +101,7 @@ export function getClubLeadershipRequest (req, res) {
           hx-confirm="Are you sure you want to remove yourself as a${club.is_approved === 0 ? ' (pending)' : ''} leader of ${club.name}?"
           hx-target="closest li"
           hx-swap="outerHTML"
-  ><img src="/icons/close-icon.svg"></button>
+  ><img src="/static/icons/close-icon.svg"></button>
   `)
   const options = clubsWithoutUser.map(club => `<option value=${club.id}>${club.name}</option>`)
   const form = `

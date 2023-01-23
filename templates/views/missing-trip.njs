@@ -2,7 +2,7 @@
 <html lang=en>
 <title>Trip Not Found - DOC Trailhead</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/css/common.css">
+<link rel="stylesheet" href="/static/css/common.css">
 
 {% include "common/site-nav.njs" %}
 <main>

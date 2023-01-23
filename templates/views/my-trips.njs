@@ -2,15 +2,15 @@
 <html lang=en>
 <title>Home - DOC Trailhead</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/css/common.css">
-<link rel="stylesheet" href="/css/all-trips.css">
+<link rel="stylesheet" href="/static/css/common.css">
+<link rel="stylesheet" href="/static/css/all-trips.css">
 <script src="/htmx/htmx.js"></script>
 
 {% include "common/site-nav.njs" %}
 <main>
 
 <section class="info-card">
-<img src="/icons/mountain-icon.svg">
+<img src="/static/icons/mountain-icon.svg">
 <h1>Your Upcoming Trips</h1>
 </section>
 
@@ -18,7 +18,7 @@
   {% if can_create_trip %}
   <a href="/create-trip" class="trip-card new-trip">
     <h2>Create a Trip</h2>
-    <img src="/icons/createtrip.svg">
+    <img src="/static/icons/createtrip.svg">
   </a>
   {% endif %}
   {% for trip in trips %}
