@@ -39,7 +39,7 @@ router.get('/sign-s3', signS3)
 
 router.get('/', requireAuth, (req, res) => {
   const is_opo = sqlite.get('SELECT is_opo FROM users WHERE id = ?', req.user)?.is_opo
-  const url = is_opo === 1 ? '/opo/trip-approvals' : '/welcome'
+  const url = is_opo === 1 ? '/opo/trip-approvals' : '/all-trips'
   res.redirect(url)
 })
 
