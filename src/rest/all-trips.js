@@ -10,7 +10,6 @@ export function get (_req, res) {
     LEFT JOIN clubs on trips.club = clubs.id
     WHERE start_time > ? AND private = 0
     ORDER BY start_time ASC
-    LIMIT 5
   `, now.getTime())
 
   const cards = publicTrips
