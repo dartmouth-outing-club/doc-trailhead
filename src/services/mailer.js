@@ -38,11 +38,9 @@ export function createRecurringEmailSender (name, tripsFunc, emailFunc, markFunc
     // Otherwise we'll create too many simultaneous connections
     for (const trip of tripsInWindow) {
       try {
-        const leaderIds = sqlite.getTripLeaderIds(trip.id)
         const leaderEmails = sqlite.getTripLeaderEmails(trip.id)
         console.log(`[Mailer] Sending ${name} email to: ` + leaderEmails.join(', '))
-        const token = tokenForUser(leaderIds[0], 'mobile', trip.id)
-        await emailFunc(trip, leaderEmails, token)
+        await emailFunc(trip, leaderEmails)
         markFunc(trip.id)
       } catch (error) {
         console.error(`Failed to send mail for trip ${trip.id}`, error)
@@ -72,31 +70,31 @@ export async function send (email, emailName) {
   console.log(`${emailName} email sent: ${info.response}`)
 }
 
-export async function sendCheckOutEmail (trip, leaderEmails, token) {
+export async function sendCheckOutEmail (trip, leaderEmails) {
   const email = {
     address: leaderEmails,
     subject: `Trip #${trip.id} is happening soon`,
-    message: `Hello,\n\nYour Trip #${trip.id}: ${trip.title} is happening in 48 hours!\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave ${trip.pickup}: ${constants.frontendURL}/trip-check-out/${trip.id}?token=${token}\n\nView the trip here: ${constants.frontendURL}/trip/${trip.id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello,\n\nYour Trip #${trip.id}: ${trip.title} is happening in 48 hours!\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave ${trip.pickup}: ${constants.frontendURL}/trip/${trip.id}/check-out\n\nView the trip here: ${constants.frontendURL}/trip/${trip.id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Check-out')
 }
 
-export async function sendCheckInEmail (trip, leaderEmails, token) {
+export async function sendCheckInEmail (trip, leaderEmails) {
   const email = {
     address: leaderEmails,
     subject: `Trip #${trip.id} should be returning soon`,
-    message: `Hello,\n\nYour Trip #${trip.id}: ${trip.title} should return within 2 hours.\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark a successful return and check-in all trippees when you arrive at ${trip.dropoff}: ${constants.frontendURL}/trip-check-in/${trip.id}?token=${token}\n\nIf an EMERGENCY occured, please get emergency help right away, and follow the link above to mark your status so OPO staff is informed.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello,\n\nYour Trip #${trip.id}: ${trip.title} should return within 2 hours.\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark a successful return and check-in all trippees when you arrive at ${trip.dropoff}: ${constants.frontendURL}/trip/${trip.id}/check-in\n\nIf an EMERGENCY occured, please get emergency help right away, and follow the link above to mark your status so OPO staff is informed.\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'Check-in')
 }
 
-export async function send90MinuteLateEmail (trip, leaderEmails, token) {
+export async function send90MinuteLateEmail (trip, leaderEmails) {
   const email = {
     address: leaderEmails,
     subject: `Trip #${trip.id} late for return`,
-    message: `Hello,\n\nYour [Trip #${trip.id}: ${trip.title}] is now 90 minutes late. It was scheduled to return at ${constants.formatDateAndTime(trip.endDateAndTime, 'SHORT')}. OPO will be notified in the next 90 minutes if your trip is not back in Hanover. If you are having difficulties getting back, please follow the DOC Emergency Protocols found here:\n\nhttps://docs.google.com/forms/u/1/d/e/1FAIpQLSeo9jIcTGNstZ1uADtovDjJT8kkPtS-YpRwzJC2MZkVkbH0hw/viewform.\n\nIMPORTANT: right after you return, you must check-in all attendees here: ${constants.frontendURL}/trip-check-in/${trip.id}?token=${token}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello,\n\nYour [Trip #${trip.id}: ${trip.title}] is now 90 minutes late. It was scheduled to return at ${constants.formatDateAndTime(trip.endDateAndTime, 'SHORT')}. OPO will be notified in the next 90 minutes if your trip is not back in Hanover. If you are having difficulties getting back, please follow the DOC Emergency Protocols found here:\n\nhttps://docs.google.com/forms/u/1/d/e/1FAIpQLSeo9jIcTGNstZ1uADtovDjJT8kkPtS-YpRwzJC2MZkVkbH0hw/viewform.\n\nIMPORTANT: right after you return, you must check-in all attendees here: ${constants.frontendURL}/trip/${trip.id}/check-in\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, '90 minute late')
@@ -116,7 +114,7 @@ export async function sendNewTripEmail (id, title, leaderEmails) {
   const email = {
     address: leaderEmails,
     subject: `New Trip #${id} created`,
-    message: `Hello,\n\nYou've created a new Trip #${id}: ${title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${id}\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave: ${constants.frontendURL}/trip-check-out/${id}\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
+    message: `Hello,\n\nYou've created a new Trip #${id}: ${title}! You will receive email notifications when trippees sign up.\n\nView the trip here: ${constants.frontendURL}/trip/${id}\n\nHere is a mobile-friendly 📱 URL (open it on your phone) for you to mark all attendees before you leave: ${constants.frontendURL}/trip/${id}/check-out\n\nBest,\nDOC Trailhead Platform\n\nThis email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.`
   }
 
   return send(email, 'New trip')

@@ -58,7 +58,6 @@ export function resetVehicleRequest (req, res) {
   if (!req.params.requestId) return res.sendStatus(400)
   sqlite.run('UPDATE vehiclerequests SET is_approved = null WHERE id = ?', req.params.requestId)
   sqlite.run('DELETE FROM assignments WHERE vehiclerequest = ?', req.params.requestId)
-  sqlite.run('DELETE FROM assignments WHERE vehiclerequest = ?', req.params.requestId)
   vehicleRequestView.renderVehicleRequestTable(res, req.params.requestId)
 }
 
