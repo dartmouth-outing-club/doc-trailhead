@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer'
 
-import { tokenForUser } from '../services/authentication.js'
 import * as constants from '../constants.js'
 import * as sqlite from '../services/sqlite.js'
 

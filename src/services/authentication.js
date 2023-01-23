@@ -1,17 +1,10 @@
 import crypto from 'node:crypto'
 import passport from 'passport'
 import cas from 'passport-cas'
-import jwt from 'jwt-simple'
 
 import * as sqlite from '../services/sqlite.js'
 import * as sessions from '../services/sessions.js'
 import * as constants from '../constants.js'
-
-export async function tokenForUser (userId, purpose, tripId) {
-  const timestamp = new Date().getTime()
-  if (!userId) throw new Error('Tried to encode a JWT but the userId was undefined')
-  return jwt.encode({ sub: userId, iat: timestamp, purpose, tripId }, process.env.AUTH_SECRET)
-}
 
 async function generateAndInsertNewToken (userId) {
   const token = await getRandomKey()

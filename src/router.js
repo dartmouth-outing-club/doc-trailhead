@@ -52,7 +52,6 @@ router.post('/logout', requireAuth, logout)
 router.enableView('/welcome', 'public')
 router.enableView('/all-trips', 'auth')
 router.enableView('/profile', 'auth')
-router.enableView('/opo/calendar', 'opo')
 router.enableView('/opo/manage-fleet', 'opo')
 router.enableView('/opo/profile-approvals', 'opo')
 router.enableView('/opo/trip-approvals', 'opo')
@@ -68,6 +67,10 @@ router.route('/trip/:tripId/check-in').get(requireAuth, requireTripLeader, tripS
 router.route('/trip/:tripId/requests').get(requireAuth, requireTripLeader, requestsView.getRequestsView)
 router.route('/vehicle-request/:vehicleRequestId').get(requireAuth, vehicleRequestView.getVehicleRequestView)
 router.route('/leader/trip/:tripId').get(requireAuth, requireTripLeader, tripView.getLeaderView)
+
+router.route('/opo/calendar').get(requireAuth, requireOpo, (_req, res) => {
+  res.render('views/opo/calendar.njs', { LICENSE_KEY: process.env.FULLCALENDAR_LICENSE })
+})
 
 // Look, JSON APIs! See, I'm not a zealot
 router.get('/json/calendar', requireAuth, requireOpo, assignments.get)
