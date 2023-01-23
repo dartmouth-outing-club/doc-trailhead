@@ -4,7 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="/css/common.css">
 <script src="/htmx/htmx.js"></script>
-<script src='/fullcalendar-scheduler/index.global.js'></script>
+<script src='/fullcalendar-scheduler/index.global.min.js'></script>
 
 
 {% include "common/site-nav.njs" %}
@@ -26,9 +26,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const calendarEl = document.getElementById('calendar')
   const calendar = new FullCalendar.Calendar(calendarEl, {
     headerToolbar: {
-      left: 'prev,next',
-      center: 'title',
-      right: 'resourceTimelineDay,resourceTimelineWeek,resourceTimelineMonth'
+      left: 'resourceTimelineDay,resourceTimelineWeek,resourceTimelineMonth',
+      right: 'prev,next',
+      center: 'title'
     },
     events: body.events,
     initialView: 'resourceTimelineWeek',
