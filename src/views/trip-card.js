@@ -21,7 +21,7 @@ function getLeaderData (tripId, userId) {
       dropoff,
       location,
       users.name as owner_name,
-      experience_needed,
+      iif(experience_needed = 0, 'No', 'Yes') as experience_needed,
       cost,
       vehiclerequests.id as vehiclerequest_id,
       vehiclerequests.is_approved as vehiclerequest_is_approved,
@@ -166,7 +166,7 @@ function getSignupData (tripId, userId) {
       dropoff,
       location,
       users.name as owner_name,
-      experience_needed,
+      iif(experience_needed = 0, 'No', 'Yes') as experience_needed,
       cost,
       member_gear_approved,
       group_gear_approved
