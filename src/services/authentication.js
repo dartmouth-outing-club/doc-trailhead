@@ -26,7 +26,7 @@ function sendToLogin (_req, res, _next) {
 }
 
 export function requireAuth (req, res, next) {
-  const cookies = req.get('cookie')?.split(';')
+  const cookies = req.get('cookie')?.split('; ')
   console.log(cookies)
 
   if (!cookies) {
