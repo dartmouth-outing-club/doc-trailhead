@@ -70,7 +70,7 @@ export function getLongTimeElement (unixTime) {
   const dateString = `${date.getMonth() + 1}/${date.getDate()}`
   const minutesString = minutes < 10 ? '0' + minutes : minutes
   const hoursString = hours > 12 ? `${hours - 12}` : `${hours}`
-  const timeString = `${hoursString}:${minutesString} ${hours > 12 ? 'AM' : 'PM'}`
+  const timeString = `${hoursString}:${minutesString} ${hours < 12 ? 'AM' : 'PM'}`
   return `<time datetime="${date.toISOString()}">${dateString} @ ${timeString}</time>`
 }
 
