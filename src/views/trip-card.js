@@ -51,12 +51,13 @@ function getLeaderData (tripId, userId) {
         '-',
         iif(attended = 0, 'No', 'Yes')) as attended,
     allergies_dietary_restrictions,
-    medical_conditions
+    medical_conditions,
+    iif(users.id = trips.owner, 1, 0) as is_owner
   FROM trip_members
   LEFT JOIN trips ON trips.id = trip_members.trip
   LEFT JOIN users ON users.id = trip_members.user
   WHERE trip = ?
-  ORDER BY trip_members.leader DESC, trip_members.rowid
+  ORDER BY is_owner DESC, trip_members.leader DESC, trip_members.rowid
   `, tripId) // Display order is leaders first, followed by signup order
 
   const membersWithGear = members.map(member => {
