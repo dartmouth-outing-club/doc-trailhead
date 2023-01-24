@@ -79,6 +79,7 @@ export function leave (req, res) {
     tripId, req.user)
   if (changes === 0) console.warn(`Unnecessary delete requested for trip ${tripId}`)
 
+  // TODO only send if user was approved
   mailer.sendUserLeftEmail(tripId, req.user)
   return tripCard.renderSignupCard(res, tripId, req.user)
 }

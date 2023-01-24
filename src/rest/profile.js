@@ -154,9 +154,13 @@ function get (req, res, isEditable) {
   // Nasty little hack to the height of out of escaped text form
   // Will save this as an integer instead, soon
   if (user.height) {
-    const arr = user.height.split('&')
-    user.feet = arr[0]
-    user.inches = arr[1].split(';')[1]
+    try {
+      const arr = user.height.split('&')
+      user.feet = arr[0]
+      user.inches = arr[1].split(';')[1]
+    } catch (error) {
+      console.log('Failed to unpack height', user.height)
+    }
   }
 
   user.driver_certifications = certs.length > 0 ? certs : 'none'
