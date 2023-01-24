@@ -11,19 +11,19 @@
         >
 
   <label class=number-row>
-    Expected # trippees: <input type=number name=people min=0 value={{pcard_request.num_people}}>
+    Expected # trippees: <input type=number name=people min=0 value="{{pcard_request.num_people}}">
   </label>
   <label class=number-row>Snacks:
-    <input type=number min=0 value={{pcard_request.snacks}} name=snacks>
+    <input type=number min=0 value="{{pcard_request.snacks}}" name=snacks>
   </label>
   <label class=number-row>Breakfast:
-    <input type=number min=0 value={{pcard_request.breakfast}} name=breakfast>
+    <input type=number min=0 value="{{pcard_request.breakfast}}" name=breakfast>
   </label>
   <label class=number-row>Lunch:
-    <input type=number min=0 value={{pcard_request.lunch}} name=lunch>
+    <input type=number min=0 value="{{pcard_request.lunch}}" name=lunch>
   </label>
   <label class=number-row>Dinner:
-    <input type=number min=0 value={{pcard_request.dinner}} name=dinner>
+    <input type=number min=0 value="{{pcard_request.dinner}}" name=dinner>
   </label>
 
   <div class=button-row>
