@@ -51,9 +51,35 @@ medical records, SSNs, etc) but is nonetheless something we should endeavor to p
 4. Now that we have a single deployable application with a lightweight UI, start implementing
    features!
 
+# Migration Results
+Removed around 15k lines of source code:
+
+```
+# Old Frontend
+$ find src -type f | egrep '\.(js|scss|css|html)' | xargs wc -l | grep total
+   17228 total
+
+# Old Backend
+$ find src -type f | egrep '\.(js|css|html|njs)' | xargs wc -l | grep total
+    3561 total
+
+# New Combined Application
+$ find src templates static -type f | egrep '\.(js|css|sql|html|njs)$' | xargs wc -l |
+grep total
+    5272 total
+```
+
+Removed MongoDB hosting fees by removing Mongo.
+
+Removed Heroku hosting feeds by removing Heroku. Most of the reason Heroku was costing $100 (!!) a
+month was because the 2 professional dynos were having to recalculate the entire trips list every
+single minute. It's actually a bit of shame that we're not on serverless anymore because servereless
+is very easy to set up, but the resultant application simplicity is, I think, I worth the tradeoff
+in setup complexity (for now).
+
 ## The Future
 In addition to saving at least $300/mo in operating costs, I'm already finding that deploying new
 features is a cinch. We'll see what happens next!
 
-- Alex
+-- Alex
 
