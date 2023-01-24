@@ -99,7 +99,6 @@ export function signinCAS (req, res, next) {
     }
 
     const token = await generateAndInsertNewToken(userId)
-    console.log(token)
     console.log(`Signed in user ${userId} for casId ${casId}`)
 
     res.cookie('token', token, { secure: true, sameSite: 'Lax' })

@@ -46,8 +46,8 @@ router.post('/trip', requireAnyLeader, trip.createTrip)
 router.put('/trip/:tripId', requireTripLeader, trip.editTrip)
 router.delete('/trip/:tripId', requireTripLeader, trip.deleteTrip)
 
-router.post('/trip/:tripId/signup', requireTripLeader, tripMembers.signup)
-router.delete('/trip/:tripId/signup', requireTripLeader, tripMembers.leave)
+router.post('/trip/:tripId/signup', tripMembers.signup)
+router.delete('/trip/:tripId/signup', tripMembers.leave)
 
 router.put('/trip/:tripId/leader/:userId', requireTripLeader, tripMembers.makeLeader)
 router.delete('/trip/:tripId/leader/:userId', requireTripLeader, tripMembers.demote)
