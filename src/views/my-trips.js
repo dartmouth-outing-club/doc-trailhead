@@ -17,7 +17,6 @@ export function get (req, res) {
     LEFT JOIN clubs ON trips.club = clubs.id
     WHERE trip_members.user = ? AND end_time > ?
     ORDER BY start_time ASC
-    LIMIT 5
   `, userId, now.getTime())
 
   const trips = tripsForUser.map(trip => {
