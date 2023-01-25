@@ -160,14 +160,25 @@ on time. 48 hours before trip-start you can begin checking out your trip.
     <tr class=summary><th>Total<td>${{ pcard_request.total }}
   </table>
   {% if show_pcard_approval_buttons %}
-  <div class=button-row>
-    <button class="action deny" hx-put="/rest/opo/pcard/{{ trip_id }}/deny">Deny</button>
-    {% if pcard_request.is_approved === 1 %}
-    <button class="action edit" hx-put="/rest/opo/pcard/{{ trip_id }}/reset">Un-approve</button>
-    {% else %}
-    <button class="action approve" hx-put="/rest/opo/pcard/{{ trip_id }}/approve">Approve</button>
-    {% endif %}
-  </div>
+  <form hx-put="/rest/opo/pcard/{{ trip_id }}/approve">
+    <label>Assigned P-Card:
+      <input name=assigned_pcard
+             type=text
+             value="{{ pcard_request.assigned_pcard }}"
+             {% if pcard_request.is_approved === 1 %}disabled{%endif%}
+             >
+    </label>
+    <div class=button-row>
+      <button class="action deny" hx-put="/rest/opo/pcard/{{ trip_id }}/deny">Deny</button>
+      {% if pcard_request.is_approved === 1 %}
+      <button class="action edit" hx-put="/rest/opo/pcard/{{ trip_id }}/reset">Un-approve</button>
+      {% else %}
+      <button class="action approve" type=submit>Approve</button>
+      {% endif %}
+    </div>
+  </form>
+  {% else %}
+  <p>Assigned P-Card: {{ pcard_request.assigned_pcard }}</p>
   {% endif %}
 </div>
 {% endif %}

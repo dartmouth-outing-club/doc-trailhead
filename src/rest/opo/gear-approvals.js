@@ -98,8 +98,11 @@ export function resetMemberGear (req, res) {
 }
 
 export function approvePcard (req, res) {
-  if (!req.params.tripId) return res.sendStatus(400)
-  sqlite.run('UPDATE trip_pcard_requests SET is_approved = true WHERE trip = ?', req.params.tripId)
+  const tripId = req.params.tripId
+  const assigned_pcard = req.body.assigned_pcard
+  if (!assigned_pcard) return res.sendStatus(400)
+  sqlite.run('UPDATE trip_pcard_requests SET is_approved = true, assigned_pcard = ? WHERE trip = ?',
+    assigned_pcard, tripId)
   tripCard.renderLeaderCard(res, req.params.tripId, req.user)
 }
 

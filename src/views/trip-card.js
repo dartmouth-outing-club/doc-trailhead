@@ -125,6 +125,7 @@ function getLeaderData (tripId, userId) {
     ? utils.getBadgeImgElement(trip.group_gear_approved !== null ? trip.group_gear_approved : 'pending')
     : '<span>-</span>'
   trip.pcard_request = tripPcardRequest
+  console.log(tripPcardRequest)
 
   // Add vehicle request stuff
   if (trip.vehiclerequest_id) {
