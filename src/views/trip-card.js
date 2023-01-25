@@ -86,8 +86,23 @@ function getLeaderData (tripId, userId) {
     SELECT name, quantity FROM group_gear_requests WHERE trip = ? ORDER BY quantity DESC
   `, tripId)
 
+  // TODO un-concolute this a bit
   const tripPcardRequest = sqlite.get(`
-    SELECT assigned_pcard, is_approved, snacks, breakfast, lunch, dinner, other_costs
+    SELECT
+      assigned_pcard,
+      num_people,
+      is_approved,
+      ifnull(snacks, 0) as snacks,
+      ifnull(breakfast, 0) as breakfast,
+      ifnull(lunch, 0) as lunch,
+      ifnull(dinner, 0) as dinner,
+      other_costs,
+      num_people *
+        ((ifnull(snacks, 0) * 3) +
+         (ifnull(breakfast, 0) * 4) +
+         (ifnull(lunch, 0) * 5) +
+         (ifnull(dinner, 0) *6))
+        AS total
     FROM trip_pcard_requests
     WHERE trip = ?
   `, tripId)

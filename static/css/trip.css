@@ -100,6 +100,10 @@ img.badge {
   font-weight: normal;
 }
 
+/* .detail-table.gear tr.summary { */
+/*   background-color: gray; */
+/* } */
+
 .table-status-row {
   display: flex;
   align-items: center;

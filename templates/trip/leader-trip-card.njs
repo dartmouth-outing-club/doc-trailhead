@@ -151,11 +151,13 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 {%if pcard_request %}
 <div>
   <div class=table-status-row><h2>P-Card Request</h2>{{ pcard_request.status }}</div>
+  <p>Expected # of Participants: {{ pcard_request.num_people }}
   <table class="detail-table gear">
-    <tr><th>Snacks<td>{{ pcard_request.snacks }}
-    <tr><th>Breakfast<td>{{ pcard_request.breakfast }}
-    <tr><th>Lunch<td>{{ pcard_request.lunch }}
-    <tr><th>Dinner<td>{{ pcard_request.dinner }}
+    <tr><th>Snacks ($3 / person)<td>{{ pcard_request.snacks }}
+    <tr><th>Breakfast ($4 / person)<td>{{ pcard_request.breakfast }}
+    <tr><th>Lunch ($5 / person)<td>{{ pcard_request.lunch }}
+    <tr><th>Dinner ($6 / person)<td>{{ pcard_request.dinner }}
+    <tr class=summary><th>Total<td>${{ pcard_request.total }}
   </table>
   {% if show_pcard_approval_buttons %}
   <div class=button-row>

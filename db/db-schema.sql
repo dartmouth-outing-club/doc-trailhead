@@ -118,7 +118,6 @@ CREATE TABLE trip_members (
   PRIMARY KEY (trip, user)
 ) STRICT;
 
-
 CREATE TABLE trip_required_gear (
   id INTEGER PRIMARY KEY,
   _id TEXT,
