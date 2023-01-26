@@ -3,7 +3,7 @@ import * as utils from '../utils.js'
 
 export function renderVehicleRequestCard (tripId, res) {
   const data = getVehicleRequestData(tripId)
-  res.render('requests/vehicle-request.njs', { ...data })
+  res.render('requests/vehicle-request-editable.njs', { ...data })
 }
 
 export function renderIndividualGearCard (tripId, res) {
