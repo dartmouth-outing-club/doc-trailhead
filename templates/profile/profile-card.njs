@@ -22,15 +22,19 @@
     <dt>Driver Certifications<dd>{{ driver_certifications }}
     <dt>Leader For<dd>{{ leader_for }}
   </dl>
+  {% if not hide_controls %}
   <div hx-swap=innerHTML hx-target="closest section" class=button-row>
     <button class="action edit" hx-get="/rest/profile/driver-cert">Request Driver Cert</button>
     <button class="action edit" hx-get="/rest/profile/club-leadership">Request Club Leadership</button>
   </div>
+  {% endif %}
 </section>
+{% if not hide_controls %}
 <section>
   <div class=button-row>
     <form method=post action="/logout"><button class="action deny">Logout</button></form>
     <button class="action edit" hx-get="/rest/profile/edit-profile">Edit profile</button>
   </div>
 </section>
+{% endif %}
 </div>

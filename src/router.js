@@ -65,6 +65,7 @@ router.route('/trip/:tripId/edit').get(requireAuth, requireTripLeader, tripView.
 router.route('/trip/:tripId/check-out').get(requireAuth, requireTripLeader, tripStatusView.getCheckOutView)
 router.route('/trip/:tripId/check-in').get(requireAuth, requireTripLeader, tripStatusView.getCheckInView)
 router.route('/trip/:tripId/requests').get(requireAuth, requireTripLeader, requestsView.getRequestsView)
+router.route('/trip/:tripId/user/:userId').get(requireAuth, requireTripLeader, tripView.getUserView)
 router.route('/vehicle-request/:vehicleRequestId').get(requireAuth, vehicleRequestView.getVehicleRequestView)
 router.route('/leader/trip/:tripId').get(requireAuth, requireTripLeader, tripView.getLeaderView)
 

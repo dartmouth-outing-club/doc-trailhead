@@ -1,7 +1,11 @@
 import * as sqlite from '../services/sqlite.js'
 
 export function getProfileView (req, res) {
-  return get(req, res, false)
+  return get(req.user, res, false)
+}
+
+export function getUserTripView (req, res) {
+  return get(req.params.userId, res, false, true)
 }
 
 export function getProfileEditable (req, res) {
@@ -138,10 +142,10 @@ export function deleteClubLeadershipRequest (req, res) {
   return res.send('').status(200)
 }
 
-function get (req, res, isEditable) {
-  const user = sqlite.get('SELECT * FROM users WHERE id = ?', req.user)
+function get (userId, res, isEditable, hideControls) {
+  const user = sqlite.get('SELECT * FROM users WHERE id = ?', userId)
   const certs = sqlite
-    .all('SELECT cert, is_approved FROM user_certs WHERE user = ?', req.user)
+    .all('SELECT cert, is_approved FROM user_certs WHERE user = ?', userId)
     .map(item => `${item.cert}${item.is_approved === 0 ? ' (pending)' : ''}`)
     .join(', ')
 
@@ -172,7 +176,8 @@ function get (req, res, isEditable) {
     FROM club_leaders
     LEFT JOIN clubs ON club_leaders.club = clubs.id
     WHERE user = ?
-  `, req.user)?.clubs || 'none'
+  `, userId)?.clubs || 'none'
+  user.hide_controls = hideControls
 
   return res.render(`profile/profile-card${isEditable ? '-editable' : ''}.njs`, user)
 }

@@ -73,3 +73,9 @@ export function getEditView (req, res) {
   trip.end_time = utils.getDatetimeValueForUnixTime(trip.end_time)
   res.render('views/edit-trip.njs', { clubs, emails, trip })
 }
+
+export function getUserView (req, res) {
+  const { tripId, userId } = req.params
+  const user = sqlite.get('SELECT name FROM users WHERE id = ?', userId)
+  return res.render('views/user.njs', { user_id: userId, trip_id: tripId, user_name: user.name })
+}

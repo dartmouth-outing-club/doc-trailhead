@@ -63,7 +63,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 <tbody>
 {% for member in attending %}
 <tr {% if member.leader === 1%}class="leader-row"{% endif %}>
-  <td>{{ member.name }}
+  <td><a href="/trip/{{trip_id}}/user/{{member.id}}">{{ member.name }}</a>
   <td>{{ member.attended }}
   <td>{{ member.allergies_dietary_restrictions }}
   <td>{{ member.medical_conditions }}
@@ -103,7 +103,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 <tbody>
 {% for member in pending %}
 <tr>
-  <td>{{ member.name }}
+  <td><a href="/trip/{{trip_id}}/user/{{member.id}}">{{ member.name }}</a>
   <td>{{ member.attended }}
   <td>{{ member.allergies_dietary_restrictions }}
   <td>{{ member.medical_conditions }}
