@@ -211,11 +211,27 @@ a.top-link:visited {
   width: fit-content;
 }
 
-.club-tag {
+.club-tag, .status-tag {
   background-color: #e5cdbe;
   border-radius: 5px;
   padding: 3.5px 7px;
   width: fit-content;
+}
+
+.status-tag.not-left {
+  background-color: lightgray;
+}
+
+.status-tag.left {
+  background-color: #F0E784;
+}
+
+.status-tag.late {
+  background-color: #FA6F6F;
+}
+
+.status-tag.returned {
+  background-color: #A1F0A3;
 }
 
 .profile-card {

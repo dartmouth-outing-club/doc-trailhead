@@ -3,7 +3,8 @@
 <h1>{{ title }}</h1>
 <div class=status-row>
   <div class="club-tag">{{ club }}</div>
-  {{ trip_status }}
+  {{ status_tag }}
+  {{ full_gear_status_badge }}
 </div>
 <div class=button-row>
   <button id=share-link class="action edit" onclick="copyLink()">Share Link &#128279;</button>

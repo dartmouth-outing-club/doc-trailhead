@@ -26,6 +26,13 @@ import * as manageFleet from './rest/opo/manage-fleet.js'
 const router = Router()
 
 /**********************
+ * All-Purpose Routes
+ **********************/
+router.get('/all-trips', allTrips.get) // TODO move this to views
+router.post('/trip/:tripId/signup', tripMembers.signup)
+router.delete('/trip/:tripId/signup', tripMembers.leave)
+
+/**********************
  * User Profile Routes
  **********************/
 router.get('/profile', profile.getProfileView)
@@ -37,17 +44,12 @@ router.get('/profile/club-leadership', profile.getClubLeadershipRequest)
 router.post('/profile/club-leadership', profile.postClubLeadershipRequest)
 router.delete('/profile/club-leadership/:id', profile.deleteClubLeadershipRequest)
 
-router.get('/all-trips', allTrips.get) // TODO move this to views
-
 /*********************
  * Trip Leader Routes
  *********************/
 router.post('/trip', requireAnyLeader, trip.createTrip)
 router.put('/trip/:tripId', requireTripLeader, trip.editTrip)
 router.delete('/trip/:tripId', requireTripLeader, trip.deleteTrip)
-
-router.post('/trip/:tripId/signup', tripMembers.signup)
-router.delete('/trip/:tripId/signup', tripMembers.leave)
 
 router.put('/trip/:tripId/leader/:userId', requireTripLeader, tripMembers.makeLeader)
 router.delete('/trip/:tripId/leader/:userId', requireTripLeader, tripMembers.demote)

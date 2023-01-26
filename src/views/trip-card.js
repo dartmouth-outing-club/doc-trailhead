@@ -191,7 +191,8 @@ function getLeaderData (tripId, userId) {
     (!trip.pcard_request || trip.pcard_request.is_approved === 1) &&
     (!trip.vehiclerequest_id || trip.vehiclerequest_is_approved === 1)
   const badgeName = tripFinalStatus ? 'approved' : 'pending'
-  trip.trip_status = utils.getBadgeImgElement(badgeName)
+  trip.status_tag = utils.getStatusTag(trip.left, trip.returned, trip.late)
+  trip.full_gear_status_badge = utils.getBadgeImgElement(badgeName)
 
   return trip
 }

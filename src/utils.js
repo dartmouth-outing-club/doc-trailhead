@@ -1,3 +1,15 @@
+export function getStatusTag (hasLeft, hasReturned, isLate) {
+  if (hasReturned) {
+    return '<div class="status-tag returned">Returned</div>'
+  } else if (isLate) {
+    return '<div class="status-tag late">Late</div>'
+  } else if (hasLeft) {
+    return '<div class="status-tag left">Left</div>'
+  } else {
+    return '<div class="status-tag not-left">Not Left</div>'
+  }
+}
+
 export function getBadgeImgUrl (name) {
   switch (name) {
     case 'approved':
