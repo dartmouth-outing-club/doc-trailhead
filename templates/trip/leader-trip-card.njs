@@ -68,7 +68,10 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   <td>{{ member.medical_conditions }}
   <td><ul>{{ member.requested_gear }}</ul>
   <td>
-    <button class="action edit" hx-put="/rest/trip/{{ trip_id }}/waitlist/{{ member.id }}">Un-admit</button>
+    <button class="action edit"
+            hx-put="/rest/trip/{{ trip_id }}/waitlist/{{ member.id }}"
+            {% if member.id === owner %}disabled{% endif %}
+            >Un-admit</button>
     {% if member.leader === 1 %}
     <button class="action demote"
             hx-delete="/rest/trip/{{ trip_id }}/leader/{{ member.id }}"
