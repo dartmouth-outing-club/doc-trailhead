@@ -5,6 +5,9 @@
   <div class="club-tag">{{ club }}</div>
   {{ trip_status }}
 </div>
+<div class=button-row>
+  <button id=share-link class="action edit" onclick="copyLink()">Share Link &#128279;</button>
+</div>
 
 {% if is_leader_for_trip %}
 <h2>Check-In and Check-Out</h2>
@@ -78,6 +81,9 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 </tr>
 {% endfor %}
 </table>
+<div class=button-row>
+    <button id=copy-attending-emails class="action edit" onclick="copyAttendingEmails()">Copy Emails</button>
+</div>
 
 <h2>Pending trippes ({{ pending.length }})</h2>
 <table class=trip-table>
@@ -107,6 +113,9 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 </tr>
 {% endfor %}
 </table>
+<div class=button-row>
+  <button id=copy-pending-emails class="action edit" onclick="copyPendingEmails()">Copy Emails</button>
+</div>
 
 <div class=dual-table-container>
 <div>
@@ -216,4 +225,30 @@ function toggleDeleteButton(checkbox) {
   const button = document.querySelector('.delete-trip')
   button.disabled = !checkbox.checked
 }
+
+async function copyLink() {
+  const button = document.getElementById('share-link')
+  const previousText = button.innerText
+  const domain = window.location.origin
+  navigator.clipboard.writeText(`${domain}/trip/{{trip_id}}`)
+  button.innerText = 'Link Copied!'
+  setTimeout(() => button.innerText = previousText, 1000)
+}
+
+async function copyAttendingEmails() {
+  const button = document.getElementById('copy-attending-emails')
+  const previousText = button.innerText
+  navigator.clipboard.writeText('{{attending_emails_list}}')
+  button.innerText = 'Emails Copied!'
+  setTimeout(() => button.innerText = previousText, 1000)
+}
+
+async function copyPendingEmails() {
+  const button = document.getElementById('copy-pending-emails')
+  const previousText = button.innerText
+  navigator.clipboard.writeText('{{pending_emails_list}}')
+  button.innerText = 'Emails Copied!'
+  setTimeout(() => button.innerText = previousText, 1000)
+}
+
 </script>

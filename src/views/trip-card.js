@@ -44,6 +44,7 @@ function getLeaderData (tripId, userId) {
   const members = sqlite.all(`
   SELECT
     users.id,
+    email,
     name,
     leader,
     pending,
@@ -138,8 +139,6 @@ function getLeaderData (tripId, userId) {
   trip.end_datetime = utils.getDatetimeValueForUnixTime(trip.end_time)
   trip.end_time_element = utils.getLongTimeElement(trip.end_time)
   trip.leader_names = leaderNames
-  trip.attending = membersWithGear.filter(member => member.pending === 0)
-  trip.pending = membersWithGear.filter(member => member.pending === 1)
   trip.required_gear = requiredGear
   trip.member_requested_gear = memberRequestedGear
   trip.group_gear = groupGearRequests
@@ -150,6 +149,11 @@ function getLeaderData (tripId, userId) {
     ? utils.getBadgeImgElement(trip.group_gear_approved !== null ? trip.group_gear_approved : 'pending')
     : '<span>-</span>'
   trip.pcard_request = tripPcardRequest
+
+  trip.attending = membersWithGear.filter(member => member.pending === 0)
+  trip.pending = membersWithGear.filter(member => member.pending === 1)
+  trip.attending_emails_list = trip.attending.map(user => user.email).join(';')
+  trip.pending_emails_list = trip.pending.map(user => user.email).join(';')
 
   // Add vehicle request stuff
   if (trip.vehiclerequest_id) {
