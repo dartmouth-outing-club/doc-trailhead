@@ -71,17 +71,42 @@ function getLeaderData (tripId, userId) {
     return { ...member, requested_gear }
   })
 
-  const memberRequestedGear = sqlite.all(`
-    SELECT name, count(gear) as quantity
-    FROM member_gear_requests
-    LEFT JOIN trip_required_gear ON trip_required_gear.id = member_gear_requests.gear
-    WHERE member_gear_requests.trip = ?
-    GROUP BY gear
-    ORDER BY quantity DESC
+  // I couldn't immediately think of a sophisticated way to combine these three queries
+  // I think is one area where a better database structure would help, but might be unnecessary
+  // Anyway it's not that fancy, just one GROUP BY for shoes and one for clothes
+  // Everything else is not sized
+  const requestedShoes = sqlite.all(`
+    SELECT trg.name || ' (' || shoe_size || ')' AS name, count(users.name) AS quantity
+    FROM member_gear_requests AS mrg
+    LEFT JOIN trip_required_gear AS trg ON trg.id = mrg.gear
+    LEFT JOIN users on mrg.user = users.id
+    WHERE mrg.trip = ? and size_type = 'Shoe'
+    GROUP BY trg.id, shoe_size;
   `, tripId)
 
-  const requiredGear = sqlite.all('SELECT id, name FROM trip_required_gear WHERE trip = ?', tripId)
+  const requestedClothes = sqlite.all(`
+    SELECT trg.name || ' (' || clothe_size || ')' AS name, count(users.name) AS quantity
+    FROM member_gear_requests AS mrg
+    LEFT JOIN trip_required_gear AS trg ON trg.id = mrg.gear
+    LEFT JOIN users on mrg.user = users.id
+    WHERE mrg.trip = ? and size_type = 'Clothe'
+    GROUP BY trg.id, clothe_size;
+  `, tripId)
 
+  const requestedElse = sqlite.all(`
+    SELECT trg.name, count(users.name) AS quantity
+    FROM member_gear_requests AS mrg
+    LEFT JOIN trip_required_gear AS trg ON trg.id = mrg.gear
+    LEFT JOIN users on mrg.user = users.id
+    WHERE mrg.trip = ? AND (size_type != 'Shoe' AND size_type != 'Clothe')
+    GROUP BY trg.id
+  `, tripId)
+
+  // Combine the three arrays and sort them by name
+  const memberRequestedGear = [...requestedShoes, ...requestedClothes, ...requestedElse]
+  memberRequestedGear.sort((a, b) => a.name.localeCompare(b.name))
+
+  const requiredGear = sqlite.all('SELECT id, name FROM trip_required_gear WHERE trip = ?', tripId)
   const groupGearRequests = sqlite.all(`
     SELECT name, quantity FROM group_gear_requests WHERE trip = ? ORDER BY quantity DESC
   `, tripId)
@@ -125,7 +150,6 @@ function getLeaderData (tripId, userId) {
     ? utils.getBadgeImgElement(trip.group_gear_approved !== null ? trip.group_gear_approved : 'pending')
     : '<span>-</span>'
   trip.pcard_request = tripPcardRequest
-  console.log(tripPcardRequest)
 
   // Add vehicle request stuff
   if (trip.vehiclerequest_id) {
