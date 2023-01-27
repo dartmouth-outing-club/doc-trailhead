@@ -2,7 +2,7 @@
   <template id=additional-group-gear>
     <div class=gear-row>
       <input type=text name=item required>
-      <input type=number name=quantity min=0 value=0 required>
+      <input type=number name=quantity min=1 value=1 required>
       <button class=close-button type=button onclick="this.parentElement.remove()">
         <img alt="Close Icon" src="/static/icons/close-icon.svg">
       </button>
