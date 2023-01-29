@@ -1,15 +1,59 @@
 import * as sqlite from '../services/sqlite.js'
 
-export function getProfileView (req, res) {
+export function getProfileCard (req, res) {
   return get(req.user, res, false)
+}
+
+export function getProfileCardEditable (req, res) {
+  return get(req.user, res, true)
 }
 
 export function getUserTripView (req, res) {
   return get(req.params.userId, res, false, true)
 }
 
-export function getProfileEditable (req, res) {
-  return get(req.user, res, true)
+function get (userId, res, isEditable, hideControls) {
+  const data = getProfileData(userId, hideControls)
+  return res.render(`profile/profile-card${isEditable ? '-editable' : ''}.njs`, data)
+}
+
+export function getProfileData (userId, hideControls) {
+  const user = sqlite.get('SELECT * FROM users WHERE id = ?', userId)
+  const certs = sqlite
+    .all('SELECT cert, is_approved FROM user_certs WHERE user = ?', userId)
+    .map(item => `${item.cert}${item.is_approved === 0 ? ' (pending)' : ''}`)
+    .join(', ')
+
+  if (user.shoe_size) {
+    const split = user.shoe_size.split('-')
+    user.shoe_size_sex = split[0]
+    user.shoe_size_num = split[1]
+  }
+
+  // Nasty little hack to the height of out of escaped text form
+  // Will save this as an integer instead, soon
+  if (user.height) {
+    try {
+      const arr = user.height.split('&')
+      user.feet = arr[0]
+      user.inches = arr[1].split(';')[1]
+    } catch (error) {
+      console.log('Failed to unpack height', user.height)
+    }
+  }
+
+  user.driver_certifications = certs.length > 0 ? certs : 'none'
+  user.leader_for = sqlite.get(`
+    SELECT group_concat(
+      iif(is_approved = 1, name, name || ' (pending)'),
+      ', '
+    ) as clubs
+    FROM club_leaders
+    LEFT JOIN clubs ON club_leaders.club = clubs.id
+    WHERE user = ?
+  `, userId)?.clubs || 'none'
+  user.hide_controls = hideControls
+  return user
 }
 
 export function post (req, res) {
@@ -33,7 +77,7 @@ export function post (req, res) {
       medical_conditions = @medical_conditions
     WHERE id = @user_id
   `, formData)
-  return getProfileView(req, res)
+  return getProfileCard(req, res)
 }
 
 const VALID_CERTS = ['VAN', 'MICROBUS', 'TRAILER']
@@ -76,7 +120,7 @@ export function postDriverCertRequest (req, res) {
       req.user, cert
     )) // INSERT OR IGNORE so that existing, approved certs will not be overwritten
 
-  return getProfileView(req, res)
+  return getProfileCard(req, res)
 }
 
 export function getClubLeadershipRequest (req, res) {
@@ -129,7 +173,7 @@ export function postClubLeadershipRequest (req, res) {
   if (!club) return res.sendStatus(400)
 
   sqlite.run('INSERT INTO club_leaders (user, club, is_approved) VALUES (?, ?, false)', req.user, club)
-  return getProfileView(req, res)
+  return getProfileCard(req, res)
 }
 
 export function deleteClubLeadershipRequest (req, res) {
@@ -140,44 +184,4 @@ export function deleteClubLeadershipRequest (req, res) {
 
   if (changes < 1) return res.sendStatus(400)
   return res.send('').status(200)
-}
-
-function get (userId, res, isEditable, hideControls) {
-  const user = sqlite.get('SELECT * FROM users WHERE id = ?', userId)
-  const certs = sqlite
-    .all('SELECT cert, is_approved FROM user_certs WHERE user = ?', userId)
-    .map(item => `${item.cert}${item.is_approved === 0 ? ' (pending)' : ''}`)
-    .join(', ')
-
-  if (user.shoe_size) {
-    const split = user.shoe_size.split('-')
-    user.shoe_size_sex = split[0]
-    user.shoe_size_num = split[1]
-  }
-
-  // Nasty little hack to the height of out of escaped text form
-  // Will save this as an integer instead, soon
-  if (user.height) {
-    try {
-      const arr = user.height.split('&')
-      user.feet = arr[0]
-      user.inches = arr[1].split(';')[1]
-    } catch (error) {
-      console.log('Failed to unpack height', user.height)
-    }
-  }
-
-  user.driver_certifications = certs.length > 0 ? certs : 'none'
-  user.leader_for = sqlite.get(`
-    SELECT group_concat(
-      iif(is_approved = 1, name, name || ' (pending)'),
-      ', '
-    ) as clubs
-    FROM club_leaders
-    LEFT JOIN clubs ON club_leaders.club = clubs.id
-    WHERE user = ?
-  `, userId)?.clubs || 'none'
-  user.hide_controls = hideControls
-
-  return res.render(`profile/profile-card${isEditable ? '-editable' : ''}.njs`, user)
 }

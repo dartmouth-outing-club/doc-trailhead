@@ -4,6 +4,7 @@ import * as index from './rest/index.js'
 import * as assignments from './rest/assignments.js'
 import * as sqlite from './services/sqlite.js'
 import * as tripView from './views/trip.js'
+import * as profileView from './views/profile.js'
 import * as tripStatusView from './views/trip-status.js'
 import * as vehicleRequestView from './views/vehicle-request.js'
 import * as myTripsView from './views/my-trips.js'
@@ -51,7 +52,6 @@ router.post('/logout', requireAuth, logout)
 // Basic views
 router.enableView('/welcome', 'public')
 router.enableView('/all-trips', 'auth')
-router.enableView('/profile', 'auth')
 router.enableView('/opo/manage-fleet', 'opo')
 router.enableView('/opo/profile-approvals', 'opo')
 router.enableView('/opo/trip-approvals', 'opo')
@@ -60,12 +60,16 @@ router.enableView('/opo/vehicle-requests', 'opo')
 // Somewhat more complicated views
 router.route('/my-trips').get(requireAuth, myTripsView.get)
 router.route('/create-trip').get(requireAuth, requireAnyLeader, tripView.getCreateView)
+
 router.route('/trip/:tripId').get(requireAuth, tripView.getSignupView)
 router.route('/trip/:tripId/edit').get(requireAuth, requireTripLeader, tripView.getEditView)
 router.route('/trip/:tripId/check-out').get(requireAuth, requireTripLeader, tripStatusView.getCheckOutView)
 router.route('/trip/:tripId/check-in').get(requireAuth, requireTripLeader, tripStatusView.getCheckInView)
 router.route('/trip/:tripId/requests').get(requireAuth, requireTripLeader, requestsView.getRequestsView)
 router.route('/trip/:tripId/user/:userId').get(requireAuth, requireTripLeader, tripView.getUserView)
+
+router.route('/profile').get(requireAuth, profileView.getProfileView)
+
 router.route('/vehicle-request/:vehicleRequestId').get(requireAuth, vehicleRequestView.getVehicleRequestView)
 router.route('/leader/trip/:tripId').get(requireAuth, requireTripLeader, tripView.getLeaderView)
 

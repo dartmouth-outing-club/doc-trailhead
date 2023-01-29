@@ -35,9 +35,9 @@ router.delete('/trip/:tripId/signup', tripMembers.leave)
 /**********************
  * User Profile Routes
  **********************/
-router.get('/profile', profile.getProfileView)
+router.get('/profile', profile.getProfileCard)
 router.post('/profile', profile.post)
-router.get('/profile/edit-profile', profile.getProfileEditable)
+router.get('/profile/edit-profile', profile.getProfileCardEditable)
 router.get('/profile/driver-cert', profile.getDriverCertRequest)
 router.post('/profile/driver-cert', profile.postDriverCertRequest)
 router.get('/profile/club-leadership', profile.getClubLeadershipRequest)
