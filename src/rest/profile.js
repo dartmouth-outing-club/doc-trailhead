@@ -9,7 +9,7 @@ export function getUserTripView (req, res) {
 }
 
 export function getProfileEditable (req, res) {
-  return get(req, res, true)
+  return get(req.user, res, true)
 }
 
 export function post (req, res) {
