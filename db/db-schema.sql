@@ -36,7 +36,12 @@ CREATE TABLE users (
   clothe_size TEXT,
   shoe_size TEXT,
   height TEXT,
-  is_opo INTEGER NOT NULL DEFAULT FALSE
+  is_opo INTEGER NOT NULL DEFAULT FALSE,
+  is_profile_complete INTEGER GENERATED ALWAYS AS (
+    id IS NOT NULL AND
+    email IS NOT NULL AND
+    name IS NOT NULL
+  ) VIRTUAL; -- Generated column that determines whether or not a profile is complete
 ) STRICT;
 
 CREATE TABLE user_certs (
