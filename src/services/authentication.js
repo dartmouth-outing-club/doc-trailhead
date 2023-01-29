@@ -25,6 +25,7 @@ function sendToLogin (_req, res, _next) {
   return res.redirect('/welcome')
 }
 
+const SIGNUP_URLS = ['/new-user', '/profile']
 export function requireAuth (req, res, next) {
   const cookies = req.get('cookie')?.split('; ')
 
@@ -39,7 +40,15 @@ export function requireAuth (req, res, next) {
   if (userId) {
     req.user = userId
     // This gets automatically included as a variable for all the templates
-    res.locals.is_opo = sqlite.get('SELECT is_opo FROM users WHERE id = ?', userId).is_opo === 1
+    const userInfo = sqlite.get(`
+      SELECT is_opo, is_profile_complete FROM users WHERE id = ?
+    `, userId)
+
+    if (!userInfo.is_profile_complete && !SIGNUP_URLS.includes(req.url)) {
+      return res.redirect(303, '/new-user')
+    }
+
+    res.locals.is_opo = userInfo.is_opo === 1
     return next()
   }
 

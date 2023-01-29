@@ -77,6 +77,11 @@ export function post (req, res) {
       medical_conditions = @medical_conditions
     WHERE id = @user_id
   `, formData)
+
+  if (formData.new_user === 'true') {
+    return res.redirect(303, '/all-trips')
+  }
+
   return getProfileCard(req, res)
 }
 

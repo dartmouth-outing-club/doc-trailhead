@@ -60,6 +60,7 @@ router.enableView('/opo/vehicle-requests', 'opo')
 // Somewhat more complicated views
 router.route('/my-trips').get(requireAuth, myTripsView.get)
 router.route('/create-trip').get(requireAuth, requireAnyLeader, tripView.getCreateView)
+router.route('/new-user').get(requireAuth, profileView.getNewUserView)
 
 router.route('/trip/:tripId').get(requireAuth, tripView.getSignupView)
 router.route('/trip/:tripId/edit').get(requireAuth, requireTripLeader, tripView.getEditView)

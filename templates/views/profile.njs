@@ -9,8 +9,6 @@
 {% include "common/site-nav.njs" %}
 
 <main>
-<section class="info-card" hx-get="/rest/profile" hx-swap=outerHTML hx-trigger=load>
-</section>
-
+{% include "profile/profile-card.njs" %}
 </main>
 
