@@ -122,6 +122,6 @@ function getLeaderIds (input) {
   const emails = leaders || []
   const ids = emails
     .map(email => sqlite.get('SELECT id FROM users WHERE email = ?', email))
-    .map(item => item.id)
+    .map(item => item?.id)
   return ids
 }
