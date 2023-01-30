@@ -135,18 +135,20 @@ a.top-link:visited {
 
 .site-nav {
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
-  background-image: url('/static/images/nav-background.svg');
   background-size: cover;
-  font-size: 1.2em;
+  background-image: url('/static/images/nav-background.svg');
+  font-size: 20px;
 }
 
 .site-nav ul {
-  margin: 0;
+  align-items: center;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  height: 100%;
   justify-content: flex-end;
   list-style: none;
+  margin: 0;
 }
 
 .site-nav a {
@@ -242,4 +244,11 @@ a.top-link:visited {
   display: flex;
   flex-wrap: wrap;
   margin-top: 10px;
+}
+
+@media screen and (min-width: 800px) {
+  .site-nav {
+    background-size: unset;
+    height: 80px;
+  }
 }

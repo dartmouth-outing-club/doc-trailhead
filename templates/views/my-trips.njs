@@ -15,7 +15,7 @@
 <h1>Your Upcoming Trips</h1>
 </section>
 
-<section class="trips" hx-get="/rest/my-trips" hx-swap=beforeend hx-trigger=load>
+<section class="trips">
   {% if can_create_trip %}
   <a href="/create-trip" class="trip-card new-trip">
     <h2>Create a Trip</h2>
