@@ -11,7 +11,8 @@ export function makeLeader (req, res) {
 
 export function demote (req, res) {
   const { tripId, userId } = req.params
-  if (req.user === userId) return res.sendStatus(400) // TODO error message
+  // You can't demote yourself to a trippee
+  if (req.user === userId) return res.sendStatus(400)
   sqlite.run('UPDATE trip_members SET leader = 0 WHERE trip = ? and user = ?', tripId, userId)
   mailer.sendCoLeaderRemovalNotice(tripId, userId)
   return tripCard.renderLeaderCard(res, tripId, userId)
@@ -26,6 +27,11 @@ export function admit (req, res) {
 
 export function sendToWaitlist (req, res) {
   const { tripId, userId } = req.params
+
+  // Can't send owner to wailist
+  const owner = sqlite.get('SELECT owner FROM trips WHERE id = ?', tripId).owner
+  if (userId === owner) return res.sendStatus(400)
+
   sqlite.run('UPDATE trip_members SET pending = 1 WHERE trip = ? and user = ?', tripId, userId)
   mailer.sendTripRemovalEmail(tripId, userId)
   return tripCard.renderLeaderCard(res, tripId, userId)
@@ -37,6 +43,10 @@ export function reject (req, res) {
     console.warn('Bad request detected', tripId, userId)
     return res.sendStatus(400)
   }
+
+  // Can't remove owner from trip
+  const owner = sqlite.get('SELECT owner FROM trips WHERE id = ?', tripId).owner
+  if (userId === owner) return res.sendStatus(400)
 
   sqlite.run('DELETE FROM trip_members WHERE trip = ? and user = ?', tripId, userId)
   mailer.sendTripTooFullEmail(tripId, userId)
@@ -73,8 +83,12 @@ export function signup (req, res) {
 
 export function leave (req, res) {
   const tripId = req.params.tripId
+  const owner = sqlite.get('SELECT owner FROM trips WHERE id = ?', tripId).owner
 
+  // Can't leave a trip that you own
   if (!tripId) return res.sendStatus(400)
+  if (req.user === owner) return res.sendStatus(400)
+
   const { changes } = sqlite.run('DELETE FROM trip_members WHERE trip = ? and user = ?',
     tripId, req.user)
   if (changes === 0) console.warn(`Unnecessary delete requested for trip ${tripId}`)
