@@ -1,0 +1,109 @@
+.profile-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 5px 5px 20px rgba(0,0,0,.25);
+  margin: 0px auto;
+  max-width: 700px;
+  padding: 0 30px;
+}
+
+.profile-card section {
+  border-bottom: 1px solid gray;
+  padding: 20px;
+}
+
+.profile-card .profile-overview {
+  display: flex;
+  justify-content: center;
+}
+
+.profile-card .profile-photo {
+  background-color: #d6d6d6;
+  border-radius: 50%;
+  height: 112px;
+  margin-right: 50px;
+  width: 112px;
+}
+
+.profile-card .email-row {
+  display: flex;
+  align-items: center;
+}
+
+.profile-card img {
+  margin-right: 10px;
+}
+
+.profile-card dl {
+  display: grid;
+  font-size: 1.2em;
+  margin: 0;
+}
+
+.profile-card dt, .profile-card dd {
+  padding: 5px;
+}
+
+.profile-card dt {
+  font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
+  grid-column: 1;
+}
+
+.profile-card dd {
+  grid-column: 2;
+  text-align: right;
+}
+
+.profile-card input[type=text] {
+  border: 2px solid #c4c4c4;
+  border-radius: 10px;
+  color: #494c50;
+  padding: .5em;
+  font-size: 1.1em;
+}
+
+.profile-card select, .profile-card input[type=number] {
+  border: 2px solid #c4c4c4;
+  border-radius: 10px;
+  background: white;
+  padding: .5em 1em;
+  font-size: 1.1em;
+}
+
+.profile-card input[type=number] {
+  width: 15%;
+  padding: .5em 1em;
+  margin-right: 5px;
+}
+
+.driver-cert-request .checkbox-row {
+  display: flex;
+  font-size: 1.3em;
+  justify-content: center;
+}
+
+.driver-cert-request input[type=checkbox]{
+   border: 1px solid #939393;
+   margin-left: 20px;
+}
+
+.club-leadership-request > * {
+  margin-bottom: 20px;
+}
+
+.club-leadership-request ul {
+  font-size: 1.1em;
+  list-style: none;
+  padding: 0;
+}
+
+.club-leadership-request ul button {
+  background-color: white;
+  border: none;
+  padding: 0;
+}
+
+.club-leadership-request ul img {
+  height: 15px;
+  margin: 0;
+}

@@ -89,10 +89,6 @@ textarea {
   height: 200px;
 }
 
-input:not([type=checkbox]):focus, textarea:focus {
-  outline: 3px solid #0ca074;
-}
-
 @media screen and (min-width: 800px) {
   label {
     display: flex;

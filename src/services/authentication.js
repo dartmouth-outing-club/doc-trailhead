@@ -44,6 +44,10 @@ export function requireAuth (req, res, next) {
       SELECT is_opo, is_profile_complete FROM users WHERE id = ?
     `, userId)
 
+    if (!userInfo) {
+      sessions.invalidateToken(cookieToken)
+      return sendToLogin(req, res, next)
+    }
     if (!userInfo.is_profile_complete && !SIGNUP_URLS.includes(req.url)) {
       return res.redirect(303, '/new-user')
     }
