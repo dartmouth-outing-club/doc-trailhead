@@ -23,7 +23,7 @@
   </a>
   {% endif %}
   {% for trip in trips %}
-  <a href=/trip/{{trip.id}} class=trip-card>
+  <a href="/{%if trip.leader === 1%}leader/{%endif%}trip/{{trip.id}}" class=trip-card>
     <img class=club-logo src="{{trip.iconPath}}">
     <header>Trip #{{ trip.id }}</header>
     <h2>{{ trip.title }}</h2>

@@ -11,14 +11,15 @@ export function get (req, res) {
   const can_create_trip = res.locals.is_opo || is_leader
 
   const tripsForUser = sqlite.all(`
-    SELECT trips.id, title, location, start_time, end_time, description, ifnull(clubs.name, 'None')
-      as club
+    SELECT trips.id, title, location, start_time, end_time, description,
+    ifnull(clubs.name, 'None') as club, leader
     FROM trip_members
     LEFT JOIN trips ON trips.id = trip_members.trip
     LEFT JOIN clubs ON trips.club = clubs.id
     WHERE trip_members.user = ? AND end_time > ?
     ORDER BY start_time ASC
   `, userId, now.getTime())
+  console.log(tripsForUser)
 
   const trips = tripsForUser.map(trip => {
     const title = trip.title.length < 38 ? trip.title : trip.title.substring(0, 38) + '...'

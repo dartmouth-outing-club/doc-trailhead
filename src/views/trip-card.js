@@ -215,13 +215,13 @@ function getSignupData (tripId, userId) {
       cost,
       member_gear_approved,
       group_gear_approved,
-      iif(users.id = trips.owner, 1, 0) as is_owner
+      iif(? = trips.owner, 1, 0) as is_owner
     FROM trips
     LEFT JOIN clubs ON clubs.id = trips.club
     LEFT JOIN users ON users.id = trips.owner
     LEFT JOIN vehiclerequests ON vehiclerequests.trip = trips.id
     WHERE trips.id = ?
-  `, tripId)
+  `, userId, tripId)
 
   const leaderNames = sqlite.get(`
     SELECT group_concat(name, ', ') as names
@@ -262,6 +262,7 @@ export function renderLeaderCard (res, tripId, userId) {
 
 export function renderSignupPage (res, tripId, userId) {
   const trip = getSignupData(tripId, userId)
+  console.log(trip)
   return res.render('views/trip.njs', trip)
 }
 
