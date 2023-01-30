@@ -22,9 +22,6 @@ export function getSignupView (req, res) {
   const tripId = req.params.tripId
   const isValidTrip = sqlite.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
   if (!isValidTrip) return res.render('views/missing-trip.njs')
-
-  // No point in showing trip leaders the "regular" view of their trip
-  if (sqlite.isLeaderForTrip(tripId, req.user)) return res.redirect(`/leader/trip/${tripId}`)
   tripCard.renderSignupPage(res, tripId, req.user)
 }
 

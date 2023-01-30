@@ -8,7 +8,7 @@
 
 <h2>Description</h2>
 <p>{{ description }}</p>
-{% if is_opo %}<a href="/leader/trip/{{ trip_id }}">View trip as OPO staff</a>{% endif %}
+{% if is_opo %}<a href="/leader/trip/{{ trip_id }}">View trip as leader</a>{% endif %}
 
 <h2>Details</h2>
 <div class=dual-table-container>
@@ -58,6 +58,7 @@
           type=button
           hx-delete="/rest/trip/{{ trip_id }}/signup"
           hx-confirm="Are you sure you want to remove yourself from the trip?"
+          {% if is_owner %}disabled{% endif %}
           >Leave Trip</button>
   {% if required_gear.length %}
   <button class="action edit" type=button onclick="enableForm(this)">Edit Gear Request</button>

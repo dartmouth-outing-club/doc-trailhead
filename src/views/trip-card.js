@@ -10,7 +10,7 @@ function getLeaderData (tripId, userId) {
     SELECT
       trips.id as trip_id,
       title,
-      clubs.name as club,
+      ifnull(clubs.name, 'None') as club,
       owner,
       start_time,
       end_time,
@@ -203,7 +203,7 @@ function getSignupData (tripId, userId) {
     SELECT
       trips.id as trip_id,
       title,
-      clubs.name as club,
+      ifnull(clubs.name, 'None') as club,
       start_time,
       end_time,
       pickup,
@@ -214,7 +214,8 @@ function getSignupData (tripId, userId) {
       iif(experience_needed = 0, 'No', 'Yes') as experience_needed,
       cost,
       member_gear_approved,
-      group_gear_approved
+      group_gear_approved,
+      iif(users.id = trips.owner, 1, 0) as is_owner
     FROM trips
     LEFT JOIN clubs ON clubs.id = trips.club
     LEFT JOIN users ON users.id = trips.owner

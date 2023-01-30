@@ -29,7 +29,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 
 <h2>Description</h2>
 <p>{{ description }}</p>
-{% if not is_leader_for_trip %}<a href="/trip/{{ trip_id }}">View trip signup</a>{% endif %}
+<a href="/trip/{{ trip_id }}">View trip signup/request gear</a>
 
 <h2>Details</h2>
 <div class=dual-table-container>
