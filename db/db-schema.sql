@@ -2,7 +2,6 @@ BEGIN;
 
 CREATE TABLE assignments (
   id INTEGER PRIMARY KEY,
-  _id TEXT,
   vehiclerequest INTEGER REFERENCES vehiclerequests ON DELETE CASCADE ON UPDATE CASCADE,
   requester INTEGER REFERENCES users ON DELETE RESTRICT ON UPDATE CASCADE,
   pickup_time INTEGER,
@@ -16,14 +15,12 @@ CREATE TABLE assignments (
 
 CREATE TABLE clubs (
   id INTEGER PRIMARY KEY,
-  _id TEXT,
   name TEXT,
   active INTEGER DEFAULT TRUE
 ) STRICT;
 
 CREATE TABLE users (
   id INTEGER primary key,
-  _id TEXT,
   cas_id TEXT UNIQUE,
   email TEXT UNIQUE,
   password TEXT,
@@ -53,7 +50,6 @@ CREATE TABLE user_certs (
 
 CREATE TABLE vehicles (
   id INTEGER primary key,
-  _id TEXT,
   name TEXT UNIQUE NOT NULL,
   type TEXT NOT NULL,
   active INTEGER DEFAULT TRUE
@@ -61,7 +57,6 @@ CREATE TABLE vehicles (
 
 CREATE TABLE vehiclerequests (
   id INTEGER primary key,
-  _id TEXT,
   requester INTEGER NOT NULL REFERENCES users ON DELETE RESTRICT ON UPDATE CASCADE,
   request_details TEXT,
   mileage INTEGER,
@@ -91,7 +86,6 @@ CREATE TABLE requested_vehicles (
 
 CREATE TABLE trips (
   id INTEGER PRIMARY KEY,
-  _id TEXT,
   title TEXT DEFAULT 'Untitled trip',
   private INTEGER DEFAULT FALSE,
   past INTEGER DEFAULT FALSE,
@@ -125,7 +119,6 @@ CREATE TABLE trip_members (
 
 CREATE TABLE trip_required_gear (
   id INTEGER PRIMARY KEY,
-  _id TEXT,
   trip INTEGER REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
   name TEXT,
   size_type TEXT
