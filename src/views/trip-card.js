@@ -263,7 +263,6 @@ export function renderLeaderCard (res, tripId, userId) {
 
 export function renderSignupPage (res, tripId, userId) {
   const trip = getSignupData(tripId, userId)
-  console.log(trip)
   return res.render('views/trip.njs', trip)
 }
 

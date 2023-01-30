@@ -23,7 +23,6 @@ export function createTrip (req, res) {
   const tripId = info.lastInsertRowid
   const leaders = [trip.owner, ...getLeaderIds(req.body)]
   const values = leaders.map(userId => [tripId, userId, 1, 0])
-  console.log(values)
   sqlite
     .runMany('INSERT INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)', values)
 
@@ -51,7 +50,6 @@ export function editTrip (req, res) {
 
   // Add new leaders
   const leaders = getLeaderIds(req.body)
-  console.log(leaders)
   const values = leaders.map(userId => [tripId, userId, 1, 0])
   sqlite
     .runMany('INSERT INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)', values)
