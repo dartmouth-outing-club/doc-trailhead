@@ -81,7 +81,7 @@ function getLeaderData (tripId, userId) {
     FROM member_gear_requests AS mrg
     LEFT JOIN trip_required_gear AS trg ON trg.id = mrg.gear
     LEFT JOIN users on mrg.user = users.id
-    WHERE mrg.trip = ? and size_type = 'Shoe'
+    WHERE mrg.trip = ? AND size_type = 'Shoe' AND shoe_size IS NOT NULL
     GROUP BY trg.id, shoe_size;
   `, tripId)
 
@@ -90,7 +90,7 @@ function getLeaderData (tripId, userId) {
     FROM member_gear_requests AS mrg
     LEFT JOIN trip_required_gear AS trg ON trg.id = mrg.gear
     LEFT JOIN users on mrg.user = users.id
-    WHERE mrg.trip = ? and size_type = 'Clothe'
+    WHERE mrg.trip = ? AND size_type = 'Clothe' AND clothe_size IS NOT NULL
     GROUP BY trg.id, clothe_size;
   `, tripId)
 
