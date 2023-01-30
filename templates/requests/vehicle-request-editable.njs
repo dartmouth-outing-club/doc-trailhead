@@ -31,10 +31,11 @@
   <form class=vehicle-form hx-put="/rest/trip/{{ trip_id }}/vehiclerequest">
   <h1>Vehicle Requests</h1>
 
-  <label id=notes-label {% if not requested_vehicles %}class="hidden"{% endif %}>
-    Request Notes:
-    <input type=text name=notes value="{{ request_details }}">
-  </label>
+  <label id=notes-label
+         for=notes-input
+         {% if not requested_vehicles %}class="hidden"{% endif %}
+         >Notes:</label>
+  <textarea type=text id=notes-inpit name=notes>{{ request_details }}</textarea>
   {# Copying this from the template above is a bit of a shame but we're on a deadline here #}
   {% for vehicle in requested_vehicles %}
   <fieldset>

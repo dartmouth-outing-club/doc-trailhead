@@ -5,7 +5,8 @@
     <h2>Vehicle Request (#{{ vehiclerequest_id }})</h2>
     {{ vehiclerequest_badge }}
   </div>
-
+  <h3>Request Notes</h3>
+  <p class="user-text">{{ vehiclerequest_details }}
   {% for vehicle in requested_vehicles %}
   <h3>Vehicle #{{ loop.index }}</h3>
   <div class=dual-table-container>

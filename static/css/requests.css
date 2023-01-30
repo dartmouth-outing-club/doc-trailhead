@@ -28,6 +28,14 @@ input, textarea, select {
   padding: 7px;
 }
 
+textarea {
+  box-sizing: border-box;
+  height: 6em;
+  font-size: 1.1em;
+  width: 100%;
+  resize: vertical;
+}
+
 input[type=number] {
   width: 50px;
 }

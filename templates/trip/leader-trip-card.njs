@@ -28,7 +28,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 {% endif %}
 
 <h2>Description</h2>
-<p>{{ description }}</p>
+<p class=user-text>{{ description }}</p>
 <a href="/trip/{{ trip_id }}">View trip signup/request gear</a>
 
 <h2>Details</h2>

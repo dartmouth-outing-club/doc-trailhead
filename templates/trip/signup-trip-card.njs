@@ -7,7 +7,7 @@
 </div>
 
 <h2>Description</h2>
-<p>{{ description }}</p>
+<p class=user-text>{{ description }}</p>
 {% if is_opo %}<a href="/leader/trip/{{ trip_id }}">View trip as leader</a>{% endif %}
 
 <h2>Details</h2>

@@ -25,6 +25,7 @@ function getLeaderData (tripId, userId) {
       cost,
       vehiclerequests.id as vehiclerequest_id,
       vehiclerequests.is_approved as vehiclerequest_is_approved,
+      vehiclerequests.request_details as vehiclerequest_details,
       member_gear_approved,
       group_gear_approved
     FROM trips

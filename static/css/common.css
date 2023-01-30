@@ -37,6 +37,10 @@ h1 {
   font-size: 2em;
 }
 
+p.user-text {
+  white-space: pre-line;
+}
+
 input:not([type=checkbox]):focus, select:focus, textarea:focus {
   outline: 3px solid #0ca074;
 }
