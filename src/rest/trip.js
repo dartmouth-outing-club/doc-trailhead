@@ -1,5 +1,6 @@
 import * as sqlite from '../services/sqlite.js'
 import * as mailer from '../services/mailer.js'
+import { BadRequestError } from '../request/errors.js'
 
 export function createTrip (req, res) {
   if (!canCreateTripForClub(req.user, req.body.club)) {
@@ -8,7 +9,6 @@ export function createTrip (req, res) {
   }
 
   const trip = convertFormInputToDbInput(req.body, req.user)
-  if (!trip) return res.sendStatus(400)
 
   const info = sqlite.run(`
     INSERT INTO trips (
@@ -81,7 +81,12 @@ function canCreateTripForClub (userId, clubId) {
   return false
 }
 
+/** Validate and convert the input to a database-ready function */
 function convertFormInputToDbInput (input, userId) {
+  if (!input.title) throw new BadRequestError('Missing title')
+  if (input.start_time) throw new BadRequestError('Missing start time')
+  if (!input.end_time) throw new BadRequestError('Missing end time')
+
   try {
     const club = input.club > 0 ? input.club : null
     const coleader_can_edit = input.edit_access === 'on' ? 1 : 0
@@ -108,6 +113,7 @@ function convertFormInputToDbInput (input, userId) {
   } catch {
     console.warn('Malformed request to create trip, unable to parse body')
     console.warn(input)
+    throw new BadRequestError('Sorry, that is not a valid trip')
   }
 }
 

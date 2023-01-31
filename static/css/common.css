@@ -133,6 +133,11 @@ a.top-link:visited {
   color: inherit;
 }
 
+.error-message {
+  padding: 20px;
+  background-color: red;
+}
+
 .hidden {
   display: none;
 }

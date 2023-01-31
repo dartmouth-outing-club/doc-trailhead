@@ -85,9 +85,15 @@ if (process.env.NODE_ENV !== 'development' && process.env.SCHEDULER_STATUS !== '
   console.log('Scheduler disabled')
 }
 
-function handleError (err, _req, res, _next) {
-  console.error('Caught trailhead error, sending 500')
-  console.error(err.stack)
-  const message = `Sorry, Trailhead had the following problem processing your request: ${err.message}. Please contact OPO for help.`
-  res.status(500).send(message)
+function handleError (err, req, res, _next) {
+  switch (err.name) {
+    case 'BadRequestError':
+      return res.status(400).send(err.message)
+    default:
+      console.error(`Unexpected error for ${req.url}, sending 500`)
+      console.error(err.stack)
+      console.error(req.body)
+  }
+
+  return res.status(500).send('Sorry, Trailhead experienced an error. Please reach to OPO.')
 }
