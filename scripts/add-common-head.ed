@@ -1,0 +1,11 @@
+1
+i
+{% include "common/site-head.njs" %}
+.
+g/!DOCTYPE html>/d
+g/html lang=en/d
+g/viewport/d
+g/rel="icon"/d
+g/common.css/d
+g/htmx.js/d
+wq
