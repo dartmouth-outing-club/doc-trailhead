@@ -1,10 +1,5 @@
-<!DOCTYPE html>
-<html lang=en>
+{% include "common/site-head.njs" %}
 <title>Calendar - DOC Trailhead</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="/static/icons/doc-icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/static/css/common.css">
-<script src="/htmx/htmx.js"></script>
 <script src='/fullcalendar-scheduler/index.global.min.js'></script>
 
 
