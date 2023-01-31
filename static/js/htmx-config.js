@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (status === 400 || status === 500) {
       // Stops the error from logging in the console
       evt.detail.isError = false
-      console.log(evt)
 
       // Create an error dialog box
       const errorDialog = document.createElement('div')
