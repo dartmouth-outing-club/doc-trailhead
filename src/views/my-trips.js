@@ -19,7 +19,6 @@ export function get (req, res) {
     WHERE trip_members.user = ? AND end_time > ?
     ORDER BY start_time ASC
   `, userId, now.getTime())
-  console.log(tripsForUser)
 
   const trips = tripsForUser.map(trip => {
     const title = trip.title.length < 38 ? trip.title : trip.title.substring(0, 38) + '...'

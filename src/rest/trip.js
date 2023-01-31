@@ -83,9 +83,9 @@ function canCreateTripForClub (userId, clubId) {
 
 /** Validate and convert the input to a database-ready function */
 function convertFormInputToDbInput (input, userId) {
-  if (!input.title) throw new BadRequestError('Missing title')
-  if (input.start_time) throw new BadRequestError('Missing start time')
-  if (!input.end_time) throw new BadRequestError('Missing end time')
+  if (!input.title) throw new BadRequestError('missing title')
+  if (!input.start_time) throw new BadRequestError('missing start time')
+  if (!input.end_time) throw new BadRequestError('missing end time')
 
   try {
     const club = input.club > 0 ? input.club : null

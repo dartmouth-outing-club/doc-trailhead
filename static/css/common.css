@@ -116,12 +116,6 @@ button.demote:hover {
   background-color: #fdf0ed;
 }
 
-/** Must come after the other button hovers so that it takes precendence */
-{
-  background-color: gray;
-  filter: none;
-}
-
 a.top-link {
   color: rgb(3, 55, 36);
   margin: 10px;
@@ -133,9 +127,14 @@ a.top-link:visited {
   color: inherit;
 }
 
+.error-message::before {
+  content: 'Trailhead Error: '
+}
+
 .error-message {
   padding: 20px;
-  background-color: red;
+  background-color: #ee6e52;
+  color: white;
 }
 
 .hidden {
