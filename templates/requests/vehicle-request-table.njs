@@ -15,8 +15,8 @@
     <dt>Details<dd>{{ vehicle.details }}
     <dt>Pickup Time<dd>{{ vehicle.pickup_time }}
     <dt>Return Time<dd>{{ vehicle.return_time }}
-    <dt>WMNF Pass<dd>{{ vehicle.trailer_needed }}
-    <dt>Trailer Hitch<dd>{{ vehicle.pass_needed }}
+    <dt>Trailer Hitch<dd>{{ vehicle.trailer_needed }}
+    <dt>WMNF Pass<dd>{{ vehicle.pass_needed }}
   </dl>
   <dl class=vehicle-table>
   {%if is_opo %}
