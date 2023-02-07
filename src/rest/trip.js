@@ -28,7 +28,11 @@ export function createTrip (req, res) {
 
   const leaderEmails = sqlite.getTripLeaderEmails(tripId)
   mailer.sendNewTripEmail(tripId, trip.title, leaderEmails)
-  res.redirect(`/trip/${tripId}`)
+
+  const redirectUrl = req.body.goto_requests === 'on'
+    ? `/trip/${tripId}/requests`
+    : `/leader/trip/${tripId}`
+  res.redirect(redirectUrl)
 }
 
 export function editTrip (req, res) {

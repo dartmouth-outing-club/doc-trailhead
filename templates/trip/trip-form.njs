@@ -65,6 +65,25 @@
 </ul>
 <label class=block>Description<textarea name=description required>{{ trip.description }}</textarea></label>
 
+
+{% if not trip.id %}
+<h2>Trip Requests</h2>
+<p class="form-info">
+  Check the following box if you want to add vehicles, gear, or a pcard to the trip after creating
+  it. If you choose not to add these now, you can always go back and add them later by clicking
+  "Edit Requests" on the trip's leader page.
+</p>
+
+<label>
+  Add vehicles, gear, or pcard?
+  <input name=goto_requests {% if trip.coleader_can_edit %}checked {% endif %}type=checkbox>
+</label>
+{% endif %}
+
+
+<h2>Finish</h2>
+<p>Nothing on this page is saved until you click the button below.
+<p>
 {% if trip.id %}
 <button class="action approve" type=submit>Submit Changes</button>
 {% else %}
