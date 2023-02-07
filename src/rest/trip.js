@@ -22,9 +22,11 @@ export function createTrip (req, res) {
 
   const tripId = info.lastInsertRowid
   const leaders = [trip.owner, ...getLeaderIds(req.body)]
-  const values = leaders.map(userId => [tripId, userId, 1, 0])
-  sqlite
-    .runMany('INSERT INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)', values)
+  const tripMembers = leaders.map(userId => [tripId, userId, 1, 0])
+  sqlite.runMany(
+    'INSERT OR IGNORE INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)',
+    tripMembers
+  )
 
   const leaderEmails = sqlite.getTripLeaderEmails(tripId)
   mailer.sendNewTripEmail(tripId, trip.title, leaderEmails)
