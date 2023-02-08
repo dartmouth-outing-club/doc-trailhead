@@ -45,6 +45,33 @@ export function all (query, ...params) {
   return db.prepare(query).all(...params).map(escapeProperties)
 }
 
+/**
+ * Wrap final middleware function in a database transaction.
+ *
+ * tl;dr wrap the last function in a middleware chain with this function if you want the database
+ * transaction to rollback when an error is thrown.
+ *
+ * This is a little bit of dark magic, but it's very useful. Basically, the db.transaction API
+ * takes a callback as a parameter and returns a function. When that function (the one returned by
+ * db.transaction) is called, it executes the callback, and everything that happens inside that
+ * callback is wrapped in a database transaction. That means that if the callback throws an
+ * exception, every database change that was executed is rolled back.
+ *
+ * I wrote this to be added manually to various middleware, because the entire application shares a
+ * single connection to the database, and therefore a single transaction. You want to use this
+ * sparingly, primarily for methods like createTrip that execute multiple statements in a row and
+ * failing halfway through would put the database in a weird state.
+ *
+ * Note that because this calls the two-argument middleware (no next()) it can only be used as the
+ * final function. This is useful! You shouldn't be doing database transactions in any other parts
+ * of the chain.
+ */
+export function withTransaction (func) {
+  return (req, res) => {
+    db.transaction(() => func(req, res))()
+  }
+}
+
 // Does not escape propertiers, ergo, do not use for HTML APIs
 export function allUnsafe (query, ...params) {
   return db.prepare(query).all(...params)

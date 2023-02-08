@@ -22,8 +22,12 @@ import * as vehicleRequests from './rest/opo/vehicle-requests.js'
 import * as profileApprovals from './rest/opo/profile-approvals.js'
 import * as gearApprovals from './rest/opo/gear-approvals.js'
 import * as manageFleet from './rest/opo/manage-fleet.js'
+import { withTransaction } from './services/sqlite.js'
 
+// Create router and add transaction-wrapping functions to it
 const router = Router()
+router.postTransaction = (...args) => router.post(...args.slice(0, -1), withTransaction(args.at(-1)))
+router.putTransaction = (...args) => router.put(...args.slice(0, -1), withTransaction(args.at(-1)))
 
 /**********************
  * All-Purpose Routes
@@ -47,7 +51,7 @@ router.delete('/profile/club-leadership/:id', profile.deleteClubLeadershipReques
 /*********************
  * Trip Leader Routes
  *********************/
-router.post('/trip', requireAnyLeader, trip.createTrip)
+router.postTransaction('/trip', requireAnyLeader, trip.createTrip)
 router.put('/trip/:tripId', requireTripLeader, trip.editTrip)
 router.delete('/trip/:tripId', requireTripLeader, trip.deleteTrip)
 
