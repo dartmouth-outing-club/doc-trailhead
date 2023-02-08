@@ -2,7 +2,7 @@
       hx-target=this
       hx-swap=outerHTML>
   <div class=table-status-row>
-    <h2>Vehicle Request (#{{ vehiclerequest_id }})</h2>
+    <h2 id=vehicle-request>Vehicle Request (#{{ vehiclerequest_id }})</h2>
     {{ vehiclerequest_badge }}
   </div>
   <h3>Request Notes</h3>

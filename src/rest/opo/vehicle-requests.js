@@ -8,6 +8,7 @@ function getVehicleRequests (showReviewed) {
     SELECT
       vehiclerequests.id,
       users.name as requester_name,
+      trips.id as trip_id,
       iif(trips.id IS NOT NULL, trips.title, request_details) as reason,
       first_pickup,
       last_return,
@@ -30,7 +31,7 @@ function convertRequestsToTable (trips, showStatus) {
     .map(request => {
       return `
 <tr>
-<td><a href="/vehicle-request/${request.id}">${request.reason}</a>
+<td><a href="/leader/trip/${request.trip_id}#vehicle-request">${request.reason}</a>
 <td>${request.requester_name}
 <td>${utils.getShortTimeElement(request.first_pickup)}
 <td>${utils.getShortTimeElement(request.last_return)}
