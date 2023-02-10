@@ -57,8 +57,10 @@ export function editTrip (req, res) {
   // Add new leaders
   const leaders = getLeaderIds(req.body)
   const values = leaders.map(userId => [tripId, userId, 1, 0])
-  sqlite
-    .runMany('INSERT INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)', values)
+  sqlite.runMany(
+    'INSERT OR IGNORE INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)',
+    values
+  )
 
   res.set('HX-Redirect', `/leader/trip/${tripId}`)
   return res.sendStatus(200)

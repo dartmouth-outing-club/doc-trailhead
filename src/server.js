@@ -90,7 +90,7 @@ function handleError (err, req, res, _next) {
     case 'BadRequestError':
       return res.status(400).send(err.message)
     default:
-      console.error(`Unexpected error for ${req.url}, sending 500`)
+      console.error(`Unexpected error for ${req.method} ${req.url}, sending 500`)
       console.error(err.stack)
       console.error(req.body)
   }
