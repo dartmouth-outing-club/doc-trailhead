@@ -1,4 +1,4 @@
-<section class=info-card hx-target=this hx-swap=outerHTML>
+<section class=info-card>
   <template id=additional-vehicle>
   <fieldset>
     <legend>Vehicle</legend>
@@ -28,7 +28,11 @@
   </fieldset>
   </template>
 
-  <form class=vehicle-form hx-put="/rest/trip/{{ trip_id }}/vehiclerequest">
+  <form class=vehicle-form
+        hx-put="/rest/trip/{{ trip_id }}/vehiclerequest"
+        hx-swap=outerHTML
+        hx-target="find button[type=submit]"
+        >
   <h1>Vehicle Requests</h1>
 
   <label id=notes-label

@@ -16,6 +16,7 @@ import { requireAuth, requireAnyLeader, requireTripLeader, requireOpo, signinCAS
 const router = Router()
 
 // Helper function makes it easy to declare new views
+router.enableRender = (path) => router.get(`/${path}`, (_req, res) => res.render(`${path}.njs`))
 router.enableView = function (path, access) {
   const renderPath = (_req, res) => res.render(`views${path}.njs`)
   switch (access) {
@@ -77,6 +78,9 @@ router.route('/leader/trip/:tripId').get(requireAuth, requireTripLeader, tripVie
 router.route('/opo/calendar').get(requireAuth, requireOpo, (_req, res) => {
   res.render('views/opo/calendar.njs', { LICENSE_KEY: process.env.FULLCALENDAR_LICENSE })
 })
+
+// Some components
+router.enableRender('components/save-button')
 
 // Look, JSON APIs! See, I'm not a zealot
 router.get('/json/calendar', requireAuth, requireOpo, assignments.get)

@@ -1,4 +1,4 @@
-<section class=info-card hx-target=this hx-swap=outerHTML>
+<section class=info-card>
   <h1>P-Card Request</h1>
   {% if not pcard_request %}
   <div id=add-pcard-request class=button-row>
@@ -7,6 +7,8 @@
   {% endif %}
 
   <form class="pcard-form {% if not pcard_request %}hidden{% endif %}"
+        hx-swap=outerHTML
+        hx-target="find button[type=submit]"
         hx-put="/rest/trip/{{ trip_id }}/pcard-request"
         >
 
