@@ -2,13 +2,13 @@ import * as sqlite from '../services/sqlite.js'
 
 export function renderAttendanceTable (res, tripId) {
   const data = getAttendanceData(tripId)
-  res.render('trip/attendance-table.njs', data)
+  res.render('trip/attendance-table.njk', data)
 }
 
 export function getCheckOutView (req, res) {
   const data = getAttendanceData(req.params.tripId)
   console.log(data)
-  res.render('views/trip-check-out.njs', data)
+  res.render('views/trip-check-out.njk', data)
 }
 
 export function getCheckInView (req, res) {
@@ -22,7 +22,7 @@ export function getCheckInView (req, res) {
     FROM trips
     WHERE id = ?
   `, tripId)
-  res.render('views/trip-check-in.njs', trip)
+  res.render('views/trip-check-in.njk', trip)
 }
 
 function getAttendanceData (tripId) {

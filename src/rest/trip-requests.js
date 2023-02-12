@@ -35,7 +35,7 @@ export function putVehicleRequest (req, res) {
     VALUES (@vehiclerequest, @type, @pickup_time, @return_time, @trailer_needed, @pass_needed)
   `, vehicles)
 
-  res.render('components/save-complete-button.njs')
+  res.render('components/save-complete-button.njk')
 }
 
 export function putIndividualGear (req, res) {
@@ -101,7 +101,7 @@ export function putPcardRequest (req, res) {
     INSERT INTO trip_pcard_requests (trip, num_people, snacks, breakfast, lunch, dinner)
     VALUES (?, ?, ?, ?, ?, ?)
   `, tripId, people, snacks, breakfast, lunch, dinner)
-  res.render('components/save-complete-button.njs')
+  res.render('components/save-complete-button.njk')
 }
 
 export function deletePcardRequest (req, res) {

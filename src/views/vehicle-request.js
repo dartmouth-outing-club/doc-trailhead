@@ -3,12 +3,12 @@ import * as utils from '../utils.js'
 
 export function renderVehicleRequestTable (res, vehicleRequestId) {
   const data = getVehicleRequestData(vehicleRequestId)
-  res.render('requests/vehicle-request-table.njs', { ...data })
+  res.render('requests/vehicle-request-table.njk', { ...data })
 }
 
 export function getVehicleRequestView (req, res) {
   const data = getVehicleRequestData(req.params.vehicleRequestId)
-  res.render('views/vehicle-request.njs', { ...data })
+  res.render('views/vehicle-request.njk', { ...data })
 }
 
 export function getVehicleRequestData (vehicleRequestId) {

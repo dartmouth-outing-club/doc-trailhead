@@ -12,4 +12,4 @@ if [[ ! -f "$scriptname" ]]; then
   exit 1
 fi
 
-find ./templates/views -name '*.njs' -exec sh -c "ed {} < $scriptname" \;
+find ./templates/views -name '*.njk' -exec sh -c "ed {} < $scriptname" \;

@@ -8,7 +8,7 @@ I'm a big fan of using `ed` to batch edit files. Unlike `sed`, it's actually mea
 clunky from the command-line though. Here's how I did it recently:
 
 ```
-find ./templates/views -name '*.njs' -exec sh -c 'ed {} < ./scripts/add-link.ed' \;
+find ./templates/views -name '*.njk' -exec sh -c 'ed {} < ./scripts/add-link.ed' \;
 ```
 
 `find` finds all the files that match the specified pattern, and the `exec` option runs `ed

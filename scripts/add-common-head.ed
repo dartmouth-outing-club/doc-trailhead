@@ -1,6 +1,6 @@
 1
 i
-{% include "common/site-head.njs" %}
+{% include "common/site-head.njk" %}
 .
 g/!DOCTYPE html>/d
 g/html lang=en/d

@@ -1,8 +1,8 @@
-{% include "common/site-head.njs" %}
+{% include "common/site-head.njk" %}
 <title>{{ user_name }} - DOC Trailhead</title>
 <link rel="stylesheet" href="/static/css/profile.css">
 
-{% include "common/site-nav.njs" %}
+{% include "common/site-nav.njk" %}
 
 <main>
 <section class="info-card" hx-get="/rest/trip/{{trip_id}}/user/{{user_id}}" hx-swap=outerHTML hx-trigger=load>

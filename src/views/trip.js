@@ -21,14 +21,14 @@ function getClubs (userId, isOpo) {
 export function getSignupView (req, res) {
   const tripId = req.params.tripId
   const isValidTrip = sqlite.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
-  if (!isValidTrip) return res.render('views/missing-trip.njs')
+  if (!isValidTrip) return res.render('views/missing-trip.njk')
   tripCard.renderSignupPage(res, tripId, req.user)
 }
 
 export function getLeaderView (req, res) {
   const tripId = req.params.tripId
   const isValidTrip = sqlite.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
-  if (!isValidTrip) return res.render('views/missing-trip.njs')
+  if (!isValidTrip) return res.render('views/missing-trip.njk')
 
   // Leader view is available only if the user is the leader of that trip or on OPO
   const is_opo = sqlite.isOpo(req.user)
@@ -42,7 +42,7 @@ export function getCreateView (req, res) {
   const emails = sqlite.all('SELECT id, email FROM users WHERE email IS NOT NULL')
   const clubs = getClubs(req.user, res.locals.is_opo)
   const today = utils.getDatetimeValueForNow()
-  res.render('views/create-trip.njs', { clubs, emails, today })
+  res.render('views/create-trip.njk', { clubs, emails, today })
 }
 
 export function getEditView (req, res) {
@@ -68,11 +68,11 @@ export function getEditView (req, res) {
 
   trip.start_time = utils.getDatetimeValueForUnixTime(trip.start_time)
   trip.end_time = utils.getDatetimeValueForUnixTime(trip.end_time)
-  res.render('views/edit-trip.njs', { clubs, emails, trip })
+  res.render('views/edit-trip.njk', { clubs, emails, trip })
 }
 
 export function getUserView (req, res) {
   const { tripId, userId } = req.params
   const user = sqlite.get('SELECT name FROM users WHERE id = ?', userId)
-  return res.render('views/user.njs', { user_id: userId, trip_id: tripId, user_name: user.name })
+  return res.render('views/user.njk', { user_id: userId, trip_id: tripId, user_name: user.name })
 }

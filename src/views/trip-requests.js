@@ -3,22 +3,22 @@ import * as utils from '../utils.js'
 
 export function renderVehicleRequestCard (tripId, res) {
   const data = getVehicleRequestData(tripId)
-  res.render('requests/vehicle-request-editable.njs', { ...data })
+  res.render('requests/vehicle-request-editable.njk', { ...data })
 }
 
 export function renderIndividualGearCard (tripId, res) {
   const data = getIndividualGearData(tripId)
-  res.render('requests/individual-gear.njs', { ...data })
+  res.render('requests/individual-gear.njk', { ...data })
 }
 
 export function renderGroupGearCard (tripId, res) {
   const data = getGroupGearData(tripId)
-  res.render('requests/group-gear.njs', { ...data })
+  res.render('requests/group-gear.njk', { ...data })
 }
 
 export function renderPcardCard (tripId, res) {
   const data = getPcardData(tripId)
-  res.render('requests/pcard-request.njs', { ...data })
+  res.render('requests/pcard-request.njk', { ...data })
 }
 
 export function getRequestsView (req, res) {
@@ -38,7 +38,7 @@ export function getRequestsView (req, res) {
   const individualGearData = statuses.member_gear_approved ? { individual_gear_locked: true } : getIndividualGearData(tripId)
   const groupGearData = statuses.group_gear_approved ? { group_gear_locked: true } : getGroupGearData(tripId)
   const pcardData = statuses.pcard_approved ? { pcard_locked: true } : getPcardData(tripId)
-  res.render('views/trip-requests.njs', {
+  res.render('views/trip-requests.njk', {
     trip_id: tripId,
     ...vehicleData,
     ...individualGearData,

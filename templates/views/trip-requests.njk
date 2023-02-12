@@ -1,8 +1,8 @@
-{% include "common/site-head.njs" %}
+{% include "common/site-head.njk" %}
 <title>Trip Requests - DOC Trailhead</title>
 <link rel="stylesheet" href="/static/css/requests.css">
 
-{% include "common/site-nav.njs" %}
+{% include "common/site-nav.njk" %}
 <main>
 <a href="/leader/trip/{{trip_id}}" class=top-link>Back to trip #{{trip_id}}</a>
 
@@ -12,7 +12,7 @@
     <p>Cannot edit vehicle request after OPO has reviewed it.
   </section>
 {% else %}
-  {% include "requests/vehicle-request-editable.njs" %}
+  {% include "requests/vehicle-request-editable.njk" %}
 {% endif %}
 
 {% if individual_gear_locked %}
@@ -21,7 +21,7 @@
     <p>Cannot edit individual gear request after OPO has reviewed it.
   </section>
 {% else %}
-  {% include "requests/individual-gear.njs" %}
+  {% include "requests/individual-gear.njk" %}
 {% endif %}
 
 {% if group_gear_locked %}
@@ -30,7 +30,7 @@
     <p>Cannot edit group gear request after OPO has reviewed it.
   </section>
 {% else %}
-  {% include "requests/group-gear.njs" %}
+  {% include "requests/group-gear.njk" %}
 {% endif %}
 
 {% if pcard_locked %}
@@ -39,7 +39,7 @@
     <p>Cannot edit P-Card gear request after OPO has reviewed it.
   </section>
 {% else %}
-  {% include "requests/pcard-request.njs" %}
+  {% include "requests/pcard-request.njk" %}
 {% endif %}
 
 

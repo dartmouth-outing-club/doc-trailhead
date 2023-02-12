@@ -34,5 +34,5 @@ export function get (req, res) {
       end_time: utils.getShortTimeElement(trip.end_time)
     }
   })
-  res.render('views/my-trips.njs', { can_create_trip, trips })
+  res.render('views/my-trips.njk', { can_create_trip, trips })
 }

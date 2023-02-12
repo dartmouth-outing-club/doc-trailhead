@@ -16,9 +16,9 @@ import { requireAuth, requireAnyLeader, requireTripLeader, requireOpo, signinCAS
 const router = Router()
 
 // Helper function makes it easy to declare new views
-router.enableRender = (path) => router.get(`/${path}`, (_req, res) => res.render(`${path}.njs`))
+router.enableRender = (path) => router.get(`/${path}`, (_req, res) => res.render(`${path}.njk`))
 router.enableView = function (path, access) {
-  const renderPath = (_req, res) => res.render(`views${path}.njs`)
+  const renderPath = (_req, res) => res.render(`views${path}.njk`)
   switch (access) {
     case 'public':
       this.route(path).get(renderPath)
@@ -76,7 +76,7 @@ router.route('/vehicle-request/:vehicleRequestId').get(requireAuth, vehicleReque
 router.route('/leader/trip/:tripId').get(requireAuth, requireTripLeader, tripView.getLeaderView)
 
 router.route('/opo/calendar').get(requireAuth, requireOpo, (_req, res) => {
-  res.render('views/opo/calendar.njs', { LICENSE_KEY: process.env.FULLCALENDAR_LICENSE })
+  res.render('views/opo/calendar.njk', { LICENSE_KEY: process.env.FULLCALENDAR_LICENSE })
 })
 
 // Some components

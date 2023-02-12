@@ -14,7 +14,7 @@ export function getUserTripView (req, res) {
 
 function get (userId, res, isEditable, hideControls) {
   const data = getProfileData(userId, hideControls)
-  return res.render(`profile/profile-card${isEditable ? '-editable' : ''}.njs`, data)
+  return res.render(`profile/profile-card${isEditable ? '-editable' : ''}.njk`, data)
 }
 
 export function getProfileData (userId, hideControls) {

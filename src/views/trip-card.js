@@ -253,20 +253,20 @@ function getSignupData (tripId, userId) {
 
 export function renderSignupCard (res, tripId, userId) {
   const trip = getSignupData(tripId, userId)
-  return res.render('trip/signup-trip-card.njs', trip)
+  return res.render('trip/signup-trip-card.njk', trip)
 }
 
 export function renderLeaderCard (res, tripId, userId) {
   const trip = getLeaderData(tripId, userId)
-  return res.render('trip/leader-trip-card.njs', trip)
+  return res.render('trip/leader-trip-card.njk', trip)
 }
 
 export function renderSignupPage (res, tripId, userId) {
   const trip = getSignupData(tripId, userId)
-  return res.render('views/trip.njs', trip)
+  return res.render('views/trip.njk', trip)
 }
 
 export function renderLeaderPage (res, tripId, userId) {
   const trip = getLeaderData(tripId, userId)
-  return res.render('views/leader-trip.njs', trip)
+  return res.render('views/leader-trip.njk', trip)
 }
