@@ -52,6 +52,12 @@ medical records, SSNs, etc) but is nonetheless something we should endeavor to p
    features!
 
 # Migration Results
+The website is now insanely fast. Most pages load in 25-30 ms.
+
+The website now has a usable mobile view (though some improvements still very much necessary). This
+is the result of a vastly simpler HTML and CSS, with as little nesting as possible. The CSS schema
+is written mobile-first, with media queries at the bottom that are specific to desktop.
+
 Removed around 15k lines of source code:
 
 ```
