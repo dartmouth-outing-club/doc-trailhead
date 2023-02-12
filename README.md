@@ -11,6 +11,7 @@ Soon, I will add some scripts that initialize with the database with basic info 
 
 Development commands:
 * `npm i` - install dependencies
+* `npm t` - run tests
 * `npm run dev` - run in development mode
 * `npm start` - run in production mode (requires `.env` file)
 * `npm run init-db` - create a clean version of the database
@@ -40,6 +41,7 @@ familiar with parts of it:
 
 ### Docs
 * [better-sqlite3 API](https://github.com/WiseLibs/better-sqlite3/blob/master/docs/api.md)
+* [HTMX Reference](https://htmx.org/reference/)
 * [Quirks, Caveats, and Gotchas In SQLite](https://www.sqlite.org/quirks.html)
 
 ### Blogs

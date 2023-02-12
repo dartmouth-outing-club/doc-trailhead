@@ -8,7 +8,8 @@
     "format": "eslint src --fix",
     "lint": "eslint src",
     "init-db": "cat ./db/db-schema.sql | sqlite3 trailhead.db",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "node --test"
   },
   "license": "ISC",
   "engines": {
