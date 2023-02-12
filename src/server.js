@@ -41,7 +41,7 @@ app.use(handleError)
 
 // Open database connections
 db.start('trailhead.db')
-sessions.start()
+sessions.start('sessions.db')
 process.on('exit', () => {
   db.stop()
   sessions.stop()

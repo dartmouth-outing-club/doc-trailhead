@@ -3,10 +3,10 @@ import Database from 'better-sqlite3'
 
 let db
 
-export function start () {
+export function start (name) {
   if (db !== undefined) throw new Error('ERROR: tried to start sqlite db that was already running')
 
-  const dbName = 'sessions.db'
+  const dbName = name || ':memory:'
   try {
     db = new Database(dbName, { fileMustExist: true })
   } catch (err) {
