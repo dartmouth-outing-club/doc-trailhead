@@ -7,7 +7,7 @@
     "dev": "NODE_ENV=development nodemon -e js,njs --watch src --watch templates src/server.js",
     "format": "eslint src --fix",
     "lint": "eslint src",
-    "init-db": "cat ./db/db-schema.sql | sqlite3 trailhead.db",
+    "init-db": "./db/init-db.sh -fs",
     "start": "node src/server.js",
     "test": "node --test"
   },

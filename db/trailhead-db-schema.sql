@@ -38,7 +38,7 @@ CREATE TABLE users (
     id IS NOT NULL AND
     email IS NOT NULL AND
     name IS NOT NULL
-  ) VIRTUAL; -- Generated column that determines whether or not a profile is complete
+  ) VIRTUAL -- Generated column that determines whether or not a profile is complete
 ) STRICT;
 
 CREATE TABLE user_certs (
