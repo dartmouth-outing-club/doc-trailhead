@@ -1,5 +1,4 @@
 import express from 'express'
-import cors from 'cors'
 import cron from 'node-cron'
 import morgan from 'morgan'
 import nunjucks from 'nunjucks'
@@ -16,8 +15,6 @@ import { requireAuth } from './services/authentication.js'
 process.env.TZ = 'America/New_York'
 
 const app = express()
-
-app.use(cors())
 
 // enable/disable http request logging
 app.use(morgan('dev'))
