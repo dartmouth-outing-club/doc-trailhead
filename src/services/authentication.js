@@ -125,6 +125,22 @@ export function logout (req, res) {
   return sendToLogin(req, res)
 }
 
+/**
+ * Log the user in as user #1.
+ *
+ * This function is intended only to be used when the application is in development mode. It sets
+ * the browser to use the 'devtoken' cookie, and saves that cookie to log the user in as user #1.
+ */
+export function devLogin (_req, res) {
+  if (process.env.NODE_ENV !== 'development') {
+    console.error('The dev login route was accessed, which should only be possible in dev mode.')
+    return res.sendStatus(404)
+  }
+  sessions.setTokenUnsafe(1, 'devtoken')
+  res.cookie('token', 'devtoken', { secure: true, sameSite: 'Lax' })
+  return res.redirect('/')
+}
+
 const casOptions = {
   ssoBaseURL: 'https://login.dartmouth.edu/cas',
   serverBaseURL: `${constants.backendURL}/signin-cas`

@@ -74,3 +74,14 @@ export function invalidateUserToken (userId) {
 export function invalidateToken (token) {
   db.prepare('DELETE FROM tokens WHERE token = ?').run(token)
 }
+
+/**
+ * Set a specific token for a specific user.
+ *
+ * Designated unsafe because there is no reason that you should use this in the normal course of
+ * operation. It is is intended only for the developer route.
+ */
+export function setTokenUnsafe (userId, token) {
+  db.prepare('INSERT OR REPLACE INTO tokens (user, token) VALUES (? ,?)')
+    .run(userId, token)
+}

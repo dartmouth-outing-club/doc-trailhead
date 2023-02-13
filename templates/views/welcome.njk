@@ -11,6 +11,9 @@ Come and find some upcoming hikes to Balch Hill or visits to the Norwich farmer'
 Trailhead you can browse trips, sort by date, activity, or required experience, and create and
 publish your own trips as a leader. See you in the out o’ doors!
 <form action="/signin-cas"><button>Enter Trailhead via SSO</button></form>
+{% if NODE_ENV === 'development' %}
+<form method=POST action="/dev-login"><button>Login as developer</button></form>
+{% endif %}
 </div>
 </section>
 

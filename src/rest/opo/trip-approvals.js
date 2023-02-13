@@ -72,13 +72,13 @@ export function get (req, res) {
   }
 
   const rows = convertTripsToTable(trips)
+  let html = rows.join('')
 
   // Show a little notice if the table is empty
   if (rows.length === 0) {
     const selector = showPast ? '.past table' : '.pending table'
-    return `<div hx-swap-oob="outerHTML:${selector}"><div class=notice>All set for now</div></div>`
+    html = `<div hx-swap-oob="outerHTML:${selector}"><div class=notice>All set for now</div></div>`
   }
 
-  const html = rows.join('')
   res.send(html).status(200)
 }

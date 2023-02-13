@@ -4,10 +4,12 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon -e js,njs --watch src --watch templates src/server.js",
+    "dev": "NODE_ENV=development nodemon -e js,njk --watch src --watch templates src/server.js",
     "format": "eslint src --fix",
     "lint": "eslint src",
     "init-db": "./db/init-db.sh -fs",
+    "set-admin": "./scripts/set-user.sh 1",
+    "set-leader": "./scripts/set-user.sh 2",
     "start": "node src/server.js",
     "test": "node --test"
   },

@@ -11,7 +11,8 @@ import * as myTripsView from './views/my-trips.js'
 import * as requestsView from './views/trip-requests.js'
 
 import signS3 from './services/s3.js'
-import { requireAuth, requireAnyLeader, requireTripLeader, requireOpo, signinCAS, logout } from './services/authentication.js'
+import * as authentication from './services/authentication.js'
+const { requireAuth, requireAnyLeader, requireTripLeader, requireOpo } = authentication
 
 const router = Router()
 
@@ -47,8 +48,8 @@ router.get('/', requireAuth, (req, res) => {
 
 router.get('/public-trips', index.get)
 
-router.get('/signin-cas', signinCAS)
-router.post('/logout', requireAuth, logout)
+router.get('/signin-cas', authentication.signinCAS)
+router.post('/logout', requireAuth, authentication.logout)
 
 // Basic views
 router.enableView('/welcome', 'public')
@@ -84,5 +85,10 @@ router.enableRender('components/save-button')
 
 // Look, JSON APIs! See, I'm not a zealot
 router.get('/json/calendar', requireAuth, requireOpo, assignments.get)
+
+// Developer routes
+if (process.env.NODE_ENV === 'development') {
+  router.post('/dev-login', authentication.devLogin)
+}
 
 export default router

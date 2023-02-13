@@ -1,6 +1,6 @@
 CREATE TABLE tokens (
   user INTEGER NOT NULL UNIQUE,
   token TEXT NOT NULL UNIQUE,
-  timestamp INTEGER NOT NULL
+  timestamp INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
 ) STRICT;
 

@@ -25,10 +25,12 @@ app.use('/htmx', express.static('node_modules/htmx.org/dist'))
 app.use('/fullcalendar-scheduler', express.static('node_modules/fullcalendar-scheduler'))
 app.use(bodyParser.urlencoded({ extended: true }))
 
-nunjucks.configure('templates', {
-  autoescape: false, // The SQLite rest methods already escape results
-  express: app
-})
+nunjucks
+  .configure('templates', {
+    autoescape: false, // The SQLite rest methods already escape results
+    express: app
+  })
+  .addGlobal('NODE_ENV', process.env.NODE_ENV)
 
 app.set('views', '/templates/views')
 
