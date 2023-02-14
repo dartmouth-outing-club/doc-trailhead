@@ -3,6 +3,7 @@ import * as utils from '../utils.js'
 
 export function get (req, res) {
   const userId = req.user
+  const _48_HOURS_IN_MS = 172800000
   const now = new Date()
 
   const is_leader = sqlite.get(`
@@ -18,7 +19,7 @@ export function get (req, res) {
     LEFT JOIN clubs ON trips.club = clubs.id
     WHERE trip_members.user = ? AND end_time > ?
     ORDER BY start_time ASC
-  `, userId, now.getTime())
+  `, userId, now.getTime() + _48_HOURS_IN_MS)
 
   const trips = tripsForUser.map(trip => {
     const title = trip.title.length < 38 ? trip.title : trip.title.substring(0, 38) + '...'
