@@ -2,21 +2,22 @@
 This is the DOC Trailhead web application!
 
 ## Quick Start
-To get started developing, run `npm run i` to install the dependencies and `npm run init-db` to create
-the `trailhead.db` file. Then, you can run the server with `npm dun dev` and visit it by navigating
-your browser to `localhost:8080`.
-
-At this point you will get stuck, because I download the production database to work on Trailhead.
-This is issue #52 if you want to take it on.
+To get started developing, run `npm run i` to install the dependencies and `npm run init-db` to
+create the `trailhead.db` file. Then, you can run the server with `npm dun dev` and visit it by
+navigating your browser to `localhost:8080`.
 
 Development commands:
 * `npm i` - install dependencies
 * `npm t` - run tests
 * `npm run dev` - run in development mode
 * `npm start` - run in production mode (requires `.env` file)
-* `npm run init-db` - create a clean version of the database
+* `npm run init-db` - create a clean version of the database, with a little bit of seed data
 * `npm run lint` - run the linter
 * `npm run format` - run the linter in `--fix` mode (might alter the code)
+
+Database commands
+* `npm run set-admin` - if using the prebuilt database, this will log the user in as an admin
+* `npm run set-leader` - if using the prebuilt database, this will log the user in as trip leader
 
 ## Architecture
 Trailhead is a NodeJS application. It uses SQLite as a datastore, Express to define routes, Nunjucks
