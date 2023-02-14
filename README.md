@@ -31,8 +31,7 @@ for the application:
 * It can be run and tested without any other install besides `npm run i`. This substantially
   improves development speed and simplicity.
 * Since database requests do not have to make a network hop, it basically removes the performance
-  penalty for executing multiple small SQL queries (sometimes called the "[n+1 problem]
-  (https://www.sqlite.org/np1queryprob.html)"). This lets you write more intelligible SQL commands,
+  penalty for executing multiple small SQL queries (sometimes called the "[n+1 problem](https://www.sqlite.org/np1queryprob.html)"). This lets you write more intelligible SQL commands,
   mixed with a little bit of JS. In practice, I use a bunch of small queries and a few medium-sized
   ones.
 
