@@ -79,7 +79,7 @@
   <div class=button-row>
     <button class="action deny" type=button hx-put="/rest/opo/vehiclerequest/{{ vehiclerequest_id }}/deny">Deny</button>
     {% if vehiclerequest_is_approved !== null %}
-    <button class="action edit" type=button hx-put="/rest/opo/vehiclerequest/{{ vehiclerequest_id }}/reset">Un-approve</button>
+    <button class="action edit" type=button hx-put="/rest/opo/vehiclerequest/{{ vehiclerequest_id }}/reset">Reset</button>
     {% else %}
     <button class="action approve" type=submit>Assign Vehicles</button>
     {% endif %}
