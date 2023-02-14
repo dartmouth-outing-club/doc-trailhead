@@ -17,7 +17,6 @@ import * as trip from './rest/trip.js'
 import * as tripMembers from './rest/trip-members.js'
 import * as tripRequests from './rest/trip-requests.js'
 import * as tripStatus from './rest/trip-status.js'
-import * as tripApprovals from './rest/opo/trip-approvals.js'
 import * as vehicleRequests from './rest/opo/vehicle-requests.js'
 import * as profileApprovals from './rest/opo/profile-approvals.js'
 import * as gearApprovals from './rest/opo/gear-approvals.js'
@@ -80,7 +79,6 @@ router.delete('/trip/:tripId/present/:memberId', requireTripLeader, tripStatus.m
 /*************
  * OPO Routes
  *************/
-router.get('/opo/trip-approvals', requireOpo, tripApprovals.get)
 router.get('/opo/vehicle-requests', requireOpo, vehicleRequests.get)
 
 router.get('/opo/profile-approvals/leaders', requireOpo, profileApprovals.getLeadershipRequests)

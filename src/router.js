@@ -9,6 +9,7 @@ import * as tripStatusView from './views/trip-status.js'
 import * as vehicleRequestView from './views/vehicle-request.js'
 import * as myTripsView from './views/my-trips.js'
 import * as requestsView from './views/trip-requests.js'
+import * as tripApprovalsView from './views/trip-approvals.js'
 
 import signS3 from './services/s3.js'
 import * as authentication from './services/authentication.js'
@@ -56,13 +57,13 @@ router.enableView('/welcome', 'public')
 router.enableView('/all-trips', 'auth')
 router.enableView('/opo/manage-fleet', 'opo')
 router.enableView('/opo/profile-approvals', 'opo')
-router.enableView('/opo/trip-approvals', 'opo')
 router.enableView('/opo/vehicle-requests', 'opo')
 
 // Somewhat more complicated views
 router.route('/my-trips').get(requireAuth, myTripsView.get)
 router.route('/create-trip').get(requireAuth, requireAnyLeader, tripView.getCreateView)
 router.route('/new-user').get(requireAuth, profileView.getNewUserView)
+router.route('/opo/trip-approvals').get(requireAuth, requireOpo, tripApprovalsView.get)
 
 router.route('/trip/:tripId').get(requireAuth, tripView.getSignupView)
 router.route('/trip/:tripId/edit').get(requireAuth, requireTripLeader, tripView.getEditView)

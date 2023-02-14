@@ -9,34 +9,55 @@
 
 <section class="pending info-card">
 <h1>Pending Trips</h1>
+{% if future_trips.length === 0 %}
+<div class=notice>All set for now</div>
+{% else %}
 <table class=trip-table>
-<thead><tr>
-  <th>Trip</th>
-  <th>Start Time</th>
-  <th>Subclub</th>
-  <th>Owner</th>
-  <th>Group Gear</th>
-  <th>Vehicles</th>
-  <th>P-Card</th>
-</tr></thead>
-<tbody hx-get="/rest/opo/trip-approvals" hx-trigger="load" hx-swap="innerHTML">
+  <thead>
+    <tr><th>Trip<th>Start Time<th>Subclub<th>Owner<th>Group Gear<th>Vehicles<th>P-Card</tr>
+  </thead>
+  <tbody>
+  {% for trip in future_trips %}
+    <tr>
+    <td><a href="/leader/trip/{{trip.id}}">{{trip.title}}</a>
+    <td>{{trip.start_time_element}}
+    <td>{{trip.club}}
+    <td>{{trip.owner}}
+    <td>{{trip.gg_status_element}}
+    <td>{{trip.vr_status_element}}
+    <td>{{trip.pc_status_element}}
+    </tr>
+  {% endfor %}
+  </tbody>
 </table>
+{% endif %}
+
 </section>
 
 <section class="past info-card">
 <h1>Reviewed & Past Trips</h1>
+{% if future_trips.length === 0 %}
+<div class=notice>All set for now</div>
+{% else %}
 <table class=trip-table>
-<thead><tr>
-  <th>Trip</th>
-  <th>Start Time</th>
-  <th>Subclub</th>
-  <th>Owner</th>
-  <th>Group Gear</th>
-  <th>Vehicles</th>
-  <th>P-Card</th>
-</tr></thead>
-<tbody hx-get="/rest/opo/trip-approvals?show_past=true" hx-trigger="load" hx-swap="innerHTML">
+  <thead>
+    <tr><th>Trip<th>Start Time<th>Subclub<th>Owner<th>Group Gear<th>Vehicles<th>P-Card</tr>
+  </thead>
+  <tbody>
+  {% for trip in past_trips %}
+    <tr>
+    <td><a href="/leader/trip/{{trip.id}}">{{trip.title}}</a>
+    <td>{{trip.start_time_element}}
+    <td>{{trip.club}}
+    <td>{{trip.owner}}
+    <td>{{trip.gg_status_element}}
+    <td>{{trip.vr_status_element}}
+    <td>{{trip.pc_status_element}}
+    </tr>
+  {% endfor %}
+  <tbody>
 </table>
+{% endif %}
 </section>
 
 </main>
