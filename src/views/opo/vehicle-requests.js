@@ -4,8 +4,9 @@ import { getBadgeImgElement } from '../../utils.js'
 
 export function get (_req, res) {
   const requests = getVehicleRequests().map(getRowData)
-  const reviewed_requests = requests.filter(request => request.is_pending === 0)
-  const pending_requests = requests.filter(request => request.is_pending === 1)
+  console.log(requests)
+  const reviewed_requests = requests.filter(request => request.status !== 'pending')
+  const pending_requests = requests.filter(request => request.status === 'pending')
   res.render('views/opo/vehicle-requests.njk', { reviewed_requests, pending_requests })
 }
 
@@ -19,7 +20,6 @@ function getVehicleRequests () {
       iif(trips.id IS NOT NULL, trips.title, request_details) as reason,
       first_pickup,
       last_return,
-      iif(is_approved IS NULL, 1, 0) as is_pending,
       iif(is_approved IS NULL, 'pending', iif(is_approved = 1, 'approved', 'denied')) as status
     FROM vehiclerequests
     LEFT JOIN (
@@ -36,9 +36,7 @@ function getVehicleRequests () {
 
 function getRowData (request) {
   return {
-    reason: request.reason,
-    requester_name: request.requester_name,
-    is_pending: request.is_pending,
+    ...request,
     pickup_time_element: utils.getShortTimeElement(request.first_pickup),
     return_time_element: utils.getShortTimeElement(request.last_return),
     status_element: getBadgeImgElement(request.status)

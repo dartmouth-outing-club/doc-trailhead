@@ -17,7 +17,7 @@
 <tbody>
   {% for request in pending_requests %}
   <tr>
-  <td><a href="/leader/trip/${request.trip_id}#vehicle-request">{{request.reason}}</a>
+  <td><a href="/leader/trip/{{request.trip_id}}#vehicle-request">{{request.reason}}</a>
   <td>{{request.requester_name}}
   <td>{{request.pickup_time_element}}
   <td>{{request.return_time_element}}
@@ -35,12 +35,13 @@
 <table class=trip-table>
 <thead><tr><th>Title<th>Requester<th>Pickup<th>Return<th>Status
 <tbody>
-  {% for request in pending_requests %}
+  {% for request in reviewed_requests %}
   <tr>
-  <td><a href="/leader/trip/${request.trip_id}#vehicle-request">{{request.reason}}</a>
+  <td><a href="/leader/trip/{{request.trip_id}}#vehicle-request">{{request.reason}}</a>
   <td>{{request.requester_name}}
   <td>{{request.pickup_time_element}}
   <td>{{request.return_time_element}}
+  <td>{{request.status_element}}
   </tr>
   {% endfor %}
 </tr>
