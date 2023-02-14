@@ -1,5 +1,5 @@
-import * as utils from '../utils.js'
-import * as sqlite from '../services/sqlite.js'
+import * as utils from '../../utils.js'
+import * as sqlite from '../../services/sqlite.js'
 
 const _30_DAYS_IN_MS = 2592000000
 const OPO_TRIPS_QUERY = `

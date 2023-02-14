@@ -9,19 +9,43 @@
 
 <section class="pending info-card">
 <h1>Pending Vehicle Requests</h1>
+{% if reviewed_requests.length === 0 %}
+<div class=notice>All set for now</div>
+{% else %}
 <table class=trip-table>
 <thead><tr><th>Title<th>Requester<th>Pickup<th>Return
-<tbody hx-get="/rest/opo/vehicle-requests" hx-trigger="load" hx-swap="innerHTML">
+<tbody>
+  {% for request in pending_requests %}
+  <tr>
+  <td><a href="/leader/trip/${request.trip_id}#vehicle-request">{{request.reason}}</a>
+  <td>{{request.requester_name}}
+  <td>{{request.pickup_time_element}}
+  <td>{{request.return_time_element}}
+  </tr>
+  {% endfor %}
 </table>
+{% endif %}
 </section>
 
 <section class="reviewed info-card">
 <h1>Reviewed Vehicle Requests</h1>
+{% if reviewed_requests.length === 0 %}
+<div class=notice>All set for now</div>
+{% else %}
 <table class=trip-table>
 <thead><tr><th>Title<th>Requester<th>Pickup<th>Return<th>Status
-<tbody hx-get="/rest/opo/vehicle-requests?show_reviewed=true" hx-trigger="load" hx-swap="innerHTML">
+<tbody>
+  {% for request in pending_requests %}
+  <tr>
+  <td><a href="/leader/trip/${request.trip_id}#vehicle-request">{{request.reason}}</a>
+  <td>{{request.requester_name}}
+  <td>{{request.pickup_time_element}}
+  <td>{{request.return_time_element}}
+  </tr>
+  {% endfor %}
 </tr>
 </table>
+{% endif %}
 </section>
 
 </main>
