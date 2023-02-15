@@ -14,11 +14,12 @@
 {% else %}
 <table class=trip-table>
   <thead>
-    <tr><th>Trip<th>Start Time<th>Subclub<th>Owner<th>Group Gear<th>Vehicles<th>P-Card</tr>
+    <tr><th>Trip #<th>Trip<th>Start Time<th>Subclub<th>Owner<th>Group Gear<th>Vehicles<th>P-Card</tr>
   </thead>
   <tbody>
   {% for trip in future_trips %}
     <tr>
+    <td>{{trip.id}}
     <td><a href="/leader/trip/{{trip.id}}">{{trip.title}}</a>
     <td>{{trip.start_time_element}}
     <td>{{trip.club}}
@@ -41,11 +42,12 @@
 {% else %}
 <table class=trip-table>
   <thead>
-    <tr><th>Trip<th>Start Time<th>Subclub<th>Owner<th>Group Gear<th>Vehicles<th>P-Card</tr>
+    <tr><th>Trip #<th>Trip<th>Start Time<th>Subclub<th>Owner<th>Group Gear<th>Vehicles<th>P-Card</tr>
   </thead>
   <tbody>
   {% for trip in past_trips %}
     <tr>
+    <td>{{trip.id}}
     <td><a href="/leader/trip/{{trip.id}}">{{trip.title}}</a>
     <td>{{trip.start_time_element}}
     <td>{{trip.club}}
