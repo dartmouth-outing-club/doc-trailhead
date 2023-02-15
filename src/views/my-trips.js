@@ -19,7 +19,7 @@ export function get (req, res) {
     LEFT JOIN clubs ON trips.club = clubs.id
     WHERE trip_members.user = ? AND end_time > ?
     ORDER BY start_time ASC
-  `, userId, now.getTime() + _24_HOURS_IN_MS)
+  `, userId, now.getTime() - _24_HOURS_IN_MS)
 
   const trips = tripsForUser.map(trip => {
     const title = trip.title.length < 38 ? trip.title : trip.title.substring(0, 38) + '...'
