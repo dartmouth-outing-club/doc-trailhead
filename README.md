@@ -67,5 +67,6 @@ familiar with parts of it:
 * [Quirks, Caveats, and Gotchas In SQLite](https://www.sqlite.org/quirks.html)
 
 ### Blogs
+* [How To Set Up a Node.js Application for Production on Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-16-04) (this is basically the deployment setup)
 * [Consider SQLite](https://blog.wesleyac.com/posts/consider-sqlite)
 * [How Did REST Come To Mean The Opposite Of Rest?](https://htmx.org/essays/how-did-rest-come-to-mean-the-opposite-of-rest/)
