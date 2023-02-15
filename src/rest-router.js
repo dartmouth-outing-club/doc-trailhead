@@ -11,7 +11,6 @@
 import { Router } from 'express'
 
 import { requireAnyLeader, requireTripLeader, requireOpo } from './services/authentication.js'
-import * as allTrips from './rest/all-trips.js'
 import * as profile from './rest/profile.js'
 import * as trip from './rest/trip.js'
 import * as tripMembers from './rest/trip-members.js'
@@ -30,7 +29,6 @@ router.putTransaction = (...args) => router.put(...args.slice(0, -1), withTransa
 /**********************
  * All-Purpose Routes
  **********************/
-router.get('/all-trips', allTrips.get) // TODO move this to views
 router.post('/trip/:tripId/signup', tripMembers.signup)
 router.delete('/trip/:tripId/signup', tripMembers.leave)
 

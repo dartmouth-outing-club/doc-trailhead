@@ -7,6 +7,7 @@ import * as tripView from './views/trip.js'
 import * as profileView from './views/profile.js'
 import * as tripStatusView from './views/trip-status.js'
 import * as vehicleRequestView from './views/vehicle-request.js'
+import * as allTripsView from './views/all-trips.js'
 import * as myTripsView from './views/my-trips.js'
 import * as requestsView from './views/trip-requests.js'
 
@@ -26,9 +27,6 @@ router.enableView = function (path, access) {
   switch (access) {
     case 'public':
       this.route(path).get(renderPath)
-      break
-    case 'auth':
-      this.route(path).get(requireAuth, renderPath)
       break
     case 'any-leader':
       this.route(path).get(requireAuth, requireAnyLeader, renderPath)
@@ -57,14 +55,15 @@ router.post('/logout', requireAuth, authentication.logout)
 // Basic views
 // TODO refactor these into templates
 router.enableView('/welcome', 'public')
-router.enableView('/all-trips', 'auth')
 router.enableView('/opo/manage-fleet', 'opo')
 router.enableView('/opo/profile-approvals', 'opo')
 
 // All the other views
+// TODO refactor all the router.route into router.get, router.post, etc.
 router.route('/my-trips').get(requireAuth, myTripsView.get)
 router.route('/create-trip').get(requireAuth, requireAnyLeader, tripView.getCreateView)
 router.route('/new-user').get(requireAuth, profileView.getNewUserView)
+router.get('/all-trips', requireAuth, allTripsView.get)
 
 router.get('/opo/vehicle-requests', requireAuth, requireOpo, vehicleRequestsView.get)
 router.route('/opo/trip-approvals').get(requireAuth, requireOpo, tripApprovalsView.get)

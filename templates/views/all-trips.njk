@@ -10,7 +10,17 @@
 <h1>Explore Trips</h1>
 </section>
 
-<section class="trips" hx-get="/rest/all-trips" hx-swap=innerHTML hx-trigger=load>
+<section class="trips">
+{% for trip in trips %}
+<a href=/trip/{{ trip.id }} class=trip-card>
+  <img class=club-logo src="{{ trip.icon_path }}">
+  <header>Trip #{{ trip.id }}</header>
+  <h2>{{ trip.title }}</h2>
+  <div>{{ trip.start_time_element }} - {{ trip.end_time_element }}</div>
+  <div class="club-tag">{{ trip.club }}</div>
+  <p>{{ trip.description }}</p>
+</a>
+{% endfor %}
 </section>
 
 </main>
