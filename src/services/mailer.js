@@ -173,14 +173,14 @@ export async function sendVehicleRequestChangedEmail (vehicleRequest) {
   return send(email, 'Vehicle request changed')
 }
 
-export async function sendGearRequestChangedEmail (tripId) {
+export async function sendGearRequestChangedEmail (tripId, userId) {
   const info = sqlite.get(`
     SELECT title, users.name, users.email
     FROM trip_members
     LEFT JOIN users ON users.id = trip_members.user
     LEFT JOIN trips ON trips.id = trip_members.trip
-    WHERE trip = ?
-  `, tripId)
+    WHERE trip = ? AND trip_members.user = ?
+  `, tripId, userId)
 
   const leaderEmails = sqlite.getTripLeaderEmails(tripId)
   const email = {

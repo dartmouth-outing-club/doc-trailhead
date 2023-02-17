@@ -75,7 +75,7 @@ export function signup (req, res) {
   if (info.changes === 1) {
     mailer.sendTripApplicationConfirmation(tripId, req.user)
   } else {
-    mailer.sendGearRequestChangedEmail(tripId)
+    mailer.sendGearRequestChangedEmail(tripId, req.user)
   }
 
   return tripCard.renderSignupCard(res, tripId, req.user)
