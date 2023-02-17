@@ -6,8 +6,9 @@ VALUES
     (1, 'Need vehicle for trip', 30, 5, 1, 'TRIP', 1),
     (1, 'Need vehicle for trip', 50, 3, 2, 'TRIP', 1),
     (1, 'Need two vehicles for trip', 80, 4, 3, 'TRIP', 1),
+    (1, 'Need vehicle for trip', 40, 4, 5, 'TRIP', NULL),
     (1, 'Need vehicle for trip', 120, 5, 6, 'TRIP', 0),
-    (1, 'I need a vehicle to carry groceries for a feed.', 15, 1, NULL, 'ALONE', NULL);
+    (1, 'I need a vehicle to carry groceries for a feed.', 15, 1, NULL, 'SOLO', NULL);
 
 -- requested_vehicles
 
