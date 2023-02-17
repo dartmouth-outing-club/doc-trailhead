@@ -59,8 +59,8 @@ export function getVehicleRequestData (vehicleRequestId) {
     const assigned_return = vehicle.assigned_return_time || defaultTimes.end_time
     return {
       ...vehicle,
-      pickup_time: utils.getLongTimeElement(vehicle.pickup_time),
-      return_time: utils.getLongTimeElement(vehicle.return_time),
+      pickup_time: utils.getDatetimeElement(vehicle.pickup_time),
+      return_time: utils.getDatetimeElement(vehicle.return_time),
       assigned_pickup_time: utils.getDatetimeValueForUnixTime(assigned_pickup),
       assigned_return_time: utils.getDatetimeValueForUnixTime(assigned_return)
     }

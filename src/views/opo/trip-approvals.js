@@ -59,7 +59,7 @@ function convertToRow (trip) {
     title: trip.title,
     club: trip.club,
     owner: trip.owner,
-    start_time_element: utils.getShortTimeElement(trip.start_time),
+    start_time_element: utils.getDatetimeElement(trip.start_time),
     gg_status_element: utils.getBadgeImgElement(trip.gg_status),
     vr_status_element: utils.getBadgeImgElement(trip.vr_status),
     pc_status_element: utils.getBadgeImgElement(trip.pc_status)

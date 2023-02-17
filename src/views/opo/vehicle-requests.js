@@ -37,8 +37,8 @@ function getVehicleRequests () {
 function getRowData (request) {
   return {
     ...request,
-    pickup_time_element: utils.getShortTimeElement(request.first_pickup),
-    return_time_element: utils.getShortTimeElement(request.last_return),
+    pickup_time_element: utils.getDatetimeElement(request.first_pickup),
+    return_time_element: utils.getDatetimeElement(request.last_return),
     status_element: getBadgeImgElement(request.status)
   }
 }

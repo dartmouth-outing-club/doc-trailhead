@@ -22,10 +22,7 @@ export function get (_req, res) {
   <hr/>
   <div>
     <h3>${trip.location}</h3>
-    <p>
-    ${utils.getShortTimeElement(trip.start_time)} -
-    ${utils.getShortTimeElement(trip.end_time)}
-    </p>
+    <p>${utils.getDatetimeRangeElement(trip.start_time, trip.end_time)}</p>
   </div>
 </div>
 `).join('')
