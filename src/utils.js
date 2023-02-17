@@ -1,3 +1,5 @@
+import dateFormat from 'dateformat'
+
 export function getStatusTag (hasLeft, hasReturned, isLate) {
   if (hasReturned) {
     return '<div class="status-tag returned">Returned</div>'
@@ -69,33 +71,32 @@ export function getClubIcon (clubName) {
   }
 }
 
-export function getLongTimeElement (unixTime) {
+export function getDatetimeElement (unixTime, opts = {}) {
   if (unixTime === undefined) return undefined
   if (typeof unixTime !== 'number') {
     throw new Error(`Unexpected argument ${unixTime} received`)
   }
-
+  const { mode = 'FULL', includeDayOfWeek = true, includeYear = false } = opts
   const date = new Date(unixTime)
-  const minutes = date.getMinutes()
-  const hours = date.getHours()
-
-  const dateString = `${date.getMonth() + 1}/${date.getDate()}`
-  const minutesString = minutes < 10 ? '0' + minutes : minutes
-  const hoursString = hours > 12 ? `${hours - 12}` : `${hours}`
-  const timeString = `${hoursString}:${minutesString} ${hours < 12 ? 'AM' : 'PM'}`
-  return `<time datetime="${date.toISOString()}">${dateString} @ ${timeString}</time>`
+  const dateString = dateFormat(date, `${includeDayOfWeek ? 'ddd, ' : ''}m/d${includeYear ? '/yy' : ''}`)
+  const timeString = dateFormat(date, 'h:MM TT')
+  switch (mode) {
+    case 'FULL':
+      return `<time datetime="${date.toISOString()}">${dateString} @ ${timeString}</time>`
+    case 'DATE':
+      return `<time datetime="${date.toISOString()}">${dateString}</time>`
+    case 'TIME':
+      return `<time datetime="${date.toISOString()}">${timeString}</time>`
+    default:
+      throw new Error(`Unexpected mode ${mode} received`)
+  }
 }
 
-export function getShortTimeElement (unixTime) {
-  const date = new Date(unixTime)
-  const minutes = date.getMinutes()
-  const hours = date.getHours()
-
-  const dateString = `${date.getMonth() + 1}/${date.getDate()}`
-  const minutesString = minutes < 10 ? '0' + minutes : minutes
-  const hoursString = hours > 12 ? `${hours - 12}` : `${hours}`
-  const timeString = `${hoursString}:${minutesString} ${hours < 12 ? 'AM' : 'PM'}`
-  return `<time datetime="${date.toISOString()}">${dateString} @ ${timeString}</time>`
+export function getDatetimeRangeElement (unixTimeStart, unixTimeEnd, opts = {}) {
+  const startDate = new Date(unixTimeStart)
+  const endDate = new Date(unixTimeEnd)
+  const sameDay = startDate.getDate() === endDate.getDate()
+  return `<time datetime="${startDate.toISOString()}">${getDatetimeElement(unixTimeStart, opts)}</time> - <time datetime="${endDate.toISOString()}">${getDatetimeElement(unixTimeEnd, { ...opts, mode: opts.mode === 'TIME' ? 'TIME' : (sameDay ? 'TIME' : 'FULL') })}</time>`
 }
 
 const _12_HOURS_IN_MS = 25600000
