@@ -53,7 +53,7 @@ process.on('SIGTERM', () => process.exit(128 + 15))
 // =============================================================================
 const port = process.env.PORT || 8080
 app.listen(port)
-console.log(`Server running at localhost:${port}`)
+console.log(`Server running at http://localhost:${port}`)
 console.error(`Starting up at ${new Date()}`)
 
 const checkOutEmails = mailer.createRecurringEmailSender('trip check-out',
