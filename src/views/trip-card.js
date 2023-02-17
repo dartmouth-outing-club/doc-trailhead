@@ -136,9 +136,9 @@ function getLeaderData (tripId, userId) {
 
   trip.is_on_trip = sqlite.isSignedUpForTrip(tripId, userId)
   trip.start_datetime = utils.getDatetimeValueForUnixTime(trip.start_time)
-  trip.start_time_element = utils.getLongTimeElement(trip.start_time)
+  trip.start_time_element = utils.getDatetimeElement(trip.start_time)
   trip.end_datetime = utils.getDatetimeValueForUnixTime(trip.end_time)
-  trip.end_time_element = utils.getLongTimeElement(trip.end_time)
+  trip.end_time_element = utils.getDatetimeElement(trip.end_time)
   trip.leader_names = leaderNames
   trip.required_gear = requiredGear
   trip.member_requested_gear = memberRequestedGear
@@ -241,8 +241,8 @@ function getSignupData (tripId, userId) {
   `, { trip: tripId, user: userId })
 
   trip.is_on_trip = sqlite.isSignedUpForTrip(tripId, userId)
-  trip.start_time = utils.getLongTimeElement(trip.start_time)
-  trip.end_time = utils.getLongTimeElement(trip.end_time)
+  trip.start_time = utils.getDatetimeElement(trip.start_time)
+  trip.end_time = utils.getDatetimeElement(trip.end_time)
   trip.leader_names = leaderNames
   trip.required_gear = requiredGear
 

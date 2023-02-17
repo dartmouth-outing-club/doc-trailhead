@@ -22,10 +22,7 @@
     <img class=club-logo src="{{trip.iconPath}}">
     <header>Trip #{{ trip.id }}</header>
     <h2>{{ trip.title }}</h2>
-    <div>
-      {{ trip.start_time }}
-      {{ trip.end_time }}
-    </div>
+    <div>{{ trip.time_element }}</div>
     <div class="club-tag">{{ trip.club }}</div>
     <p>{{ trip.description }}</p>
   </a>

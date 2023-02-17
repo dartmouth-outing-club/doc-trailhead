@@ -22,8 +22,7 @@ export function get (_req, res) {
       title,
       description,
       icon_path: getClubIcon(trip.club),
-      start_time_element: utils.getShortTimeElement(trip.start_time),
-      end_time_element: utils.getShortTimeElement(trip.end_time)
+      time_element: utils.getDatetimeRangeElement(trip.start_time, trip.end_time)
     }
   })
   res.render('views/all-trips.njk', { trips })
