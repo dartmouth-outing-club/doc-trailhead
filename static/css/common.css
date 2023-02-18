@@ -180,10 +180,13 @@ a.top-link:visited {
   padding: 10px 20px 10px 20px;
 }
 
-.trip-table {
-  border-collapse: collapse;
+.trip-table-overflow-wrapper {
   overflow-x: scroll;
   width: 100%;
+}
+
+.trip-table {
+  border-collapse: collapse;
   text-align: center;
 }
 
