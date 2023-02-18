@@ -50,6 +50,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 </div>
 
 <h2>Approved trippes ({{ attending.length }})</h2>
+<div class=trip-table-overflow-wrapper>
 <table class=trip-table>
 <thead>
 <tr>
@@ -85,11 +86,13 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 </tr>
 {% endfor %}
 </table>
+</div>
 <div class=button-row>
     <button id=copy-attending-emails class="action edit" onclick="copyAttendingEmails()">Copy Emails</button>
 </div>
 
 <h2>Pending trippes ({{ pending.length }})</h2>
+<div class=trip-table-overflow-wrapper>
 <table class=trip-table>
 <thead>
 <tr>
@@ -117,6 +120,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 </tr>
 {% endfor %}
 </table>
+</div>
 <div class=button-row>
   <button id=copy-pending-emails class="action edit" onclick="copyPendingEmails()">Copy Emails</button>
 </div>
