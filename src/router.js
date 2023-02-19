@@ -14,6 +14,7 @@ import * as requestsView from './views/trip-requests.js'
 import * as tripApprovalsView from './views/opo/trip-approvals.js'
 import * as vehicleRequestsView from './views/opo/vehicle-requests.js'
 
+import * as profileApprovals from './views/opo/profile-approvals.js'
 import * as manageFleet from './views/opo/manage-fleet.js'
 
 import signS3 from './services/s3.js'
@@ -57,7 +58,6 @@ router.post('/logout', requireAuth, authentication.logout)
 // Basic views
 // TODO refactor these into templates
 router.enableView('/welcome', 'public')
-router.enableView('/opo/profile-approvals', 'opo')
 
 // All the other views
 // TODO refactor all the router.route into router.get, router.post, etc.
@@ -79,6 +79,12 @@ router.route('/trip/:tripId/user/:userId').get(requireAuth, requireTripLeader, t
 router.get('/opo/manage-fleet', requireAuth, requireOpo, manageFleet.get)
 router.post('/opo/manage-fleet', requireAuth, requireOpo, manageFleet.post)
 router.delete('/opo/manage-fleet/:id', requireAuth, requireOpo, manageFleet.del)
+
+router.get('/opo/profile-approvals', requireAuth, requireOpo, profileApprovals.get)
+router.put('/opo/profile-approvals/leaders/:req_id', requireAuth, requireOpo, profileApprovals.approveLeadershipRequest)
+router.delete('/opo/profile-approvals/leaders/:req_id', requireAuth, requireOpo, profileApprovals.denyLeadershipRequest)
+router.put('/opo/profile-approvals/certs/:req_id', requireAuth, requireOpo, profileApprovals.approveCertRequest)
+router.delete('/opo/profile-approvals/certs/:req_id', requireAuth, requireOpo, profileApprovals.denyCertRequest)
 
 router.route('/profile').get(requireAuth, profileView.getProfileView)
 
