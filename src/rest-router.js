@@ -18,7 +18,6 @@ import * as tripRequests from './rest/trip-requests.js'
 import * as tripStatus from './rest/trip-status.js'
 import * as profileApprovals from './rest/opo/profile-approvals.js'
 import * as gearApprovals from './rest/opo/gear-approvals.js'
-import * as manageFleet from './rest/opo/manage-fleet.js'
 import { withTransaction } from './services/sqlite.js'
 
 // Create router and add transaction-wrapping functions to it
@@ -76,7 +75,6 @@ router.delete('/trip/:tripId/present/:memberId', requireTripLeader, tripStatus.m
 /*************
  * OPO Routes
  *************/
-
 router.get('/opo/profile-approvals/leaders', requireOpo, profileApprovals.getLeadershipRequests)
 router.put('/opo/profile-approvals/leaders/:req_id', requireOpo, profileApprovals.approveLeadershipRequest)
 router.delete('/opo/profile-approvals/leaders/:req_id', requireOpo, profileApprovals.denyLeadershipRequest)
@@ -84,10 +82,6 @@ router.delete('/opo/profile-approvals/leaders/:req_id', requireOpo, profileAppro
 router.get('/opo/profile-approvals/certs', requireOpo, profileApprovals.getCertRequests)
 router.put('/opo/profile-approvals/certs/:req_id', requireOpo, profileApprovals.approveCertRequest)
 router.delete('/opo/profile-approvals/certs/:req_id', requireOpo, profileApprovals.denyCertRequest)
-
-router.get('/opo/manage-fleet', requireOpo, manageFleet.get)
-router.post('/opo/manage-fleet', requireOpo, manageFleet.post)
-router.delete('/opo/manage-fleet/:id', requireOpo, manageFleet.del)
 
 router.put('/opo/vehiclerequest/:requestId/approve', requireOpo, gearApprovals.approveVehicleRequest)
 router.put('/opo/vehiclerequest/:requestId/deny', requireOpo, gearApprovals.denyVehicleRequest)

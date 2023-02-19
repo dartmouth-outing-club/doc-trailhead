@@ -7,7 +7,7 @@
 
 <section class="add-vehicle info-card">
 <h1>Add Vehicle</h1>
-<form action="/rest/opo/manage-fleet"
+<form action="/opo/manage-fleet"
       method=post
       hx-boost=true
       hx-target=tbody
@@ -26,7 +26,20 @@
 <div class=trip-table-overflow-wrapper>
 <table class=trip-table>
 <thead><tr><th>Name<th>Type<th>
-<tbody hx-get="/rest/opo/manage-fleet" hx-trigger="load" hx-swap="innerHTML">
+<tbody>
+{% for vehicle in vehicles %}
+  <tr>
+    <td>{{ vehicle.name }}
+    <td>{{ vehicle.type }}
+    <td><button
+        class="action deny"
+        hx-confirm="Delete {{ vehicle.name }} from list?"
+        hx-delete="/opo/manage-fleet/{{ vehicle.id }}"
+        hx-target="closest tr"
+        hx-swap="outerHTML swap:.7s"
+      >Delete</button>
+  </tr>
+{% endfor %}
 </table>
 </div>
 </section>
