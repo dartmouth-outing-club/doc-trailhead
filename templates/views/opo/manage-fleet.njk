@@ -23,10 +23,12 @@
 
 <section class="fleet info-card">
 <h1>Vehicle Fleet</h1>
+<div class=trip-table-overflow-wrapper>
 <table class=trip-table>
 <thead><tr><th>Name<th>Type<th>
 <tbody hx-get="/rest/opo/manage-fleet" hx-trigger="load" hx-swap="innerHTML">
 </table>
+</div>
 </section>
 
 </main>

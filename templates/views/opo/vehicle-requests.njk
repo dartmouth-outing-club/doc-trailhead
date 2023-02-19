@@ -12,6 +12,7 @@
 {% if reviewed_requests.length === 0 %}
 <div class=notice>All set for now</div>
 {% else %}
+<div class=trip-table-overflow-wrapper>
 <table class=trip-table>
 <thead><tr><th>Trip #<th>Title<th>Requester<th>Pickup<th>Return
 <tbody>
@@ -25,6 +26,7 @@
   </tr>
   {% endfor %}
 </table>
+</div>
 {% endif %}
 </section>
 
@@ -33,6 +35,7 @@
 {% if reviewed_requests.length === 0 %}
 <div class=notice>All set for now</div>
 {% else %}
+<div class=trip-table-overflow-wrapper>
 <table class=trip-table>
 <thead><tr><th>Trip #<th>Title<th>Requester<th>Pickup<th>Return<th>Status
 <tbody>
@@ -48,6 +51,7 @@
   {% endfor %}
 </tr>
 </table>
+</div>
 {% endif %}
 </section>
 
