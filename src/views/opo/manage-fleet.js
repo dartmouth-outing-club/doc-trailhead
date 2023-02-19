@@ -2,7 +2,6 @@ import * as sqlite from '../../services/sqlite.js'
 
 export function get (_req, res) {
   const vehicles = sqlite.all('SELECT id, name, type FROM vehicles where active = 1')
-  console.log(vehicles)
   return res.render('views/opo/manage-fleet.njk', { vehicles })
 }
 
