@@ -188,6 +188,7 @@ a.top-link:visited {
 .trip-table {
   border-collapse: collapse;
   text-align: center;
+  width: 100%;
 }
 
 .trip-table button {
