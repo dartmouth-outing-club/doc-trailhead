@@ -1,6 +1,6 @@
 import { Router } from 'express'
 
-import * as index from './rest/index.js'
+import * as welcome from './views/welcome.js'
 import * as assignments from './rest/assignments.js'
 import * as sqlite from './services/sqlite.js'
 import * as tripView from './views/trip.js'
@@ -23,24 +23,8 @@ const { requireAuth, requireAnyLeader, requireTripLeader, requireOpo } = authent
 
 const router = Router()
 
-// Helper function makes it easy to declare new views
+// Helper function that makes it easy to declare new views
 router.enableRender = (path) => router.get(`/${path}`, (_req, res) => res.render(`${path}.njk`))
-router.enableView = function (path, access) {
-  const renderPath = (_req, res) => res.render(`views${path}.njk`)
-  switch (access) {
-    case 'public':
-      this.route(path).get(renderPath)
-      break
-    case 'any-leader':
-      this.route(path).get(requireAuth, requireAnyLeader, renderPath)
-      break
-    case 'opo':
-      this.route(path).get(requireAuth, requireOpo, renderPath)
-      break
-    default:
-      throw new Error('Incorrect usage of enableView method')
-  }
-}
 
 router.get('/sign-s3', signS3)
 
@@ -50,14 +34,10 @@ router.get('/', requireAuth, (req, res) => {
   res.redirect(url)
 })
 
-router.get('/public-trips', index.get)
+router.get('/welcome', welcome.get)
 
 router.get('/signin-cas', authentication.signinCAS)
 router.post('/logout', requireAuth, authentication.logout)
-
-// Basic views
-// TODO refactor these into templates
-router.enableView('/welcome', 'public')
 
 // All the other views
 // TODO refactor all the router.route into router.get, router.post, etc.
