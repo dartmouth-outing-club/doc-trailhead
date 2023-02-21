@@ -204,14 +204,13 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 {% include "requests/vehicle-request-table.njk" %}
 {% endif %}
 
-{% if can_delete %}
 <h2>Modify Trip</h2>
 <div class="edit-row">
   <a class="action edit" href="/trip/{{ trip_id }}/edit">Edit Trip</a>
   <a class="action edit" href="/trip/{{ trip_id }}/requests">Edit Requests</a>
 </div>
-{% endif %}
 
+{% if can_delete %}
 <h2>Delete Trip</h2>
 <p>Click this checkbox to enable the delete button:
 <input type=checkbox autocomplete=off onchange="toggleDeleteButton(this)">
@@ -224,6 +223,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
     hx-confirm="Are you sure you want to delete trip {{ title }}? Keep in mind that this will delete the associated vehicle request. This action cannot be reversed."
     >Delete Trip
 </button>
+{% endif %}
 </div>
 
 </section>
