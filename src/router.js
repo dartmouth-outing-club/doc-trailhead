@@ -1,8 +1,8 @@
 import { Router } from 'express'
+import * as sqlite from './services/sqlite.js'
 
 import * as welcome from './views/welcome.js'
 import * as assignments from './rest/assignments.js'
-import * as sqlite from './services/sqlite.js'
 import * as tripView from './views/trip.js'
 import * as profileView from './views/profile.js'
 import * as tripStatusView from './views/trip-status.js'
@@ -39,22 +39,20 @@ router.get('/welcome', welcome.get)
 router.get('/signin-cas', authentication.signinCAS)
 router.post('/logout', requireAuth, authentication.logout)
 
-// All the other views
-// TODO refactor all the router.route into router.get, router.post, etc.
-router.route('/my-trips').get(requireAuth, myTripsView.get)
-router.route('/create-trip').get(requireAuth, requireAnyLeader, tripView.getCreateView)
-router.route('/new-user').get(requireAuth, profileView.getNewUserView)
+router.get('/my-trips', requireAuth, myTripsView.get)
+router.get('/create-trip', requireAuth, requireAnyLeader, tripView.getCreateView)
+router.get('/new-user', requireAuth, profileView.getNewUserView)
 router.get('/all-trips', requireAuth, allTripsView.get)
 
 router.get('/opo/vehicle-requests', requireAuth, requireOpo, vehicleRequestsView.get)
-router.route('/opo/trip-approvals').get(requireAuth, requireOpo, tripApprovalsView.get)
+router.get('/opo/trip-approvals', requireAuth, requireOpo, tripApprovalsView.get)
 
-router.route('/trip/:tripId').get(requireAuth, tripView.getSignupView)
-router.route('/trip/:tripId/edit').get(requireAuth, requireTripLeader, tripView.getEditView)
-router.route('/trip/:tripId/check-out').get(requireAuth, requireTripLeader, tripStatusView.getCheckOutView)
-router.route('/trip/:tripId/check-in').get(requireAuth, requireTripLeader, tripStatusView.getCheckInView)
-router.route('/trip/:tripId/requests').get(requireAuth, requireTripLeader, requestsView.getRequestsView)
-router.route('/trip/:tripId/user/:userId').get(requireAuth, requireTripLeader, tripView.getUserView)
+router.get('/trip/:tripId', requireAuth, tripView.getSignupView)
+router.get('/trip/:tripId/edit', requireAuth, requireTripLeader, tripView.getEditView)
+router.get('/trip/:tripId/check-out', requireAuth, requireTripLeader, tripStatusView.getCheckOutView)
+router.get('/trip/:tripId/check-in', requireAuth, requireTripLeader, tripStatusView.getCheckInView)
+router.get('/trip/:tripId/requests', requireAuth, requireTripLeader, requestsView.getRequestsView)
+router.get('/trip/:tripId/user/:userId', requireAuth, requireTripLeader, tripView.getUserView)
 
 router.get('/opo/manage-fleet', requireAuth, requireOpo, manageFleet.get)
 router.post('/opo/manage-fleet', requireAuth, requireOpo, manageFleet.post)
@@ -66,12 +64,12 @@ router.delete('/opo/profile-approvals/leaders/:req_id', requireAuth, requireOpo,
 router.put('/opo/profile-approvals/certs/:req_id', requireAuth, requireOpo, profileApprovals.approveCertRequest)
 router.delete('/opo/profile-approvals/certs/:req_id', requireAuth, requireOpo, profileApprovals.denyCertRequest)
 
-router.route('/profile').get(requireAuth, profileView.getProfileView)
+router.get('/profile', requireAuth, profileView.getProfileView)
 
-router.route('/vehicle-request/:vehicleRequestId').get(requireAuth, vehicleRequestView.getVehicleRequestView)
-router.route('/leader/trip/:tripId').get(requireAuth, requireTripLeader, tripView.getLeaderView)
+router.get('/vehicle-request/:vehicleRequestId', requireAuth, vehicleRequestView.getVehicleRequestView)
+router.get('/leader/trip/:tripId', requireAuth, requireTripLeader, tripView.getLeaderView)
 
-router.route('/opo/calendar').get(requireAuth, requireOpo, (_req, res) => {
+router.get('/opo/calendar', requireAuth, requireOpo, (_req, res) => {
   res.render('views/opo/calendar.njk', { LICENSE_KEY: process.env.FULLCALENDAR_LICENSE })
 })
 
