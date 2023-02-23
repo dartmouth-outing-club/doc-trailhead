@@ -62,6 +62,7 @@ router.put('/trip/:tripId/group-gear', requireTripLeader, tripRequests.putGroupG
 router.delete('/trip/:tripId/group-gear/:gearId', requireTripLeader, tripRequests.deleteGroupGear)
 router.put('/trip/:tripId/pcard-request', requireTripLeader, tripRequests.putPcardRequest)
 router.delete('/trip/:tripId/pcard-request', requireTripLeader, tripRequests.deletePcardRequest)
+router.delete('/trip/:tripId/pcard-request/cost/:costId', requireTripLeader, tripRequests.deleteOtherCost)
 router.get('/trip/:tripId/user/:userId', requireTripLeader, profile.getUserTripView)
 
 router.put('/trip/:tripId/check-out', requireTripLeader, tripStatus.checkOut)
@@ -74,7 +75,6 @@ router.delete('/trip/:tripId/present/:memberId', requireTripLeader, tripStatus.m
 /*************
  * OPO Routes
  *************/
-
 router.put('/opo/vehiclerequest/:requestId/approve', requireOpo, gearApprovals.approveVehicleRequest)
 router.put('/opo/vehiclerequest/:requestId/deny', requireOpo, gearApprovals.denyVehicleRequest)
 router.put('/opo/vehiclerequest/:requestId/reset', requireOpo, gearApprovals.resetVehicleRequest)

@@ -1,4 +1,14 @@
-<section class=info-card>
+<section class=info-card hx-target=this>
+  <template id=other-cost>
+    <div class=gear-row>
+      <label>Name <input type=text name=cost_name required></label>
+      <label>Cost (USD) <input type=number name=cost_dollars min=0 value=0 required></label>
+      <button class=close-button type=button onclick="this.parentElement.remove()">
+        <img alt="Close Icon" src="/static/icons/close-icon.svg">
+      </button>
+    </div>
+  </template>
+
   <h1>P-Card Request</h1>
   {% if not pcard_request %}
   <div id=add-pcard-request class=button-row>
@@ -8,7 +18,6 @@
 
   <form class="pcard-form {% if not pcard_request %}hidden{% endif %}"
         hx-swap=outerHTML
-        hx-target="find button[type=submit]"
         hx-put="/rest/trip/{{ trip_id }}/pcard-request"
         >
 
@@ -27,6 +36,22 @@
   <label class=number-row>Dinner:
     <input type=number min=0 value="{{pcard_request.dinner}}" name=dinner>
   </label>
+  <div class=form-info>Other costs:</div>
+  <ul>
+  {% for request in pcard_request.other_costs %}
+    <li>{{ request.name }} (${{ request.cost }})
+    <button class=close-button
+            type=button
+            hx-delete="/rest/trip/{{trip_id}}/pcard-request/cost/{{request.id}}"
+            hx-confirm="Are you sure you want to delete {{request.name}} from the list of required gear?">
+    <img alt="Close Icon" src="/static/icons/close-icon.svg">
+    </button>
+    </li>
+  {% endfor %}
+  </ul>
+  <div id=add-other-cost class=button-row>
+    <button class="action edit"  type=button onclick="addOtherCost()">Add other cost</button>
+  </div>
 
   <div class=button-row>
     <button class="action deny"
@@ -44,6 +69,13 @@
     form.classList.remove('hidden')
     buttonRow.parentElement.remove()
   }
+
+  function addOtherCost () {
+    const template = document.querySelector('#other-cost')
+    const form = document.querySelector('form.pcard-form')
+    const otherCostButton = document.querySelector('#add-other-cost')
+    const newRow = template.content.cloneNode(true)
+    form.insertBefore(newRow, otherCostButton)
+  }
   </script>
 </section>
-

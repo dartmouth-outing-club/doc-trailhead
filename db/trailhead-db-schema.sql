@@ -133,7 +133,14 @@ CREATE TABLE trip_pcard_requests (
   breakfast INTEGER,
   lunch INTEGER,
   dinner INTEGER,
-  other_costs TEXT NOT NULL DEFAULT '[]'
+  other_costs TEXT NOT NULL DEFAULT '[]' -- Deprecated, no longer in use
+); -- TODO make strict
+
+CREATE TABLE pcard_request_costs (
+  id INTEGER PRIMARY KEY,
+  trip INTEGER REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
+  name TEXT,
+  cost INTEGER
 );
 
 CREATE TABLE member_gear_requests (

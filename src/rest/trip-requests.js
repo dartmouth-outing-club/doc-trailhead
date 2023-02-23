@@ -94,18 +94,38 @@ export function deleteGroupGear (req, res) {
 
 export function putPcardRequest (req, res) {
   const tripId = req.params.tripId
-  const { people, snacks, breakfast, lunch, dinner } = req.body
+  const { people, snacks, breakfast, lunch, dinner, cost_name, cost_dollars } = req.body
+
+  const costNames = Array.isArray(cost_name) ? cost_name : [cost_name]
+  const costValues = Array.isArray(cost_dollars) ? cost_dollars : [cost_dollars]
+
+  if (costNames.length !== costValues.length) return res.sendStatus(400)
+  const otherCosts = costNames.map((name, index) => ({ trip: tripId, name, cost: costValues[index] }))
 
   sqlite.run('DELETE FROM trip_pcard_requests WHERE trip = ?', tripId)
   sqlite.run(`
     INSERT INTO trip_pcard_requests (trip, num_people, snacks, breakfast, lunch, dinner)
     VALUES (?, ?, ?, ?, ?, ?)
   `, tripId, people, snacks, breakfast, lunch, dinner)
-  res.render('components/save-complete-button.njk')
+
+  if (costNames[0]) {
+    sqlite.runMany(
+      'INSERT INTO pcard_request_costs (trip, name, cost) VALUES (@trip, @name, @cost)',
+      otherCosts
+    )
+  }
+  return tripRequests.renderPcardCard(tripId, res)
 }
 
 export function deletePcardRequest (req, res) {
   const tripId = req.params.tripId
   sqlite.run('DELETE FROM trip_pcard_requests WHERE trip = ?', tripId)
+  sqlite.run('DELETE FROM pcard_request_costs WHERE AND trip = ?', tripId)
+  tripRequests.renderPcardCard(tripId, res)
+}
+
+export function deleteOtherCost (req, res) {
+  const { tripId, costId } = req.params
+  sqlite.run('DELETE FROM pcard_request_costs WHERE rowid = ? AND trip = ?', costId, tripId)
   tripRequests.renderPcardCard(tripId, res)
 }

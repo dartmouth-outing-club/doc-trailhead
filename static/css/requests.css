@@ -1,14 +1,11 @@
-label {
+label, div.form-info {
   display: block;
+  margin: 10px;
 }
 
 form {
   font-size: 1.1em;
   color: rgb(3, 55, 36);
-}
-
-label {
-  margin: 10px;
 }
 
 label.block {
@@ -67,6 +64,16 @@ a.top-link {
   justify-content: flex-start;
 }
 
+.close-button {
+  background: none;
+  border: none;
+}
+
+.close-button img {
+  height: 15px;
+}
+
+
 .gear-row {
   display: flex;
   align-items: center;
@@ -75,15 +82,6 @@ a.top-link {
 
 .gear-row > * {
   margin-right: 10px;
-}
-
-.gear-row button {
-  background: none;
-  border: none;
-}
-
-.gear-row ul img {
-  height: 15px;
 }
 
 .number-row {

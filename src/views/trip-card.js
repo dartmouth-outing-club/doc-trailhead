@@ -114,25 +114,34 @@ function getLeaderData (tripId, userId) {
   `, tripId)
 
   // TODO un-concolute this a bit
+  // would be a lot better if the default value was simply zero and the column was non null
   const tripPcardRequest = sqlite.get(`
     SELECT
       assigned_pcard,
       num_people,
       is_approved,
-      ifnull(snacks, 0) as snacks,
-      ifnull(breakfast, 0) as breakfast,
-      ifnull(lunch, 0) as lunch,
-      ifnull(dinner, 0) as dinner,
-      other_costs,
+      ifnull(snacks, 0) as snacks_num,
+      ifnull(breakfast, 0) as breakfast_num,
+      ifnull(lunch, 0) as lunch_num,
+      ifnull(dinner, 0) as dinner_num,
+      ifnull(snacks, 0) * 3 as snack_cost,
+      ifnull(breakfast, 0) * 4 as breakfast_cost,
+      ifnull(lunch, 0) * 5 as lunch_cost,
+      ifnull(dinner, 0) * 6 as dinner_cost,
       num_people *
         ((ifnull(snacks, 0) * 3) +
          (ifnull(breakfast, 0) * 4) +
          (ifnull(lunch, 0) * 5) +
          (ifnull(dinner, 0) *6))
-        AS total
+        AS food_total
     FROM trip_pcard_requests
     WHERE trip = ?
   `, tripId)
+  const otherCosts = sqlite.all('SELECT name, cost from pcard_request_costs WHERE trip = ?', tripId)
+  const other_total = otherCosts.reduce((total, { cost }) => total + cost, 0)
+
+  tripPcardRequest.other_costs = otherCosts
+  tripPcardRequest.total = tripPcardRequest.food_total + other_total
 
   trip.is_on_trip = sqlite.isSignedUpForTrip(tripId, userId)
   trip.start_datetime = utils.getDatetimeValueForUnixTime(trip.start_time)
@@ -149,6 +158,7 @@ function getLeaderData (tripId, userId) {
   trip.group_gear_status = groupGearRequests.length > 0
     ? utils.getBadgeImgElement(trip.group_gear_approved !== null ? trip.group_gear_approved : 'pending')
     : '<span>-</span>'
+
   trip.pcard_request = tripPcardRequest
 
   trip.attending = membersWithGear.filter(member => member.pending === 0)
