@@ -94,21 +94,32 @@ export function deleteGroupGear (req, res) {
 
 export function putPcardRequest (req, res) {
   const tripId = req.params.tripId
-  const { people, snacks, breakfast, lunch, dinner, cost_name, cost_dollars } = req.body
+  const { cost_name, cost_dollars } = req.body
 
   const costNames = Array.isArray(cost_name) ? cost_name : [cost_name]
   const costValues = Array.isArray(cost_dollars) ? cost_dollars : [cost_dollars]
-
   if (costNames.length !== costValues.length) return res.sendStatus(400)
-  const otherCosts = costNames.map((name, index) => ({ trip: tripId, name, cost: costValues[index] }))
+
+  // TODO sanitize input further (right now the SQL will just return a 500 if they're not numbers)
+  const input = {
+    trip: tripId,
+    num_people: req.body.people || 0,
+    snacks: req.body.snacks || 0,
+    breakfast: req.body.breakfast || 0,
+    lunch: req.body.lunch || 0,
+    dinner: req.body.dinner || 0
+  }
 
   sqlite.run('DELETE FROM trip_pcard_requests WHERE trip = ?', tripId)
   sqlite.run(`
     INSERT INTO trip_pcard_requests (trip, num_people, snacks, breakfast, lunch, dinner)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `, tripId, people, snacks, breakfast, lunch, dinner)
+    VALUES (@trip, @num_people, @snacks, @breakfast, @lunch, @dinner)
+  `, input)
 
   if (costNames[0]) {
+    const otherCosts = costNames.map((name, index) => {
+      return { trip: tripId, name, cost: costValues[index] }
+    })
     sqlite.runMany(
       'INSERT INTO pcard_request_costs (trip, name, cost) VALUES (@trip, @name, @cost)',
       otherCosts
@@ -123,7 +134,7 @@ export function putPcardRequest (req, res) {
 export function deletePcardRequest (req, res) {
   const tripId = req.params.tripId
   sqlite.run('DELETE FROM trip_pcard_requests WHERE trip = ?', tripId)
-  sqlite.run('DELETE FROM pcard_request_costs WHERE AND trip = ?', tripId)
+  sqlite.run('DELETE FROM pcard_request_costs WHERE trip = ?', tripId)
   tripRequests.renderPcardCard(tripId, res)
 }
 

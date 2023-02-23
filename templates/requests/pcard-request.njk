@@ -10,13 +10,13 @@
   </template>
 
   <h1>P-Card Request</h1>
-  {% if not pcard_request %}
+  {% if pcard_request.hide === true%}
   <div id=add-pcard-request class=button-row>
     <button class="action edit" type=button onclick="unhideForm(this)">Add P-Card Request</button>
   </div>
   {% endif %}
 
-  <form class="pcard-form {% if not pcard_request %}hidden{% endif %}"
+  <form class="pcard-form {% if pcard_request.hide === true %}hidden{% endif %}"
         hx-swap=outerHTML
         hx-put="/rest/trip/{{ trip_id }}/pcard-request"
         >

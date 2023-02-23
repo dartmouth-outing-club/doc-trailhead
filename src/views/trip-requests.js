@@ -88,9 +88,14 @@ function getPcardData (tripId) {
     FROM trip_pcard_requests
     WHERE trip = ?
   `, tripId)
-  if (pcard) {
-    pcard.other_costs = sqlite
+
+  if (!pcard) {
+    const pcard_request = { hide: true, num_people: 0, snacks: 0, breakfast: 0, lunch: 0, dinner: 0 }
+    return { trip_id: tripId, pcard_request }
+  } else {
+    const pcard_request = pcard
+    pcard_request.other_costs = sqlite
       .all('SELECT id, name, cost FROM pcard_request_costs WHERE trip = ?', tripId)
+    return { trip_id: tripId, pcard_request }
   }
-  return { trip_id: tripId, pcard_request: pcard }
 }
