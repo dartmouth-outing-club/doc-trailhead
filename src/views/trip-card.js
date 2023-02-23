@@ -140,8 +140,10 @@ function getLeaderData (tripId, userId) {
   const otherCosts = sqlite.all('SELECT name, cost from pcard_request_costs WHERE trip = ?', tripId)
   const other_total = otherCosts.reduce((total, { cost }) => total + cost, 0)
 
-  tripPcardRequest.other_costs = otherCosts
-  tripPcardRequest.total = tripPcardRequest.food_total + other_total
+  if (tripPcardRequest) {
+    tripPcardRequest.other_costs = otherCosts
+    tripPcardRequest.total = tripPcardRequest.food_total + other_total
+  }
 
   trip.is_on_trip = sqlite.isSignedUpForTrip(tripId, userId)
   trip.start_datetime = utils.getDatetimeValueForUnixTime(trip.start_time)
