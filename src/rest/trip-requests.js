@@ -113,8 +113,11 @@ export function putPcardRequest (req, res) {
       'INSERT INTO pcard_request_costs (trip, name, cost) VALUES (@trip, @name, @cost)',
       otherCosts
     )
+    return tripRequests.renderPcardCard(tripId, res)
+  } else {
+    res.set('HX-Retarget', '#pcard-save-button')
+    res.render('components/save-complete-button.njk')
   }
-  return tripRequests.renderPcardCard(tripId, res)
 }
 
 export function deletePcardRequest (req, res) {
