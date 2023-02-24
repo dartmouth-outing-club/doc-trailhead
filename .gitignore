@@ -1,19 +1,9 @@
-.DS_Store
-node_modules
+# Node basics
 .env
-*.db
+node_modules
 npm-debug.log
 
-trailhead.db
+# SQLite Files
+*.db
 *-wal
 *-shm
-
-server.csr
-server.key
-server.pass.key
-all.crt
-DigiCertCA.crt
-doc_dartmouth_edu.crt
-dump/
-tables/
-data/
