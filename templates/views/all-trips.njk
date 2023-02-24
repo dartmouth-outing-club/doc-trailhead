@@ -6,10 +6,20 @@
 <main>
 
 <section class="info-card">
-<img src="/static/icons/mountain-icon.svg">
-<h1>Explore Trips</h1>
+<h1><img src="/static/icons/mountain-icon.svg">Explore Trips</h1>
+<div class=view-types>
+  <a class="action filter-option {% if not show_list %}selected{% endif %}" href="?view=tiles">
+    <img class=club-logo src="/static/icons/grid-icon.svg">
+    <span>Tiles</span>
+  </a>
+  <a class="action filter-option {% if show_list %}selected{% endif %}" href="?view=list">
+    <img class=club-logo src="/static/icons/stack-icon.svg">
+    <span>List</span>
+  </a>
+</div>
 </section>
 
+{% if not show_list %}
 <section class="trips">
 {% for trip in trips %}
 <a href=/trip/{{ trip.id }} class=trip-card>
@@ -22,6 +32,27 @@
 </a>
 {% endfor %}
 </section>
-
+{% else %}
+<section class=info-card>
+<div class=trip-table-overflow-wrapper>
+<table class=trip-table>
+  <thead>
+    <tr><th>Trip #<th>Trip<th>Time<th>Owner<th>Club
+  </thead>
+  <tbody>
+  {% for trip in trips %}
+    <tr>
+    <td>{{trip.id}}
+    <td><a href="/leader/trip/{{trip.id}}">{{trip.title}}</a>
+    <td>{{trip.time_element}}
+    <td>{{trip.owner}}
+    <td>{{trip.club}}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</section>
+{% endif%}
 </main>
 

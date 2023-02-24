@@ -1,11 +1,37 @@
-.info-card {
+main > .info-card {
+  margin: 0 auto 10px auto;
   display: flex;
-  align-items: center;
-  margin: 0 auto 40px auto;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.info-card h1 {
-  margin: 20px;
+h1 img {
+  margin-right: 10px;
+}
+
+.view-types {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px 0;
+}
+
+a.filter-option {
+  border: 1px solid lightgray;
+  /* color: rgb(156, 156, 156); */
+  color: black;
+  display: inline-block;
+  padding: 10px;
+  text-decoration: none;
+  vertical-align: center;
+}
+
+a.filter-option.selected {
+  background-color: rgb(236, 236, 236);
+}
+
+a.filter-option img {
+  margin-right: 5px;
+  vertical-align: sub; /* No great reason for this other than that it looks the best */
 }
 
 section.trips {
@@ -70,4 +96,15 @@ a.trip-card {
 
 .new-trip h2 {
   color: #909090;
+}
+
+@media screen and (min-width: 800px) {
+  main > .info-card {
+    flex-direction: row;
+    margin-bottom: 40px;
+  }
+
+  h1 {
+    margin: 20px;
+  }
 }
