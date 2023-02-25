@@ -1,5 +1,5 @@
 body {
-  background-color: rgb(237, 237, 237);
+  background-color: var(--background-gray);
 }
 
 .opo-nav {
@@ -43,11 +43,11 @@ body {
 }
 
 .opo-nav li:hover, .opo-nav li.selected {
-  border-bottom-color: rgb(12, 160, 116);
+  border-bottom-color: var(--approval-main-color);
 }
 
 .opo-nav li:hover > a, .opo-nav li.selected > a {
-  color: #0ca074;
+  color: var(--approval-main-color);
 }
 
 .leaders td:last-child, .certs td:last-child {

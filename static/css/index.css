@@ -40,7 +40,7 @@ hr {
 
 .login-card form button {
   appearance: button;
-  background-color: #0CA074;
+  background-color: var(--approval-main-color);
   border-radius: 6px;
   border: none;
   color: white;

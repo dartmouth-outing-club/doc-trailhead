@@ -5,7 +5,7 @@ label, div.form-info {
 
 form {
   font-size: 1.1em;
-  color: rgb(3, 55, 36);
+  color: var(--heading-main-color);
 }
 
 label.block {

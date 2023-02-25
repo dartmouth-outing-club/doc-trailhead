@@ -1,3 +1,14 @@
+:root {
+  --approval-main-color: #0ca074;
+  --background-gray: rgb(237, 237, 237);
+  --edit-accent-color: #e6f5f1;
+  --heading-main-color: rgb(3, 55, 36);
+  --secondary-info-color: rgb(144, 144, 144);
+  --selection-accent-color: rgba(182, 236, 175, .658);
+  --warning-accent-color: #fdf0ed;
+  --warning-main-color: #ee6e52;
+}
+
 @font-face {
   font-family: 'Nunito Sans';
   font-style: normal;
@@ -15,7 +26,7 @@ html {
 }
 
 body {
-  background-color: rgb(237, 237, 237);
+  background-color: var(--background-gray);
   margin: 0;
 }
 
@@ -28,7 +39,7 @@ main > .info-card, main > .trip-card {
 }
 
 h1, h2, h3 {
-  color: rgb(3, 55, 36);
+  color: var(--heading-main-color);
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
   font-weight: normal;
 }
@@ -42,15 +53,15 @@ p.user-text {
 }
 
 input:not([type=checkbox]):focus, select:focus, textarea:focus {
-  outline: 3px solid #0ca074;
+  outline: 3px solid var(--approval-main-color);
 }
 
 input[type=checkbox]:hover {
-  accent-color: rgba(182,236,175,.658);
+  accent-color: var(--selection-accent-color);
 }
 
 input[type=checkbox]:checked {
-  accent-color: #0ca074;
+  accent-color: var(--approval-main-color);
 }
 
 button.action, a.action {
@@ -68,31 +79,31 @@ a.action {
 }
 
 button.approve, a.approve {
-  background-color: #0ca074;
-  border-color: #0ca074;
+  background-color: var(--approval-main-color);
+  border-color: var(--approval-main-color);
 }
 
 button.remove, a.remove {
   background-color: white;
-  border: 2px solid #ee6e52;
-  color: #ee6e52;
+  border: 2px solid var(--warning-main-color);
+  color: var(--warning-main-color);
 }
 
 button.deny, a.deny {
-  background-color: #ee6e52;
-  border-color: #ee6e52;
+  background-color: var(--warning-main-color);
+  border-color: var(--warning-main-color);
 }
 
 button.edit, a.edit {
-  color: #0ca074;
+  color: var(--approval-main-color);
   background-color: white;
-  border: 2px solid #0ca074;
+  border: 2px solid var(--approval-main-color);
 }
 
 button.demote, a.demote {
-  color: #ee6e52;
+  color: var(--warning-main-color);
   background-color: white;
-  border: 2px solid #ee6e52;
+  border: 2px solid var(--warning-main-color);
 }
 
 button.action[disabled],
@@ -109,15 +120,15 @@ button.approve:hover, button.deny:hover {
 }
 
 button.edit:hover {
-  background-color: #e6f5f1;
+  background-color: var(--edit-accent-color);
 }
 
 button.demote:hover {
-  background-color: #fdf0ed;
+  background-color: var(--warning-accent-color);
 }
 
 a.top-link {
-  color: rgb(3, 55, 36);
+  color: var(--heading-main-color);
   margin: 10px;
   display: block;
   font-size: 1.1em;
@@ -133,7 +144,7 @@ a.top-link:visited {
 
 .error-message {
   padding: 20px;
-  background-color: #ee6e52;
+  background-color: var(--warning-main-color);
   color: white;
 }
 
@@ -223,7 +234,7 @@ a.top-link:visited {
 }
 
 .notice {
-  color: #909090;
+  color: var(--secondary-info-color);
   font-size: 1.2em;
   margin: 20px 0px;
   width: fit-content;

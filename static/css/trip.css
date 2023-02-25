@@ -1,5 +1,5 @@
 section header {
-  color: rgb(144, 144, 144);
+  color: var(--secondary-info-color);
 }
 
 h1 {
@@ -34,7 +34,7 @@ h1 {
 }
 
 .trip-table tr.leader-row {
-  background-color: rgba(182,236,175,.658);
+  background-color: var(--selection-accent-color);
 }
 
 .status-row {
@@ -87,7 +87,7 @@ img.badge {
 }
 
 .detail-table td {
-  color: #909090;
+  color: var(--warning-background-color);
   padding: 0;
   text-align: right;
 }
@@ -115,7 +115,7 @@ img.badge {
 }
 
 .vehicle-table dt {
-  color: rgb(3, 55, 36);
+  color: var(--heading-main-color);
   display: inline;
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
 }
