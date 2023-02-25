@@ -44,9 +44,8 @@
 {% endif %}
 <button id="add-leader" type=button onclick="addLeader()">Add New Co-Leader</button>
 
-<label>Give leaders edit access?<input name=edit_access {% if trip.coleader_can_edit %}checked {% endif %}type=checkbox></label>
-<label>Prior experience required?<input name=experience_needed {% if trip.experience_needed %}checked {% endif %}type=checkbox></label>
-<label>Is this a private trip or gear request?<input name=is_private {% if trip.private %}checked {% endif %}type=checkbox></label>
+<label>Prior experience is required<input name=experience_needed {% if trip.experience_needed %}checked {% endif %}type=checkbox></label>
+<label>Don't show this trip on the public trips list<input name=is_private {% if trip.private %}checked {% endif %}type=checkbox></label>
 
 <h2>Date and Location</h2>
 <label>Start Time (EST)<input min="{{ today }}" name=start_time value="{{ trip.start_time }}" type=datetime-local required></label>
@@ -54,7 +53,7 @@
 <label>Trip Location<input name=location value="{{ trip.location }}" type=text required></label>
 <label>Pickup Location<input name=pickup value="{{ trip.pickup }}" type=text required></label>
 <label>Dropoff Location<input name=dropoff value="{{ trip.dropoff }}" type=text required></label>
-<h2>Trip Description</h2>
+
 <p>Things you must include:
 <ul>
   <li>What you'll be doing on the trip

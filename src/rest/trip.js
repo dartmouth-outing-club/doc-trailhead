@@ -12,10 +12,10 @@ export function createTrip (req, res) {
 
   const info = sqlite.run(`
     INSERT INTO trips (
-      title, cost, owner, club, coleader_can_edit, experience_needed, private, start_time, end_time,
+      title, cost, owner, club, experience_needed, private, start_time, end_time,
       location, pickup, dropoff, description)
     VALUES (
-      @title, @cost, @owner, @club, @coleader_can_edit, @experience_needed, @private, @start_time,
+      @title, @cost, @owner, @club, @experience_needed, @private, @start_time,
       @end_time, @location, @pickup, @dropoff, @description
     )
   `, trip)
@@ -48,9 +48,8 @@ export function editTrip (req, res) {
     UPDATE trips
     SET
       title = @title, club = @club, cost = @cost, start_time = @start_time, end_time = @end_time,
-      location = @location, coleader_can_edit = @coleader_can_edit, experience_needed =
-      @experience_needed, private = @private, pickup = @pickup, dropoff = @dropoff, description =
-      @description
+      location = @location, experience_needed = @experience_needed, private = @private,
+      pickup = @pickup, dropoff = @dropoff, description = @description
     WHERE id = @id
   `, trip)
 
@@ -97,7 +96,6 @@ function convertFormInputToDbInput (input, userId) {
 
   try {
     const club = input.club > 0 ? input.club : null
-    const coleader_can_edit = input.edit_access === 'on' ? 1 : 0
     const experience_needed = input.experience_needed === 'on' ? 1 : 0
     const is_private = input.is_private === 'on' ? 1 : 0
     // Eventually, when JS gets better date handling, this should probably be replaced
@@ -108,7 +106,6 @@ function convertFormInputToDbInput (input, userId) {
       cost: input.cost,
       owner: userId,
       club,
-      coleader_can_edit,
       experience_needed,
       private: is_private,
       start_time,
