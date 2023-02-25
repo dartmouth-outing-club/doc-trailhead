@@ -59,7 +59,7 @@ export function getClubIcon (clubName) {
     case 'Timber Team':
       return '/static/icons/woodsmen.png'
     case 'Mountaineering':
-      return '/static/icons/mountain.png'
+      return '/static/icons/dmc.png'
     case 'Ledyard':
       return '/static/icons/ledyard.png'
     case 'People of Color Outdoors':
