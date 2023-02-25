@@ -128,13 +128,13 @@ CREATE TABLE trip_pcard_requests (
   trip INTEGER UNIQUE NOT NULL REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
   is_approved INTEGER,
   assigned_pcard TEXT,
-  num_people INTEGER,
-  snacks INTEGER,
-  breakfast INTEGER,
-  lunch INTEGER,
-  dinner INTEGER,
+  num_people INTEGER NOT NULL DEFAULT 0,
+  snacks INTEGER NOT NULL DEFAULT 0,
+  breakfast INTEGER NOT NULL DEFAULT 0,
+  lunch INTEGER NOT NULL DEFAULT 0,
+  dinner INTEGER NOT NULL DEFAULT 0,
   other_costs TEXT NOT NULL DEFAULT '[]' -- Deprecated, no longer in use
-); -- TODO make strict
+) STRICT;
 
 CREATE TABLE pcard_request_costs (
   id INTEGER PRIMARY KEY,
