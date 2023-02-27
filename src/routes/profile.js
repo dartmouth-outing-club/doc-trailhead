@@ -23,7 +23,8 @@ export function getProfileCardEditable (req, res) {
 }
 
 export function getUserTripView (req, res) {
-  return get(req.params.userId, res, false, true)
+  const data = getProfileData(req.params.userId, true)
+  return res.render('views/profile.njk', data)
 }
 
 function get (userId, res, isEditable, hideControls) {

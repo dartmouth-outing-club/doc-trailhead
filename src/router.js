@@ -70,7 +70,6 @@ router.get('/trip/:tripId/edit', requireTripLeader, trip.getEditView)
 router.get('/trip/:tripId/check-out', requireTripLeader, tripStatus.getCheckOutView)
 router.get('/trip/:tripId/check-in', requireTripLeader, tripStatus.getCheckInView)
 router.get('/trip/:tripId/requests', requireTripLeader, tripRequests.getRequestsView)
-router.get('/trip/:tripId/user/:userId', requireTripLeader, trip.getUserView)
 
 /**********************
  * User Profile Routes
