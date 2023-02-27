@@ -71,17 +71,17 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   <td><ul>{{ member.requested_gear }}</ul>
   <td>
     <button class="action edit"
-            hx-put="/rest/trip/{{ trip_id }}/waitlist/{{ member.id }}"
+            hx-put="/trip/{{ trip_id }}/waitlist/{{ member.id }}"
             {% if member.id === owner %}disabled{% endif %}
             >Un-admit</button>
     {% if member.leader === 1 %}
     <button class="action demote"
-            hx-delete="/rest/trip/{{ trip_id }}/leader/{{ member.id }}"
+            hx-delete="/trip/{{ trip_id }}/leader/{{ member.id }}"
             {% if member.id === owner %}disabled{% endif %}
             >Make trippee
     </button>
     {% else %}
-    <button class="action edit" hx-put="/rest/trip/{{ trip_id }}/leader/{{ member.id }}">Make leader</button>
+    <button class="action edit" hx-put="/trip/{{ trip_id }}/leader/{{ member.id }}">Make leader</button>
     {% endif %}
 </tr>
 {% endfor %}
@@ -112,9 +112,9 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   <td>{{ member.medical_conditions }}
   <td><ul>{{ member.requested_gear }}</ul>
   <td>
-    <button class="action edit" hx-put="/rest/trip/{{ trip_id }}/member/{{ member.id }}">Admit</button>
+    <button class="action edit" hx-put="/trip/{{ trip_id }}/member/{{ member.id }}">Admit</button>
     <button class="action edit"
-            hx-delete="/rest/trip/{{ trip_id }}/member/{{ member.id }}"
+            hx-delete="/trip/{{ trip_id }}/member/{{ member.id }}"
             hx-confirm="Are you sure you want to reject {{ member.name }}? Keep in mind that doing so will also remove their gear request."
             >Reject</button>
 </tr>
@@ -135,11 +135,11 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   </table>
   {% if show_member_gear_approval_buttons %}
   <div class=button-row>
-    <button class="action deny" hx-put="/rest/opo/member-gear/{{ trip_id }}/deny">Deny</button>
+    <button class="action deny" hx-put="/opo/member-gear/{{ trip_id }}/deny">Deny</button>
     {% if member_gear_approved === 1 %}
-    <button class="action edit" hx-put="/rest/opo/member-gear/{{ trip_id }}/reset">Reset</button>
+    <button class="action edit" hx-put="/opo/member-gear/{{ trip_id }}/reset">Reset</button>
     {% else %}
-    <button class="action approve" hx-put="/rest/opo/member-gear/{{ trip_id }}/approve">Approve</button>
+    <button class="action approve" hx-put="/opo/member-gear/{{ trip_id }}/approve">Approve</button>
     {% endif %}
   </div>
   {% endif %}
@@ -153,11 +153,11 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   </table>
   {% if show_group_gear_approval_buttons %}
   <div class=button-row>
-    <button class="action deny" hx-put="/rest/opo/group-gear/{{ trip_id }}/deny">Deny</button>
+    <button class="action deny" hx-put="/opo/group-gear/{{ trip_id }}/deny">Deny</button>
     {% if group_gear_approved === 1 %}
-    <button class="action edit" hx-put="/rest/opo/group-gear/{{ trip_id }}/reset">Reset</button>
+    <button class="action edit" hx-put="/opo/group-gear/{{ trip_id }}/reset">Reset</button>
     {% else %}
-    <button class="action approve" hx-put="/rest/opo/group-gear/{{ trip_id }}/approve">Approve</button>
+    <button class="action approve" hx-put="/opo/group-gear/{{ trip_id }}/approve">Approve</button>
     {% endif %}
   </div>
   {% endif %}
@@ -180,7 +180,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
     <tr class=summary><th>Total<td>${{ pcard_request.total }}
   </table>
   {% if show_pcard_approval_buttons %}
-  <form hx-put="/rest/opo/pcard/{{ trip_id }}/approve">
+  <form hx-put="/opo/pcard/{{ trip_id }}/approve">
     <label>Assigned P-Card:
       <input name=assigned_pcard
              type=text
@@ -189,9 +189,9 @@ on time. 48 hours before trip-start you can begin checking out your trip.
              >
     </label>
     <div class=button-row>
-      <button class="action deny" hx-put="/rest/opo/pcard/{{ trip_id }}/deny">Deny</button>
+      <button class="action deny" hx-put="/opo/pcard/{{ trip_id }}/deny">Deny</button>
       {% if pcard_request.is_approved === 1 %}
-      <button class="action edit" hx-put="/rest/opo/pcard/{{ trip_id }}/reset">Reset</button>
+      <button class="action edit" hx-put="/opo/pcard/{{ trip_id }}/reset">Reset</button>
       {% else %}
       <button class="action approve" type=submit>Approve</button>
       {% endif %}
@@ -222,7 +222,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
     class="action deny delete-trip"
     disabled
     autocomplete=off
-    hx-delete="/rest/trip/{{ trip_id }}"
+    hx-delete="/trip/{{ trip_id }}"
     hx-confirm="Are you sure you want to delete trip {{ title }}? Keep in mind that this will delete the associated vehicle request. This action cannot be reversed."
     >Delete Trip
 </button>

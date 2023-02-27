@@ -6,25 +6,6 @@ import * as sqlite from '../services/sqlite.js'
 import * as sessions from '../services/sessions.js'
 import * as constants from '../constants.js'
 
-async function generateAndInsertNewToken (userId) {
-  const token = await getRandomKey()
-  sessions.insertOrReplaceToken(userId, token)
-  return token
-}
-
-async function getRandomKey () {
-  return new Promise((resolve, reject) => {
-    crypto.randomBytes(256, (err, buf) => {
-      if (err) reject(err)
-      resolve(buf.toString('hex'))
-    })
-  })
-}
-
-function sendToLogin (_req, res, _next) {
-  return res.redirect('/welcome')
-}
-
 const SIGNUP_URLS = ['/new-user', '/profile']
 export function requireAuth (req, res, next) {
   const cookies = req.get('cookie')?.split('; ')
@@ -63,41 +44,43 @@ export function requireAuth (req, res, next) {
 
 /** Allow the request if the user is a leader of ANY club, or an OPO staffer */
 export function requireAnyLeader (req, res, next) {
-  if (res.locals.is_opo === true) return next()
-  const isLeader = sqlite.get(`
-    SELECT 1 as is_leader
-    FROM club_leaders WHERE user = ? and is_approved = TRUE`, req.user)?.is_leader === 1
-  if (isLeader) return next()
-  return res.sendStatus(403)
+  return requireAuth(req, res, () => {
+    if (res.locals.is_opo === true) return next()
+    const isLeader = sqlite.get(`
+      SELECT 1 as is_leader FROM club_leaders WHERE user = ? and is_approved = TRUE`,
+    req.user)?.is_leader === 1
+
+    if (isLeader) return next()
+    return res.sendStatus(403)
+  })
 }
 
 /** Allow the request if the user is a leader the specific trip, or an OPO staffer */
 export function requireTripLeader (req, res, next) {
-  const tripId = req.params.tripId
-  if (!tripId) console.error('Trip Leader authorization used on a route without a trip. This is almost certainly an error.')
+  return requireAuth(req, res, () => {
+    const tripId = req.params.tripId
+    if (!tripId) throw new Error('Trip Leader authorization used on a route without a trip.')
 
-  const isLeader = sqlite.get(`
-    SELECT 1 as is_leader
-    FROM trip_members WHERE user = ? AND trip = ? AND leader = 1
+    const isLeader = sqlite.get(`
+      SELECT 1 as is_leader
+      FROM trip_members WHERE user = ? AND trip = ? AND leader = 1
     `, req.user, tripId)?.is_leader === 1
 
-  // Set a variable that says the current use is a leader for THIS trip
-  if (isLeader) res.locals.is_leader_for_trip = true
+    // Set a variable that says the current use is a leader for THIS trip
+    if (isLeader) res.locals.is_leader_for_trip = true
 
-  // Return true if the user is OPO or a trip leader
-  if (res.locals.is_opo === true || isLeader) return next()
+    if (res.locals.is_opo === true || isLeader) return next()
 
-  // Return 403 FORBIDDEN otherwise
-  return res.sendStatus(403)
+    return res.sendStatus(403)
+  })
 }
 
 /** Allow the request if the user is an OPO staffer */
-export function requireOpo (_req, res, next) {
-  if (res.locals.is_opo === true) return next()
-  if (typeof res.locals.is_opo !== 'boolean') {
-    console.warn('OPO was required for a route, but that route has not been authenticated.')
-  }
-  return res.sendStatus(403)
+export function requireOpo (req, res, next) {
+  return requireAuth(req, res, () => {
+    if (res.locals.is_opo === true) return next()
+    return res.sendStatus(403)
+  })
 }
 
 export function signinCAS (req, res, next) {
@@ -123,6 +106,25 @@ export function logout (req, res) {
   sessions.invalidateUserToken(req.user)
   console.log(`Invalidate token for ${req.user}`)
   return sendToLogin(req, res)
+}
+
+async function generateAndInsertNewToken (userId) {
+  const token = await getRandomKey()
+  sessions.insertOrReplaceToken(userId, token)
+  return token
+}
+
+async function getRandomKey () {
+  return new Promise((resolve, reject) => {
+    crypto.randomBytes(256, (err, buf) => {
+      if (err) reject(err)
+      resolve(buf.toString('hex'))
+    })
+  })
+}
+
+function sendToLogin (_req, res, _next) {
+  return res.redirect('/welcome')
 }
 
 /**

@@ -15,7 +15,7 @@
 <p>If you checked out by mistake or your need to make changes to your attendance list, you can undo
 your check-out.
 <div><button class="action deny"
-        hx-delete="/rest/trip/{{trip_id}}/check-out"
+        hx-delete="/trip/{{trip_id}}/check-out"
         hx-confirm="Are you sure you want to undo your check-out?"
         >Undo Check-Out
 </button></div>
@@ -30,7 +30,7 @@ When you are ready to leave, click the check-out button to get started on your t
 
 <div>
 <button class="action approve"
-        hx-put="/rest/trip/{{trip_id}}/check-out"
+        hx-put="/trip/{{trip_id}}/check-out"
         hx-confirm="Are you sure you want to check out?"
         >Check-Out Trip
 </button>

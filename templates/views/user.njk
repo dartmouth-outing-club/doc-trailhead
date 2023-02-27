@@ -5,7 +5,7 @@
 {% include "common/site-nav.njk" %}
 
 <main>
-<section class="info-card" hx-get="/rest/trip/{{trip_id}}/user/{{user_id}}" hx-swap=outerHTML hx-trigger=load>
+<section class="info-card" hx-get="/trip/{{trip_id}}/user/{{user_id}}" hx-swap=outerHTML hx-trigger=load>
 </section>
 
 </main>

@@ -29,7 +29,7 @@
   </template>
 
   <form class=vehicle-form
-        hx-put="/rest/trip/{{ trip_id }}/vehiclerequest"
+        hx-put="/trip/{{ trip_id }}/vehiclerequest"
         hx-swap=outerHTML
         hx-target="find button[type=submit]"
         >

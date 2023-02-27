@@ -14,7 +14,7 @@
     </div>
   </template>
 
-  <form class=individual-gear-form hx-put="/rest/trip/{{ trip_id }}/individual-gear">
+  <form class=individual-gear-form hx-put="/trip/{{ trip_id }}/individual-gear">
   <h1>Individual Gear</h1>
 
   <div class=gear-row>
@@ -23,7 +23,7 @@
       <li>{{ gear.name }}
         <button class=close-button
                 type=button
-                hx-delete="/rest/trip/{{trip_id}}/individual-gear/{{gear.id}}"
+                hx-delete="/trip/{{trip_id}}/individual-gear/{{gear.id}}"
                 hx-confirm="Are you sure you want to delete {{gear.name}} from the list of required gear? This will remove it from all trippee gear requests as well." >
           <img alt="Close Icon" src="/static/icons/close-icon.svg">
         </button>

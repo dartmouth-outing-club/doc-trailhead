@@ -14,7 +14,7 @@
 <p><a href="/trip/{{trip_id}}">Return to the trip overview page</a>
 {% elseif not checked_in %}
 <div><button class="action approve"
-             hx-put="/rest/trip/{{trip_id}}/check-in"
+             hx-put="/trip/{{trip_id}}/check-in"
              hx-confirm="Are you sure you want to check in?"
              >We have returned safely
 </button></div>
@@ -24,7 +24,7 @@ If you had an incident or a near-miss on your trip,
   click here to file an incident report.</a>
 {% else %}
 <div><button class="action deny"
-             hx-delete="/rest/trip/{{trip_id}}/check-in"
+             hx-delete="/trip/{{trip_id}}/check-in"
              hx-confirm="Are you sure you want to undo your check in?"
              >Undo Check-In
 </button></div>

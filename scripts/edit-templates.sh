@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ ! -n "${1-}" ]]; then
-  >&2 echo "Usage: edit-templates.sh SCRIPT NAME"
+  >&2 echo "Usage: edit-templates.sh SCRIPT_NAME"
   exit 1
 fi
 
@@ -12,4 +12,4 @@ if [[ ! -f "$scriptname" ]]; then
   exit 1
 fi
 
-find ./templates/views -name '*.njk' -exec sh -c "ed {} < $scriptname" \;
+find ./templates -name '*.njk' -exec sh -c "ed {} < $scriptname" \;

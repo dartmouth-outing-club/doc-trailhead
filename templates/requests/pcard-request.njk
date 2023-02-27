@@ -18,7 +18,7 @@
 
   <form class="pcard-form {% if pcard_request.hide === true %}hidden{% endif %}"
         hx-swap=outerHTML
-        hx-put="/rest/trip/{{ trip_id }}/pcard-request"
+        hx-put="/trip/{{ trip_id }}/pcard-request"
         >
 
   <label class=number-row>
@@ -42,7 +42,7 @@
     <li>{{ request.name }} (${{ request.cost }})
     <button class=close-button
             type=button
-            hx-delete="/rest/trip/{{trip_id}}/pcard-request/cost/{{request.id}}"
+            hx-delete="/trip/{{trip_id}}/pcard-request/cost/{{request.id}}"
             hx-confirm="Are you sure you want to delete {{request.name}} from the list of required gear?">
     <img alt="Close Icon" src="/static/icons/close-icon.svg">
     </button>
@@ -57,7 +57,7 @@
     <button class="action deny"
             type=button
             hx-confirm="Are you sure you want to delete your trip's P-Card request?"
-            hx-delete="/rest/trip/{{ trip_id }}/pcard-request"
+            hx-delete="/trip/{{ trip_id }}/pcard-request"
             >Delete</button>
     <button class="action approve" id=pcard-save-button type=submit>Save</button>
   </div>

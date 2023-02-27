@@ -1,4 +1,4 @@
-<form hx-put="/rest/opo/vehiclerequest/{{ vehiclerequest_id }}/approve"
+<form hx-put="/opo/vehiclerequest/{{ vehiclerequest_id }}/approve"
       hx-target=this
       hx-swap=outerHTML>
   <div class=table-status-row>
@@ -77,9 +77,9 @@
 
   {% if is_opo %}
   <div class=button-row>
-    <button class="action deny" type=button hx-put="/rest/opo/vehiclerequest/{{ vehiclerequest_id }}/deny">Deny</button>
+    <button class="action deny" type=button hx-put="/opo/vehiclerequest/{{ vehiclerequest_id }}/deny">Deny</button>
     {% if vehiclerequest_is_approved !== null %}
-    <button class="action edit" type=button hx-put="/rest/opo/vehiclerequest/{{ vehiclerequest_id }}/reset">Reset</button>
+    <button class="action edit" type=button hx-put="/opo/vehiclerequest/{{ vehiclerequest_id }}/reset">Reset</button>
     {% else %}
     <button class="action approve" type=submit>Assign Vehicles</button>
     {% endif %}

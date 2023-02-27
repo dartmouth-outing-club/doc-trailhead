@@ -4,12 +4,19 @@ import * as sqlite from './services/sqlite.js'
 import * as welcome from './views/welcome.js'
 import * as assignments from './rest/assignments.js'
 import * as tripView from './views/trip.js'
-import * as profileView from './views/profile.js'
+import * as profile from './views/profile.js'
 import * as tripStatusView from './views/trip-status.js'
 import * as vehicleRequestView from './views/vehicle-request.js'
 import * as allTripsView from './views/all-trips.js'
 import * as myTripsView from './views/my-trips.js'
 import * as requestsView from './views/trip-requests.js'
+
+import * as trip from './rest/trip.js'
+import * as tripMembers from './rest/trip-members.js'
+import * as tripRequests from './rest/trip-requests.js'
+import * as tripStatus from './rest/trip-status.js'
+import * as gearApprovals from './rest/opo/gear-approvals.js'
+import { withTransaction } from './services/sqlite.js'
 
 import * as tripApprovalsView from './views/opo/trip-approvals.js'
 import * as vehicleRequestsView from './views/opo/vehicle-requests.js'
@@ -23,8 +30,10 @@ const { requireAuth, requireAnyLeader, requireTripLeader, requireOpo } = authent
 
 const router = Router()
 
-// Helper function that makes it easy to declare new views
+// Helper functions to make the routes a little more readable
 router.enableRender = (path) => router.get(`/${path}`, (_req, res) => res.render(`${path}.njk`))
+router.postTransaction = (...args) => router.post(...args.slice(0, -1), withTransaction(args.at(-1)))
+router.putTransaction = (...args) => router.put(...args.slice(0, -1), withTransaction(args.at(-1)))
 
 router.get('/sign-s3', signS3)
 
@@ -33,19 +42,31 @@ router.get('/', requireAuth, (req, res) => {
   const url = is_opo === 1 ? '/opo/trip-approvals' : '/all-trips'
   res.redirect(url)
 })
-
-router.get('/welcome', welcome.get)
-
 router.get('/signin-cas', authentication.signinCAS)
 router.post('/logout', requireAuth, authentication.logout)
 
+/**********************
+ * Basic webpage URLs
+ **********************/
+router.get('/welcome', welcome.get)
 router.get('/my-trips', requireAuth, myTripsView.get)
 router.get('/create-trip', requireAuth, requireAnyLeader, tripView.getCreateView)
-router.get('/new-user', requireAuth, profileView.getNewUserView)
+router.get('/new-user', requireAuth, profile.getNewUserView)
 router.get('/all-trips', requireAuth, allTripsView.get)
-
 router.get('/opo/vehicle-requests', requireAuth, requireOpo, vehicleRequestsView.get)
 router.get('/opo/trip-approvals', requireAuth, requireOpo, tripApprovalsView.get)
+router.get('/opo/manage-fleet', requireOpo, manageFleet.get)
+router.get('/opo/profile-approvals', requireOpo, profileApprovals.get)
+router.get('/leader/trip/:tripId', requireAuth, requireTripLeader, tripView.getLeaderView)
+router.get('/opo/calendar', requireAuth, requireOpo, (_req, res) => {
+  res.render('views/opo/calendar.njk', { LICENSE_KEY: process.env.FULLCALENDAR_LICENSE })
+})
+
+/**********************
+ * All-Purpose Routes
+ **********************/
+router.post('/trip/:tripId/signup', requireAuth, tripMembers.signup)
+router.delete('/trip/:tripId/signup', requireAuth, tripMembers.leave)
 
 router.get('/trip/:tripId', requireAuth, tripView.getSignupView)
 router.get('/trip/:tripId/edit', requireAuth, requireTripLeader, tripView.getEditView)
@@ -54,24 +75,76 @@ router.get('/trip/:tripId/check-in', requireAuth, requireTripLeader, tripStatusV
 router.get('/trip/:tripId/requests', requireAuth, requireTripLeader, requestsView.getRequestsView)
 router.get('/trip/:tripId/user/:userId', requireAuth, requireTripLeader, tripView.getUserView)
 
-router.get('/opo/manage-fleet', requireAuth, requireOpo, manageFleet.get)
-router.post('/opo/manage-fleet', requireAuth, requireOpo, manageFleet.post)
-router.delete('/opo/manage-fleet/:id', requireAuth, requireOpo, manageFleet.del)
+/**********************
+ * User Profile Routes
+ **********************/
+router.get('/profile', requireAuth, profile.getProfileView)
+router.post('/profile', requireAuth, profile.post)
+router.get('/profile/edit-profile', requireAuth, profile.getProfileCardEditable)
+router.get('/profile/driver-cert', requireAuth, profile.getDriverCertRequest)
+router.post('/profile/driver-cert', requireAuth, profile.postDriverCertRequest)
+router.get('/profile/club-leadership', requireAuth, profile.getClubLeadershipRequest)
+router.post('/profile/club-leadership', requireAuth, profile.postClubLeadershipRequest)
+router.delete('/profile/club-leadership/:id', requireAuth, profile.deleteClubLeadershipRequest)
 
-router.get('/opo/profile-approvals', requireAuth, requireOpo, profileApprovals.get)
-router.put('/opo/profile-approvals/leaders/:req_id', requireAuth, requireOpo, profileApprovals.approveLeadershipRequest)
-router.delete('/opo/profile-approvals/leaders/:req_id', requireAuth, requireOpo, profileApprovals.denyLeadershipRequest)
-router.put('/opo/profile-approvals/certs/:req_id', requireAuth, requireOpo, profileApprovals.approveCertRequest)
-router.delete('/opo/profile-approvals/certs/:req_id', requireAuth, requireOpo, profileApprovals.denyCertRequest)
+/*********************
+ * Trip Leader Routes
+ *********************/
+router.postTransaction('/trip', requireAnyLeader, trip.createTrip)
+router.put('/trip/:tripId', requireTripLeader, trip.editTrip)
+router.delete('/trip/:tripId', requireTripLeader, trip.deleteTrip)
 
-router.get('/profile', requireAuth, profileView.getProfileView)
+router.put('/trip/:tripId/leader/:userId', requireTripLeader, tripMembers.makeLeader)
+router.delete('/trip/:tripId/leader/:userId', requireTripLeader, tripMembers.demote)
+router.put('/trip/:tripId/waitlist/:userId', requireTripLeader, tripMembers.sendToWaitlist)
+router.put('/trip/:tripId/member/:userId', requireTripLeader, tripMembers.admit)
+router.delete('/trip/:tripId/member/:userId', requireTripLeader, tripMembers.reject)
 
+router.put('/trip/:tripId/vehiclerequest', requireTripLeader, tripRequests.putVehicleRequest)
+router.put('/trip/:tripId/individual-gear', requireTripLeader, tripRequests.putIndividualGear)
+router.delete('/trip/:tripId/individual-gear/:gearId', requireTripLeader, tripRequests.deleteIndividualGear)
+router.put('/trip/:tripId/group-gear', requireTripLeader, tripRequests.putGroupGear)
+router.delete('/trip/:tripId/group-gear/:gearId', requireTripLeader, tripRequests.deleteGroupGear)
+router.put('/trip/:tripId/pcard-request', requireTripLeader, tripRequests.putPcardRequest)
+router.delete('/trip/:tripId/pcard-request', requireTripLeader, tripRequests.deletePcardRequest)
+router.delete('/trip/:tripId/pcard-request/cost/:costId', requireTripLeader, tripRequests.deleteOtherCost)
+
+router.get('/trip/:tripId/user/:userId', requireTripLeader, profile.getUserTripView)
 router.get('/vehicle-request/:vehicleRequestId', requireAuth, vehicleRequestView.getVehicleRequestView)
-router.get('/leader/trip/:tripId', requireAuth, requireTripLeader, tripView.getLeaderView)
 
-router.get('/opo/calendar', requireAuth, requireOpo, (_req, res) => {
-  res.render('views/opo/calendar.njk', { LICENSE_KEY: process.env.FULLCALENDAR_LICENSE })
-})
+router.put('/trip/:tripId/check-out', requireTripLeader, tripStatus.checkOut)
+router.delete('/trip/:tripId/check-out', requireTripLeader, tripStatus.deleteCheckOut)
+router.put('/trip/:tripId/check-in', requireTripLeader, tripStatus.checkIn)
+router.delete('/trip/:tripId/check-in', requireTripLeader, tripStatus.deleteCheckIn)
+router.put('/trip/:tripId/present/:memberId', requireTripLeader, tripStatus.markUserPresent)
+router.delete('/trip/:tripId/present/:memberId', requireTripLeader, tripStatus.markUserAbsent)
+
+/*************
+ * OPO Routes
+ *************/
+router.put('/opo/vehiclerequest/:requestId/approve', requireOpo, gearApprovals.approveVehicleRequest)
+router.put('/opo/vehiclerequest/:requestId/deny', requireOpo, gearApprovals.denyVehicleRequest)
+router.put('/opo/vehiclerequest/:requestId/reset', requireOpo, gearApprovals.resetVehicleRequest)
+
+router.put('/opo/member-gear/:tripId/approve', requireOpo, gearApprovals.approveMemberGear)
+router.put('/opo/member-gear/:tripId/deny', requireOpo, gearApprovals.denyMemberGear)
+router.put('/opo/member-gear/:tripId/reset', requireOpo, gearApprovals.resetMemberGear)
+
+router.put('/opo/group-gear/:tripId/approve', requireOpo, gearApprovals.approveGroupGear)
+router.put('/opo/group-gear/:tripId/deny', requireOpo, gearApprovals.denyGroupGear)
+router.put('/opo/group-gear/:tripId/reset', requireOpo, gearApprovals.resetGroupGear)
+
+router.put('/opo/pcard/:tripId/approve', requireOpo, gearApprovals.approvePcard)
+router.put('/opo/pcard/:tripId/deny', requireOpo, gearApprovals.denyPcard)
+router.put('/opo/pcard/:tripId/reset', requireOpo, gearApprovals.resetPcard)
+
+router.post('/opo/manage-fleet', requireOpo, manageFleet.post)
+router.delete('/opo/manage-fleet/:id', requireOpo, manageFleet.del)
+
+router.put('/opo/profile-approvals/leaders/:req_id', requireOpo, profileApprovals.approveLeadershipRequest)
+router.delete('/opo/profile-approvals/leaders/:req_id', requireOpo, profileApprovals.denyLeadershipRequest)
+router.put('/opo/profile-approvals/certs/:req_id', requireOpo, profileApprovals.approveCertRequest)
+router.delete('/opo/profile-approvals/certs/:req_id', requireOpo, profileApprovals.denyCertRequest)
 
 // Some components
 router.enableRender('components/save-button')

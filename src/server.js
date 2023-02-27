@@ -8,9 +8,6 @@ import * as db from './services/sqlite.js'
 import * as sessions from './services/sessions.js'
 import * as mailer from './services/mailer.js'
 import apiRouter from './router.js'
-import restRouter from './rest-router.js'
-
-import { requireAuth } from './services/authentication.js'
 
 process.env.TZ = 'America/New_York'
 
@@ -35,7 +32,6 @@ nunjucks
 app.set('views', '/templates/views')
 
 app.use('/', apiRouter)
-app.use('/rest', requireAuth, restRouter) // All REST methods require authentication
 app.use(handleError)
 
 // Open database connections

@@ -12,9 +12,9 @@
 <form
   class=info-card
   {% if trip.id %}
-  hx-put="/rest/trip/{{ trip.id }}"
+  hx-put="/trip/{{ trip.id }}"
   {% else %}
-  action="/rest/trip"
+  action="/trip"
   method=post
   {% endif %}
   >
