@@ -7,12 +7,20 @@ import * as sessions from '../services/sessions.js'
 import * as constants from '../constants.js'
 
 const SIGNUP_URLS = ['/new-user', '/profile']
+/**
+ * Require authentication for a route.
+ *
+ * This function is pretty overloaded right now, as it's doing the hard work of both being its own
+ * middleware and imperfectly being the "get user" step of the other middlewares. I need to split
+ * them up, but it requires some thought to do because there are key parts of the logic that you
+ * don't want to duplicate.
+ */
 export function requireAuth (req, res, next) {
   const cookies = req.get('cookie')?.split('; ')
 
   if (!cookies) {
     console.warn('No cookies in request, sending user back to login page.')
-    return sendToLogin(req, res, next)
+    return denyLogin(req, res, next)
   }
 
   const cookieToken = cookies.find(item => item.substring(0, 5) === 'token')?.substring(6)
@@ -27,7 +35,7 @@ export function requireAuth (req, res, next) {
 
     if (!userInfo) {
       sessions.invalidateToken(cookieToken)
-      return sendToLogin(req, res, next)
+      return denyLogin(req, res, next)
     }
     if (!userInfo.is_profile_complete && !SIGNUP_URLS.includes(req.url)) {
       return res.redirect(303, '/new-user')
@@ -37,9 +45,9 @@ export function requireAuth (req, res, next) {
     return next()
   }
 
-  // Otherwise, invalidate the token we received (redundant, but clean) and redirect to login
+  // Otherwise, invalidate the token we received (redundant, but clean) and deny login
   sessions.invalidateToken(cookieToken)
-  return sendToLogin(req, res, next)
+  return denyLogin(req, res, next)
 }
 
 /** Allow the request if the user is a leader of ANY club, or an OPO staffer */
@@ -125,6 +133,11 @@ async function getRandomKey () {
 
 function sendToLogin (_req, res, _next) {
   return res.redirect('/welcome')
+}
+
+function denyLogin (req, res, next) {
+  if (req.method === 'GET') return sendToLogin(req, res, next)
+  return res.sendStatus(401)
 }
 
 /**
