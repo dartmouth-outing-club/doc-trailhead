@@ -9,16 +9,23 @@ function quit {
   exit 1
 }
 
-# Surface options
+# Command line options
 seed=false
 force=false
-while getopts 'fs' flag; do
+is_test=false
+while getopts 'fst' flag; do
   case "${flag}" in
     f) force=true;;
     s) seed=true;;
+    t) is_test=true;;
     *) error "Unexpected option ${flag}" ;;
   esac
 done
+
+if [[ $is_test = true ]]; then
+  TRAILHEAD_DB_NAME="trailhead-test.db"
+  SESSIONS_DB_NAME="sessions-test.db"
+fi
 
 # Stop if existing databases are open (cannot be forced)
 if [[ -f "$TRAILHEAD_DB_NAME-wal" ]] || [[ -f "$SESSIONS_DB_NAME-wal" ]]; then

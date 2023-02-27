@@ -35,8 +35,9 @@ app.use('/', apiRouter)
 app.use(handleError)
 
 // Open database connections
-db.start('trailhead.db')
-sessions.start('sessions.db')
+const isTest = process.env.NODE_ENV === 'TESTS'
+db.start(`trailhead${isTest ? '-test' : ''}.db`)
+sessions.start(`sessions${isTest ? '-test' : ''}.db`)
 process.on('exit', () => {
   db.stop()
   sessions.stop()

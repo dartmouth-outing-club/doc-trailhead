@@ -11,11 +11,11 @@
     "set-admin": "./scripts/set-user.sh 1",
     "set-leader": "./scripts/set-user.sh 2",
     "start": "node src/server.js",
-    "test": "node --test"
+    "test": "./test/run-tests.sh"
   },
   "license": "ISC",
   "engines": {
-    "node": ">=18"
+    "node": ">=19.7"
   },
   "type": "module",
   "dependencies": {
