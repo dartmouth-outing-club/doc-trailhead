@@ -1,6 +1,6 @@
 import * as sqlite from '../../services/sqlite.js'
-import * as tripCard from '../../views/trip-card.js'
-import * as vehicleRequestView from '../../views/vehicle-request.js'
+import * as tripCard from '../trip-card.js'
+import * as vehicleRequestView from '../vehicle-request.js'
 import * as mailer from '../../services/mailer.js'
 
 export function approveVehicleRequest (req, res) {

@@ -1,28 +1,25 @@
 import { Router } from 'express'
 import * as sqlite from './services/sqlite.js'
 
-import * as welcome from './views/welcome.js'
-import * as assignments from './rest/assignments.js'
-import * as tripView from './views/trip.js'
-import * as profile from './views/profile.js'
-import * as tripStatusView from './views/trip-status.js'
-import * as vehicleRequestView from './views/vehicle-request.js'
-import * as allTripsView from './views/all-trips.js'
-import * as myTripsView from './views/my-trips.js'
-import * as requestsView from './views/trip-requests.js'
+import * as welcome from './routes/welcome.js'
+import * as assignments from './routes/assignments.js'
+import * as trip from './routes/trip.js'
+import * as profile from './routes/profile.js'
+import * as tripStatus from './routes/trip-status.js'
+import * as vehicleRequestView from './routes/vehicle-request.js'
+import * as allTripsView from './routes/all-trips.js'
+import * as myTripsView from './routes/my-trips.js'
+import * as tripRequests from './routes/trip-requests.js'
 
-import * as trip from './rest/trip.js'
-import * as tripMembers from './rest/trip-members.js'
-import * as tripRequests from './rest/trip-requests.js'
-import * as tripStatus from './rest/trip-status.js'
-import * as gearApprovals from './rest/opo/gear-approvals.js'
+import * as tripMembers from './routes/trip-members.js'
+import * as gearApprovals from './routes/opo/gear-approvals.js'
 import { withTransaction } from './services/sqlite.js'
 
-import * as tripApprovalsView from './views/opo/trip-approvals.js'
-import * as vehicleRequestsView from './views/opo/vehicle-requests.js'
+import * as tripApprovalsView from './routes/opo/trip-approvals.js'
+import * as vehicleRequestsView from './routes/opo/vehicle-requests.js'
 
-import * as profileApprovals from './views/opo/profile-approvals.js'
-import * as manageFleet from './views/opo/manage-fleet.js'
+import * as profileApprovals from './routes/opo/profile-approvals.js'
+import * as manageFleet from './routes/opo/manage-fleet.js'
 
 import signS3 from './services/s3.js'
 import * as authentication from './services/authentication.js'
@@ -50,15 +47,15 @@ router.post('/logout', requireAuth, authentication.logout)
  **********************/
 router.get('/welcome', welcome.get)
 router.get('/my-trips', requireAuth, myTripsView.get)
-router.get('/create-trip', requireAuth, requireAnyLeader, tripView.getCreateView)
+router.get('/create-trip', requireAnyLeader, trip.getCreateView)
 router.get('/new-user', requireAuth, profile.getNewUserView)
 router.get('/all-trips', requireAuth, allTripsView.get)
-router.get('/opo/vehicle-requests', requireAuth, requireOpo, vehicleRequestsView.get)
-router.get('/opo/trip-approvals', requireAuth, requireOpo, tripApprovalsView.get)
+router.get('/opo/vehicle-requests', requireOpo, vehicleRequestsView.get)
+router.get('/opo/trip-approvals', requireOpo, tripApprovalsView.get)
 router.get('/opo/manage-fleet', requireOpo, manageFleet.get)
 router.get('/opo/profile-approvals', requireOpo, profileApprovals.get)
-router.get('/leader/trip/:tripId', requireAuth, requireTripLeader, tripView.getLeaderView)
-router.get('/opo/calendar', requireAuth, requireOpo, (_req, res) => {
+router.get('/leader/trip/:tripId', requireTripLeader, trip.getLeaderView)
+router.get('/opo/calendar', requireOpo, (_req, res) => {
   res.render('views/opo/calendar.njk', { LICENSE_KEY: process.env.FULLCALENDAR_LICENSE })
 })
 
@@ -68,12 +65,12 @@ router.get('/opo/calendar', requireAuth, requireOpo, (_req, res) => {
 router.post('/trip/:tripId/signup', requireAuth, tripMembers.signup)
 router.delete('/trip/:tripId/signup', requireAuth, tripMembers.leave)
 
-router.get('/trip/:tripId', requireAuth, tripView.getSignupView)
-router.get('/trip/:tripId/edit', requireAuth, requireTripLeader, tripView.getEditView)
-router.get('/trip/:tripId/check-out', requireAuth, requireTripLeader, tripStatusView.getCheckOutView)
-router.get('/trip/:tripId/check-in', requireAuth, requireTripLeader, tripStatusView.getCheckInView)
-router.get('/trip/:tripId/requests', requireAuth, requireTripLeader, requestsView.getRequestsView)
-router.get('/trip/:tripId/user/:userId', requireAuth, requireTripLeader, tripView.getUserView)
+router.get('/trip/:tripId', requireAuth, trip.getSignupView)
+router.get('/trip/:tripId/edit', requireTripLeader, trip.getEditView)
+router.get('/trip/:tripId/check-out', requireTripLeader, tripStatus.getCheckOutView)
+router.get('/trip/:tripId/check-in', requireTripLeader, tripStatus.getCheckInView)
+router.get('/trip/:tripId/requests', requireTripLeader, tripRequests.getRequestsView)
+router.get('/trip/:tripId/user/:userId', requireTripLeader, trip.getUserView)
 
 /**********************
  * User Profile Routes
@@ -150,7 +147,7 @@ router.delete('/opo/profile-approvals/certs/:req_id', requireOpo, profileApprova
 router.enableRender('components/save-button')
 
 // Look, JSON APIs! See, I'm not a zealot
-router.get('/json/calendar', requireAuth, requireOpo, assignments.get)
+router.get('/json/calendar', requireOpo, assignments.get)
 
 // Developer routes
 if (process.env.NODE_ENV === 'development') {

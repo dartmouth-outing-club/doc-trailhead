@@ -1,6 +1,6 @@
 import * as sqlite from '../services/sqlite.js'
 import * as mailer from '../services/mailer.js'
-import * as tripCard from '../views/trip-card.js'
+import * as tripCard from '../routes/trip-card.js'
 
 export function makeLeader (req, res) {
   const { tripId, userId } = req.params

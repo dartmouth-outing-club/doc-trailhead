@@ -1,6 +1,49 @@
-import * as mailer from '../services/mailer.js'
 import * as sqlite from '../services/sqlite.js'
-import * as tripStatusView from '../views/trip-status.js'
+import * as mailer from '../services/mailer.js'
+import * as tripStatusView from '../routes/trip-status.js'
+
+export function renderAttendanceTable (res, tripId) {
+  const data = getAttendanceData(tripId)
+  res.render('trip/attendance-table.njk', data)
+}
+
+export function getCheckOutView (req, res) {
+  const data = getAttendanceData(req.params.tripId)
+  console.log(data)
+  res.render('views/trip-check-out.njk', data)
+}
+
+export function getCheckInView (req, res) {
+  const tripId = req.params.tripId
+  const trip = sqlite.get(`
+    SELECT
+      id as trip_id,
+      title,
+      left as checked_out,
+      returned as checked_in
+    FROM trips
+    WHERE id = ?
+  `, tripId)
+  res.render('views/trip-check-in.njk', trip)
+}
+
+function getAttendanceData (tripId) {
+  const trip = sqlite.get(`
+    SELECT id AS trip_id, title, left AS checked_out, start_time
+    FROM trips
+    WHERE id = ?
+  `, tripId)
+  const members = sqlite.all(`
+    SELECT trips.title, users.id, users.name, attended, trips.left
+    FROM trip_members
+    LEFT JOIN users ON users.id = trip_members.user
+    LEFT JOIN trips ON trips.id = trip_members.trip
+    WHERE trip = ? AND pending = 0
+    ORDER BY users.name
+  `, tripId)
+
+  return { ...trip, members }
+}
 
 export function checkOut (req, res) {
   const tripId = req.params.tripId
