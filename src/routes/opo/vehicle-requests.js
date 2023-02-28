@@ -4,7 +4,6 @@ import { getBadgeImgElement } from '../../utils.js'
 
 export function get (_req, res) {
   const requests = getVehicleRequests().map(getRowData)
-  console.log(requests)
   const reviewed_requests = requests.filter(request => request.status !== 'pending')
   const pending_requests = requests.filter(request => request.status === 'pending')
   res.render('views/opo/vehicle-requests.njk', { reviewed_requests, pending_requests })

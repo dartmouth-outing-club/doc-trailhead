@@ -16,7 +16,7 @@ import * as gearApprovals from './routes/opo/gear-approvals.js'
 import { withTransaction } from './services/sqlite.js'
 
 import * as tripApprovalsView from './routes/opo/trip-approvals.js'
-import * as vehicleRequestsView from './routes/opo/vehicle-requests.js'
+import * as vehicleRequests from './routes/opo/vehicle-requests.js'
 
 import * as profileApprovals from './routes/opo/profile-approvals.js'
 import * as manageFleet from './routes/opo/manage-fleet.js'
@@ -50,7 +50,7 @@ router.get('/my-trips', requireAuth, myTripsView.get)
 router.get('/create-trip', requireAnyLeader, trip.getCreateView)
 router.get('/new-user', requireAuth, profile.getNewUserView)
 router.get('/all-trips', requireAuth, allTripsView.get)
-router.get('/opo/vehicle-requests', requireOpo, vehicleRequestsView.get)
+router.get('/opo/vehicle-requests', requireOpo, vehicleRequests.get)
 router.get('/opo/trip-approvals', requireOpo, tripApprovalsView.get)
 router.get('/opo/manage-fleet', requireOpo, manageFleet.get)
 router.get('/opo/profile-approvals', requireOpo, profileApprovals.get)
