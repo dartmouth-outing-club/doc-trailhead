@@ -8,13 +8,14 @@ on:
 
 jobs:
   ci-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '19.7'
+      - run: sudo apt install sqlite3
       - run: npm ci
       - run: npm run lint
       - run: npm run test
