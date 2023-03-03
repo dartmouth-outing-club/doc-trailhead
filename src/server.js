@@ -4,6 +4,7 @@ import morgan from 'morgan'
 import nunjucks from 'nunjucks'
 import bodyParser from 'body-parser'
 
+import package_json from '../package.json' assert { type: 'json' }
 import * as db from './services/sqlite.js'
 import * as sessions from './services/sessions.js'
 import * as mailer from './services/mailer.js'
@@ -11,15 +12,17 @@ import apiRouter from './router.js'
 
 process.env.TZ = 'America/New_York'
 
+const ONE_YEAR_IN_MS = 3.156e10
+const HTMX_VERSION = getPackageVersion('htmx.org')
+const FULLCALENDAR_VERSION = getPackageVersion('fullcalendar-scheduler')
+
 const app = express()
-
-// enable/disable http request logging
 app.use(morgan('dev'))
+app.yearCache = (route, path) => app.use(route, express.static(path, { maxAge: ONE_YEAR_IN_MS }))
 
-// serve static files - move this to nginx eventually
 app.use('/static', express.static('static'))
-app.use('/htmx', express.static('node_modules/htmx.org/dist'))
-app.use('/fullcalendar-scheduler', express.static('node_modules/fullcalendar-scheduler'))
+app.yearCache(`/htmx-${HTMX_VERSION}`, 'node_modules/htmx.org/dist')
+app.yearCache(`/fullcalendar-${FULLCALENDAR_VERSION}`, 'node_modules/fullcalendar-scheduler')
 app.use(bodyParser.urlencoded({ extended: true }))
 
 nunjucks
@@ -28,6 +31,8 @@ nunjucks
     express: app
   })
   .addGlobal('NODE_ENV', process.env.NODE_ENV)
+  .addGlobal('HTMX_VERSION', HTMX_VERSION)
+  .addGlobal('FULLCALENDAR_VERSION', FULLCALENDAR_VERSION)
 
 app.set('views', 'templates/views')
 
@@ -92,4 +97,10 @@ function handleError (err, req, res, _next) {
   }
 
   return res.status(500).send('Sorry, Trailhead experienced an error. Please reach to OPO.')
+}
+
+function getPackageVersion (packageName) {
+  // For the packages we serve statically, just specify the version exactly
+  // That way the cache will always get busted when the version upgrades
+  return package_json.dependencies[packageName].replace(/[^0-9\.]/, '')
 }
