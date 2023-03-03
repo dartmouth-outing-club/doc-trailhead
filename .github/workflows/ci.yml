@@ -16,6 +16,8 @@ jobs:
         with:
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          context: .
+          file: test/Dockerfile
       - run: docker build -t trailhead-test -f ./test/Dockerfile . && docker run trailhead-test
   linting:
     runs-on: ubuntu-22.04
