@@ -125,10 +125,11 @@ export function getDriverCertRequest (req, res) {
 }
 
 export function postDriverCertRequest (req, res) {
-  if (!req.body.cert) return res.sendStatus(400)
-
   // Delete all the *pending* requests so that we can add the new pending requests
   sqlite.run('DELETE FROM user_certs WHERE user = ? and is_approved = 0', req.user)
+
+  // If the body is empty, that means the user has removed their certs, and we're done
+  if (!req.body.cert) return getProfileCard(req, res)
 
   // body-parser weirdness: if there's a single value it's a string, if there's multiple it's an
   // array of strings
