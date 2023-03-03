@@ -14,7 +14,6 @@ COPY ./package.json ./package.json
 RUN npm i
 
 COPY ./src ./src/
-COPY ./templates ./templates/
 COPY ./test ./test/
 COPY ./db ./db/
 
