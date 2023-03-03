@@ -18,6 +18,8 @@ jobs:
           cache-to: type=gha,mode=max
           context: .
           file: test/Dockerfile
+          load: true
+          tags: trailhead-test
       - run: docker run trailhead-test
   linting:
     runs-on: ubuntu-22.04
