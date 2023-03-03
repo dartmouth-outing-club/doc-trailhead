@@ -10,7 +10,7 @@ navigating your browser to `localhost:8080`.
 
 Development commands:
 * `npm i` - install dependencies
-* `npm t` - run tests
+* `npm t` - run tests (requires SQLite installation)
 * `npm run dev` - run in development mode
 * `npm start` - run in production mode (requires `.env` file)
 * `npm run init-db` - create a clean version of the database, with a little bit of seed data
@@ -33,9 +33,10 @@ for the application:
 * It can be run and tested without any other install besides `npm run i`. This substantially
   improves development speed and simplicity.
 * Since database requests do not have to make a network hop, it basically removes the performance
-  penalty for executing multiple small SQL queries (sometimes called the "[n+1 problem](https://www.sqlite.org/np1queryprob.html)"). This lets you write more intelligible SQL commands,
-  mixed with a little bit of JS. In practice, I use a bunch of small queries and a few medium-sized
-  ones.
+  penalty for executing multiple small SQL queries (sometimes called the "[n+1
+  problem](https://www.sqlite.org/np1queryprob.html)"). This lets you write more intelligible SQL
+  commands, mixed with a little bit of JS. In practice, I use a bunch of small queries and a few
+  medium-sized ones.
 
 ### Views
 This application does not really have a distinction between frontend and backend. The views are
@@ -55,6 +56,21 @@ HTML.
 
 ## Deployment
 Trailhead is deployed on a DigitalOcean droplet and served behind an NGINX proxy.
+
+## Testing
+In order to run the end-to-end tests, Trailhead can be set up in a docker container. You can build
+and run it in the same step like this:
+
+```
+docker build -t trailhead-test -f ./test/Dockerfile . && docker run trailhead-test
+```
+
+If you have an SQLite version > 3.37 installed, you can just run the test suite locally with `npm
+run test`. The docker rigamarole is because we use some of the latest SQLite features to run our
+test suite, but older versions will be able to run the application just fine.
+
+If you don't already have Docker Desktop installed, and don't want to install it, give
+[Colima](https://github.com/abiosoft/colima/) a try.
 
 ## Appendix
 Here are some useful resources that might help you understand the tech stack better, if you're not

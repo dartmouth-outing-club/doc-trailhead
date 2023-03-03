@@ -7,7 +7,12 @@ on:
     branches: [ main ]
 
 jobs:
-  ci-tests:
+  integration-tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - run: docker build -t trailhead-test -f ./test/Dockerfile . && docker run trailhead-test
+  linting:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -15,7 +20,5 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '19.7'
-      - run: sudo apt install sqlite3
       - run: npm ci
       - run: npm run lint
-      - run: npm run test
