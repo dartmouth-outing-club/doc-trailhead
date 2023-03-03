@@ -23,13 +23,13 @@ app.use('/fullcalendar-scheduler', express.static('node_modules/fullcalendar-sch
 app.use(bodyParser.urlencoded({ extended: true }))
 
 nunjucks
-  .configure('templates', {
+  .configure('./src/templates', {
     autoescape: false, // The SQLite rest methods already escape results
     express: app
   })
   .addGlobal('NODE_ENV', process.env.NODE_ENV)
 
-app.set('views', '/templates/views')
+app.set('views', 'templates/views')
 
 app.use('/', apiRouter)
 app.use(handleError)
