@@ -1,10 +1,10 @@
+import fs from 'node:fs'
 import express from 'express'
 import cron from 'node-cron'
 import morgan from 'morgan'
 import nunjucks from 'nunjucks'
 import bodyParser from 'body-parser'
 
-import package_json from '../package.json' assert { type: 'json' }
 import * as db from './services/sqlite.js'
 import * as sessions from './services/sessions.js'
 import * as mailer from './services/mailer.js'
@@ -12,6 +12,7 @@ import apiRouter from './router.js'
 
 process.env.TZ = 'America/New_York'
 
+const PACKAGE_JSON = JSON.parse(fs.readFileSync('./package.json'))
 const ONE_YEAR_IN_MS = 3.156e10
 const HTMX_VERSION = getPackageVersion('htmx.org')
 const FULLCALENDAR_VERSION = getPackageVersion('fullcalendar-scheduler')
@@ -102,5 +103,5 @@ function handleError (err, req, res, _next) {
 function getPackageVersion (packageName) {
   // For the packages we serve statically, just specify the version exactly
   // That way the cache will always get busted when the version upgrades
-  return package_json.dependencies[packageName].replace(/[^0-9\.]/, '')
+  return PACKAGE_JSON.dependencies[packageName].replace(/[^0-9.]/, '')
 }
