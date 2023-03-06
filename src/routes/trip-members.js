@@ -1,11 +1,12 @@
 import * as sqlite from '../services/sqlite.js'
+import * as emails from '../emails.js'
 import * as mailer from '../services/mailer.js'
 import * as tripCard from '../routes/trip-card.js'
 
 export function makeLeader (req, res) {
   const { tripId, userId } = req.params
   sqlite.run('UPDATE trip_members SET leader = 1 WHERE trip = ? and user = ?', tripId, userId)
-  mailer.sendCoLeaderConfirmation(tripId, userId)
+  mailer.send(emails.getCoLeaderConfirmation, sqlite, tripId, userId)
   return tripCard.renderLeaderCard(res, tripId, userId)
 }
 
@@ -14,14 +15,14 @@ export function demote (req, res) {
   // You can't demote yourself to a trippee
   if (req.user === userId) return res.sendStatus(400)
   sqlite.run('UPDATE trip_members SET leader = 0 WHERE trip = ? and user = ?', tripId, userId)
-  mailer.sendCoLeaderRemovalNotice(tripId, userId)
+  mailer.send(emails.getCoLeaderRemovalNotice, sqlite, tripId, userId)
   return tripCard.renderLeaderCard(res, tripId, userId)
 }
 
 export function admit (req, res) {
   const { tripId, userId } = req.params
   sqlite.run('UPDATE trip_members SET pending = 0 WHERE trip = ? and user = ?', tripId, userId)
-  mailer.sendTripApprovalEmail(tripId, userId)
+  mailer.send(emails.getTripApprovalEmail, sqlite, tripId, userId)
   return tripCard.renderLeaderCard(res, tripId, userId)
 }
 
@@ -33,7 +34,7 @@ export function sendToWaitlist (req, res) {
   if (userId === owner) return res.sendStatus(400)
 
   sqlite.run('UPDATE trip_members SET pending = 1 WHERE trip = ? and user = ?', tripId, userId)
-  mailer.sendTripRemovalEmail(tripId, userId)
+  mailer.send(emails.getTripRemovalEmail, sqlite, tripId, userId)
   return tripCard.renderLeaderCard(res, tripId, userId)
 }
 
@@ -49,7 +50,7 @@ export function reject (req, res) {
   if (userId === owner) return res.sendStatus(400)
 
   sqlite.run('DELETE FROM trip_members WHERE trip = ? and user = ?', tripId, userId)
-  mailer.sendTripTooFullEmail(tripId, userId)
+  mailer.send(emails.getTripTooFullEmail, sqlite, tripId, userId)
   return tripCard.renderLeaderCard(res, tripId, req.user)
 }
 
@@ -73,9 +74,9 @@ export function signup (req, res) {
   // If the trip member was inserted, that means they just applied,
   // otherwise it means they changed their gear request
   if (info.changes === 1) {
-    mailer.sendTripApplicationConfirmation(tripId, req.user)
+    mailer.send(emails.getTripApplicationConfirmation, sqlite, tripId, req.user)
   } else {
-    mailer.sendGearRequestChangedEmail(tripId, req.user)
+    mailer.send(emails.getGearRequestChangedEmail, sqlite, tripId, req.user)
   }
 
   return tripCard.renderSignupCard(res, tripId, req.user)
@@ -94,6 +95,6 @@ export function leave (req, res) {
   if (changes === 0) console.warn(`Unnecessary delete requested for trip ${tripId}`)
 
   // TODO only send if user was approved
-  mailer.sendUserLeftEmail(tripId, req.user)
+  mailer.send(emails.getUserLeftEmail, sqlite, tripId, req.user)
   return tripCard.renderSignupCard(res, tripId, req.user)
 }

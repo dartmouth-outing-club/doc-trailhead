@@ -7,6 +7,7 @@ import bodyParser from 'body-parser'
 
 import * as db from './services/sqlite.js'
 import * as sessions from './services/sessions.js'
+import * as emails from './emails.js'
 import * as mailer from './services/mailer.js'
 import apiRouter from './router.js'
 
@@ -34,7 +35,6 @@ nunjucks
   .addGlobal('NODE_ENV', process.env.NODE_ENV)
   .addGlobal('HTMX_VERSION', HTMX_VERSION)
   .addGlobal('FULLCALENDAR_VERSION', FULLCALENDAR_VERSION)
-
 app.set('views', 'templates/views')
 
 app.use('/', apiRouter)
@@ -52,29 +52,28 @@ process.on('SIGHUP', () => process.exit(128 + 1))
 process.on('SIGINT', () => process.exit(128 + 2))
 process.on('SIGTERM', () => process.exit(128 + 15))
 
-// START THE SERVER
+// Start the server
 // =============================================================================
 const port = process.env.PORT || 8080
 app.listen(port)
 console.log(`Server running at http://localhost:${port}`)
 console.error(`Starting up at ${new Date()}`)
 
+// Create and schedule time-based emails
+// =============================================================================
 const checkOutEmails = mailer.createRecurringEmailSender('trip check-out',
-  db.getTripsPendingCheckOutEmail, mailer.sendCheckOutEmail, db.markCheckOutEmail)
+  db.getTripsPendingCheckOutEmail, emails.getCheckOutEmail, db.markCheckOutEmail)
 
 const checkInEmails = mailer.createRecurringEmailSender('trip check-in',
-  db.getTripsPendingCheckInEmail, mailer.sendCheckInEmail, db.markCheckInEmail)
+  db.getTripsPendingCheckInEmail, emails.getCheckInEmail, db.markCheckInEmail)
 
 const late90MinEmails = mailer.createRecurringEmailSender('trip late 90 minutes',
-  db.getTripsPending90MinEmail, mailer.send90MinuteLateEmail, db.mark90MinEmail)
+  db.getTripsPending90MinEmail, emails.get90MinuteLateEmail, db.mark90MinEmail)
 
 const late3HourEmails = mailer.createRecurringEmailSender('trip late 3 hours',
-  db.getTripsPending3HourEmail, mailer.send3HourLateEmail, db.markTripLate)
+  db.getTripsPending3HourEmail, emails.get3HourLateEmail, db.markTripLate)
 
-/**
- * Schedules time-based emails.
- */
-if (process.env.NODE_ENV !== 'development' && process.env.SCHEDULER_STATUS !== 'disabled') {
+if (process.env.NODE_ENV === 'production' && process.env.SCHEDULER_STATUS !== 'disabled') {
   // These wacky times are a stopgap to mitigate the connection limit throttling
   // I'll batch these properly (with precise queries) soon
   console.log('Starting scheduler')
@@ -101,7 +100,8 @@ function handleError (err, req, res, _next) {
 }
 
 function getPackageVersion (packageName) {
-  // For the packages we serve statically, just specify the version exactly
-  // That way the cache will always get busted when the version upgrades
+  // For the packages we serve statically, specify the version exactly
+  // This function wouldn't work if you did something like "<5.0"
+  // We append the package version to the URL so that the caches bust on upgrade
   return PACKAGE_JSON.dependencies[packageName].replace(/[^0-9.]/, '')
 }

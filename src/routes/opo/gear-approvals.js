@@ -1,6 +1,7 @@
 import * as sqlite from '../../services/sqlite.js'
 import * as tripCard from '../trip-card.js'
 import * as vehicleRequestView from '../vehicle-request.js'
+import * as emails from '../../emails.js'
 import * as mailer from '../../services/mailer.js'
 
 export function approveVehicleRequest (req, res) {
@@ -40,7 +41,8 @@ export function approveVehicleRequest (req, res) {
       @response_index)
   `, assignments)
   sqlite.run('UPDATE vehiclerequests SET is_approved = true WHERE id = ?', vehiclerequest.id)
-  mailer.sendTripVehicleRequestProcessedEmail(vehiclerequest.trip)
+
+  mailer.send(emails.getVehicleRequestProcessedEmail, sqlite, vehiclerequest.trip)
   vehicleRequestView.renderVehicleRequestTable(res, vehiclerequest.id)
 }
 
@@ -50,7 +52,7 @@ export function denyVehicleRequest (req, res) {
   sqlite.run('UPDATE vehiclerequests SET is_approved = false WHERE id = ?', req.params.requestId)
   sqlite.run('DELETE FROM assignments WHERE vehiclerequest = ?', req.params.requestId)
 
-  mailer.sendVehicleRequestDeniedEmail(vehicleRequestId)
+  mailer.send(emails.getVehicleRequestDeniedEmail, sqlite, vehicleRequestId)
   vehicleRequestView.renderVehicleRequestTable(res, vehicleRequestId)
 }
 

@@ -10,7 +10,7 @@
     "init-db": "./db/init-db.sh -fs",
     "set-admin": "./scripts/set-user.sh 1",
     "set-leader": "./scripts/set-user.sh 2",
-    "start": "node src/server.js",
+    "start": "NODE_ENV=production node src/server.js",
     "test": "./test/run-tests.sh"
   },
   "license": "ISC",

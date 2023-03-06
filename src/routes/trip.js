@@ -2,6 +2,7 @@
 import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 import * as tripCard from './trip-card.js'
+import * as emails from '../emails.js'
 import * as mailer from '../services/mailer.js'
 import { BadRequestError } from '../request/errors.js'
 
@@ -105,8 +106,7 @@ export function createTrip (req, res) {
     tripMembers
   )
 
-  const leaderEmails = sqlite.getTripLeaderEmails(tripId)
-  mailer.sendNewTripEmail(tripId, trip.title, leaderEmails)
+  mailer.send(emails.getNewTripEmail, sqlite, tripId)
 
   const redirectUrl = req.body.goto_requests === 'on'
     ? `/trip/${tripId}/requests`
@@ -146,9 +146,9 @@ export function deleteTrip (req, res) {
   const tripId = req.params.tripId
   if (!tripId || tripId < 1) return res.sendStatus(400)
 
-  const trip = sqlite.getTripEmailInfo(tripId)
+  // TODO: Send the email *after* the trip is deleted
+  mailer.send(emails.getTripDeletedEmail, sqlite, tripId)
   sqlite.run('DELETE FROM trips WHERE id = ?', tripId)
-  mailer.sendTripDeletedEmail(trip.id, trip.title, trip.owner_email, trip.member_emails)
   res.set('HX-Redirect', '/my-trips')
   return res.sendStatus(200)
 }
