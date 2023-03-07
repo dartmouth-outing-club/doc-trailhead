@@ -72,7 +72,7 @@ export function getClubIcon (clubName) {
 }
 
 export function getDatetimeElement (unixTime, opts = {}) {
-  if (unixTime === undefined) return undefined
+  if (!unixTime) return undefined
   if (typeof unixTime !== 'number') {
     throw new Error(`Unexpected argument ${unixTime} received`)
   }
