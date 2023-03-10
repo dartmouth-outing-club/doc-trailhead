@@ -1,5 +1,4 @@
 import { Router } from 'express'
-import * as sqlite from './services/sqlite.js'
 
 import * as welcome from './routes/welcome.js'
 import * as assignments from './routes/assignments.js'
@@ -13,7 +12,6 @@ import * as tripRequests from './routes/trip-requests.js'
 
 import * as tripMembers from './routes/trip-members.js'
 import * as gearApprovals from './routes/opo/gear-approvals.js'
-import { withTransaction } from './services/sqlite.js'
 
 import * as tripApprovalsView from './routes/opo/trip-approvals.js'
 import * as vehicleRequests from './routes/opo/vehicle-requests.js'
@@ -29,13 +27,14 @@ const router = Router()
 
 // Helper functions to make the routes a little more readable
 router.enableRender = (path) => router.get(`/${path}`, (_req, res) => res.render(`${path}.njk`))
-router.postTransaction = (...args) => router.post(...args.slice(0, -1), withTransaction(args.at(-1)))
-router.putTransaction = (...args) => router.put(...args.slice(0, -1), withTransaction(args.at(-1)))
+// TODO add back transactions
+// router.postTransaction = (...args) => router.post(...args.slice(0, -1), withTransaction(args.at(-1)))
+// router.putTransaction = (...args) => router.put(...args.slice(0, -1), withTransaction(args.at(-1)))
 
 router.get('/sign-s3', signS3)
 
 router.get('/', requireAuth, (req, res) => {
-  const is_opo = sqlite.get('SELECT is_opo FROM users WHERE id = ?', req.user)?.is_opo
+  const is_opo = req.db.get('SELECT is_opo FROM users WHERE id = ?', req.user)?.is_opo
   const url = is_opo === 1 ? '/opo/trip-approvals' : '/all-trips'
   res.redirect(url)
 })
@@ -86,7 +85,7 @@ router.delete('/profile/club-leadership/:id', requireAuth, profile.deleteClubLea
 /*********************
  * Trip Leader Routes
  *********************/
-router.postTransaction('/trip', requireAnyLeader, trip.createTrip)
+router.post('/trip', requireAnyLeader, trip.createTrip)
 router.put('/trip/:tripId', requireTripLeader, trip.editTrip)
 router.delete('/trip/:tripId', requireTripLeader, trip.deleteTrip)
 

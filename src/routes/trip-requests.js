@@ -1,29 +1,8 @@
-import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
-
-export function renderVehicleRequestCard (tripId, res) {
-  const data = getVehicleRequestData(tripId)
-  res.render('requests/vehicle-request-editable.njk', { ...data })
-}
-
-export function renderIndividualGearCard (tripId, res) {
-  const data = getIndividualGearData(tripId)
-  res.render('requests/individual-gear.njk', { ...data })
-}
-
-export function renderGroupGearCard (tripId, res) {
-  const data = getGroupGearData(tripId)
-  res.render('requests/group-gear.njk', { ...data })
-}
-
-export function renderPcardCard (tripId, res) {
-  const data = getPcardData(tripId)
-  res.render('requests/pcard-request.njk', { ...data })
-}
 
 export function getRequestsView (req, res) {
   const tripId = req.params.tripId
-  const statuses = sqlite.get(`
+  const statuses = req.db.get(`
     SELECT
       member_gear_approved,
       group_gear_approved,
@@ -34,10 +13,10 @@ export function getRequestsView (req, res) {
     LEFT JOIN trip_pcard_requests ON trips.id = trip_pcard_requests.trip
     WHERE trips.id = ?
   `, tripId)
-  const vehicleData = statuses.vehiclerequest_approved ? { vehiclerequest_locked: true } : getVehicleRequestData(tripId)
-  const individualGearData = statuses.member_gear_approved ? { individual_gear_locked: true } : getIndividualGearData(tripId)
-  const groupGearData = statuses.group_gear_approved ? { group_gear_locked: true } : getGroupGearData(tripId)
-  const pcardData = statuses.pcard_approved ? { pcard_locked: true } : getPcardData(tripId)
+  const vehicleData = statuses.vehiclerequest_approved ? { vehiclerequest_locked: true } : getVehicleRequestData(req, tripId)
+  const individualGearData = statuses.member_gear_approved ? { individual_gear_locked: true } : getIndividualGearData(req, tripId)
+  const groupGearData = statuses.group_gear_approved ? { group_gear_locked: true } : getGroupGearData(req, tripId)
+  const pcardData = statuses.pcard_approved ? { pcard_locked: true } : getPcardData(req, tripId)
   res.render('views/trip-requests.njk', {
     trip_id: tripId,
     ...vehicleData,
@@ -47,8 +26,8 @@ export function getRequestsView (req, res) {
   })
 }
 
-function getVehicleRequestData (tripId) {
-  const requested_vehicles = sqlite.all(`
+function getVehicleRequestData (req, tripId) {
+  const requested_vehicles = req.db.all(`
     SELECT type, pickup_time, return_time, trailer_needed, pass_needed, request_details
     FROM requested_vehicles
     LEFT JOIN vehiclerequests ON vehiclerequests.id = requested_vehicles.vehiclerequest
@@ -61,7 +40,7 @@ function getVehicleRequestData (tripId) {
         return: utils.getDatetimeValueForUnixTime(request.return_time)
       }
     })
-  const times = sqlite.get('SELECT start_time, end_time FROM trips WHERE id = ?', tripId)
+  const times = req.db.get('SELECT start_time, end_time FROM trips WHERE id = ?', tripId)
 
   return {
     trip_id: tripId,
@@ -72,18 +51,18 @@ function getVehicleRequestData (tripId) {
   }
 }
 
-function getIndividualGearData (tripId) {
-  const gear = sqlite.all('SELECT id, name, size_type FROM trip_required_gear WHERE trip = ?', tripId)
+function getIndividualGearData (req, tripId) {
+  const gear = req.db.all('SELECT id, name, size_type FROM trip_required_gear WHERE trip = ?', tripId)
   return { trip_id: tripId, individual_gear: gear }
 }
 
-function getGroupGearData (tripId) {
-  const gear = sqlite.all('SELECT rowid as id, name, quantity FROM group_gear_requests WHERE trip = ?', tripId)
+function getGroupGearData (req, tripId) {
+  const gear = req.db.all('SELECT rowid as id, name, quantity FROM group_gear_requests WHERE trip = ?', tripId)
   return { trip_id: tripId, group_gear: gear }
 }
 
-function getPcardData (tripId) {
-  const pcard = sqlite.get(`
+function getPcardData (req, tripId) {
+  const pcard = req.db.get(`
     SELECT is_approved, num_people, snacks, breakfast, lunch, dinner
     FROM trip_pcard_requests
     WHERE trip = ?
@@ -94,7 +73,7 @@ function getPcardData (tripId) {
     return { trip_id: tripId, pcard_request }
   } else {
     const pcard_request = pcard
-    pcard_request.other_costs = sqlite
+    pcard_request.other_costs = req.db
       .all('SELECT id, name, cost FROM pcard_request_costs WHERE trip = ?', tripId)
     return { trip_id: tripId, pcard_request }
   }
@@ -104,8 +83,8 @@ export function putVehicleRequest (req, res) {
   const input = { ...req.body }
   const tripId = req.params.tripId
 
-  sqlite.run('DELETE FROM vehiclerequests WHERE trip = ?', tripId)
-  const info = sqlite.run(`
+  req.db.run('DELETE FROM vehiclerequests WHERE trip = ?', tripId)
+  const info = req.db.run(`
       INSERT INTO vehiclerequests (requester, request_details, trip)
       VALUES (?, ?, ?)
       `, req.user, input.notes, tripId)
@@ -128,7 +107,7 @@ export function putVehicleRequest (req, res) {
     index++
   }
 
-  sqlite.runMany(`
+  req.db.runMany(`
     INSERT INTO requested_vehicles
       (vehiclerequest, type, pickup_time, return_time, trailer_needed, pass_needed)
     VALUES (@vehiclerequest, @type, @pickup_time, @return_time, @trailer_needed, @pass_needed)
@@ -150,18 +129,20 @@ export function putIndividualGear (req, res) {
     return { trip: tripId, name: item, size_type: measurements[index] }
   })
 
-  sqlite.runMany(`
+  req.db.runMany(`
     INSERT INTO trip_required_gear (trip, name, size_type)
     VALUES (@trip, @name, @size_type)
   `, gear)
 
-  renderIndividualGearCard(tripId, res)
+  const data = getIndividualGearData(req, tripId)
+  res.render('requests/individual-gear.njk', { ...data })
 }
 
 export function deleteIndividualGear (req, res) {
   const { tripId, gearId } = req.params
-  sqlite.run('DELETE FROM trip_required_gear WHERE id = ? AND trip = ?', gearId, tripId)
-  renderIndividualGearCard(tripId, res)
+  req.db.run('DELETE FROM trip_required_gear WHERE id = ? AND trip = ?', gearId, tripId)
+  const data = getIndividualGearData(req, tripId)
+  res.render('requests/individual-gear.njk', { ...data })
 }
 
 export function putGroupGear (req, res) {
@@ -177,18 +158,20 @@ export function putGroupGear (req, res) {
     return { trip: tripId, name: item, quantity: quantities[index] }
   })
 
-  sqlite.runMany(`
+  req.db.runMany(`
     INSERT INTO group_gear_requests (trip, name, quantity)
     VALUES (@trip, @name, @quantity)
   `, gear)
 
-  renderGroupGearCard(tripId, res)
+  const data = getGroupGearData(req, tripId)
+  res.render('requests/group-gear.njk', { ...data })
 }
 
 export function deleteGroupGear (req, res) {
   const { tripId, gearId } = req.params
-  sqlite.run('DELETE FROM group_gear_requests WHERE rowid = ? AND trip = ?', gearId, tripId)
-  renderGroupGearCard(tripId, res)
+  req.db.run('DELETE FROM group_gear_requests WHERE rowid = ? AND trip = ?', gearId, tripId)
+  const data = getGroupGearData(req, tripId)
+  res.render('requests/group-gear.njk', { ...data })
 }
 
 export function putPcardRequest (req, res) {
@@ -209,8 +192,8 @@ export function putPcardRequest (req, res) {
     dinner: req.body.dinner || 0
   }
 
-  sqlite.run('DELETE FROM trip_pcard_requests WHERE trip = ?', tripId)
-  sqlite.run(`
+  req.db.run('DELETE FROM trip_pcard_requests WHERE trip = ?', tripId)
+  req.db.run(`
     INSERT INTO trip_pcard_requests (trip, num_people, snacks, breakfast, lunch, dinner)
     VALUES (@trip, @num_people, @snacks, @breakfast, @lunch, @dinner)
   `, input)
@@ -219,11 +202,12 @@ export function putPcardRequest (req, res) {
     const otherCosts = costNames.map((name, index) => {
       return { trip: tripId, name, cost: costValues[index] }
     })
-    sqlite.runMany(
+    req.db.runMany(
       'INSERT INTO pcard_request_costs (trip, name, cost) VALUES (@trip, @name, @cost)',
       otherCosts
     )
-    return renderPcardCard(tripId, res)
+    const data = getPcardData(req, tripId)
+    res.render('requests/pcard-request.njk', { ...data })
   } else {
     res.set('HX-Retarget', '#pcard-save-button')
     res.render('components/save-complete-button.njk')
@@ -232,13 +216,13 @@ export function putPcardRequest (req, res) {
 
 export function deletePcardRequest (req, res) {
   const tripId = req.params.tripId
-  sqlite.run('DELETE FROM trip_pcard_requests WHERE trip = ?', tripId)
-  sqlite.run('DELETE FROM pcard_request_costs WHERE trip = ?', tripId)
-  renderPcardCard(tripId, res)
+  req.db.run('DELETE FROM trip_pcard_requests WHERE trip = ?', tripId)
+  req.db.run('DELETE FROM pcard_request_costs WHERE trip = ?', tripId)
+  res.render('requests/pcard-request.njk', getPcardData(req, tripId))
 }
 
 export function deleteOtherCost (req, res) {
   const { tripId, costId } = req.params
-  sqlite.run('DELETE FROM pcard_request_costs WHERE rowid = ? AND trip = ?', costId, tripId)
-  renderPcardCard(tripId, res)
+  req.db.run('DELETE FROM pcard_request_costs WHERE rowid = ? AND trip = ?', costId, tripId)
+  res.render('requests/pcard-request.njk', getPcardData(req, tripId))
 }

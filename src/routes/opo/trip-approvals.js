@@ -1,5 +1,4 @@
 import * as utils from '../../utils.js'
-import * as sqlite from '../../services/sqlite.js'
 
 const _30_DAYS_IN_MS = 2592000000
 const OPO_TRIPS_QUERY = `
@@ -33,11 +32,11 @@ const OPO_TRIPS_QUERY = `
       ON gg.trip = trips.id
 `
 
-export function get (_req, res) {
+export function get (req, res) {
   const now = new Date()
   const pastTimeWindow = new Date(now.getTime() - _30_DAYS_IN_MS)
 
-  const past_trips = sqlite.all(
+  const past_trips = req.db.all(
     `${OPO_TRIPS_QUERY}
     WHERE start_time > @low_time
       AND start_time < @high_time
@@ -46,7 +45,7 @@ export function get (_req, res) {
     { low_time: pastTimeWindow.getTime(), high_time: now.getTime() }
   ).map(convertToRow)
 
-  const future_trips = sqlite.all(
+  const future_trips = req.db.all(
     `${OPO_TRIPS_QUERY}
     WHERE start_time > ?
       AND (mg_status != 'N/A' OR gg_status != 'N/A' OR pc_status != 'N/A' OR vr_status != 'N/A')

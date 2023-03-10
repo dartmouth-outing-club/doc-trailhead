@@ -1,9 +1,8 @@
-import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 
-export function get (_req, res) {
+export function get (req, res) {
   const now = new Date()
-  const trips = sqlite.all(`
+  const trips = req.db.all(`
     SELECT title, location, start_time, end_time, clubs.name as club
     FROM trips
     LEFT JOIN clubs on trips.club = clubs.id

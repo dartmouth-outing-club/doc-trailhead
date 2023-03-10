@@ -1,40 +1,35 @@
-import * as sqlite from '../services/sqlite.js'
-
 export function getProfileView (req, res) {
   if (req.query.card) {
     return getProfileCard(req, res)
   }
 
-  const data = getProfileData(req.user)
+  const data = getProfileData(req, req.user)
   return res.render('views/profile.njk', data)
 }
 
 export function getNewUserView (req, res) {
-  const data = getProfileData(req.user)
+  const data = getProfileData(req, req.user)
   return res.render('views/new-user.njk', data)
 }
 
 export function getProfileCard (req, res) {
-  return get(req.user, res, false)
+  const data = getProfileData(req, req.user)
+  return res.render('profile/profile-card.njk', data)
 }
 
 export function getProfileCardEditable (req, res) {
-  return get(req.user, res, true)
+  const data = getProfileData(req, req.user)
+  return res.render('profile/profile-card-editable.njk', data)
 }
 
 export function getUserTripView (req, res) {
-  const data = getProfileData(req.params.userId, true)
+  const data = getProfileData(req, req.params.userId, true)
   return res.render('views/profile.njk', data)
 }
 
-function get (userId, res, isEditable, hideControls) {
-  const data = getProfileData(userId, hideControls)
-  return res.render(`profile/profile-card${isEditable ? '-editable' : ''}.njk`, data)
-}
-
-export function getProfileData (userId, hideControls) {
-  const user = sqlite.get('SELECT * FROM users WHERE id = ?', userId)
-  const certs = sqlite
+function getProfileData (req, userId, hideControls) {
+  const user = req.db.get('SELECT * FROM users WHERE id = ?', userId)
+  const certs = req.db
     .all('SELECT cert, is_approved FROM user_certs WHERE user = ?', userId)
     .map(item => `${item.cert}${item.is_approved === 0 ? ' (pending)' : ''}`)
     .join(', ')
@@ -58,7 +53,7 @@ export function getProfileData (userId, hideControls) {
   }
 
   user.driver_certifications = certs.length > 0 ? certs : 'none'
-  user.leader_for = sqlite.get(`
+  user.leader_for = req.db.get(`
     SELECT group_concat(
       iif(is_approved = 1, name, name || ' (pending)'),
       ', '
@@ -78,7 +73,7 @@ export function post (req, res) {
   formData.shoe_size = shoe_size_sex && shoe_size_num ? `${shoe_size_sex}-${shoe_size_num}` : null
   formData.height = feet && inches ? `${feet}'${inches}"` : null
 
-  sqlite.run(`
+  req.db.run(`
     UPDATE users
     SET
       name = @name,
@@ -103,7 +98,7 @@ export function post (req, res) {
 const VALID_CERTS = ['VAN', 'MICROBUS', 'TRAILER']
 export function getDriverCertRequest (req, res) {
   const userId = req.user
-  const driver_certs = sqlite.all('SELECT cert, is_approved FROM user_certs WHERE user = ?', userId)
+  const driver_certs = req.db.all('SELECT cert, is_approved FROM user_certs WHERE user = ?', userId)
   const checkboxes = VALID_CERTS.map(cert => {
     const userCert = driver_certs.find(item => item.cert === cert)
     const attributes = userCert ? `checked ${userCert.is_approved ? 'disabled ' : ''}` : ''
@@ -126,7 +121,7 @@ export function getDriverCertRequest (req, res) {
 
 export function postDriverCertRequest (req, res) {
   // Delete all the *pending* requests so that we can add the new pending requests
-  sqlite.run('DELETE FROM user_certs WHERE user = ? and is_approved = 0', req.user)
+  req.db.run('DELETE FROM user_certs WHERE user = ? and is_approved = 0', req.user)
 
   // If the body is empty, that means the user has removed their certs, and we're done
   if (!req.body.cert) return getProfileCard(req, res)
@@ -136,7 +131,7 @@ export function postDriverCertRequest (req, res) {
   const certs = typeof req.body.cert === 'string' ? [req.body.cert] : req.body.cert
   certs
     .filter(cert => VALID_CERTS.includes(cert))
-    .map(cert => sqlite.run(
+    .map(cert => req.db.run(
       'INSERT OR IGNORE INTO user_certs (user, cert, is_approved) VALUES (?, ?, false)',
       req.user, cert
     )) // INSERT OR IGNORE so that existing, approved certs will not be overwritten
@@ -145,14 +140,14 @@ export function postDriverCertRequest (req, res) {
 }
 
 export function getClubLeadershipRequest (req, res) {
-  const userClubs = sqlite.all(`
+  const userClubs = req.db.all(`
     SELECT clubs.id, name, is_approved
     FROM club_leaders
     LEFT JOIN clubs ON clubs.id = club_leaders.club
     WHERE user = ?
     ORDER BY name
   `, req.user)
-  const clubsWithoutUser = sqlite.all(`
+  const clubsWithoutUser = req.db.all(`
     SELECT id, name
     FROM clubs
     WHERE active = 1 AND NOT EXISTS
@@ -193,14 +188,14 @@ export function postClubLeadershipRequest (req, res) {
   const club = req.body.club
   if (!club) return res.sendStatus(400)
 
-  sqlite.run('INSERT INTO club_leaders (user, club, is_approved) VALUES (?, ?, false)', req.user, club)
+  req.db.run('INSERT INTO club_leaders (user, club, is_approved) VALUES (?, ?, false)', req.user, club)
   return getProfileCard(req, res)
 }
 
 export function deleteClubLeadershipRequest (req, res) {
   if (!req.params.id) return res.sendStatus(400)
 
-  const { changes } = sqlite
+  const { changes } = req.db
     .run('DELETE FROM club_leaders WHERE user = ? AND club = ?', req.user, req.params.id)
 
   if (changes < 1) return res.sendStatus(400)

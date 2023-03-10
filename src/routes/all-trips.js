@@ -1,4 +1,3 @@
-import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 import { getClubIcon } from '../utils.js'
 
@@ -7,7 +6,7 @@ export function get (req, res) {
   const show_list = req.query?.view === 'list'
   const showPrivate = res.locals.is_opo
 
-  const publicTrips = sqlite.all(`
+  const publicTrips = req.db.all(`
     SELECT trips.id, title, users.name as owner, location, start_time, end_time, description,
       clubs.name as club
     FROM trips

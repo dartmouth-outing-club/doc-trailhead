@@ -1,4 +1,3 @@
-import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 
 export function get (req, res) {
@@ -6,12 +5,12 @@ export function get (req, res) {
   const _24_HOURS_IN_MS = 86400000
   const now = new Date()
 
-  const is_leader = sqlite.get(`
+  const is_leader = req.db.get(`
     SELECT 1 as is_leader
     FROM club_leaders WHERE user = ? and is_approved = TRUE`, req.user)?.is_leader === 1
   const can_create_trip = res.locals.is_opo || is_leader
 
-  const tripsForUser = sqlite.all(`
+  const tripsForUser = req.db.all(`
     SELECT trips.id, title, location, start_time, end_time, description,
     ifnull(clubs.name, 'None') as club, leader
     FROM trip_members

@@ -1,7 +1,5 @@
 import nodemailer from 'nodemailer'
 
-import * as sqlite from '../services/sqlite.js'
-
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: 587,
@@ -36,9 +34,8 @@ export function createRecurringEmailSender (name, tripsFunc, emailFunc, markFunc
     // Otherwise we'll create too many simultaneous connections
     for (const trip of tripsInWindow) {
       try {
-        const leaderEmails = sqlite.getTripLeaderEmails(trip.id)
-        console.log(`[Mailer] Sending ${name} email to: ` + leaderEmails.join(', '))
-        await send(emailFunc, trip, leaderEmails)
+        console.log(`[Mailer] Sending ${name} email to: ` + trip.leaderEmails.join(', '))
+        await send(emailFunc, trip, trip.leaderEmails)
         markFunc(trip.id)
       } catch (error) {
         console.error(`Failed to send mail for trip ${trip.id}`, error)

@@ -1,17 +1,16 @@
 /* If you're looking for the method to create a trip, that's in /rest/trip.js */
-import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 import * as tripCard from './trip-card.js'
 import * as emails from '../emails.js'
 import * as mailer from '../services/mailer.js'
 import { BadRequestError } from '../request/errors.js'
 
-function getClubs (userId, isOpo) {
+function getClubs (db, userId, isOpo) {
   if (isOpo) {
-    return sqlite.all('SELECT id, name FROM clubs WHERE active = true')
+    return db.all('SELECT id, name FROM clubs WHERE active = true')
   } else {
     // TODO *FINALLY* limit this to just active users
-    return sqlite.all(`
+    return db.all(`
       SELECT clubs.id, clubs.name
       FROM club_leaders
       LEFT JOIN clubs ON clubs.id = club_leaders.club
@@ -23,44 +22,44 @@ function getClubs (userId, isOpo) {
 
 export function getSignupView (req, res) {
   const tripId = req.params.tripId
-  const isValidTrip = sqlite.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
+  const isValidTrip = req.db.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
   if (!isValidTrip) return res.render('views/missing-trip.njk')
-  tripCard.renderSignupPage(res, tripId, req.user)
+  tripCard.renderSignupPage(req, res, tripId, req.user)
 }
 
 export function getLeaderView (req, res) {
   const tripId = req.params.tripId
-  const isValidTrip = sqlite.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
+  const isValidTrip = req.db.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
   if (!isValidTrip) return res.render('views/missing-trip.njk')
 
   // Leader view is available only if the user is the leader of that trip or on OPO
-  const is_opo = sqlite.isOpo(req.user)
-  const is_leader = sqlite.isLeaderForTrip(tripId, req.user)
+  const is_opo = req.db.isOpo(req.user)
+  const is_leader = req.db.isLeaderForTrip(tripId, req.user)
   return is_opo || is_leader
-    ? tripCard.renderLeaderPage(res, tripId, req.user)
+    ? tripCard.renderLeaderPage(req, res, tripId, req.user)
     : res.sendStatus(403)
 }
 
 export function getCreateView (req, res) {
-  const emails = sqlite.all('SELECT id, email FROM users WHERE email IS NOT NULL')
-  const clubs = getClubs(req.user, res.locals.is_opo)
+  const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
+  const clubs = getClubs(req.db, req.user, res.locals.is_opo)
   const today = utils.getDatetimeValueForNow()
   res.render('views/create-trip.njk', { clubs, emails, today })
 }
 
 export function getEditView (req, res) {
   const tripId = req.params.tripId
-  if (!sqlite.isOpoOrLeaderForTrip(tripId, req.user)) return res.sendStatus(401)
+  if (!req.db.isOpoOrLeaderForTrip(tripId, req.user)) return res.sendStatus(401)
 
-  const emails = sqlite.all('SELECT id, email FROM users WHERE email IS NOT NULL')
-  const clubs = getClubs(req.user, res.locals.is_opo)
-  const trip = sqlite.get(`
+  const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
+  const clubs = getClubs(req.db, req.user, res.locals.is_opo)
+  const trip = req.db.get(`
     SELECT id, title, club, cost, coleader_can_edit, experience_needed, private, start_time,
     end_time, location, pickup, dropoff, description
     FROM trips
     WHERE id = ?
   `, tripId)
-  trip.leaders = sqlite.all(`
+  trip.leaders = req.db.all(`
     SELECT name
     FROM trip_members
     LEFT JOIN users on trip_members.user = users.id
@@ -76,19 +75,19 @@ export function getEditView (req, res) {
 
 export function getUserView (req, res) {
   const { tripId, userId } = req.params
-  const user = sqlite.get('SELECT name FROM users WHERE id = ?', userId)
+  const user = req.db.get('SELECT name FROM users WHERE id = ?', userId)
   return res.render('views/user.njk', { user_id: userId, trip_id: tripId, user_name: user.name })
 }
 
 export function createTrip (req, res) {
-  if (!canCreateTripForClub(req.user, req.body.club)) {
+  if (!canCreateTripForClub(req.db, req.user, req.body.club)) {
     console.warn(`User ${req.user} tried to create a trip for ${req.body.club}, which they cannot.`)
     return res.sendStatus(403)
   }
 
   const trip = convertFormInputToDbInput(req.body, req.user)
 
-  const info = sqlite.run(`
+  const info = req.db.run(`
     INSERT INTO trips (
       title, cost, owner, club, experience_needed, private, start_time, end_time,
       location, pickup, dropoff, description)
@@ -99,14 +98,14 @@ export function createTrip (req, res) {
   `, trip)
 
   const tripId = info.lastInsertRowid
-  const leaders = [trip.owner, ...getLeaderIds(req.body)]
+  const leaders = [trip.owner, ...getLeaderIds(req)]
   const tripMembers = leaders.map(userId => [tripId, userId, 1, 0])
-  sqlite.runMany(
+  req.db.runMany(
     'INSERT OR IGNORE INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)',
     tripMembers
   )
 
-  mailer.send(emails.getNewTripEmail, sqlite, tripId)
+  mailer.send(emails.getNewTripEmail, req.db, tripId)
 
   const redirectUrl = req.body.goto_requests === 'on'
     ? `/trip/${tripId}/requests`
@@ -116,12 +115,12 @@ export function createTrip (req, res) {
 
 export function editTrip (req, res) {
   const tripId = req.params.tripId
-  if (!sqlite.isOpoOrLeaderForTrip(tripId, req.user)) return res.sendStatus(401)
+  if (!req.db.isOpoOrLeaderForTrip(tripId, req.user)) return res.sendStatus(401)
 
   // TODO verify that user is OPO orleader for club. Not a security priority, just nice to have
   const trip = convertFormInputToDbInput(req.body, req.user)
   trip.id = tripId
-  sqlite.run(`
+  req.db.run(`
     UPDATE trips
     SET
       title = @title, club = @club, cost = @cost, start_time = @start_time, end_time = @end_time,
@@ -131,9 +130,9 @@ export function editTrip (req, res) {
   `, trip)
 
   // Add new leaders
-  const leaders = getLeaderIds(req.body)
+  const leaders = getLeaderIds(req)
   const values = leaders.map(userId => [tripId, userId, 1, 0])
-  sqlite.runMany(
+  req.db.runMany(
     'INSERT OR IGNORE INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)',
     values
   )
@@ -147,16 +146,16 @@ export function deleteTrip (req, res) {
   if (!tripId || tripId < 1) return res.sendStatus(400)
 
   // TODO: Send the email *after* the trip is deleted
-  mailer.send(emails.getTripDeletedEmail, sqlite, tripId)
-  sqlite.run('DELETE FROM trips WHERE id = ?', tripId)
+  mailer.send(emails.getTripDeletedEmail, req.db, tripId)
+  req.db.run('DELETE FROM trips WHERE id = ?', tripId)
   res.set('HX-Redirect', '/my-trips')
   return res.sendStatus(200)
 }
 
-function canCreateTripForClub (userId, clubId) {
-  if (sqlite.isOpo(userId)) return true
+function canCreateTripForClub (db, userId, clubId) {
+  if (db.isOpo(userId)) return true
 
-  const userClubs = sqlite
+  const userClubs = db
     .all('SELECT club FROM club_leaders WHERE user = ?', userId)
     .map(item => item.club)
 
@@ -203,11 +202,12 @@ function convertFormInputToDbInput (input, userId) {
  * Parse the input body and return and array of new leaders to add.
  * Guaranteed to return an array.
  */
-function getLeaderIds (input) {
+function getLeaderIds (req) {
+  const input = req.body
   const leaders = typeof input.leader === 'string' ? [input.leader] : input.leader
   const emails = leaders || []
   const ids = emails
-    .map(email => sqlite.get('SELECT id FROM users WHERE email = ?', email))
+    .map(email => req.db.get('SELECT id FROM users WHERE email = ?', email))
     .map(item => item?.id)
   return ids
 }

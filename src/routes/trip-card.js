@@ -1,12 +1,11 @@
-import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 import { getVehicleRequestData } from './vehicle-request.js'
 
 const _48_HOURS_IN_MS = 172800000
 
-function getLeaderData (tripId, userId) {
-  const user = sqlite.get('SELECT is_opo FROM users WHERE id = ?', userId)
-  const trip = sqlite.get(`
+function getLeaderData (req, tripId, userId) {
+  const user = req.db.get('SELECT is_opo FROM users WHERE id = ?', userId)
+  const trip = req.db.get(`
     SELECT
       trips.id as trip_id,
       title,
@@ -35,14 +34,14 @@ function getLeaderData (tripId, userId) {
     WHERE trips.id = ?
   `, tripId)
 
-  const leaderNames = sqlite.get(`
+  const leaderNames = req.db.get(`
   SELECT group_concat(name, ', ') as names
   FROM trip_members
   LEFT JOIN users ON users.id = user
   WHERE leader = 1 AND trip = ?
   `, tripId).names
 
-  const members = sqlite.all(`
+  const members = req.db.all(`
   SELECT
     users.id,
     email,
@@ -63,7 +62,7 @@ function getLeaderData (tripId, userId) {
   `, tripId) // Display order is leaders first, followed by signup order
 
   const membersWithGear = members.map(member => {
-    const gearRequests = sqlite.all(`
+    const gearRequests = req.db.all(`
     SELECT name
     FROM member_gear_requests
     LEFT JOIN trip_required_gear ON trip_required_gear.id = member_gear_requests.gear
@@ -77,7 +76,7 @@ function getLeaderData (tripId, userId) {
   // I think is one area where a better database structure would help, but might be unnecessary
   // Anyway it's not that fancy, just one GROUP BY for shoes and one for clothes
   // Everything else is not sized
-  const requestedShoes = sqlite.all(`
+  const requestedShoes = req.db.all(`
     SELECT trg.name || ' (' || shoe_size || ')' AS name, count(users.name) AS quantity
     FROM member_gear_requests AS mrg
     LEFT JOIN trip_required_gear AS trg ON trg.id = mrg.gear
@@ -86,7 +85,7 @@ function getLeaderData (tripId, userId) {
     GROUP BY trg.id, shoe_size;
   `, tripId)
 
-  const requestedClothes = sqlite.all(`
+  const requestedClothes = req.db.all(`
     SELECT trg.name || ' (' || clothe_size || ')' AS name, count(users.name) AS quantity
     FROM member_gear_requests AS mrg
     LEFT JOIN trip_required_gear AS trg ON trg.id = mrg.gear
@@ -95,7 +94,7 @@ function getLeaderData (tripId, userId) {
     GROUP BY trg.id, clothe_size;
   `, tripId)
 
-  const requestedElse = sqlite.all(`
+  const requestedElse = req.db.all(`
     SELECT trg.name, count(users.name) AS quantity
     FROM member_gear_requests AS mrg
     LEFT JOIN trip_required_gear AS trg ON trg.id = mrg.gear
@@ -108,12 +107,12 @@ function getLeaderData (tripId, userId) {
   const memberRequestedGear = [...requestedShoes, ...requestedClothes, ...requestedElse]
   memberRequestedGear.sort((a, b) => a.name.localeCompare(b.name))
 
-  const requiredGear = sqlite.all('SELECT id, name FROM trip_required_gear WHERE trip = ?', tripId)
-  const groupGearRequests = sqlite.all(`
+  const requiredGear = req.db.all('SELECT id, name FROM trip_required_gear WHERE trip = ?', tripId)
+  const groupGearRequests = req.db.all(`
     SELECT name, quantity FROM group_gear_requests WHERE trip = ? ORDER BY quantity DESC
   `, tripId)
 
-  const tripPcardRequest = sqlite.get(`
+  const tripPcardRequest = req.db.get(`
     SELECT
       assigned_pcard,
       num_people,
@@ -130,7 +129,7 @@ function getLeaderData (tripId, userId) {
     FROM trip_pcard_requests
     WHERE trip = ?
   `, tripId)
-  const otherCosts = sqlite.all('SELECT name, cost from pcard_request_costs WHERE trip = ?', tripId)
+  const otherCosts = req.db.all('SELECT name, cost from pcard_request_costs WHERE trip = ?', tripId)
   const other_total = otherCosts.reduce((total, { cost }) => total + cost, 0)
 
   if (tripPcardRequest) {
@@ -138,7 +137,7 @@ function getLeaderData (tripId, userId) {
     tripPcardRequest.total = tripPcardRequest.food_total + other_total
   }
 
-  trip.is_on_trip = sqlite.isSignedUpForTrip(tripId, userId)
+  trip.is_on_trip = req.db.isSignedUpForTrip(tripId, userId)
   trip.start_datetime = utils.getDatetimeValueForUnixTime(trip.start_time)
   trip.start_time_element = utils.getDatetimeElement(trip.start_time)
   trip.end_datetime = utils.getDatetimeValueForUnixTime(trip.end_time)
@@ -163,7 +162,7 @@ function getLeaderData (tripId, userId) {
 
   // Add vehicle request stuff
   if (trip.vehiclerequest_id) {
-    const vehicleRequestData = getVehicleRequestData(trip.vehiclerequest_id)
+    const vehicleRequestData = getVehicleRequestData(req, trip.vehiclerequest_id)
     trip.available_vehicles = vehicleRequestData.available_vehicles
     trip.requested_vehicles = vehicleRequestData.requested_vehicles
     trip.vehiclerequest_is_approved = vehicleRequestData.vehiclerequest_is_approved
@@ -203,9 +202,9 @@ function getLeaderData (tripId, userId) {
   return trip
 }
 
-function getSignupData (tripId, userId) {
-  const user = sqlite.get('SELECT is_opo FROM users WHERE id = ?', userId)
-  const trip = sqlite.get(`
+function getSignupData (req, tripId, userId) {
+  const user = req.db.get('SELECT is_opo FROM users WHERE id = ?', userId)
+  const trip = req.db.get(`
     SELECT
       trips.id as trip_id,
       title,
@@ -229,14 +228,14 @@ function getSignupData (tripId, userId) {
     WHERE trips.id = ?
   `, userId, tripId)
 
-  const leaderNames = sqlite.get(`
+  const leaderNames = req.db.get(`
     SELECT group_concat(name, ', ') as names
     FROM trip_members
     LEFT JOIN users ON users.id = user
     WHERE leader = 1 AND trip = ?
   `, tripId).names
 
-  const requiredGear = sqlite.all(`
+  const requiredGear = req.db.all(`
     SELECT id, name, iif(mgr.gear IS NULL, 0, 1) AS is_requested
     FROM trip_required_gear as trg
     LEFT JOIN (
@@ -245,7 +244,7 @@ function getSignupData (tripId, userId) {
     WHERE trip = @trip
   `, { trip: tripId, user: userId })
 
-  trip.is_on_trip = sqlite.isSignedUpForTrip(tripId, userId)
+  trip.is_on_trip = req.db.isSignedUpForTrip(tripId, userId)
   trip.start_time = utils.getDatetimeElement(trip.start_time)
   trip.end_time = utils.getDatetimeElement(trip.end_time)
   trip.leader_names = leaderNames
@@ -256,22 +255,22 @@ function getSignupData (tripId, userId) {
   return trip
 }
 
-export function renderSignupCard (res, tripId, userId) {
-  const trip = getSignupData(tripId, userId)
+export function renderSignupCard (req, res, tripId, userId) {
+  const trip = getSignupData(req, tripId, userId)
   return res.render('trip/signup-trip-card.njk', trip)
 }
 
-export function renderLeaderCard (res, tripId, userId) {
-  const trip = getLeaderData(tripId, userId)
+export function renderLeaderCard (req, res, tripId, userId) {
+  const trip = getLeaderData(req, tripId, userId)
   return res.render('trip/leader-trip-card.njk', trip)
 }
 
-export function renderSignupPage (res, tripId, userId) {
-  const trip = getSignupData(tripId, userId)
+export function renderSignupPage (req, res, tripId, userId) {
+  const trip = getSignupData(req, tripId, userId)
   return res.render('views/trip.njk', trip)
 }
 
-export function renderLeaderPage (res, tripId, userId) {
-  const trip = getLeaderData(tripId, userId)
+export function renderLeaderPage (req, res, tripId, userId) {
+  const trip = getLeaderData(req, tripId, userId)
   return res.render('views/leader-trip.njk', trip)
 }

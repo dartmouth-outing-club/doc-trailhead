@@ -1,22 +1,21 @@
-import * as sqlite from '../services/sqlite.js'
 import * as emails from '../emails.js'
 import * as mailer from '../services/mailer.js'
 import * as tripStatusView from '../routes/trip-status.js'
 
-export function renderAttendanceTable (res, tripId) {
-  const data = getAttendanceData(tripId)
+export function renderAttendanceTable (req, res, tripId) {
+  const data = getAttendanceData(req, tripId)
   res.render('trip/attendance-table.njk', data)
 }
 
 export function getCheckOutView (req, res) {
-  const data = getAttendanceData(req.params.tripId)
+  const data = getAttendanceData(req, req.params.tripId)
   console.log(data)
   res.render('views/trip-check-out.njk', data)
 }
 
 export function getCheckInView (req, res) {
   const tripId = req.params.tripId
-  const trip = sqlite.get(`
+  const trip = req.db.get(`
     SELECT
       id as trip_id,
       title,
@@ -28,13 +27,13 @@ export function getCheckInView (req, res) {
   res.render('views/trip-check-in.njk', trip)
 }
 
-function getAttendanceData (tripId) {
-  const trip = sqlite.get(`
+function getAttendanceData (req, tripId) {
+  const trip = req.db.get(`
     SELECT id AS trip_id, title, left AS checked_out, start_time
     FROM trips
     WHERE id = ?
   `, tripId)
-  const members = sqlite.all(`
+  const members = req.db.all(`
     SELECT trips.title, users.id, users.name, attended, trips.left
     FROM trip_members
     LEFT JOIN users ON users.id = trip_members.user
@@ -48,7 +47,7 @@ function getAttendanceData (tripId) {
 
 export function checkOut (req, res) {
   const tripId = req.params.tripId
-  sqlite.run('UPDATE trips SET left = TRUE WHERE id = ?', tripId)
+  req.db.run('UPDATE trips SET left = TRUE WHERE id = ?', tripId)
   res.set('HX-Redirect', `/trip/${tripId}/check-out`)
   res.sendStatus(200)
 }
@@ -56,23 +55,23 @@ export function checkOut (req, res) {
 export function deleteCheckOut (req, res) {
   const tripId = req.params.tripId
 
-  const trip = sqlite.get('SELECT returned FROM trips WHERE id = ?', tripId)
+  const trip = req.db.get('SELECT returned FROM trips WHERE id = ?', tripId)
   if (trip.returned) {
     console.warn(`User ${req.user} attempted to delete checkout from trip that has returend`)
     return res.sendStatus(400)
   }
 
-  sqlite.run('UPDATE trips SET left = FALSE WHERE id = ?', tripId)
+  req.db.run('UPDATE trips SET left = FALSE WHERE id = ?', tripId)
   res.set('HX-Redirect', `/trip/${tripId}/check-out`)
   res.sendStatus(200)
 }
 
 export function checkIn (req, res) {
   const tripId = req.params.tripId
-  sqlite.run('UPDATE trips SET returned = TRUE WHERE id = ?', tripId)
+  req.db.run('UPDATE trips SET returned = TRUE WHERE id = ?', tripId)
 
-  const trip = sqlite.get('SELECT marked_late FROM trips WHERE id = ?', tripId)
-  if (trip.marked_late) mailer.send(emails.getLateTripBackAnnouncement, sqlite, tripId, true)
+  const trip = req.db.get('SELECT marked_late FROM trips WHERE id = ?', tripId)
+  if (trip.marked_late) mailer.send(emails.getLateTripBackAnnouncement, req.db, tripId, true)
 
   res.set('HX-Redirect', `/trip/${tripId}/check-in`)
   res.sendStatus(200)
@@ -80,10 +79,10 @@ export function checkIn (req, res) {
 
 export function deleteCheckIn (req, res) {
   const tripId = req.params.tripId
-  sqlite.run('UPDATE trips SET returned = FALSE WHERE id = ?', tripId)
+  req.db.run('UPDATE trips SET returned = FALSE WHERE id = ?', tripId)
 
-  const trip = sqlite.get('SELECT marked_late FROM trips WHERE id = ?', tripId)
-  if (trip.marked_late) mailer.send(emails.getLateTripBackAnnouncement, sqlite, tripId, false)
+  const trip = req.db.get('SELECT marked_late FROM trips WHERE id = ?', tripId)
+  if (trip.marked_late) mailer.send(emails.getLateTripBackAnnouncement, req.db, tripId, false)
 
   res.set('HX-Redirect', `/trip/${tripId}/check-in`)
   res.sendStatus(200)
@@ -91,7 +90,7 @@ export function deleteCheckIn (req, res) {
 
 export function markUserPresent (req, res) {
   const { tripId, memberId } = req.params
-  const info = sqlite.run(`
+  const info = req.db.run(`
     UPDATE trip_members
     SET attended = TRUE
     WHERE trip = ? AND user = ? AND pending = 0
@@ -102,12 +101,12 @@ export function markUserPresent (req, res) {
     console.error('Unexpected number of changes based on request: ', info.changes)
   }
 
-  tripStatusView.renderAttendanceTable(res, tripId)
+  tripStatusView.renderAttendanceTable(req, res, tripId)
 }
 
 export function markUserAbsent (req, res) {
   const { tripId, memberId } = req.params
-  const info = sqlite.run(`
+  const info = req.db.run(`
     UPDATE trip_members
     SET attended = FALSE
     WHERE trip = ? AND user = ? AND pending = 0
@@ -117,5 +116,5 @@ export function markUserAbsent (req, res) {
     console.error(`Attempted to mark member ${memberId} present on trip ${tripId}`)
     console.error('Unexpected number of changes based on request: ', info.changes)
   }
-  tripStatusView.renderAttendanceTable(res, tripId)
+  tripStatusView.renderAttendanceTable(req, res, tripId)
 }

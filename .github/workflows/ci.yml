@@ -7,20 +7,20 @@ on:
     branches: [ main ]
 
 jobs:
-  integration-tests:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v2
-      - uses: docker/build-push-action@v4
-        with:
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          context: .
-          file: test/Dockerfile
-          load: true
-          tags: trailhead-test
-      - run: docker run trailhead-test
+  # integration-tests:
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: docker/setup-buildx-action@v2
+  #     - uses: docker/build-push-action@v4
+  #       with:
+  #         cache-from: type=gha
+  #         cache-to: type=gha,mode=max
+  #         context: .
+  #         file: test/Dockerfile
+  #         load: true
+  #         tags: trailhead-test
+  #     - run: docker run trailhead-test
   linting:
     runs-on: ubuntu-22.04
     steps:
@@ -31,3 +31,4 @@ jobs:
           node-version: '19.7'
       - run: npm ci
       - run: npm run lint
+

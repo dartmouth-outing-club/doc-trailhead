@@ -1,25 +1,24 @@
-import * as sqlite from '../services/sqlite.js'
 import * as utils from '../utils.js'
 
-export function renderVehicleRequestTable (res, vehicleRequestId) {
-  const data = getVehicleRequestData(vehicleRequestId)
+export function renderVehicleRequestTable (req, res, vehicleRequestId) {
+  const data = getVehicleRequestData(req, vehicleRequestId)
   res.render('requests/vehicle-request-table.njk', { ...data })
 }
 
 export function getVehicleRequestView (req, res) {
-  const data = getVehicleRequestData(req.params.vehicleRequestId)
+  const data = getVehicleRequestData(req, req.params.vehicleRequestId)
   res.render('views/vehicle-request.njk', { ...data })
 }
 
-export function getVehicleRequestData (vehicleRequestId) {
-  const available_vehicles = sqlite.getActiveVehicles()
+export function getVehicleRequestData (req, vehicleRequestId) {
+  const available_vehicles = req.db.getActiveVehicles()
   // Note the ORDER BY ensures that the response_index is lined up
-  const is_approved = sqlite
+  const is_approved = req.db
     .get('SELECT is_approved FROM vehiclerequests WHERE id = ?', vehicleRequestId)
     .is_approved
 
   const requestStatus = is_approved === null ? 'pending' : is_approved
-  const requestedVehicles = sqlite.all(`
+  const requestedVehicles = req.db.all(`
     SELECT
       type,
       details,
@@ -30,7 +29,7 @@ export function getVehicleRequestData (vehicleRequestId) {
     FROM requested_vehicles
     WHERE vehiclerequest = ?
   `, vehicleRequestId)
-  const assignedVehicles = sqlite.all(`
+  const assignedVehicles = req.db.all(`
     SELECT
       vehicles.id as id,
       vehicles.name as name,
@@ -48,7 +47,7 @@ export function getVehicleRequestData (vehicleRequestId) {
   const vehicles = requestedVehicles.map((requestedVehicle, index) => {
     return { ...requestedVehicle, ...assignedVehicles.at(index) }
   })
-  const defaultTimes = sqlite.get(`
+  const defaultTimes = req.db.get(`
     SELECT start_time, end_time
     FROM vehiclerequests
     LEFT JOIN trips ON trips.id = vehiclerequests.trip

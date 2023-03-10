@@ -2,7 +2,6 @@ import crypto from 'node:crypto'
 import passport from 'passport'
 import cas from 'passport-cas'
 
-import * as sqlite from '../services/sqlite.js'
 import * as sessions from '../services/sessions.js'
 import * as constants from '../constants.js'
 
@@ -29,7 +28,7 @@ export function requireAuth (req, res, next) {
   if (userId) {
     req.user = userId
     // This gets automatically included as a variable for all the templates
-    const userInfo = sqlite.get(`
+    const userInfo = req.db.get(`
       SELECT is_opo, is_profile_complete FROM users WHERE id = ?
     `, userId)
 
@@ -54,7 +53,7 @@ export function requireAuth (req, res, next) {
 export function requireAnyLeader (req, res, next) {
   return requireAuth(req, res, () => {
     if (res.locals.is_opo === true) return next()
-    const isLeader = sqlite.get(`
+    const isLeader = req.db.get(`
       SELECT 1 as is_leader FROM club_leaders WHERE user = ? and is_approved = TRUE`,
     req.user)?.is_leader === 1
 
@@ -69,7 +68,7 @@ export function requireTripLeader (req, res, next) {
     const tripId = req.params.tripId
     if (!tripId) throw new Error('Trip Leader authorization used on a route without a trip.')
 
-    const isLeader = sqlite.get(`
+    const isLeader = req.db.get(`
       SELECT 1 as is_leader
       FROM trip_members WHERE user = ? AND trip = ? AND leader = 1
     `, req.user, tripId)?.is_leader === 1
@@ -96,9 +95,9 @@ export function signinCAS (req, res, next) {
     if (error) { return error }
     if (!casId) { return res.redirect(constants.frontendURL) }
 
-    let userId = sqlite.getUserByCasId(casId)?.id
+    let userId = req.db.getUserByCasId(casId)?.id
     if (!userId) {
-      userId = sqlite.insertUser(casId)
+      userId = req.db.insertUser(casId)
       console.log(`Created new user ${userId} for casId ${casId}`)
     }
 
