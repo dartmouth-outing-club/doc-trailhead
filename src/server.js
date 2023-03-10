@@ -64,30 +64,25 @@ console.error(`Starting up at ${new Date()}`)
 
 // Create and schedule time-based emails
 // =============================================================================
-const checkOutEmails = mailer.createRecurringEmailSender('trip check-out',
-  trailheadDb.getTripsPendingCheckOutEmail, emails.getCheckOutEmail, trailheadDb.markCheckOutEmail)
+const checkOutEmails = mailer.createRecurringEmailSender('CHECK_OUT',
+  trailheadDb, emails.getEmailsForTripsPendingCheckOut)
 
-const checkInEmails = mailer.createRecurringEmailSender('trip check-in',
-  trailheadDb.getTripsPendingCheckInEmail, emails.getCheckInEmail, trailheadDb.markCheckInEmail)
+const checkInEmails = mailer.createRecurringEmailSender('CHECK_IN',
+  trailheadDb, emails.getEmailsForTripsPendingCheckIn)
 
-const late90MinEmails = mailer.createRecurringEmailSender('trip late 90 minutes',
-  trailheadDb.getTripsPending90MinEmail, emails.get90MinuteLateEmail, trailheadDb.mark90MinEmail)
+const late90MinEmails = mailer.createRecurringEmailSender('LATE_90',
+  trailheadDb, emails.getEmailsForTrips90MinutesLate)
 
-const late3HourEmails = mailer.createRecurringEmailSender('trip late 3 hours',
-  trailheadDb.getTripsPending3HourEmail, emails.get3HourLateEmail, trailheadDb.markTripLate)
+const late3HourEmails = mailer.createRecurringEmailSender('LATE_180',
+  trailheadDb, emails.getEmailsForTrips3HoursLate)
 
-if (process.env.NODE_ENV === 'production' && process.env.SCHEDULER_STATUS !== 'disabled') {
-  // These wacky times are a stopgap to mitigate the connection limit throttling
-  // I'll batch these properly (with precise queries) soon
-  console.log('Starting scheduler')
-  cron.schedule('0 1 * * *', trailheadDb.markOldTripsAsPast)
-  cron.schedule('10 * * * *', checkOutEmails)
-  cron.schedule('20 * * * *', checkInEmails)
-  cron.schedule('5,15,25,35,45,55 * * * *', late90MinEmails)
-  cron.schedule('17,37,57 * * * *', late3HourEmails)
-} else {
-  console.log('Scheduler disabled')
-}
+// These wacky times are a stopgap to mitigate the connection limit throttling
+// I'll batch these properly (with precise queries) soon
+console.log('Starting scheduler')
+cron.schedule('10 * * * *', checkOutEmails)
+cron.schedule('20 * * * *', checkInEmails)
+cron.schedule('5,15,25,35,45,55 * * * *', late90MinEmails)
+cron.schedule('17,37,57 * * * *', late3HourEmails)
 
 function handleError (err, req, res, _next) {
   switch (err.name) {

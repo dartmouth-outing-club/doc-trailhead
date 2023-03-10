@@ -2,43 +2,10 @@ import nunjucks from 'nunjucks'
 
 import * as constants from './constants.js'
 
-export function getCheckOutEmail (trip, leaderEmails) {
-  return {
-    name: 'check-out',
-    address: leaderEmails,
-    subject: `Trip #${trip.id} is happening soon`,
-    message: nunjucks.render('emails/check-out.njk', { trip, constants })
-  }
-}
-
-export function getCheckInEmail (trip, leaderEmails) {
-  return {
-    name: 'Check-in',
-    address: leaderEmails,
-    subject: `Trip #${trip.id} should be returning soon`,
-    message: nunjucks.render('emails/check-in.njk', { trip, constants })
-  }
-}
-
-export function get90MinuteLateEmail (trip, leaderEmails) {
-  trip.scheduledReturn = constants.formatDateAndTime(trip.endDateAndTime, 'SHORT')
-  return {
-    name: '90 minute late',
-    address: leaderEmails,
-    subject: `Trip #${trip.id} late for return`,
-    message: nunjucks.render('emails/90-minute-late.njk', { trip, constants })
-  }
-}
-
-export function get3HourLateEmail (trip, leaderEmails) {
-  trip.scheduledReturn = constants.formatDateAndTime(trip.endDateAndTime, 'SHORT')
-  return {
-    name: '3 hour late',
-    address: constants.OPOEmails.concat(leaderEmails),
-    subject: `Trip #${trip.id} not returned`,
-    message: nunjucks.render('emails/3-hour-late.njk', { trip, constants })
-  }
-}
+const _48_HOURS_IN_MS = 172800000
+const _2_HOURS_IN_MS = 7200000
+const _90_MINS_IN_MS = 5400000
+const _3_HOURS_IN_MS = 10800000
 
 export function getNewTripEmail (db, tripId) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
@@ -242,4 +209,93 @@ export function getTripGearChangedNotice (trip, leaderEmails) {
     subject: `Trip #${trip.id}: Trippee gear requests un-approved`,
     message: nunjucks.render('emails/trip-gear-changed.njk', { trip, constants })
   }
+}
+
+export function getEmailsForTripsPendingCheckOut (db) {
+  const now = new Date()
+  const emailWindow = new Date(now.getTime() + _48_HOURS_IN_MS)
+  const trips = db.all(`
+    SELECT *
+    FROM trips
+    WHERE start_time > ? AND start_time < ? AND sent_emails NOT LIKE '%CHECK_OUT%'
+  `, now.getTime(), emailWindow.getTime())
+
+  const emails = trips.map(trip => {
+    const leaderEmails = db.getTripLeaderEmails(trip.id)
+    return {
+      trip: trip.id,
+      name: 'check-out',
+      address: leaderEmails,
+      subject: `Trip #${trip.id} is happening soon`,
+      message: nunjucks.render('emails/check-out.njk', { trip, constants })
+    }
+  })
+  return emails
+}
+
+export function getEmailsForTripsPendingCheckIn (db) {
+  const now = new Date()
+  const emailWindow = new Date(now.getTime() + _2_HOURS_IN_MS)
+  const trips = db.all(`
+    SELECT *
+    FROM trips
+    WHERE end_time > ? AND end_time < ? AND sent_emails NOT LIKE '%CHECK_IN%'
+  `, now.getTime(), emailWindow.getTime())
+
+  const emails = trips.map(trip => {
+    const leaderEmails = db.getTripLeaderEmails(trip.id)
+    return {
+      trip: trip.id,
+      name: 'Check-in',
+      address: leaderEmails,
+      subject: `Trip #${trip.id} should be returning soon`,
+      message: nunjucks.render('emails/check-in.njk', { trip, constants })
+    }
+  })
+  return emails
+}
+
+export function getEmailsForTrips90MinutesLate (db) {
+  const now = new Date()
+  const returnWindow = new Date(now.getTime() - _90_MINS_IN_MS)
+  const trips = db.all(`
+    SELECT *
+    FROM trips
+    WHERE end_time < ? AND returned = false AND sent_emails NOT LIKE '%LATE_90%'
+  `, returnWindow.getTime())
+
+  const emails = trips.map(trip => {
+    const leaderEmails = db.getTripLeaderEmails(trip.id)
+    trip.scheduledReturn = constants.formatDateAndTime(trip.endDateAndTime, 'SHORT')
+    return {
+      trip: trip.id,
+      name: '90 minute late',
+      address: leaderEmails,
+      subject: `Trip #${trip.id} late for return`,
+      message: nunjucks.render('emails/90-minute-late.njk', { trip, constants })
+    }
+  })
+  return emails
+}
+
+export function getEmailsForTrips3HoursLate (db) {
+  const now = new Date()
+  const returnWindow = new Date(now.getTime() - _3_HOURS_IN_MS)
+  const trips = db.all(`
+    SELECT *
+    FROM trips
+    WHERE end_time < ? AND returned = false AND sent_emails NOT LIKE '%LATE_180%'
+  `, returnWindow.getTime())
+  const emails = trips.map(trip => {
+    const leaderEmails = db.getTripLeaderEmails(trip.id)
+    trip.scheduledReturn = constants.formatDateAndTime(trip.endDateAndTime, 'SHORT')
+    return {
+      trip: trip.id,
+      name: '3 hour late',
+      address: constants.OPOEmails.concat(leaderEmails),
+      subject: `Trip #${trip.id} not returned`,
+      message: nunjucks.render('emails/3-hour-late.njk', { trip, constants })
+    }
+  })
+  return emails
 }

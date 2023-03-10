@@ -2,11 +2,6 @@ import fs from 'node:fs'
 import Database from 'better-sqlite3'
 import { escapeProperties } from '../templates.js'
 
-const _48_HOURS_IN_MS = 172800000
-const _2_HOURS_IN_MS = 7200000
-const _90_MINS_IN_MS = 5400000
-const _3_HOURS_IN_MS = 10800000
-
 export default class TrailheadDatabaseConnection {
   #db
 
@@ -84,79 +79,6 @@ export default class TrailheadDatabaseConnection {
         statement.run(parameters)
       }
     })
-  }
-
-  getTripsPendingCheckOutEmail () {
-    const now = new Date()
-    const emailWindow = new Date(now.getTime() + _48_HOURS_IN_MS)
-    const trips = this.#db.prepare(`
-      SELECT *
-      FROM trips
-      WHERE start_time > ? AND start_time < ? AND sent_emails NOT LIKE '%CHECK_OUT%'
-  `).all(now.getTime(), emailWindow.getTime())
-    trips.forEach(trip => { trip.leaderEmails = this.getTripLeaderEmails(trip.id) })
-    return trips
-  }
-
-  getTripsPendingCheckInEmail () {
-    const now = new Date()
-    const emailWindow = new Date(now.getTime() + _2_HOURS_IN_MS)
-    const trips = this.#db.prepare(`
-      SELECT *
-      FROM trips
-      WHERE end_time > ? AND end_time < ? AND sent_emails NOT LIKE '%CHECK_IN%'
-  `).all(now.getTime(), emailWindow.getTime())
-    trips.forEach(trip => { trip.leaderEmails = this.getTripLeaderEmails(trip.id) })
-    return trips
-  }
-
-  getTripsPending90MinEmail () {
-    const now = new Date()
-    const returnWindow = new Date(now.getTime() - _90_MINS_IN_MS)
-    const trips = this.#db.prepare(`
-      SELECT *
-      FROM trips
-      WHERE end_time < ? AND returned = false AND sent_emails NOT LIKE '%LATE_90%'
-  `).all(returnWindow.getTime())
-    trips.forEach(trip => { trip.leaderEmails = this.getTripLeaderEmails(trip.id) })
-    return trips
-  }
-
-  getTripsPending3HourEmail () {
-    const now = new Date()
-    const returnWindow = new Date(now.getTime() - _3_HOURS_IN_MS)
-    const trips = this.#db.prepare(`
-      SELECT *
-      FROM trips
-      WHERE end_time < ? AND returned = false AND sent_emails NOT LIKE '%LATE_180%'
-  `).all(returnWindow.getTime())
-    trips.forEach(trip => { trip.leaderEmails = this.getTripLeaderEmails(trip.id) })
-    return trips
-  }
-
-  markTripEmailSent (tripId, emailName) {
-    try {
-      return this.#db.prepare(`
-        UPDATE trips
-        SET sent_emails = json_insert(sent_emails, '$[#]', ?)
-        WHERE id = ?
-  `).run(emailName, tripId)
-    } catch (error) {
-      console.error(`Error updating email status ${emailName} for trip ${tripId}:`, error)
-    }
-  }
-
-  markCheckOutEmail = (tripId) => this.markTripEmailSent(tripId, 'CHECK_OUT')
-  markCheckInEmail = (tripId) => this.markTripEmailSent(tripId, 'CHECK_IN')
-  mark90MinEmail = (tripId) => this.markTripEmailSent(tripId, 'LATE_90')
-
-  markTripLate (tripId) {
-    try {
-      this.markTripEmailSent(tripId, 'LATE_180')
-      return this.#db.prepare('UPDATE trips SET marked_late = true WHERE id = ?').run(tripId)
-    } catch (error) {
-      console.error(`Error updating marking trip ${tripId} late:`, error)
-    }
   }
 
   getUserById (id) {

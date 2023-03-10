@@ -25,20 +25,24 @@ const transporter = nodemailer.createTransport({
  * a minute), but is totally reasonable for a scheduled email, where reliability is key and
  * a difference of minutes is totally unnoticable to the user.
  */
-export function createRecurringEmailSender (name, tripsFunc, emailFunc, markFunc) {
+export function createRecurringEmailSender (emailName, db, emailFunc) {
   return async () => {
-    const tripsInWindow = tripsFunc()
-    console.log(`[Mailer] Sending emails for ${tripsInWindow.length} trips`)
+    const emails = emailFunc(db)
+    console.log(`[Mailer] Sending emails for ${emails.length} trips`)
 
     // Doing this as a for loop so that it happens entirely sychrnously
     // Otherwise we'll create too many simultaneous connections
-    for (const trip of tripsInWindow) {
+    for (const email of emails) {
       try {
-        console.log(`[Mailer] Sending ${name} email to: ` + trip.leaderEmails.join(', '))
-        await send(emailFunc, trip, trip.leaderEmails)
-        markFunc(trip.id)
+        console.log(`[Mailer] Sending ${emailName} email to: ${email.address}`)
+        await sendEmail(email)
+        if (emailName === 'LATE_180') {
+          markTripLate(db, email.trip)
+        } else {
+          markTripEmailSent(db, email.trip, emailName)
+        }
       } catch (error) {
-        console.error(`Failed to send mail for trip ${trip.id}`, error)
+        console.error(`Failed to send mail for trip ${email.trip}`, error)
       }
     }
 
@@ -56,7 +60,10 @@ export function createRecurringEmailSender (name, tripsFunc, emailFunc, markFunc
  */
 export async function send (emailFunc, ...args) {
   const email = emailFunc(...args)
+  return sendEmail(email)
+}
 
+async function sendEmail (email) {
   if (process.env.NODE_ENV !== 'production') {
     console.log('The following email was queued:')
     console.log(email)
@@ -66,11 +73,31 @@ export async function send (emailFunc, ...args) {
   const mailOptions = {
     from: 'doc.signup.no.reply@dartmouth.edu',
     to: email.address,
-    subject: `${email.subject}${process.env.NODE_ENV === 'development' ? ' | DEV' : ''}`,
-    bcc: ['ziray.hao@dali.dartmouth.edu'],
+    subject: email.subject,
     text: email.message
   }
 
   const info = await transporter.sendMail(mailOptions)
   console.log(`${email.name} email sent: ${info.response}`)
+}
+
+function markTripEmailSent (db, tripId, emailName) {
+  try {
+    return db.run(`
+      UPDATE trips
+      SET sent_emails = json_insert(sent_emails, '$[#]', ?)
+      WHERE id = ?
+  `, emailName, tripId)
+  } catch (error) {
+    console.error(`Error updating email status ${emailName} for trip ${tripId}:`, error)
+  }
+}
+
+function markTripLate (db, tripId) {
+  try {
+    markTripEmailSent(db, tripId, 'LATE_180')
+    return db.prepare('UPDATE trips SET marked_late = true WHERE id = ?').run(tripId)
+  } catch (error) {
+    console.error(`Error updating marking trip ${tripId} late:`, error)
+  }
 }
