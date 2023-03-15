@@ -1,0 +1,8 @@
+<button class="action deny"
+        type=submit
+        hx-target=this
+        hx-trigger="load delay:2s"
+        hx-swap=outerHTML
+        hx-get="/components/save-button"
+        >Failed! {{ message }}
+</button>
