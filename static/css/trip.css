@@ -55,7 +55,6 @@ img.badge {
 
 .dual-table-container {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
 }
 
