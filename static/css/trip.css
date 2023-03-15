@@ -61,7 +61,7 @@ img.badge {
 
 .dual-table-container > * {
   flex: 1 1 0;
-  min-width: 350px;
+  min-width: 300px;
   margin: 15px;
 }
 
