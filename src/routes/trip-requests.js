@@ -83,6 +83,32 @@ export function putVehicleRequest (req, res) {
   const input = { ...req.body }
   const tripId = req.params.tripId
 
+  // The client will append a number to end of each field
+  // Loops through the fields until you run out of valid numbers
+  // Validate return time comes after pickup time
+  let index = 1
+  const vehicles = []
+  while (input[`type-${index}`]) {
+    const pickup_time = (new Date(input[`pickup-${index}`])).getTime()
+    const return_time = (new Date(input[`return-${index}`])).getTime()
+
+    if (pickup_time > return_time) {
+      res.render('components/save-failed-button.njk', { message: 'Pickup time must be before return time' })
+      return
+    }
+
+    const vehicle = {
+      type: input[`type-${index}`],
+      pickup_time,
+      return_time,
+      trailer_needed: input[`trailer_needed-${index}`] ? 1 : 0,
+      pass_needed: input[`pass_needed-${index}`] ? 1 : 0
+    }
+    vehicles.push(vehicle)
+    index++
+  }
+
+  // Delete the old request
   req.db.run('DELETE FROM vehiclerequests WHERE trip = ?', tripId)
   const info = req.db.run(`
       INSERT INTO vehiclerequests (requester, request_details, trip)
@@ -90,21 +116,9 @@ export function putVehicleRequest (req, res) {
       `, req.user, input.notes, tripId)
   const vehiclerequestId = info.lastInsertRowid
 
-  // The client will append a number to end of each field
-  // Loops through the fields until you run out of valid numbers
-  let index = 1
-  const vehicles = []
-  while (input[`type-${index}`]) {
-    const vehicle = {
-      vehiclerequest: vehiclerequestId,
-      type: input[`type-${index}`],
-      pickup_time: (new Date(input[`pickup-${index}`])).getTime(),
-      return_time: (new Date(input[`return-${index}`])).getTime(),
-      trailer_needed: input[`trailer_needed-${index}`] ? 1 : 0,
-      pass_needed: input[`pass_needed-${index}`] ? 1 : 0
-    }
-    vehicles.push(vehicle)
-    index++
+  // Point all the vehicles to the new request
+  for (const vehicle of vehicles) {
+    vehicle.vehiclerequest = vehiclerequestId
   }
 
   req.db.runMany(`
