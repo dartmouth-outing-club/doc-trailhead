@@ -55,13 +55,13 @@ img.badge {
 
 .dual-table-container {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
+  overflow-x: scroll;
 }
 
 .dual-table-container > * {
   flex: 1 1 0;
-  min-width: 350px;
+  min-width: 300px;
   margin: 15px;
 }
 
