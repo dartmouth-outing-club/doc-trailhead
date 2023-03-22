@@ -11,7 +11,7 @@
     "set-admin": "./scripts/set-user.sh 1",
     "set-leader": "./scripts/set-user.sh 2",
     "start": "NODE_ENV=production node src/app.js",
-    "test": "tap"
+    "test": "tap --no-coverage"
   },
   "license": "ISC",
   "engines": {
