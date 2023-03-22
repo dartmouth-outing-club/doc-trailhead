@@ -10,11 +10,12 @@ export default class TrailheadDatabaseConnection {
     try {
       this.#db = new Database(dbName, { fileMustExist: true })
     } catch (err) {
+      console.log(err)
       if (err.code === 'SQLITE_CANTOPEN') {
-        console.error(err)
         throw new Error(`Failed to open db ${dbName}. Did you remember to initialize the database?`)
       }
     }
+
     this.#db.pragma('journal_mode = WAL')
     this.#db.pragma('foreign_keys = ON')
     console.log(`Starting sqlite database from file: ${this.getDatabaseFile()}`)
