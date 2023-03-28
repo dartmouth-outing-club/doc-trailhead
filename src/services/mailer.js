@@ -96,7 +96,7 @@ function markTripEmailSent (db, tripId, emailName) {
 function markTripLate (db, tripId) {
   try {
     markTripEmailSent(db, tripId, 'LATE_180')
-    return db.prepare('UPDATE trips SET marked_late = true WHERE id = ?').run(tripId)
+    return db.run('UPDATE trips SET marked_late = true WHERE id = ?', tripId)
   } catch (error) {
     console.error(`Error updating marking trip ${tripId} late:`, error)
   }
