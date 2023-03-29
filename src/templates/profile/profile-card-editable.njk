@@ -19,21 +19,21 @@
   <dt>DASH<dd><input type=text name="dash_number" value="{{ dash_number }}">
   <dt>Clothing Size<dd>
       <select name="clothe_size" value="{{ clothe_size }}">
-        <option{% if clothe_size == 'Women-XS' %} selected{% endif %}>Women-XS
-        <option{% if clothe_size == 'Women-S' %} selected{% endif %}>Women-S
-        <option{% if clothe_size == 'Women-M' %} selected{% endif %}>Women-M
-        <option{% if clothe_size == 'Women-L' %} selected{% endif %}>Women-L
-        <option{% if clothe_size == 'Women-XL' %} selected{% endif %}>Women-XL
-        <option{% if clothe_size == 'Men-XS' %} selected{% endif %}>Men-XS
-        <option{% if clothe_size == 'Men-S' %} selected{% endif %}>Men-S
-        <option{% if clothe_size == 'Men-M' %} selected{% endif %}>Men-M
-        <option{% if clothe_size == 'Men-L' %} selected{% endif %}>Men-L
-        <option{% if clothe_size == 'Men-XL' %} selected{% endif %}>Men-XL
+        <option {{ 'selected' if clothe_size == 'Women-XS' }}>Women-XS
+        <option {{ 'selected' if clothe_size == 'Women-S' }}>Women-S
+        <option {{ 'selected' if clothe_size == 'Women-M' }}>Women-M
+        <option {{ 'selected' if clothe_size == 'Women-L' }}>Women-L
+        <option {{ 'selected' if clothe_size == 'Women-XL' }}>Women-XL
+        <option {{ 'selected' if clothe_size == 'Men-XS' }}>Men-XS
+        <option {{ 'selected' if clothe_size == 'Men-S' }}>Men-S
+        <option {{ 'selected' if clothe_size == 'Men-M' }}>Men-M
+        <option {{ 'selected' if clothe_size == 'Men-L' }}>Men-L
+        <option {{ 'selected' if clothe_size == 'Men-XL' }}>Men-XL
       </select>
   <dt>Shoe Size<dd>
       <select name="shoe_size_sex">
-        <option{% if shoe_size_sex == 'Men' %} selected{% endif %}>Men
-        <option{% if shoe_size_sex == 'Women' %} selected{% endif %}>Women
+        <option {{ 'selected' if shoe_size_sex == 'Men' }}>Men
+        <option {{ 'selected' if shoe_size_sex == 'Women' }}>Women
       </select>
       <input type=number name="shoe_size_num" value="{{ shoe_size_num }}">
   <dt>Height<dd>
