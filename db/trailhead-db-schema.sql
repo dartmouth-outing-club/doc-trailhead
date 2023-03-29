@@ -159,7 +159,7 @@ CREATE TABLE group_gear_requests (
 
 CREATE TABLE _migrations (
   name TEXT NOT NULL,
-  timestamp INTEGER NOT NULL DEFAULT unixepoch()
+  timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) STRICT;
 
 COMMIT;

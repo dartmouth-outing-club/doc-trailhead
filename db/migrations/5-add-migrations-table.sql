@@ -1,6 +1,6 @@
 CREATE TABLE _migrations (
   name TEXT NOT NULL,
-  timestamp INTEGER NOT NULL DEFAULT (unixepoch())
+  timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) STRICT;
 
 -- insert the migrations we've already made
