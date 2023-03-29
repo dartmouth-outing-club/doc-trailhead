@@ -40,17 +40,9 @@ function getProfileData (req, userId, hideControls) {
     user.shoe_size_num = split[1]
   }
 
-  // Nasty little hack to the height of out of escaped text form
-  // Will save this as an integer instead, soon
-  if (user.height) {
-    try {
-      const arr = user.height.split('&')
-      user.feet = arr[0]
-      user.inches = arr[1].split(';')[1]
-    } catch (error) {
-      console.log('Failed to unpack height', user.height)
-    }
-  }
+  user.feet = Math.floor(user.height_inches / 12)
+  user.inches = user.height_inches % 12
+  user.height = `${user.feet}'${user.inches}"`
 
   user.driver_certifications = certs.length > 0 ? certs : 'none'
   user.leader_for = req.db.get(`
@@ -71,7 +63,7 @@ export function post (req, res) {
   formData.user_id = req.user
   const { shoe_size_sex, shoe_size_num, feet, inches } = formData
   formData.shoe_size = shoe_size_sex && shoe_size_num ? `${shoe_size_sex}-${shoe_size_num}` : null
-  formData.height = feet && inches ? `${feet}'${inches}"` : null
+  formData.height_inches = (parseInt(feet) * 12) + parseInt(inches)
 
   req.db.run(`
     UPDATE users
@@ -82,7 +74,7 @@ export function post (req, res) {
       dash_number = @dash_number,
       clothe_size = @clothe_size,
       shoe_size = @shoe_size,
-      height = @height,
+      height_inches = @height_inches,
       allergies_dietary_restrictions = @allergies_dietary_restrictions,
       medical_conditions = @medical_conditions
     WHERE id = @user_id

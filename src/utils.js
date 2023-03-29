@@ -110,8 +110,6 @@ export function getDatetimeValueForNow () {
 }
 
 export function getDatetimeValueForUnixTime (unixTime) {
-  // Subtract 5 hours so we get that time string in EST
-  // All of the time handling code in this app is very hacky, I know that
   const date = new Date(unixTime)
   return dateFormat(date, "yyyy-mm-dd'T'HH:MM:ss")
 }
