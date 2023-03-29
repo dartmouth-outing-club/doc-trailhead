@@ -157,4 +157,9 @@ CREATE TABLE group_gear_requests (
   quantity INTEGER
 ) STRICT;
 
+CREATE TABLE _migrations (
+  name TEXT NOT NULL,
+  timestamp INTEGER NOT NULL DEFAULT unixepoch()
+) STRICT;
+
 COMMIT;
