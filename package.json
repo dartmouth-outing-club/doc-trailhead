@@ -8,6 +8,7 @@
     "format": "eslint src --fix",
     "lint": "eslint src",
     "init-db": "./db/init-db.sh -fs",
+    "migrate": "./db/run-migration.sh",
     "set-admin": "./scripts/set-user.sh 1",
     "set-leader": "./scripts/set-user.sh 2",
     "start": "NODE_ENV=production node src/app.js",

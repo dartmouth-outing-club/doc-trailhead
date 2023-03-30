@@ -1,53 +1,40 @@
 #!/bin/bash
+#
+# Name: run-migration.sh
+# Description: Run a database migration if that migration has not already been applied.
 set -euo pipefail
 
 TRAILHEAD_DB_NAME="trailhead.db"
-SESSIONS_DB_NAME="sessions.db"
 
 function quit {
   >&2 echo "$1"
   exit 1
 }
 
-# Command line options
-seed=false
-force=false
-is_test=false
-while getopts 'fst' flag; do
-  case "${flag}" in
-    f) force=true;;
-    s) seed=true;;
-    t) is_test=true;;
-    *) error "Unexpected option ${flag}" ;;
-  esac
-done
-
-if [[ $is_test = true ]]; then
-  TRAILHEAD_DB_NAME="trailhead-test.db"
-  SESSIONS_DB_NAME="sessions-test.db"
+if [[ ! -n "${1-}" ]]; then
+  quit "Usage: run-migration.sh MIGRATION_FP"
 fi
 
-# Stop if existing databases are open (cannot be forced)
-if [[ -f "$TRAILHEAD_DB_NAME-wal" ]] || [[ -f "$SESSIONS_DB_NAME-wal" ]]; then
-  quit "Cannot delete exisiting databases while they are still being actively used"
+migration_fp=$1
+if [[ ! -f "$migration_fp" ]]; then
+  >&2 echo "Migration $migration_fp not found"
+  exit 1
 fi
 
-# Stop if you didn't intend to delete the existing databases
-if [[ -f "$TRAILHEAD_DB_NAME" ]] && [[ $force = false ]]; then
-  quit "Error: $TRAILHEAD_DB_NAME already exists"
-fi
-if [[ -f "$SESSIONS_DB_NAME" ]] && [[ $force = false ]]; then
-  quit "Error: $SESSIONS_DB_NAME already exists"
+# Exit if existing databases are open (cannot be forced)
+if [[ -f "$TRAILHEAD_DB_NAME-wal" ]]; then
+  quit "It is usually an error to migrate the database while it is still in use"
 fi
 
-# Delete the existing data and set up the new schemas
-rm -f "$TRAILHEAD_DB_NAME"
-rm -f "$SESSIONS_DB_NAME"
-cat ./db/trailhead-db-schema.sql | sqlite3 "$TRAILHEAD_DB_NAME"
-cat ./db/sessions-db-schema.sql | sqlite3 "$SESSIONS_DB_NAME"
+# Exit if this particular migration has already been applied
+migration_name=$(basename "$migration_fp")
+query="SELECT EXISTS (SELECT name FROM _migrations WHERE _migrations.name = '$migration_name')"
+if [[ $(sqlite3 $TRAILHEAD_DB_NAME "$query" 2>/dev/null | grep 1) ]]; then
+  quit "Migration $migration_name has already been applied"
+fi
 
-# Add the seed data if the -s options was provided
-# Bash will match the glob in alphabetic order, ergo, it will respect the number scheme
-for file in ./db/seed-data/*.sql; do
-  cat "$file" | sqlite3 "$TRAILHEAD_DB_NAME"
-done
+# Apply migration and save migration
+echo '.bail on' | cat - $migration_fp | sqlite3 $TRAILHEAD_DB_NAME
+sqlite3 $TRAILHEAD_DB_NAME "INSERT INTO _migrations (name) VALUES ('$migration_name');"
+
+>&2 echo "Succesfully applied migration $migration_name"

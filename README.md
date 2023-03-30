@@ -15,6 +15,7 @@ Development commands:
 * `npm start` - run in production mode (requires `.env` file)
 * `npm run init-db` - create a clean version of the database, with a little bit of seed data
 * `npm run lint` - run the linter
+* `npm run migrate MIGRATION_FP` - run a database migration
 * `npm run format` - run the linter in `--fix` mode (might alter the code)
 
 Database commands
