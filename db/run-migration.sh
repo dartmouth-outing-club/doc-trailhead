@@ -34,7 +34,14 @@ if [[ $(sqlite3 $TRAILHEAD_DB_NAME "$query" 2>/dev/null | grep 1) ]]; then
 fi
 
 # Apply migration and save migration
-echo '.bail on' | cat - $migration_fp | sqlite3 $TRAILHEAD_DB_NAME
+echo '.bail on' | cat - $migration_fp |
+sqlite3 $TRAILHEAD_DB_NAME <<EOF
+.bail on
+BEGIN;
+$(cat $migration_fp)
+COMMIT;
+EOF
+
 sqlite3 $TRAILHEAD_DB_NAME "INSERT INTO _migrations (name) VALUES ('$migration_name');"
 
 >&2 echo "Succesfully applied migration $migration_name"

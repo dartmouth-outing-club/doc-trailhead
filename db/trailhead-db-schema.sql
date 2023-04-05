@@ -141,7 +141,7 @@ CREATE TABLE pcard_request_costs (
   trip INTEGER REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
   name TEXT,
   cost INTEGER
-);
+) STRICT;
 
 CREATE TABLE member_gear_requests (
   trip INTEGER NOT NULL,
