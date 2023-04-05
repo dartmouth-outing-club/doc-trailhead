@@ -2,6 +2,7 @@ import * as tripCard from '../trip-card.js'
 import * as vehicleRequestView from '../vehicle-request.js'
 import * as emails from '../../emails.js'
 import * as mailer from '../../services/mailer.js'
+import { BadRequestError } from '../../request/errors.js'
 
 export function approveVehicleRequest (req, res) {
   if (!req.params.requestId) return res.sendStatus(400)
@@ -13,13 +14,22 @@ export function approveVehicleRequest (req, res) {
   let index = 1
   try {
     while (input[`vehicle-${index}`]) {
+      const pickup_time = new Date(input[`pickup-${index}`]).getTime()
+      const return_time = new Date(input[`return-${index}`]).getTime()
+
+      if (pickup_time > return_time) {
+        throw new BadRequestError('Pickup time must be before return time')
+      } else if (pickup_time < Date.now()) {
+        throw new BadRequestError('Pickup time must be in the future')
+      }
+
       const assignment = {
         vehiclerequest: vehiclerequest.id,
         requester: req.user,
         vehicle: input[`vehicle-${index}`],
         vehicle_key: input[`key-${index}`],
-        pickup_time: new Date(input[`pickup-${index}`]).getTime(),
-        return_time: new Date(input[`return-${index}`]).getTime(),
+        pickup_time,
+        return_time,
         response_index: index - 1
       }
       assignments.push(assignment)
