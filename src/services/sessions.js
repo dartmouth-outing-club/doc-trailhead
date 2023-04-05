@@ -43,13 +43,10 @@ export function getUserIdFromToken (token) {
   const currentTimestamp = (new Date()).getTime()
 
   const result = getSessionByToken(token)
-  if (!result) {
-    console.warn(`Token ${token} not found`)
-    return undefined
-  }
+  if (!result) return undefined
 
   if (result.timestamp + _30_DAYS_IN_MS < currentTimestamp) {
-    console.warn(`Token ${result.token} for user ${result.user} is expired, deleting it.`)
+    console.warn(`Token for user ${result.user} is expired, deleting it.`)
     invalidateToken(token)
     return undefined
   }
