@@ -19,7 +19,6 @@ import * as vehicleRequests from './routes/opo/vehicle-requests.js'
 import * as profileApprovals from './routes/opo/profile-approvals.js'
 import * as manageFleet from './routes/opo/manage-fleet.js'
 
-import signS3 from './services/s3.js'
 import * as authentication from './services/authentication.js'
 const { requireAuth, requireAnyLeader, requireTripLeader, requireOpo } = authentication
 
@@ -30,8 +29,6 @@ router.enableRender = (path) => router.get(`/${path}`, (_req, res) => res.render
 // TODO add back transactions
 // router.postTransaction = (...args) => router.post(...args.slice(0, -1), withTransaction(args.at(-1)))
 // router.putTransaction = (...args) => router.put(...args.slice(0, -1), withTransaction(args.at(-1)))
-
-router.get('/sign-s3', signS3)
 
 router.get('/', requireAuth, (req, res) => {
   const is_opo = req.db.get('SELECT is_opo FROM users WHERE id = ?', req.user)?.is_opo

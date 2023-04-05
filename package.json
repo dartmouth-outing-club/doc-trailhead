@@ -20,7 +20,6 @@
   },
   "type": "module",
   "dependencies": {
-    "aws-sdk": "^2.675.0",
     "better-sqlite3": "^8.2.0",
     "body-parser": "^1.20.1",
     "date-arithmetic": "^4.1.0",
