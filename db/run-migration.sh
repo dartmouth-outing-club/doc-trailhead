@@ -21,11 +21,6 @@ if [[ ! -f "$migration_fp" ]]; then
   exit 1
 fi
 
-# Exit if existing databases are open (cannot be forced)
-if [[ -f "$TRAILHEAD_DB_NAME-wal" ]]; then
-  quit "It is usually an error to migrate the database while it is still in use"
-fi
-
 # Exit if this particular migration has already been applied
 migration_name=$(basename "$migration_fp")
 query="SELECT EXISTS (SELECT name FROM _migrations WHERE _migrations.name = '$migration_name')"
