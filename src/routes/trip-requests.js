@@ -1,3 +1,4 @@
+import { BadRequestError } from '../request/errors.js'
 import * as utils from '../utils.js'
 
 export function getRequestsView (req, res) {
@@ -93,8 +94,7 @@ export function putVehicleRequest (req, res) {
     const return_time = (new Date(input[`return-${index}`])).getTime()
 
     if (pickup_time > return_time) {
-      res.render('components/save-failed-button.njk', { message: 'Pickup time must be before return time' })
-      return
+      throw new BadRequestError('Pickup time must be before return time')
     }
 
     const vehicle = {
@@ -117,9 +117,7 @@ export function putVehicleRequest (req, res) {
   const vehiclerequestId = info.lastInsertRowid
 
   // Point all the vehicles to the new request
-  for (const vehicle of vehicles) {
-    vehicle.vehiclerequest = vehiclerequestId
-  }
+  vehicles.forEach(vehicle => { vehicle.vehiclerequest = vehiclerequestId })
 
   req.db.runMany(`
     INSERT INTO requested_vehicles
