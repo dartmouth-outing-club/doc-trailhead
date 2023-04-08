@@ -2,10 +2,7 @@ import nunjucks from 'nunjucks'
 
 import * as constants from './constants.js'
 
-const _48_HOURS_IN_MS = 172800000
-const _2_HOURS_IN_MS = 7200000
-const _90_MINS_IN_MS = 5400000
-const _3_HOURS_IN_MS = 10800000
+const { _48_HOURS_IN_MS, _2_HOURS_IN_MS, _90_MINS_IN_MS, _3_HOURS_IN_MS } = constants
 
 export function getNewTripEmail (db, tripId) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)

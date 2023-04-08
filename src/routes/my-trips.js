@@ -1,8 +1,8 @@
+import { _24_HOURS_IN_MS } from '../constants.js'
 import * as utils from '../utils.js'
 
 export function get (req, res) {
   const userId = req.user
-  const _24_HOURS_IN_MS = 86400000
   const now = new Date()
 
   const is_leader = req.db.get(`
