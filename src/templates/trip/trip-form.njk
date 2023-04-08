@@ -44,6 +44,8 @@
 {% endif %}
 <button id="add-leader" type=button onclick="addLeader()">Add New Co-Leader</button>
 
+<label>Auto-approve new signups up until limit:<input name=auto_approved_members  value="{{ trip.auto_approved_members or 0 }}" type=number min=0></label>
+
 <label>Prior experience is required<input name=experience_needed {% if trip.experience_needed %}checked {% endif %}type=checkbox></label>
 <label>Don't show this trip on the public trips list<input name=is_private {% if trip.private %}checked {% endif %}type=checkbox></label>
 
