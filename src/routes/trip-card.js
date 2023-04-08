@@ -1,7 +1,6 @@
+import { _48_HOURS_IN_MS } from '../constants.js'
 import * as utils from '../utils.js'
 import { getVehicleRequestData } from './vehicle-request.js'
-
-const _48_HOURS_IN_MS = 172800000
 
 function getLeaderData (req, tripId, userId) {
   const user = req.db.get('SELECT is_opo FROM users WHERE id = ?', userId)
@@ -26,7 +25,8 @@ function getLeaderData (req, tripId, userId) {
       vehiclerequests.is_approved as vehiclerequest_is_approved,
       vehiclerequests.request_details as vehiclerequest_details,
       member_gear_approved,
-      group_gear_approved
+      group_gear_approved,
+      auto_approved_members
     FROM trips
     LEFT JOIN clubs ON clubs.id = trips.club
     LEFT JOIN users ON users.id = trips.owner
@@ -140,6 +140,7 @@ function getLeaderData (req, tripId, userId) {
   trip.is_on_trip = req.db.isSignedUpForTrip(tripId, userId)
   trip.start_datetime = utils.getDatetimeValueForUnixTime(trip.start_time)
   trip.start_time_element = utils.getDatetimeElement(trip.start_time)
+  trip.starts_in_24_hrs = trip.start_time - new Date().getTime() < _48_HOURS_IN_MS / 2
   trip.end_datetime = utils.getDatetimeValueForUnixTime(trip.end_time)
   trip.end_time_element = utils.getDatetimeElement(trip.end_time)
   trip.leader_names = leaderNames
