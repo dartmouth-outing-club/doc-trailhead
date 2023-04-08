@@ -1,0 +1,2 @@
+ALTER TABLE trips
+ADD COLUMN auto_approved_members INTEGER NOT NULL DEFAULT 0;
