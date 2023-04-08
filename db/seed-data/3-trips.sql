@@ -20,7 +20,9 @@ VALUES
     (2, 1, 'Headlamp', 'None'),
     (3, 1, 'Microspikes', 'Shoe');
 
-INSERT INTO trip_members VALUES
+INSERT INTO trip_members
+    (trip, user, leader, attended, pending)
+VALUES
     (1, 1, 1, 1, 0),
     (1, 2, 1, 1, 0),
     (1, 3, 0, 1, 0);
@@ -44,7 +46,9 @@ VALUES
     ((SELECT unixepoch('now', 'start of day', '+1 day', '+6 hours', 'utc') * 1000) + 3600000 * 3),
     'Hartland Diner', 'Robo', 'Robo', 20, 'BREAKFAST. IS. SO. IMPORTANT. Dinertoure is a subclub of Cabin & Trail, which makes it a sub-subclub of the DOC. Every week we wake up very early and go to a different diner in the Upper Valley. The ride is free but BRING. SMALL. BILLS. Well be leaving from Robo at 6:35 sharp and driving to The Windsor Diner in Windsor, VT. So dont be late. Since space is limited please only sign-up if you are committed to coming.', 0, 0, NULL, NULL);
 
-INSERT INTO trip_members VALUES
+INSERT INTO trip_members
+    (trip, user, leader, attended, pending)
+VALUES
     (2, 1, 1, 0, 0),
     (2, 2, 0, 0, 0),
     (2, 3, 0, 0, 1);
@@ -70,7 +74,9 @@ VALUES
     (4, 3, 'Headlamp', 'none'),
     (5, 3, 'Microspikes', 'Shoe');
 
-INSERT INTO trip_members VALUES
+INSERT INTO trip_members
+    (trip, user, leader, attended, pending)
+VALUES
     (3, 1, 1, 0, 0),
     (3, 3, 1, 0, 1),
     (3, 4, 0, 0, 1),
@@ -102,7 +108,9 @@ VALUES
     (7, 4, 'Gloves', 'none'),
     (8, 4, 'Helmet', 'none');
 
-INSERT INTO trip_members VALUES
+INSERT INTO trip_members
+    (trip, user, leader, attended, pending)
+VALUES
     (4, 1, 1, 0, 0),
     (4, 2, 1, 0, 0),
     (4, 4, 0, 0, 0),
@@ -133,7 +141,9 @@ VALUES
     (SELECT unixepoch('now', 'start of day', '+4 days', '+11 hours', 'utc') * 1000),
     ((SELECT unixepoch('now', 'start of day', '+4 days', '+11 hours', 'utc') * 1000) + 3600000 * 4), 'O-Farm', 'Robo', 'Robo', 0, 'Hi Hi, the collab of the century is finally here! Join Melody (she/her), Kevin (he/him) on a  POCO x NAD (Native Americans at Dartmouth) sugaring trip. Well be tapping some trees and learning about how maple syrup (yumm) is made. No past experience needed, just come have fun and end your week seven on a sweet note! :)', 0, 0, NULL, NULL);
 
-INSERT INTO trip_members VALUES
+INSERT INTO trip_members
+    (trip, user, leader, attended, pending)
+VALUES
     (5, 1, 1, 0, 0),
     (5, 2, 0, 0, 1),
     (5, 3, 0, 0, 1),
@@ -166,7 +176,9 @@ INSERT INTO group_gear_requests
 VALUES
     (6, 'Tent', 2);
 
-INSERT INTO trip_members VALUES
+INSERT INTO trip_members
+    (trip, user, leader, attended, pending)
+VALUES
     (6, 1, 1, 0, 0),
     (6, 2, 1, 0, 0),
     (6, 3, 0, 0, 0),
