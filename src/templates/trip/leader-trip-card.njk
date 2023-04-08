@@ -50,6 +50,13 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 </div>
 
 <h2>Approved trippes ({{ attending.length }})</h2>
+{% if auto_approved_members == 0 %}
+  <p>Change the trip settings enable Trailhead to auto-approve new new signups.</p>
+{% elseif starts_in_24_hrs %}
+  <p>Trailhead will not auto-approve new signups because the trip starts in less than 24 hours.</p>
+{% else %}
+  <p>Trailhead is auto-approving new signups when capacity falls below {{ auto_approved_members }}. Change this in trip settings. You can always manually admit more trippees.</p>
+{% endif %}
 <div class=trip-table-overflow-wrapper>
 <table class=trip-table>
 <thead>
