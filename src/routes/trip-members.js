@@ -41,7 +41,7 @@ export function sendToWaitlist (req, res) {
   // temporarily delete trip_member row
   req.db.run('DELETE FROM trip_members WHERE trip = ? and user = ?', tripId, userId)
   // auto-approve next person in line
-  autoApprove(tripId)(req.db)
+  autoApprove(tripId, req.db)
   // re-add user to trip_members with pending = 1
   req.db.run('INSERT INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)', tripId, userId, 0, 1)
 
@@ -87,7 +87,7 @@ export function signup (req, res) {
   // otherwise it means they changed their gear request
   if (info.changes === 1) {
     mailer.send(emails.getTripApplicationConfirmation, req.db, tripId, req.user)
-    autoApprove(tripId)(req.db)
+    autoApprove(tripId, req.db)
   } else {
     mailer.send(emails.getGearRequestChangedEmail, req.db, tripId, req.user)
   }
@@ -112,37 +112,36 @@ export function leave (req, res) {
 
   if (!pending) {
     mailer.send(emails.getUserLeftEmail, req.db, tripId, req.user)
-    autoApprove(tripId)(req.db)
+    autoApprove(tripId, req.db)
   }
   return tripCard.renderSignupCard(req, res, tripId, req.user)
 }
 
-export function autoApprove (tripId) {
-  return (db) => {
-    let moreToApprove = true
-    while (moreToApprove) {
-      // fetch the current member count
-      const { count } = db.get('SELECT COUNT(*) as count FROM trip_members WHERE trip = ? AND pending = 0', tripId)
-      // fetch the auto_approved_members limit and the trip start time
-      const { auto_approved_members, start_time } = db.get('SELECT auto_approved_members, start_time FROM trips WHERE id = ?', tripId)
+export function autoApprove (tripId, db) {
+  const { start_time } = db.get('SELECT auto_approved_members, start_time FROM trips WHERE id = ?', tripId)
+  let moreToApprove = start_time - new Date().getTime() > _24_HOURS_IN_MS
+  while (moreToApprove) {
+    // fetch the current member count
+    const { count } = db.get('SELECT COUNT(*) as count FROM trip_members WHERE trip = ? AND pending = 0', tripId)
+    // fetch the auto_approved_members limit
+    const { auto_approved_members } = db.get('SELECT auto_approved_members FROM trips WHERE id = ?', tripId)
 
-      if (count < auto_approved_members && start_time - new Date().getTime() > _24_HOURS_IN_MS) {
-        // pull the top person from the waitlist
-        const waitlist = db.all(`
-          SELECT user FROM trip_members
-          WHERE trip = ? AND pending = 1
-          ORDER BY added_at ASC LIMIT 1
-        `, tripId)
-        if (waitlist.length > 0) {
-          const nextUser = waitlist[0].user
-          db.run('UPDATE trip_members SET pending = 0 WHERE trip = ? and user = ?', tripId, nextUser)
-          mailer.send(emails.getTripApprovalEmail, db, tripId, nextUser)
-        } else {
-          moreToApprove = false
-        }
+    if (count < auto_approved_members) {
+      // pull the top person from the waitlist
+      const waitlist = db.all(`
+        SELECT user FROM trip_members
+        WHERE trip = ? AND pending = 1
+        ORDER BY added_at ASC LIMIT 1
+      `, tripId)
+      if (waitlist.length > 0) {
+        const nextUser = waitlist[0].user
+        db.run('UPDATE trip_members SET pending = 0 WHERE trip = ? and user = ?', tripId, nextUser)
+        mailer.send(emails.getTripApprovalEmail, db, tripId, nextUser)
       } else {
         moreToApprove = false
       }
+    } else {
+      moreToApprove = false
     }
   }
 }
