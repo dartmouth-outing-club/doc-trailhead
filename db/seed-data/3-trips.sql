@@ -135,20 +135,20 @@ VALUES
 -- TRIP 5
 
 INSERT INTO trips
-    (id, title, private, past, left, returned, marked_late, club, owner, start_time, end_time, location, pickup, dropoff, cost, description, experience_needed, coleader_can_edit, group_gear_approved, member_gear_approved)
+    (id, title, private, past, left, returned, marked_late, club, owner, auto_approved_members, start_time, end_time, location, pickup, dropoff, cost, description, experience_needed, coleader_can_edit, group_gear_approved, member_gear_approved)
 VALUES
-    (5, 'POCO x NAD Sugaring Trip!🍁🥞', 0, 0, 0, 0, 0, 11, 1,
+    (5, 'POCO x NAD Sugaring Trip!🍁🥞', 0, 0, 0, 0, 0, 11, 1, 3,
     (SELECT unixepoch('now', 'start of day', '+4 days', '+11 hours', 'utc') * 1000),
     ((SELECT unixepoch('now', 'start of day', '+4 days', '+11 hours', 'utc') * 1000) + 3600000 * 4), 'O-Farm', 'Robo', 'Robo', 0, 'Hi Hi, the collab of the century is finally here! Join Melody (she/her), Kevin (he/him) on a  POCO x NAD (Native Americans at Dartmouth) sugaring trip. Well be tapping some trees and learning about how maple syrup (yumm) is made. No past experience needed, just come have fun and end your week seven on a sweet note! :)', 0, 0, NULL, NULL);
 
 INSERT INTO trip_members
-    (trip, user, leader, attended, pending)
+    (trip, user, leader, attended, pending, added_at)
 VALUES
-    (5, 1, 1, 0, 0),
-    (5, 2, 0, 0, 1),
-    (5, 3, 0, 0, 1),
-    (5, 4, 0, 0, 1),
-    (5, 5, 0, 0, 1);
+    (5, 1, 1, 0, 0, (SELECT unixepoch('now', 'start of day', '-1 days', '+11 hours', 'utc') * 1000)),
+    (5, 2, 0, 0, 0, (SELECT unixepoch('now', 'start of day', '-1 days', '+11 hours', 'utc') * 1000)),
+    (5, 3, 0, 0, 0, (SELECT unixepoch('now', 'start of day', '-1 days', '+12 hours', 'utc') * 1000)),
+    (5, 4, 0, 0, 1, (SELECT unixepoch('now', 'start of day', '-1 days', '+13 hours', 'utc') * 1000)),
+    (5, 5, 0, 0, 1, (SELECT unixepoch('now', 'start of day', '-1 days', '+14 hours', 'utc') * 1000));
 
 -- TRIP 6
 
