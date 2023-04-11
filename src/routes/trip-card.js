@@ -48,6 +48,7 @@ function getLeaderData (req, tripId, userId) {
     name,
     leader,
     pending,
+    added_at,
     iif(trips.start_time < unixepoch() * 1000,
         '-',
         iif(attended = 0, 'No', 'Yes')) as attended,
@@ -61,7 +62,9 @@ function getLeaderData (req, tripId, userId) {
   ORDER BY is_owner DESC, trip_members.leader DESC, trip_members.rowid
   `, tripId) // Display order is leaders first, followed by signup order
 
-  const membersWithGear = members.map(member => {
+  const membersWithRegistrationTime = members.map(member => ({ ...member, added_at: utils.getDatetimeElement(member.added_at, { mode: 'SHORT', includeDayOfWeek: false, includeYear: true }) }))
+
+  const membersWithGear = membersWithRegistrationTime.map(member => {
     const gearRequests = req.db.all(`
     SELECT name
     FROM member_gear_requests

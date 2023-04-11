@@ -115,7 +115,7 @@ CREATE TABLE trip_members (
   leader INTEGER DEFAULT FALSE,
   attended INTEGER DEFAULT FALSE,
   pending INTEGER DEFAULT TRUE,
-  added_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+  added_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000),
   PRIMARY KEY (trip, user)
 ) STRICT;
 
