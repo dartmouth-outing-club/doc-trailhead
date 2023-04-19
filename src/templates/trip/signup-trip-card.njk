@@ -52,6 +52,19 @@
 </table>
 {% endif %}
 
+{% if missing_waivers | length > 0 %}
+<div class=missing-waivers hx-boost=false>
+<h3>Missing Waivers</h3>
+<p>To sign up for this trip you need to fill out these additional waivers:
+<ul>
+  {% for waiver in missing_waivers %}
+    <li><a href="/waivers/{{waiver.waiver_fp}}">{{ waiver.name }}</a>
+  {% endfor %}
+</ul>
+<p>Once you have completed these waivers, return to (or refresh) this page to sign up.
+</div>
+{% endif %}
+
 <div class=button-row>
 {% if is_on_trip %}
   <button class="action deny"

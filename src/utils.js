@@ -113,3 +113,28 @@ export function getDatetimeValueForUnixTime (unixTime) {
   const date = new Date(unixTime)
   return dateFormat(date, "yyyy-mm-dd'T'HH:MM:ss")
 }
+
+/**
+ * Return the forms that the user needs to sign in order to sign up for the trip.
+ *
+ * NOTE: If I start to build up a couple db-accessing functions like this, I will probably move them
+ * to their own file.
+ */
+export function getMissingWaivers (db, tripId, userId) {
+  const clubWaivers = db.all(`
+    SELECT crw.name, crw.waiver_fp
+    FROM trips
+    LEFT JOIN club_required_waivers AS crw ON crw.club = trips.club
+    WHERE trips.id = ? AND
+      NOT EXISTS (SELECT 1 FROM waiver_signatures AS ws WHERE user = ? AND ws.waiver_fp = crw.waiver_fp)
+  `, tripId, userId)
+
+  const tripWaivers = db.all(`
+    SELECT trg.name, trg.waiver_fp
+    FROM trip_required_waivers AS trg
+    WHERE trg.trip = ? AND
+      NOT EXISTS (SELECT 1 FROM waiver_signatures AS ws WHERE user = ? AND trg.waiver_fp = ws.waiver_fp)
+  `, tripId, userId)
+
+  return [...tripWaivers, ...clubWaivers]
+}

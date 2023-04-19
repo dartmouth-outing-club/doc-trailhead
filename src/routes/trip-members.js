@@ -1,6 +1,8 @@
 import * as emails from '../emails.js'
 import * as mailer from '../services/mailer.js'
 import * as tripCard from '../routes/trip-card.js'
+import * as utils from '../utils.js'
+import {BadRequestError} from '../request/errors.js'
 
 export function makeLeader (req, res) {
   const { tripId, userId } = req.params
@@ -55,7 +57,9 @@ export function reject (req, res) {
 
 export function signup (req, res) {
   const tripId = req.params.tripId
-  if (!tripId) return res.sendStatus(400)
+
+  if (!tripId) throw new BadRequestError('Missing trip ID')
+  if (!utils.getMissingWaivers(req.db, tripId, req.user)) throw new BadRequestError('Missing required forms')
 
   // Add the trip member if they weren't there before
   const info = req.db.run(`

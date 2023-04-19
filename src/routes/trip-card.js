@@ -249,6 +249,7 @@ function getSignupData (req, tripId, userId) {
   trip.end_time = utils.getDatetimeElement(trip.end_time)
   trip.leader_names = leaderNames
   trip.required_gear = requiredGear
+  trip.missing_waivers = utils.getMissingWaivers(req.db, tripId, userId)
 
   // Show approval buttons if user is an OPO staffer and there is something to approve
   trip.is_opo = user.is_opo

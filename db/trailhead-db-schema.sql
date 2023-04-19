@@ -117,6 +117,32 @@ CREATE TABLE trip_members (
   PRIMARY KEY (trip, user)
 ) STRICT;
 
+CREATE TABLE waivers (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  text TEXT NOT NULL,
+  club INTEGER REFERENCES clubs ON DELETE RESTRICT ON UPDATE CASCADE,
+  timestamp INTEGER NOT NULL
+) STRICT;
+
+CREATE TABLE waiver_signatures (
+  user INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
+  waiver INTEGER REFERENCES waivers ON DELETE RESTRICT ON UPDATE RESTRICT,
+  timestamp INTEGER NOT NULL,
+  PRIMARY KEY (user, waiver)
+) STRICT;
+
+CREATE TRIGGER readonly_waivers
+BEFORE UPDATE OF text, timestamp ON waivers
+BEGIN
+  SELECT raise(abort, 'You should not update the substance of an existing waiver. Instead, add a new one.');
+END;
+
+CREATE TABLE trip_required_waivers (
+  trip INTEGER REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,
+  waiver INTEGER REFERENCES waivers ON DELETE RESTRICT ON UPDATE RESTRICT
+) STRICT;
+
 CREATE TABLE trip_required_gear (
   id INTEGER PRIMARY KEY,
   trip INTEGER REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,

@@ -1,4 +1,3 @@
-/* If you're looking for the method to create a trip, that's in /rest/trip.js */
 import * as utils from '../utils.js'
 import * as tripCard from './trip-card.js'
 import * as emails from '../emails.js'
@@ -104,6 +103,8 @@ export function createTrip (req, res) {
     'INSERT OR IGNORE INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)',
     tripMembers
   )
+  // TODO BEFORE PR: filter out co-leaders who do not have forms signed
+  // And make sure to communicate that info to the user
 
   mailer.send(emails.getNewTripEmail, req.db, tripId)
 

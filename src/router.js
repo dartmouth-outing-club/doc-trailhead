@@ -4,6 +4,7 @@ import * as welcome from './routes/welcome.js'
 import * as assignments from './routes/assignments.js'
 import * as trip from './routes/trip.js'
 import * as profile from './routes/profile.js'
+import * as waivers from './routes/waivers.js'
 import * as tripStatus from './routes/trip-status.js'
 import * as vehicleRequestView from './routes/vehicle-request.js'
 import * as allTripsView from './routes/all-trips.js'
@@ -66,6 +67,8 @@ router.get('/trip/:tripId/edit', requireTripLeader, trip.getEditView)
 router.get('/trip/:tripId/check-out', requireTripLeader, tripStatus.getCheckOutView)
 router.get('/trip/:tripId/check-in', requireTripLeader, tripStatus.getCheckInView)
 router.get('/trip/:tripId/requests', requireTripLeader, tripRequests.getRequestsView)
+
+router.get('/waivers/:waiverPath', requireAuth, waivers.getWaiverView)
 
 /**********************
  * User Profile Routes
