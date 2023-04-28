@@ -8,7 +8,7 @@
         <option>Van
         <option>Microbus
         <option>Truck
-        <option>PersonalVehicle
+        <option>Personal Vehicle
       </select>
     </label>
     <label class=block>
@@ -39,7 +39,7 @@
          for=notes-input
          {% if not requested_vehicles %}class="hidden"{% endif %}
          >Notes:</label>
-  <textarea type=text id=notes-inpit name=notes>{{ request_details }}</textarea>
+  <textarea {% if not requested_vehicles %}class="hidden"{% endif %} type=text id=notes-input name=notes>{{ request_details }}</textarea>
   {# Copying this from the template above is a bit of a shame but we're on a deadline here #}
   {% for vehicle in requested_vehicles %}
   <fieldset>
@@ -83,9 +83,12 @@
       // Hide or unhide notes based on how many fieldsets there are
       const fieldsets = document.querySelectorAll('fieldset')
       const notes = document.querySelector('#notes-label')
+      const notesInput = document.querySelector('#notes-input')
       if (fieldsets.length === 0) {
         notes.classList.add('hidden')
+        notesInput.classList.add('hidden')
       } else {
+        notesInput.classList.remove('hidden')
         notes.classList.remove('hidden')
       }
 
