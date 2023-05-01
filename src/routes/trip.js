@@ -55,7 +55,7 @@ export function getEditView (req, res) {
   const clubs = getClubs(req.db, req.user, res.locals.is_opo)
   const trip = req.db.get(`
     SELECT id, title, club, cost, coleader_can_edit, experience_needed, private, start_time,
-    end_time, location, pickup, dropoff, description
+    end_time, location, pickup, dropoff, description, auto_approved_members
     FROM trips
     WHERE id = ?
   `, tripId)
@@ -125,7 +125,8 @@ export function editTrip (req, res) {
     SET
       title = @title, club = @club, cost = @cost, start_time = @start_time, end_time = @end_time,
       location = @location, experience_needed = @experience_needed, private = @private,
-      pickup = @pickup, dropoff = @dropoff, description = @description
+      pickup = @pickup, dropoff = @dropoff, description = @description,
+      auto_approved_members = @auto_approved_members
     WHERE id = @id
   `, trip)
 
@@ -172,6 +173,7 @@ function convertFormInputToDbInput (input, userId) {
 
   try {
     const club = input.club > 0 ? input.club : null
+    const auto_approved_members = Math.max(0, input.auto_approved_members)
     const experience_needed = input.experience_needed === 'on' ? 1 : 0
     const is_private = input.is_private === 'on' ? 1 : 0
     // Eventually, when JS gets better date handling, this should probably be replaced
@@ -182,6 +184,7 @@ function convertFormInputToDbInput (input, userId) {
       cost: input.cost,
       owner: userId,
       club,
+      auto_approved_members,
       experience_needed,
       private: is_private,
       start_time,

@@ -105,7 +105,8 @@ CREATE TABLE trips (
   coleader_can_edit INTEGER DEFAULT FALSE,
   group_gear_approved INTEGER, -- NULL means that it's pending or N/A
   member_gear_approved INTEGER,
-  sent_emails TEXT DEFAULT '[]'
+  sent_emails TEXT DEFAULT '[]',
+  auto_approved_members INTEGER NOT NULL DEFAULT 0
 ) STRICT;
 
 CREATE TABLE trip_members (
@@ -114,6 +115,7 @@ CREATE TABLE trip_members (
   leader INTEGER DEFAULT FALSE,
   attended INTEGER DEFAULT FALSE,
   pending INTEGER DEFAULT TRUE,
+  added_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now') * 1000),
   PRIMARY KEY (trip, user)
 ) STRICT;
 

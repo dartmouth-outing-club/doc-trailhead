@@ -83,6 +83,8 @@ export function getDatetimeElement (unixTime, opts = {}) {
   switch (mode) {
     case 'FULL':
       return `<time datetime="${date.toISOString()}">${dateString} @ ${timeString}</time>`
+    case 'SHORT':
+      return `<time datetime="${date.toISOString()}">${dateString}, ${dateFormat(date, 'H:MM')}</time>`
     case 'DATE':
       return `<time datetime="${date.toISOString()}">${dateString}</time>`
     case 'TIME':
