@@ -106,3 +106,8 @@
   height: 15px;
   margin: 0;
 }
+
+.hint {
+  font-size: .7em;
+  font-family: 'Nunito Sans';
+}

@@ -23,6 +23,7 @@ CREATE TABLE users (
   id INTEGER primary key,
   cas_id TEXT UNIQUE,
   email TEXT UNIQUE,
+  phone TEXT,
   password TEXT,
   name TEXT,
   photo_url TEXT,

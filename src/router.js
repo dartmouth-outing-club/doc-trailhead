@@ -73,6 +73,7 @@ router.get('/trip/:tripId/requests', requireTripLeader, tripRequests.getRequests
 router.get('/profile', requireAuth, profile.getProfileView)
 router.post('/profile', requireAuth, profile.post)
 router.get('/profile/edit-profile', requireAuth, profile.getProfileCardEditable)
+router.get('/profile/cancel-edit', requireAuth, profile.getProfileCard)
 router.get('/profile/driver-cert', requireAuth, profile.getDriverCertRequest)
 router.post('/profile/driver-cert', requireAuth, profile.postDriverCertRequest)
 router.get('/profile/club-leadership', requireAuth, profile.getClubLeadershipRequest)

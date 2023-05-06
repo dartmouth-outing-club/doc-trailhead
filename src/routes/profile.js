@@ -1,3 +1,5 @@
+import { BadRequestError } from '../request/errors.js'
+
 export function getProfileView (req, res) {
   if (req.query.card) {
     return getProfileCard(req, res)
@@ -58,12 +60,16 @@ function getProfileData (req, userId, hideControls) {
   return user
 }
 
+const VALID_PHONE = /[0-9]{10,}/
+
 export function post (req, res) {
   const formData = { ...req.body }
   formData.user_id = req.user
   const { shoe_size_sex, shoe_size_num, feet, inches } = formData
   formData.shoe_size = shoe_size_sex && shoe_size_num ? `${shoe_size_sex}-${shoe_size_num}` : null
   formData.height_inches = (parseInt(feet) * 12) + parseInt(inches)
+
+  if (!VALID_PHONE.test(formData.phone)) throw new BadRequestError('Invalid phone number')
 
   req.db.run(`
     UPDATE users
@@ -72,6 +78,7 @@ export function post (req, res) {
       email = @email,
       pronoun = @pronouns,
       dash_number = @dash_number,
+      phone = @phone,
       clothe_size = @clothe_size,
       shoe_size = @shoe_size,
       height_inches = @height_inches,
