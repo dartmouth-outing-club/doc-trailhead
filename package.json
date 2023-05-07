@@ -31,7 +31,7 @@
     "morgan": "^1.10.0",
     "node-cron": "^2.0.3",
     "nodemailer": "^6.8.0",
-    "nunjucks": "^3.2.3",
+    "nunjucks": "^3.2.4",
     "passport": "^0.6.0",
     "passport-cas": "^0.1.1"
   },
