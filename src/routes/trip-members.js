@@ -1,6 +1,7 @@
 import * as emails from '../emails.js'
 import * as mailer from '../services/mailer.js'
 import * as tripCard from '../routes/trip-card.js'
+import { BadRequestError } from '../request/errors.js'
 
 export function makeLeader (req, res) {
   const { tripId, userId } = req.params
@@ -85,15 +86,13 @@ export function leave (req, res) {
   const tripId = req.params.tripId
   const owner = req.db.get('SELECT owner FROM trips WHERE id = ?', tripId).owner
 
-  // Can't leave a trip that you own
-  if (!tripId) return res.sendStatus(400)
-  if (req.user === owner) return res.sendStatus(400)
+  if (!tripId) throw new BadRequestError('Trip now found')
+  if (req.user === owner) throw new BadRequestError('You cannot leave a trip that you own.')
 
-  const { changes } = req.db.run('DELETE FROM trip_members WHERE trip = ? and user = ?',
-    tripId, req.user)
-  if (changes === 0) console.warn(`Unnecessary delete requested for trip ${tripId}`)
+  const user = req.db.get('SELECT pending FROM trip_members WHERE trip = ? and user = ?', tripId, req.user)
+  if (!user) console.warn(`Unnecessary delete requested for trip ${tripId}, user ${req.user}`)
+  req.db.run('DELETE FROM trip_members WHERE trip = ? and user = ?', tripId, req.user)
 
-  // TODO only send if user was approved
-  mailer.send(emails.getUserLeftEmail, req.db, tripId, req.user)
+  if (!user?.pending) mailer.send(emails.getUserLeftEmail, req.db, tripId, req.user)
   return tripCard.renderSignupCard(req, res, tripId, req.user)
 }
