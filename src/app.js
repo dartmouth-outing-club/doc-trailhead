@@ -30,16 +30,16 @@ const checkOutEmails = mailer.createRecurringEmailSender('CHECK_OUT',
 const checkInEmails = mailer.createRecurringEmailSender('CHECK_IN',
   trailheadDb, emails.getEmailsForTripsPendingCheckIn)
 
-const late90MinEmails = mailer.createRecurringEmailSender('LATE_90',
-  trailheadDb, emails.getEmailsForTrips90MinutesLate)
+const firstWarningEmails = mailer.createRecurringEmailSender('LATE_90',
+  trailheadDb, emails.getEmailsForFirstLateWarning)
 
-const late3HourEmails = mailer.createRecurringEmailSender('LATE_180',
-  trailheadDb, emails.getEmailsForTrips3HoursLate)
+const secondWarningEmails = mailer.createRecurringEmailSender('LATE_180',
+  trailheadDb, emails.getEmailsForSecondLateWarning)
 
 // These wacky times are a stopgap to mitigate the connection limit throttling
 // I'll batch these properly (with precise queries) soon
 console.log('Starting scheduler')
 cron.schedule('10 * * * *', checkOutEmails)
 cron.schedule('20 * * * *', checkInEmails)
-cron.schedule('5,15,25,35,45,55 * * * *', late90MinEmails)
-cron.schedule('17,37,57 * * * *', late3HourEmails)
+cron.schedule('5,15,25,35,45,55 * * * *', firstWarningEmails)
+cron.schedule('17,37,57 * * * *', secondWarningEmails)

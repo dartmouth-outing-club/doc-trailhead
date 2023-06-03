@@ -3,9 +3,8 @@ import nunjucks from 'nunjucks'
 import * as constants from './constants.js'
 
 const _48_HOURS_IN_MS = 172800000
+const _1_HOUR_IN_MS = 3600000
 const _2_HOURS_IN_MS = 7200000
-const _90_MINS_IN_MS = 5400000
-const _3_HOURS_IN_MS = 10800000
 
 export function getNewTripEmail (db, tripId) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
@@ -255,9 +254,11 @@ export function getEmailsForTripsPendingCheckIn (db) {
   return emails
 }
 
-export function getEmailsForTrips90MinutesLate (db) {
+export function getEmailsForFirstLateWarning (db) {
   const now = new Date()
-  const returnWindow = new Date(now.getTime() - _90_MINS_IN_MS)
+  const returnWindow = new Date(now.getTime() - _1_HOUR_IN_MS)
+  // LATE_90 obviously no longer accurately describes what this email is
+  // I could change it but that require a database migration that isn't worth doing at this time
   const trips = db.all(`
     SELECT *
     FROM trips
@@ -269,18 +270,18 @@ export function getEmailsForTrips90MinutesLate (db) {
     trip.scheduledReturn = constants.formatDateAndTime(trip.endDateAndTime, 'SHORT')
     return {
       trip: trip.id,
-      name: '90 minute late',
+      name: 'Late first warning',
       address: leaderEmails,
       subject: `Trip #${trip.id} late for return`,
-      message: nunjucks.render('emails/90-minute-late.njk', { trip, constants })
+      message: nunjucks.render('emails/late-first-warning.njk', { trip, constants })
     }
   })
   return emails
 }
 
-export function getEmailsForTrips3HoursLate (db) {
+export function getEmailsForSecondLateWarning (db) {
   const now = new Date()
-  const returnWindow = new Date(now.getTime() - _3_HOURS_IN_MS)
+  const returnWindow = new Date(now.getTime() - _2_HOURS_IN_MS)
   const trips = db.all(`
     SELECT *
     FROM trips
@@ -291,10 +292,10 @@ export function getEmailsForTrips3HoursLate (db) {
     trip.scheduledReturn = constants.formatDateAndTime(trip.endDateAndTime, 'SHORT')
     return {
       trip: trip.id,
-      name: '3 hour late',
+      name: 'Late second warning',
       address: constants.OPOEmails.concat(leaderEmails),
       subject: `Trip #${trip.id} not returned`,
-      message: nunjucks.render('emails/3-hour-late.njk', { trip, constants })
+      message: nunjucks.render('emails/late-second-warning.njk', { trip, constants })
     }
   })
   return emails
