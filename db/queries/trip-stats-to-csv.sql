@@ -5,7 +5,12 @@ with trip_stats as (
   from trip_members
   group by trip
 )
-select title, member_count, clubs.name as club
+select
+  trips.id,
+  title,
+  member_count,
+  clubs.name as club,
+  date(start_time / 1000, 'unixepoch') as date
 from trips
 left join clubs on trips.club = clubs.id
 left join trip_stats on trips.id = trip_stats.trip
