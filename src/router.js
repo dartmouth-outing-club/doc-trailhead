@@ -71,7 +71,7 @@ router.get('/trip/:tripId/requests', requireTripLeader, tripRequests.getRequests
  * User Profile Routes
  **********************/
 router.get('/profile', requireAuth, profile.getProfileView)
-router.get('/profile/:userId', requireOpo, profile.getAnyProfile)
+router.get('/profile/:userId', requireAuth, profile.getProfileView)
 
 router.put('/profile/:userId', requireAuth, profile.put)
 router.get('/profile/:userId/edit-profile', requireAuth, profile.getProfileCardEditable)

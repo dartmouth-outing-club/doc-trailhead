@@ -5,18 +5,17 @@ export function getProfileView (req, res) {
     return getProfileCard(req, res)
   }
 
-  const data = getProfileData(req, req.user)
-  res.locals.is_self = true
-  return res.render('views/profile.njk', data)
-}
-
-export function getAnyProfile (req, res) {
-  if (req.query.card) {
-    return getProfileCard(req, res)
+  const userId = parseInt(req.params.userId)
+  if (!userId || userId === req.user) {
+    res.locals.is_self = true
+    const data = getProfileData(req, req.user)
+    return res.render('views/profile.njk', data)
   }
 
+  if (!res.locals.is_opo) return res.sendStatus(403)
+
   res.locals.is_self = false
-  const data = getProfileData(req, req.params.userId)
+  const data = getProfileData(req, userId)
   return res.render('views/profile.njk', data)
 }
 
@@ -26,7 +25,7 @@ export function getNewUserView (req, res) {
 }
 
 export function getProfileCard (req, res) {
-  const userId = req.params.userId
+  const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   const data = getProfileData(req, userId)
@@ -34,7 +33,7 @@ export function getProfileCard (req, res) {
 }
 
 export function getProfileCardEditable (req, res) {
-  const userId = req.params.userId
+  const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   const data = getProfileData(req, userId)
@@ -82,7 +81,7 @@ const VALID_PHONE = /[0-9]{10,}/
 
 export function put (req, res) {
   const formData = { ...req.body }
-  const userId = req.params.userId
+  const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   formData.user_id = userId
@@ -117,7 +116,7 @@ export function put (req, res) {
 
 const VALID_CERTS = ['VAN', 'MICROBUS', 'TRAILER']
 export function getDriverCertRequest (req, res) {
-  const userId = req.params.userId
+  const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   const driver_certs = req.db.all('SELECT cert, is_approved FROM user_certs WHERE user = ?', userId)
@@ -142,7 +141,7 @@ export function getDriverCertRequest (req, res) {
 }
 
 export function postDriverCertRequest (req, res) {
-  const userId = req.params.userId
+  const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   // If you're the user, delete all the *pending* requests and add the new ones
@@ -167,7 +166,7 @@ export function postDriverCertRequest (req, res) {
 }
 
 export function getClubLeadershipRequest (req, res) {
-  const userId = req.params.userId
+  const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   const userClubs = req.db.all(`
@@ -215,7 +214,7 @@ export function getClubLeadershipRequest (req, res) {
 }
 
 export function postClubLeadershipRequest (req, res) {
-  const userId = req.params.userId
+  const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   const club = req.body.club
@@ -228,7 +227,7 @@ export function postClubLeadershipRequest (req, res) {
 }
 
 export function deleteClubLeadershipRequest (req, res) {
-  const userId = req.params.userId
+  const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   const { changes } = req.db
