@@ -1,0 +1,7 @@
+{% for user in users %}
+<tr>
+  <td>{{user.name}}
+  <td>{{user.email}}</td>
+  <td><a href="/profile/{{user.id}}">Profile</a></td>
+</tr>
+{% endfor %}

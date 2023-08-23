@@ -25,16 +25,22 @@
   </dl>
   {% if not hide_controls %}
   <div hx-swap=innerHTML hx-target="closest section" class=button-row>
-    <button class="action edit" hx-get="/profile/driver-cert">Request Driver Cert</button>
-    <button class="action edit" hx-get="/profile/club-leadership">Request Club Leadership</button>
+    <button class="action edit" hx-get="/profile/{{ id }}/driver-cert">
+      {{ 'Edit' if is_opo == true else 'Request' }} Driver Cert
+    </button>
+    <button class="action edit" hx-get="/profile/{{ id }}/club-leadership">
+      {{ 'Edit' if is_opo == true else 'Request' }} Club Leadership
+    </button>
   </div>
   {% endif %}
 </section>
 {% if not hide_controls %}
 <section>
   <div class=button-row>
+    {% if is_self == true %}
     <form method=post action="/logout"><button class="action deny">Logout</button></form>
-    <button class="action edit" hx-get="/profile/edit-profile">Edit profile</button>
+    {% endif %}
+    <button class="action edit" hx-get="/profile/{{ id }}/edit-profile">Edit profile</button>
   </div>
 </section>
 {% endif %}

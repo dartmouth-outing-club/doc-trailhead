@@ -6,6 +6,17 @@ export function getProfileView (req, res) {
   }
 
   const data = getProfileData(req, req.user)
+  res.locals.is_self = true
+  return res.render('views/profile.njk', data)
+}
+
+export function getAnyProfile (req, res) {
+  if (req.query.card) {
+    return getProfileCard(req, res)
+  }
+
+  res.locals.is_self = false
+  const data = getProfileData(req, req.params.userId)
   return res.render('views/profile.njk', data)
 }
 
@@ -15,12 +26,18 @@ export function getNewUserView (req, res) {
 }
 
 export function getProfileCard (req, res) {
-  const data = getProfileData(req, req.user)
+  const userId = req.params.userId
+  if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
+
+  const data = getProfileData(req, userId)
   return res.render('profile/profile-card.njk', data)
 }
 
 export function getProfileCardEditable (req, res) {
-  const data = getProfileData(req, req.user)
+  const userId = req.params.userId
+  if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
+
+  const data = getProfileData(req, userId)
   return res.render('profile/profile-card-editable.njk', data)
 }
 
@@ -57,14 +74,18 @@ function getProfileData (req, userId, hideControls) {
     WHERE user = ?
   `, userId)?.clubs || 'none'
   user.hide_controls = hideControls
+  delete user.is_opo // TODO stop using a SELECT * so you don't have to do this
   return user
 }
 
 const VALID_PHONE = /[0-9]{10,}/
 
-export function post (req, res) {
+export function put (req, res) {
   const formData = { ...req.body }
-  formData.user_id = req.user
+  const userId = req.params.userId
+  if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
+
+  formData.user_id = userId
   const { shoe_size_sex, shoe_size_num, feet, inches } = formData
   formData.shoe_size = shoe_size_sex && shoe_size_num ? `${shoe_size_sex}-${shoe_size_num}` : null
   formData.height_inches = (parseInt(feet) * 12) + parseInt(inches)
@@ -96,21 +117,23 @@ export function post (req, res) {
 
 const VALID_CERTS = ['VAN', 'MICROBUS', 'TRAILER']
 export function getDriverCertRequest (req, res) {
-  const userId = req.user
+  const userId = req.params.userId
+  if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
+
   const driver_certs = req.db.all('SELECT cert, is_approved FROM user_certs WHERE user = ?', userId)
   const checkboxes = VALID_CERTS.map(cert => {
     const userCert = driver_certs.find(item => item.cert === cert)
-    const attributes = userCert ? `checked ${userCert.is_approved ? 'disabled ' : ''}` : ''
+    const attributes = userCert ? `checked ${userCert.is_approved && !res.locals.is_opo ? 'disabled ' : ''}` : ''
     return `<label><input ${attributes}type=checkbox name=cert value=${cert}></input>${cert}</label>`
   })
   const form = `
 <form hx-boost=true
       hx-push-url=false
-      action=/profile/driver-cert
+      action=/profile/${userId}/driver-cert
       method=post class="driver-cert">
 <div class="checkbox-row">${checkboxes.join('\n')}</div>
 <div class="button-row">
-  <button class="action deny" hx-get="/profile?card=true">Cancel</button>
+  <button class="action deny" hx-get="/profile/${userId}?card=true">Cancel</button>
   <button class="action approve" type=submit>Save</button>
 </div>
 </form>
@@ -119,33 +142,41 @@ export function getDriverCertRequest (req, res) {
 }
 
 export function postDriverCertRequest (req, res) {
-  // Delete all the *pending* requests so that we can add the new pending requests
-  req.db.run('DELETE FROM user_certs WHERE user = ? and is_approved = 0', req.user)
+  const userId = req.params.userId
+  if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
+
+  // If you're the user, delete all the *pending* requests and add the new ones
+  // If you're OPO, you can just delete all the requests
+  req.db.run(`DELETE FROM user_certs WHERE user = ? ${!res.locals.is_opo ? 'and is_approved = 0' : ''}`, userId)
 
   // If the body is empty, that means the user has removed their certs, and we're done
   if (!req.body.cert) return getProfileCard(req, res)
 
   // body-parser weirdness: if there's a single value it's a string, if there's multiple it's an
   // array of strings
+  const is_approved = res.locals.is_opo === true ? 1 : 0
   const certs = typeof req.body.cert === 'string' ? [req.body.cert] : req.body.cert
   certs
     .filter(cert => VALID_CERTS.includes(cert))
     .map(cert => req.db.run(
-      'INSERT OR IGNORE INTO user_certs (user, cert, is_approved) VALUES (?, ?, false)',
-      req.user, cert
+      'INSERT OR IGNORE INTO user_certs (user, cert, is_approved) VALUES (?, ?, ?)',
+      userId, cert, is_approved
     )) // INSERT OR IGNORE so that existing, approved certs will not be overwritten
 
   return getProfileCard(req, res)
 }
 
 export function getClubLeadershipRequest (req, res) {
+  const userId = req.params.userId
+  if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
+
   const userClubs = req.db.all(`
     SELECT clubs.id, name, is_approved
     FROM club_leaders
     LEFT JOIN clubs ON clubs.id = club_leaders.club
     WHERE user = ?
     ORDER BY name
-  `, req.user)
+  `, userId)
   const clubsWithoutUser = req.db.all(`
     SELECT id, name
     FROM clubs
@@ -155,12 +186,12 @@ export function getClubLeadershipRequest (req, res) {
       WHERE user = ? AND cl.club = clubs.id
       )
     ORDER BY name
-  `, req.user)
+  `, userId)
 
   const clubListItems = userClubs.map(club => `
   <li>${club.name}${club.is_approved === 0 ? ' (pending)' : ''}
   <button
-          hx-delete="/profile/club-leadership/${club.id}"
+          hx-delete="/profile/${userId}/club-leadership"
           hx-confirm="Are you sure you want to remove yourself as a${club.is_approved === 0 ? ' (pending)' : ''} leader of ${club.name}?"
           hx-target="closest li"
           hx-swap="outerHTML"
@@ -170,32 +201,38 @@ export function getClubLeadershipRequest (req, res) {
   const form = `
 <form hx-boost=true
       hx-push-url=false
-      action=/profile/club-leadership
+      action=/profile/${userId}/club-leadership
       method=post class="club-leadership-request">
 <ul>${clubListItems.join(' ')}</ul>
 <div>
   <select name=club>${options}</select>
   <button class="action approve" type=submit>Request</button>
 </div>
-  <button class="action deny" hx-get="/profile?card=true">Close</button>
+  <button class="action deny" hx-get="/profile/${userId}?card=true">Close</button>
 </form>
   `
   res.send(form).status(200)
 }
 
 export function postClubLeadershipRequest (req, res) {
+  const userId = req.params.userId
+  if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
+
   const club = req.body.club
   if (!club) return res.sendStatus(400)
 
-  req.db.run('INSERT INTO club_leaders (user, club, is_approved) VALUES (?, ?, false)', req.user, club)
+  const is_approved = res.locals.is_opo === true ? 1 : 0
+  req.db.run('INSERT INTO club_leaders (user, club, is_approved) VALUES (?, ?, ?)',
+    userId, club, is_approved)
   return getProfileCard(req, res)
 }
 
 export function deleteClubLeadershipRequest (req, res) {
-  if (!req.params.id) return res.sendStatus(400)
+  const userId = req.params.userId
+  if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   const { changes } = req.db
-    .run('DELETE FROM club_leaders WHERE user = ? AND club = ?', req.user, req.params.id)
+    .run('DELETE FROM club_leaders WHERE user = ? AND club = ?', userId, req.params.userId)
 
   if (changes < 1) return res.sendStatus(400)
   return res.send('').status(200)

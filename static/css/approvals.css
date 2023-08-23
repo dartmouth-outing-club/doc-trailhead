@@ -52,3 +52,12 @@ body {
 .leaders td:last-child, .certs td:last-child {
   text-align: right;
 }
+
+input[type=search] {
+  border: 2px solid #c4c4c4;
+  border-radius: 10px;
+  padding: .5em;
+  font-size: 1.1em;
+  margin-bottom: 10px;
+}
+

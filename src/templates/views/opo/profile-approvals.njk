@@ -9,7 +9,6 @@
 
 <section class="leaders info-card">
 <h1>Leadership requests</h1>
-<div>
 {% if leadership_requests.length === 0 %}
 <div><div class=notice>All set for now</div></div>
 {% else %}
@@ -41,12 +40,10 @@
 {% endfor %}
 </table>
 {% endif %}
-</div>
 </section>
 
 <section class="certs info-card">
 <h1>Vehicle certification requests</h1>
-<div>
 {% if cert_requests.length === 0 %}
 <div><div class=notice>All set for now</div></div>
 {% else %}
@@ -78,7 +75,29 @@
 {% endfor %}
 </table>
 {% endif %}
-</div>
+</section>
+
+<section class="info-card">
+<h1>User Profile Search</h1>
+<input type=search
+       name=search
+       placeholder="Begin typing to serach users"
+       hx-post="/opo/profile-approvals/search"
+       hx-trigger="keyup changed delay:500ms, search"
+       hx-target="#search-results"
+       hx-swap=innerHTML
+       >
+<table class=trip-table>
+  <thead>
+  <tr>
+    <th>Name
+    <th>Email
+    <th>Profile
+  </tr>
+  </thead>
+
+  <tbody id=search-results></tbody>
+</table>
 </section>
 
 </main>

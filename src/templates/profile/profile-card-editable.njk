@@ -1,7 +1,5 @@
 <form class="profile-card"
-      action=/profile
-      method=post
-      hx-boost=true
+      hx-put="/profile/{{ id }}"
       hx-target=this
       hx-swap=outerHTML
       hx-push-url=false
@@ -46,7 +44,7 @@
 </section>
 <section>
 <div class=button-row>
-  <button class="action deny" hx-get="/profile/cancel-edit">Cancel</button>
+  <button class="action deny" hx-get="/profile/{{ id }}/cancel-edit">Cancel</button>
   <button class="action approve" type=submit>Save</button>
 </div>
 </section>

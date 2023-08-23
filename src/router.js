@@ -71,14 +71,16 @@ router.get('/trip/:tripId/requests', requireTripLeader, tripRequests.getRequests
  * User Profile Routes
  **********************/
 router.get('/profile', requireAuth, profile.getProfileView)
-router.post('/profile', requireAuth, profile.post)
-router.get('/profile/edit-profile', requireAuth, profile.getProfileCardEditable)
-router.get('/profile/cancel-edit', requireAuth, profile.getProfileCard)
-router.get('/profile/driver-cert', requireAuth, profile.getDriverCertRequest)
-router.post('/profile/driver-cert', requireAuth, profile.postDriverCertRequest)
-router.get('/profile/club-leadership', requireAuth, profile.getClubLeadershipRequest)
-router.post('/profile/club-leadership', requireAuth, profile.postClubLeadershipRequest)
-router.delete('/profile/club-leadership/:id', requireAuth, profile.deleteClubLeadershipRequest)
+router.get('/profile/:userId', requireOpo, profile.getAnyProfile)
+
+router.put('/profile/:userId', requireAuth, profile.put)
+router.get('/profile/:userId/edit-profile', requireAuth, profile.getProfileCardEditable)
+router.get('/profile/:userId/cancel-edit', requireAuth, profile.getProfileCard)
+router.get('/profile/:userId/driver-cert', requireAuth, profile.getDriverCertRequest)
+router.post('/profile/:userId/driver-cert', requireAuth, profile.postDriverCertRequest)
+router.get('/profile/:userId/club-leadership', requireAuth, profile.getClubLeadershipRequest)
+router.post('/profile/:userId/club-leadership', requireAuth, profile.postClubLeadershipRequest)
+router.delete('/profile/:userId/club-leadership', requireAuth, profile.deleteClubLeadershipRequest)
 
 /*********************
  * Trip Leader Routes
@@ -138,6 +140,7 @@ router.put('/opo/profile-approvals/leaders/:req_id', requireOpo, profileApproval
 router.delete('/opo/profile-approvals/leaders/:req_id', requireOpo, profileApprovals.denyLeadershipRequest)
 router.put('/opo/profile-approvals/certs/:req_id', requireOpo, profileApprovals.approveCertRequest)
 router.delete('/opo/profile-approvals/certs/:req_id', requireOpo, profileApprovals.denyCertRequest)
+router.post('/opo/profile-approvals/search', requireOpo, profileApprovals.searchUsers)
 
 // Some components
 router.enableRender('components/save-button')

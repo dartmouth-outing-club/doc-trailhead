@@ -44,3 +44,10 @@ export function denyCertRequest (req, res) {
   req.db.run('DELETE FROM user_certs WHERE rowid = ?', rowid)
   return res.status(200).send('')
 }
+
+export function searchUsers (req, res) {
+  const search = req.body.search
+  const searchTerm = `%${search}%`
+  const users = req.db.all('SELECT id, name, email FROM users WHERE name like ?', searchTerm)
+  return res.render('views/opo/user-search-results.njk', { users })
+}
