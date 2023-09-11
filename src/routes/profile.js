@@ -108,7 +108,8 @@ export function put (req, res) {
   `, formData)
 
   if (formData.new_user === 'true') {
-    return res.redirect(303, '/all-trips')
+    res.set('HX-Redirect', '/all-trips')
+    return res.sendStatus(200)
   }
 
   return getProfileCard(req, res)

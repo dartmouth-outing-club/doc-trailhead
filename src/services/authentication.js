@@ -5,7 +5,6 @@ import cas from 'passport-cas'
 import * as sessions from '../services/sessions.js'
 import * as constants from '../constants.js'
 
-const SIGNUP_URLS = ['/new-user', '/profile']
 /**
  * Require authentication for a route.
  *
@@ -36,7 +35,7 @@ export function requireAuth (req, res, next) {
       sessions.invalidateToken(cookieToken)
       return denyLogin(req, res, next)
     }
-    if (!userInfo.is_profile_complete && !SIGNUP_URLS.includes(req.url)) {
+    if (!userInfo.is_profile_complete && !req.url.includes('/new-user')) {
       return res.redirect(303, '/new-user')
     }
 

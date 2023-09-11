@@ -44,7 +44,6 @@ router.post('/logout', requireAuth, authentication.logout)
 router.get('/welcome', welcome.get)
 router.get('/my-trips', requireAuth, myTripsView.get)
 router.get('/create-trip', requireAnyLeader, trip.getCreateView)
-router.get('/new-user', requireAuth, profile.getNewUserView)
 router.get('/all-trips', requireAuth, allTripsView.get)
 router.get('/opo/vehicle-requests', requireOpo, vehicleRequests.get)
 router.get('/opo/trip-approvals', requireOpo, tripApprovalsView.get)
@@ -70,9 +69,11 @@ router.get('/trip/:tripId/requests', requireTripLeader, tripRequests.getRequests
 /**********************
  * User Profile Routes
  **********************/
+router.get('/new-user', requireAuth, profile.getNewUserView)
+router.put('/new-user/:userId', requireAuth, profile.put)
+
 router.get('/profile', requireAuth, profile.getProfileView)
 router.get('/profile/:userId', requireAuth, profile.getProfileView)
-
 router.put('/profile/:userId', requireAuth, profile.put)
 router.get('/profile/:userId/edit-profile', requireAuth, profile.getProfileCardEditable)
 router.get('/profile/:userId/cancel-edit', requireAuth, profile.getProfileCard)
