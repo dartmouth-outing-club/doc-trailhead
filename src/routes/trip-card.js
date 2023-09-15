@@ -64,9 +64,9 @@ function getLeaderData (req, tripId, userId) {
   const membersWithGear = members.map(member => {
     const gearRequests = req.db.all(`
     SELECT name
-    FROM member_gear_requests
-    LEFT JOIN trip_required_gear ON trip_required_gear.id = member_gear_requests.gear
-    WHERE member_gear_requests.trip = ? AND user = ?
+    FROM member_gear_requests AS mgr
+    LEFT JOIN trip_required_gear AS trg ON trg.id = mgr.gear
+    WHERE mgr.trip = ? AND mgr.user = ?
     `, tripId, member.id)
     const requested_gear = gearRequests.map(({ name }) => `<li>${name}`).join('\n')
     return { ...member, requested_gear }
@@ -78,30 +78,33 @@ function getLeaderData (req, tripId, userId) {
   // Everything else is not sized
   const requestedShoes = req.db.all(`
     SELECT trg.name || ' (' || shoe_size || ')' AS name, count(users.name) AS quantity
-    FROM member_gear_requests AS mrg
-    LEFT JOIN trip_required_gear AS trg ON trg.id = mrg.gear
-    LEFT JOIN users on mrg.user = users.id
-    WHERE mrg.trip = ? AND size_type = 'Shoe' AND shoe_size IS NOT NULL
+    FROM member_gear_requests AS mgr
+    LEFT JOIN trip_required_gear AS trg ON trg.id = mgr.gear
+    LEFT JOIN users on mgr.user = users.id
+    LEFT JOIN trip_members AS tm ON tm.user = mgr.user AND tm.trip = ?
+    WHERE mgr.trip = ? AND size_type = 'Shoe' AND shoe_size IS NOT NULL AND tm.pending = 0
     GROUP BY trg.id, shoe_size;
-  `, tripId)
+  `, tripId, tripId)
 
   const requestedClothes = req.db.all(`
     SELECT trg.name || ' (' || clothe_size || ')' AS name, count(users.name) AS quantity
-    FROM member_gear_requests AS mrg
-    LEFT JOIN trip_required_gear AS trg ON trg.id = mrg.gear
-    LEFT JOIN users on mrg.user = users.id
-    WHERE mrg.trip = ? AND size_type = 'Clothe' AND clothe_size IS NOT NULL
+    FROM member_gear_requests AS mgr
+    LEFT JOIN trip_required_gear AS trg ON trg.id = mgr.gear
+    LEFT JOIN users on mgr.user = users.id
+    LEFT JOIN trip_members AS tm ON tm.user = mgr.user AND tm.trip = ?
+    WHERE mgr.trip = ? AND size_type = 'Clothe' AND clothe_size IS NOT NULL AND tm.pending = 0
     GROUP BY trg.id, clothe_size;
-  `, tripId)
+  `, tripId, tripId)
 
   const requestedElse = req.db.all(`
     SELECT trg.name, count(users.name) AS quantity
-    FROM member_gear_requests AS mrg
-    LEFT JOIN trip_required_gear AS trg ON trg.id = mrg.gear
-    LEFT JOIN users on mrg.user = users.id
-    WHERE mrg.trip = ? AND (size_type != 'Shoe' AND size_type != 'Clothe')
+    FROM member_gear_requests AS mgr
+    LEFT JOIN trip_required_gear AS trg ON trg.id = mgr.gear
+    LEFT JOIN users on mgr.user = users.id
+    LEFT JOIN trip_members AS tm ON tm.user = mgr.user AND tm.trip = ?
+    WHERE mgr.trip = ? AND (size_type != 'Shoe' AND size_type != 'Clothe') AND tm.pending = 0
     GROUP BY trg.id
-  `, tripId)
+  `, tripId, tripId)
 
   // Combine the three arrays and sort them by name
   const memberRequestedGear = [...requestedShoes, ...requestedClothes, ...requestedElse]

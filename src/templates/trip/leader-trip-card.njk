@@ -133,6 +133,10 @@ on time. 48 hours before trip-start you can begin checking out your trip.
     <tr><th>{{ item.name }}<td>{{ item.quantity }}
     {% endfor %}
   </table>
+  <p>
+  Note that this only includes the gear request of trippees that have been admitted.
+  Admitting additional trippees will change the request.
+  </p>
   {% if show_member_gear_approval_buttons %}
   <div class=button-row>
     <button class="action deny" hx-put="/opo/member-gear/{{ trip_id }}/deny">Deny</button>
