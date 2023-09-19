@@ -85,19 +85,9 @@
        hx-post="/opo/profile-approvals/search"
        hx-trigger="keyup changed delay:500ms, search"
        hx-target="#search-results"
-       hx-swap=innerHTML
+       hx-swap=outerHTML
        >
-<table class=trip-table>
-  <thead>
-  <tr>
-    <th>Name
-    <th>Email
-    <th>Profile
-  </tr>
-  </thead>
-
-  <tbody id=search-results></tbody>
-</table>
+<div id=search-results class=notice>Results will display here</div>
 </section>
 
 </main>

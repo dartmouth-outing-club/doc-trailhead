@@ -47,7 +47,15 @@ export function denyCertRequest (req, res) {
 
 export function searchUsers (req, res) {
   const search = req.body.search
+  if (!search?.length || search.length < 1) {
+    return res.send('<div id=search-results class=notice>Results will display here</div>')
+  }
   const searchTerm = `%${search}%`
   const users = req.db.all('SELECT id, name, email FROM users WHERE name like ?', searchTerm)
+
+  if (users.length > 100) {
+    return res.send('<div id=search-results class=notice>Too many results, keep typing to narrow them</div>')
+  }
+
   return res.render('views/opo/user-search-results.njk', { users })
 }
