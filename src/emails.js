@@ -115,7 +115,7 @@ export function getTripTooFullEmail (db, tripId, userId) {
     name: 'Trip too full',
     address: user.email,
     subject: `Trip #${trip.id}: it's too full`,
-    message: nunjucks.render('emails/trip-removal.njk', { trip, user, ownerEmail, constants })
+    message: nunjucks.render('emails/trip-too-full.njk', { trip, user, ownerEmail, constants })
   }
 }
 
