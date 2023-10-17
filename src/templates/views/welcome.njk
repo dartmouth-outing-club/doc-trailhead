@@ -26,7 +26,7 @@ publish your own trips as a leader. See you in the out o’ doors!
   <hr/>
   <div>
     <h3>{{trip.location}}</h3>
-    <p>{{trip.datetime_range}}</p>
+    <p>{{trip.datetime_range | safe }}</p>
   </div>
 </div>
 {% endfor %}

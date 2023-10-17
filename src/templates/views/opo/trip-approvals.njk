@@ -22,12 +22,12 @@
     <tr>
     <td>{{trip.id}}
     <td><a href="/leader/trip/{{trip.id}}">{{trip.title}}</a>
-    <td>{{trip.start_time_element}}
+    <td>{{trip.start_time_element | safe }}
     <td>{{trip.owner}}
-    <td>{{trip.mg_status_element}}
-    <td>{{trip.gg_status_element}}
-    <td>{{trip.vr_status_element}}
-    <td>{{trip.pc_status_element}}
+    <td>{{trip.mg_status_element | safe }}
+    <td>{{trip.gg_status_element | safe }}
+    <td>{{trip.vr_status_element | safe }}
+    <td>{{trip.pc_status_element | safe }}
     </tr>
   {% endfor %}
   </tbody>
@@ -52,12 +52,12 @@
     <tr>
     <td>{{trip.id}}
     <td><a href="/leader/trip/{{trip.id}}">{{trip.title}}</a>
-    <td>{{trip.start_time_element}}
+    <td>{{trip.start_time_element | safe }}
     <td>{{trip.owner}}
-    <td>{{trip.mg_status_element}}
-    <td>{{trip.gg_status_element}}
-    <td>{{trip.vr_status_element}}
-    <td>{{trip.pc_status_element}}
+    <td>{{trip.mg_status_element | safe }}
+    <td>{{trip.gg_status_element | safe }}
+    <td>{{trip.vr_status_element | safe }}
+    <td>{{trip.pc_status_element | safe }}
     </tr>
   {% endfor %}
   <tbody>

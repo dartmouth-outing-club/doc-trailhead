@@ -23,10 +23,10 @@
 <section class="trips">
 {% for trip in trips %}
 <a href=/trip/{{ trip.id }} class=trip-card>
-  <img class=club-logo src="{{ trip.icon_path }}">
+  <img class=club-logo src="{{ trip.icon_path | safe }}">
   <header>Trip #{{ trip.id }}</header>
   <h2>{{ trip.title }}</h2>
-  <div>{{ trip.time_element }}</div>
+  <div>{{ trip.time_element | safe }}</div>
   <div class="club-tag">{{ trip.club }}</div>
   <p>{{ trip.description }}</p>
 </a>
@@ -46,7 +46,7 @@
     <td><a href="/trip/{{trip.id}}">{{trip.title}}</a>
     <td>{{trip.club}}
     <td>{{trip.owner}}
-    <td>{{trip.time_element}}
+    <td>{{trip.time_element | safe }}
     </tr>
   {% endfor %}
   </tbody>

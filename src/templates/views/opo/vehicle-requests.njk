@@ -21,8 +21,8 @@
   <td>{{request.trip_id}}
   <td><a href="/leader/trip/{{request.trip_id}}#vehicle-request">{{request.reason}}</a>
   <td>{{request.requester_name}}
-  <td>{{request.pickup_time_element}}
-  <td>{{request.return_time_element}}
+  <td>{{request.pickup_time_element | safe }}
+  <td>{{request.return_time_element | safe }}
   </tr>
   {% endfor %}
 </table>
@@ -44,9 +44,9 @@
   <td>{{request.trip_id}}
   <td><a href="/leader/trip/{{request.trip_id}}#vehicle-request">{{request.reason}}</a>
   <td>{{request.requester_name}}
-  <td>{{request.pickup_time_element}}
-  <td>{{request.return_time_element}}
-  <td>{{request.status_element}}
+  <td>{{request.pickup_time_element | safe }}
+  <td>{{request.return_time_element | safe }}
+  <td>{{request.status_element | safe }}
   </tr>
   {% endfor %}
 </tr>
