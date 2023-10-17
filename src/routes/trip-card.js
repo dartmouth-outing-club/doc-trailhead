@@ -62,13 +62,12 @@ function getLeaderData (req, tripId, userId) {
   `, tripId) // Display order is leaders first, followed by signup order
 
   const membersWithGear = members.map(member => {
-    const gearRequests = req.db.all(`
+    const requested_gear = req.db.all(`
     SELECT name
     FROM member_gear_requests AS mgr
     LEFT JOIN trip_required_gear AS trg ON trg.id = mgr.gear
     WHERE mgr.trip = ? AND mgr.user = ?
     `, tripId, member.id)
-    const requested_gear = gearRequests.map(({ name }) => `<li>${name}`).join('\n')
     return { ...member, requested_gear }
   })
 

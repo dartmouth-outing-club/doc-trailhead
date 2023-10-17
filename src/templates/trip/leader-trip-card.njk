@@ -68,7 +68,13 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   <td>{{ member.attended }}
   <td>{{ member.allergies_dietary_restrictions }}
   <td>{{ member.medical_conditions }}
-  <td><ul>{{ member.requested_gear }}</ul>
+  <td>
+    <ul>
+      {% for gear in member.requested_gear %}
+      <li>{{ gear.name }}
+      {% endfor %}
+    </ul>
+  </td>
   <td>
     <button class="action edit"
             hx-put="/trip/{{ trip_id }}/waitlist/{{ member.id }}"
@@ -110,7 +116,13 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   <td>{{ member.attended }}
   <td>{{ member.allergies_dietary_restrictions }}
   <td>{{ member.medical_conditions }}
-  <td><ul>{{ member.requested_gear }}</ul>
+  <td>
+    <ul>
+      {% for gear in member.requested_gear %}
+      <li>{{ gear.name }}
+      {% endfor %}
+    </ul>
+  </td>
   <td>
     <button class="action edit" hx-put="/trip/{{ trip_id }}/member/{{ member.id }}">Admit</button>
     <button class="action edit"
