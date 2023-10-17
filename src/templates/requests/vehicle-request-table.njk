@@ -68,8 +68,8 @@
   {% else %}
     <dt>Assigned Vehicle<dd>{{ vehicle.name }}
     <dt>Assigned Key #<dd>{{ vehicle.vehicle_key }}
-    <dt>Assigned Pickup<dd>{{ vehicle.pickup_time }}
-    <dt>Assigned Return<dd>{{ vehicle.return_time }}
+    <dt>Assigned Pickup<dd>{{ vehicle.pickup_time | safe }}
+    <dt>Assigned Return<dd>{{ vehicle.return_time | safe }}
   {% endif %}
   </dl>
   </div>
