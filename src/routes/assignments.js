@@ -5,7 +5,7 @@ export function get (req, res) {
   const vehicles = req.db.getActiveVehicles().map(vehicle => {
     return { id: vehicle.id, title: vehicle.name, eventColor: 'rgb(72, 158, 119)' }
   })
-  const assignments = req.db.allUnsafe(`
+  const assignments = req.db.all(`
     SELECT
       iif(trips.title IS NULL, vehiclerequests.request_details, trips.title) AS title,
       vehicle as 'resourceId',

@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import Database from 'better-sqlite3'
-import { escapeProperties } from '../templates.js'
 
 export default class TrailheadDatabaseConnection {
   #db
@@ -39,12 +38,11 @@ export default class TrailheadDatabaseConnection {
    * REST functions
    */
   get (query, ...params) {
-    const result = this.#db.prepare(query).get(...params)
-    return escapeProperties(result)
+    return this.#db.prepare(query).get(...params)
   }
 
   all (query, ...params) {
-    return this.#db.prepare(query).all(...params).map(escapeProperties)
+    return this.#db.prepare(query).all(...params)
   }
 
   /**
@@ -58,11 +56,6 @@ export default class TrailheadDatabaseConnection {
     return (req, res) => {
       this.#db.transaction(() => func(req, res))()
     }
-  }
-
-  // Does not escape propertiers, ergo, do not use for HTML APIs
-  allUnsafe (query, ...params) {
-    return this.#db.prepare(query).all(...params)
   }
 
   run (query, ...params) {

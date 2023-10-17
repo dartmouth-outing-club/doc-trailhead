@@ -24,10 +24,7 @@ export function startServer (trailheadDb, port) {
   app.use(bodyParser.urlencoded({ extended: true }))
 
   nunjucks
-    .configure('./src/templates', {
-      autoescape: false, // The SQLite rest methods already escape results
-      express: app
-    })
+    .configure('./src/templates', { autoescape: true, express: app })
     .addGlobal('NODE_ENV', process.env.NODE_ENV)
     .addGlobal('HTMX_VERSION', HTMX_VERSION)
     .addGlobal('FULLCALENDAR_VERSION', FULLCALENDAR_VERSION)

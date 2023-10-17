@@ -13,8 +13,8 @@
 <h2>Details</h2>
 <div class=dual-table-container>
 <table class=detail-table>
-  <tr><th>Start<td>{{ start_time }}
-  <tr><th>End<td>{{ end_time }}
+  <tr><th>Start<td>{{ start_time | safe }}
+  <tr><th>End<td>{{ end_time | safe }}
   <tr><th>Pickup<td>{{ pickup }}
   <tr><th>Dropoff<td>{{ dropoff }}
   <tr><th>Destination<td>{{ location }}
