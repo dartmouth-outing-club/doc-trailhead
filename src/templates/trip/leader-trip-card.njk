@@ -3,8 +3,8 @@
 <h1>{{ title }}</h1>
 <div class=status-row>
   <div class="club-tag">{{ club }}</div>
-  {{ status_tag }}
-  {{ full_gear_status_badge }}
+  {{ status_tag | safe }}
+  {{ full_gear_status_badge | safe }}
 </div>
 <div class=button-row>
   <button id=share-link class="action edit" onclick="copyLink()">Share Link &#128279;</button>
@@ -34,8 +34,8 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 <h2>Details</h2>
 <div class=dual-table-container>
 <table class=detail-table>
-  <tr><th>Start<td>{{ start_time_element }}
-  <tr><th>End<td>{{ end_time_element }}
+  <tr><th>Start<td>{{ start_time_element | safe }}
+  <tr><th>End<td>{{ end_time_element | safe }}
   <tr><th>Pickup<td>{{ pickup }}
   <tr><th>Dropoff<td>{{ dropoff }}
   <tr><th>Destination<td>{{ location }}
@@ -127,7 +127,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 
 <div class=dual-table-container>
 <div>
-  <div class=table-status-row><h2>Individual Gear</h2>{{ member_gear_status }}</div>
+  <div class=table-status-row><h2>Individual Gear</h2>{{ member_gear_status | safe }}</div>
   <table class="detail-table gear">
     {% for item in member_requested_gear %}
     <tr><th>{{ item.name }}<td>{{ item.quantity }}
@@ -149,7 +149,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   {% endif %}
 </div>
 <div>
-  <div class=table-status-row><h2>Group Gear</h2>{{ group_gear_status }}</div>
+  <div class=table-status-row><h2>Group Gear</h2>{{ group_gear_status | safe }}</div>
   <table class="detail-table gear">
     {% for item in group_gear %}
     <tr><th>{{ item.name }}<td>{{ item.quantity }}
@@ -171,7 +171,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 
 {%if pcard_request %}
 <div>
-  <div class=table-status-row><h2>P-Card Request</h2>{{ pcard_request.status }}</div>
+  <div class=table-status-row><h2>P-Card Request</h2>{{ pcard_request.status | safe }}</div>
   <p>Expected # of Participants: {{ pcard_request.num_people }}
   <table class="detail-table gear">
     <tr><th>Snacks ({{ pcard_request.snacks_num }})<td>${{ pcard_request.snack_cost }}

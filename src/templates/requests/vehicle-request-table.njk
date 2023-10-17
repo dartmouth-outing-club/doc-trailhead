@@ -3,7 +3,7 @@
       hx-swap=outerHTML>
   <div class=table-status-row>
     <h2 id=vehicle-request>Vehicle Request (#{{ vehiclerequest_id }})</h2>
-    {{ vehiclerequest_badge }}
+    {{ vehiclerequest_badge | safe }}
   </div>
   <h3>Request Notes</h3>
   <p class="user-text">{{ vehiclerequest_details }}
