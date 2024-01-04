@@ -1,6 +1,6 @@
 import * as utils from '../../utils.js'
 
-const _30_DAYS_IN_MS = 2592000000
+const _60_DAYS_IN_MS = 5184000000
 const OPO_TRIPS_QUERY = `
     SELECT trips.id,
       title,
@@ -34,7 +34,7 @@ const OPO_TRIPS_QUERY = `
 
 export function get (req, res) {
   const now = new Date()
-  const pastTimeWindow = new Date(now.getTime() - _30_DAYS_IN_MS)
+  const pastTimeWindow = new Date(now.getTime() - _60_DAYS_IN_MS)
 
   const past_trips = req.db.all(
     `${OPO_TRIPS_QUERY}
