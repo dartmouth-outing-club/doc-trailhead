@@ -17,6 +17,8 @@
   <form class=individual-gear-form hx-put="/trip/{{ trip_id }}/individual-gear">
   <h1>Individual Gear</h1>
 
+  <p><em>List only items that can be borrowed from DOR. For BYO gear (socks, underwear, etc) note in description or e-mail to participants.</em></p>
+
   <div class=gear-row>
     <ul>
       {% for gear in individual_gear %}
