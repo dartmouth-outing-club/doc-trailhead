@@ -8,16 +8,16 @@
 <section class="info-card">
 <h1><img src="/static/icons/mountain-icon.svg">Explore Trips</h1>
 <div class=view-types>
-  <a class="action filter-option {% if not show_list %}selected{% endif %}" href="?view=tiles">
-    <img class=club-logo src="/static/icons/grid-icon.svg">
+  <a class="action filter-option" href="/all-trips?view=tiles">
+    <img class=control-icon src="/static/icons/grid-icon.svg">
     <span>Tiles</span>
   </a>
-  <a class="action filter-option {% if show_list %}selected{% endif %}" href="?view=list">
-    <img class=club-logo src="/static/icons/stack-icon.svg">
+  <a class="action filter-option" href="/all-trips?view=list">
+    <img class=control-icon src="/static/icons/stack-icon.svg">
     <span>List</span>
   </a>
-  <a class="action filter-option" href="/trip/search">
-    <img width=18 height=18 class=club-logo src="/static/icons/magnifying-glass.svg">
+  <a class="action filter-option selected" href="/trip/search">
+    <img width=18 height=18 class=control-icon src="/static/icons/magnifying-glass.svg">
     <span>Search</span>
   </a>
 </div>
@@ -59,4 +59,5 @@
 </section>
 {% endif%}
 </main>
+
 

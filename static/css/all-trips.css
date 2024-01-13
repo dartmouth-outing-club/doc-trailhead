@@ -15,6 +15,11 @@ h1 img {
   margin: 20px 0;
 }
 
+.view-types .control-icon {
+  height: 18px;
+  width: 18px;
+}
+
 a.filter-option {
   border: 1px solid lightgray;
   color: black;
@@ -97,7 +102,7 @@ a.trip-card {
   color: var(--secondary-info-color);
 }
 
-@media screen and (min-width: 800px) {
+@media screen and (min-width: 600px) {
   main > .info-card {
     flex-direction: row;
     margin-bottom: 40px;

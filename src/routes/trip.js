@@ -152,6 +152,10 @@ export function deleteTrip (req, res) {
   return res.sendStatus(200)
 }
 
+export function getSearchView (req, res) {
+  res.render('views/trip-search.njk')
+}
+
 function canCreateTripForClub (db, userId, clubId) {
   if (db.isOpo(userId)) return true
 

@@ -55,18 +55,6 @@ router.get('/opo/calendar', requireOpo, (_req, res) => {
 })
 
 /**********************
- * All-Purpose Routes
- **********************/
-router.post('/trip/:tripId/signup', requireAuth, tripMembers.signup)
-router.delete('/trip/:tripId/signup', requireAuth, tripMembers.leave)
-
-router.get('/trip/:tripId', requireAuth, trip.getSignupView)
-router.get('/trip/:tripId/edit', requireTripLeader, trip.getEditView)
-router.get('/trip/:tripId/check-out', requireTripLeader, tripStatus.getCheckOutView)
-router.get('/trip/:tripId/check-in', requireTripLeader, tripStatus.getCheckInView)
-router.get('/trip/:tripId/requests', requireTripLeader, tripRequests.getRequestsView)
-
-/**********************
  * User Profile Routes
  **********************/
 router.get('/new-user', requireAuth, profile.getNewUserView)
@@ -82,6 +70,19 @@ router.post('/profile/:userId/driver-cert', requireAuth, profile.postDriverCertR
 router.get('/profile/:userId/club-leadership', requireAuth, profile.getClubLeadershipRequest)
 router.post('/profile/:userId/club-leadership', requireAuth, profile.postClubLeadershipRequest)
 router.delete('/profile/:userId/club-leadership', requireAuth, profile.deleteClubLeadershipRequest)
+
+/**********************
+ * Trip Routes
+ **********************/
+router.post('/trip/:tripId/signup', requireAuth, tripMembers.signup)
+router.delete('/trip/:tripId/signup', requireAuth, tripMembers.leave)
+
+router.get('/trip/search', requireAnyLeader, trip.getSearchView)
+router.get('/trip/:tripId', requireAuth, trip.getSignupView)
+router.get('/trip/:tripId/edit', requireTripLeader, trip.getEditView)
+router.get('/trip/:tripId/check-out', requireTripLeader, tripStatus.getCheckOutView)
+router.get('/trip/:tripId/check-in', requireTripLeader, tripStatus.getCheckInView)
+router.get('/trip/:tripId/requests', requireTripLeader, tripRequests.getRequestsView)
 
 /*********************
  * Trip Leader Routes
