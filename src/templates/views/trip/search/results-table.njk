@@ -1,0 +1,16 @@
+<table class=trip-table>
+  <thead>
+    <tr><th>Trip #<th>Trip<th>Club<th>Owner<th>Time
+  </thead>
+  <tbody>
+  {% for trip in trips %}
+    <tr>
+    <td>{{trip.id}}
+    <td><a href="/trip/{{trip.id}}">{{trip.title}}</a>
+    <td>{{trip.club}}
+    <td>{{trip.owner}}
+    <td>{{trip.time_element | safe }}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

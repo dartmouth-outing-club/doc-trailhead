@@ -16,18 +16,7 @@ export function get (req, res) {
     ORDER BY start_time ASC
   `, now.getTime())
 
-  const trips = publicTrips.map(trip => {
-    const title = trip.title.length < 38 ? trip.title : trip.title.substring(0, 38) + '...'
-    const description = trip.description.length < 190
-      ? trip.description
-      : trip.description.substring(0, 190) + '...'
-    return {
-      ...trip,
-      title,
-      description,
-      icon_path: getClubIcon(trip.club),
-      time_element: utils.getDatetimeRangeElement(trip.start_time, trip.end_time)
-    }
-  })
+  const trips = publicTrips.map(utils.formatForTripForTables)
+
   res.render('views/all-trips.njk', { trips, show_list })
 }

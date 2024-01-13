@@ -5,7 +5,7 @@
 {% include "common/site-nav.njk" %}
 <main>
 
-<section class="info-card">
+<section class="info-card controls">
 <h1><img src="/static/icons/mountain-icon.svg">Explore Trips</h1>
 <div class=view-types>
   <a class="action filter-option" href="/all-trips?view=tiles">
@@ -23,41 +23,27 @@
 </div>
 </section>
 
-{% if not show_list %}
-<section class="trips">
-{% for trip in trips %}
-<a href=/trip/{{ trip.id }} class=trip-card>
-  <img class=club-logo src="{{ trip.icon_path | safe }}">
-  <header>Trip #{{ trip.id }}</header>
-  <h2>{{ trip.title }}</h2>
-  <div>{{ trip.time_element | safe }}</div>
-  <div class="club-tag">{{ trip.club }}</div>
-  <p>{{ trip.description }}</p>
-</a>
-{% endfor %}
-</section>
-{% else %}
+
 <section class=info-card>
+<h2>Search Terms</h2>
+<form hx-post="/trip/search"
+      hx-target="#search-results"
+      hx-swap=outerHTML
+      >
+  <label>
+    <span>Title:</span>
+    <input type=search
+           name=title
+           autocomplete=off
+     >
+  </label>
+  <div><button class="action approve search">Search</button></div>
+</form>
 <div class=trip-table-overflow-wrapper>
-<table class=trip-table>
-  <thead>
-    <tr><th>Trip #<th>Trip<th>Club<th>Owner<th>Time
-  </thead>
-  <tbody>
-  {% for trip in trips %}
-    <tr>
-    <td>{{trip.id}}
-    <td><a href="/trip/{{trip.id}}">{{trip.title}}</a>
-    <td>{{trip.club}}
-    <td>{{trip.owner}}
-    <td>{{trip.time_element | safe }}
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+<h2>Results</h2>
+<div id=search-results class=notice>Results will display here</div>
 </div>
 </section>
-{% endif%}
 </main>
 
 

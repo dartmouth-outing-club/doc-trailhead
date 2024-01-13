@@ -5,7 +5,7 @@
 {% include "common/site-nav.njk" %}
 <main>
 
-<section class="info-card">
+<section class="info-card controls">
 <h1><img src="/static/icons/mountain-icon.svg">Explore Trips</h1>
 <div class=view-types>
   <a class="action filter-option {% if not show_list %}selected{% endif %}" href="?view=tiles">
@@ -16,10 +16,12 @@
     <img class=club-logo src="/static/icons/stack-icon.svg">
     <span>List</span>
   </a>
+  {% if is_opo %}
   <a class="action filter-option" href="/trip/search">
     <img width=18 height=18 class=club-logo src="/static/icons/magnifying-glass.svg">
     <span>Search</span>
   </a>
+  {% endif %}
 </div>
 </section>
 

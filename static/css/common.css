@@ -235,7 +235,6 @@ a.top-link:visited {
 
 .notice {
   color: var(--secondary-info-color);
-  font-size: 1.2em;
   margin: 20px 0px;
   width: fit-content;
 }

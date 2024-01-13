@@ -77,7 +77,8 @@ router.delete('/profile/:userId/club-leadership', requireAuth, profile.deleteClu
 router.post('/trip/:tripId/signup', requireAuth, tripMembers.signup)
 router.delete('/trip/:tripId/signup', requireAuth, tripMembers.leave)
 
-router.get('/trip/search', requireAnyLeader, trip.getSearchView)
+router.get('/trip/search', requireOpo, trip.getSearchView)
+router.post('/trip/search', requireOpo, trip.postSearch)
 router.get('/trip/:tripId', requireAuth, trip.getSignupView)
 router.get('/trip/:tripId/edit', requireTripLeader, trip.getEditView)
 router.get('/trip/:tripId/check-out', requireTripLeader, tripStatus.getCheckOutView)

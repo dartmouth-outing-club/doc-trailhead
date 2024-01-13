@@ -152,8 +152,36 @@ export function deleteTrip (req, res) {
   return res.sendStatus(200)
 }
 
-export function getSearchView (req, res) {
-  res.render('views/trip-search.njk')
+export function getSearchView (_req, res) {
+  res.render('views/trip/search.njk')
+}
+
+export function postSearch (req, res) {
+  const showPrivate = res.locals.is_opo
+
+  console.log(req.body)
+  const title = req.body.title
+  if (!title?.length || title.length < 1) {
+    return res.send('<div id=search-results class=notice>Results will display here</div>')
+  }
+  const searchTerm = `%${title}%`
+  const results = req.db.all(`
+    SELECT trips.id, title, users.name as owner, location, start_time, end_time, description,
+      clubs.name as club
+    FROM trips
+    LEFT JOIN users on trips.owner = users.id
+    LEFT JOIN clubs on trips.club = clubs.id
+    WHERE title LIKE ?
+      ${showPrivate ? '' : 'AND private = 0'}
+    ORDER BY start_time DESC
+  `, searchTerm)
+
+  if (results.length > 100) {
+    return res.send('<div id=title-results class=notice>Too many results, keep typing to narrow them</div>')
+  }
+
+  const trips = results.map(utils.formatForTripForTables)
+  return res.render('views/trip/search/results-table.njk', { trips })
 }
 
 function canCreateTripForClub (db, userId, clubId) {

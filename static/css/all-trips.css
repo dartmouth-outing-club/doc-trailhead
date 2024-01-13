@@ -1,4 +1,4 @@
-main > .info-card {
+.controls {
   margin: 0 auto 10px auto;
   display: flex;
   flex-direction: column;
@@ -102,8 +102,28 @@ a.trip-card {
   color: var(--secondary-info-color);
 }
 
+
+label {
+}
+
+label > span {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+input[type=search] {
+  border: 1px solid #c4c4c4;
+  border-radius: 10px;
+  padding: .25em;
+  margin: 0 0 15px 10px;
+}
+
+form button.approve {
+  padding: .25rem .5rem;
+}
+
 @media screen and (min-width: 600px) {
-  main > .info-card {
+  .controls {
     flex-direction: row;
     margin-bottom: 40px;
   }
