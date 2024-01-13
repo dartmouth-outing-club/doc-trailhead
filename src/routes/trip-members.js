@@ -56,7 +56,8 @@ export function reject (req, res) {
 
 export function signup (req, res) {
   const tripId = req.params.tripId
-  if (!tripId) return res.sendStatus(400)
+  if (!tripId) throw new BadRequestError('No tripId provided')
+  if (isTripOver(req.db, tripId)) throw new BadRequestError('You cannot signup for a trip that already ended')
 
   // Add the trip member if they weren't there before
   const info = req.db.run(`
@@ -88,6 +89,7 @@ export function leave (req, res) {
 
   if (!tripId) throw new BadRequestError('Trip now found')
   if (req.user === owner) throw new BadRequestError('You cannot leave a trip that you own.')
+  if (isTripOver(req.db, tripId)) throw new BadRequestError('You cannot leave a trip that already ended')
 
   const user = req.db.get('SELECT pending FROM trip_members WHERE trip = ? and user = ?', tripId, req.user)
   if (!user) console.warn(`Unnecessary delete requested for trip ${tripId}, user ${req.user}`)
@@ -95,4 +97,11 @@ export function leave (req, res) {
 
   if (!user?.pending) mailer.send(emails.getUserLeftEmail, req.db, tripId, req.user)
   return tripCard.renderSignupCard(req, res, tripId, req.user)
+}
+
+function isTripOver (db, tripId) {
+  const now = new Date()
+  const trip = db.get('SELECT end_time FROM trips WHERE id = ?', tripId)
+  const end_time = trip.end_time
+  return end_time < now
 }
