@@ -159,7 +159,6 @@ export function getSearchView (_req, res) {
 export function postSearch (req, res) {
   const showPrivate = res.locals.is_opo
 
-  console.log(req.body)
   const title = req.body.title
   if (!title?.length || title.length < 1) {
     return res.send('<div id=search-results class=notice>Results will display here</div>')
