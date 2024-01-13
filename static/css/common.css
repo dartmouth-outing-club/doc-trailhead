@@ -35,7 +35,7 @@ main {
 }
 
 main > .info-card, main > .trip-card {
-  margin: 0px auto 70px auto;
+  margin: 0px auto 40px auto;
 }
 
 h1, h2, h3 {
