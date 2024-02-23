@@ -1,5 +1,4 @@
 import * as utils from '../utils.js'
-import { getClubIcon } from '../utils.js'
 
 export function get (req, res) {
   const now = new Date()
