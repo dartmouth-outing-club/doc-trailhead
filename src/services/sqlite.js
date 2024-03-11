@@ -153,6 +153,7 @@ export default class TrailheadDatabaseConnection {
     FROM trips
     LEFT JOIN users ON owner = users.id
     WHERE trips.id = ?`, tripId)
+
     trip.member_emails = this.all(`
     SELECT email
     FROM trip_members

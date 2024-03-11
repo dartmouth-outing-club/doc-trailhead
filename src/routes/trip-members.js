@@ -22,6 +22,17 @@ export function demote (req, res) {
 export function admit (req, res) {
   const { tripId, userId } = req.params
   req.db.run('UPDATE trip_members SET pending = 0 WHERE trip = ? and user = ?', tripId, userId)
+  const trip = req.db.get('SELECT id, title, member_gear_approved FROM trips WHERE id = ?', tripId)
+  const has_gear_requests = req.db.get(
+    'SELECT 1 FROM member_gear_requests WHERE trip = ? AND user = ?', tripId, userId
+  )
+
+  if (trip.member_gear_approved && has_gear_requests) {
+    req.db.run('UPDATE trips SET member_gear_approved = NULL WHERE id = ?', tripId)
+    mailer.send(emails.getTripGearChangedNotice, req.db, tripId)
+    mailer.send(emails.getGearRequiresReapprovalNotice, trip)
+  }
+
   mailer.send(emails.getTripApprovalEmail, req.db, tripId, userId)
   return tripCard.renderLeaderCard(req, res, tripId, userId)
 }

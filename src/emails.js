@@ -176,7 +176,7 @@ export function getGroupGearStatusUpdate (trip, leaderEmails, message) {
 
 export function getGearRequiresReapprovalNotice (trip) {
   return {
-    name: 'Individual gear changed notice',
+    name: 'OPO gear re-approval requested',
     address: constants.gearAdminEmails,
     subject: `Trip #${trip.id}'s gear request changed`,
     message: nunjucks.render('emails/gear-reapproval-notice.njk', { trip, constants })
@@ -201,7 +201,9 @@ export function getPCardStatusUpdate (trip, leaderEmails) {
   }
 }
 
-export function getTripGearChangedNotice (trip, leaderEmails) {
+export function getTripGearChangedNotice (db, tripId) {
+  const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
+  const leaderEmails = db.getTripLeaderEmails(tripId)
   return {
     name: 'Trip gear changed',
     address: leaderEmails,

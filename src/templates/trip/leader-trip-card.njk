@@ -124,7 +124,12 @@ on time. 48 hours before trip-start you can begin checking out your trip.
     </ul>
   </td>
   <td>
-    <button class="action edit" hx-put="/trip/{{ trip_id }}/member/{{ member.id }}">Admit</button>
+    <button class="action edit"
+            hx-put="/trip/{{ trip_id }}/member/{{ member.id }}"
+            {% if member_gear_approved === 1 %}
+            hx-confirm="Your gear request has already been approved; if {{ member.name }} requested any additional gear, accepting them onto the trip will cause the gear request to be un-approved, and sent back to OPO."
+            {% endif %}
+            >Admit</button>
     <button class="action edit"
             hx-delete="/trip/{{ trip_id }}/member/{{ member.id }}"
             hx-confirm="Are you sure you want to reject {{ member.name }}? Keep in mind that doing so will also remove their gear request."
