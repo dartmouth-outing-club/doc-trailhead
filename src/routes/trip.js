@@ -145,9 +145,36 @@ export function deleteTrip (req, res) {
   const tripId = req.params.tripId
   if (!tripId || tripId < 1) return res.sendStatus(400)
 
-  // TODO: Send the email *after* the trip is deleted
-  mailer.send(emails.getTripDeletedEmail, req.db, tripId)
+  const trip = req.db.get('SELECT id, title, returned, start_time FROM trips WHERE id = ?', tripId)
+  console.log(trip)
+
+  if (trip.returned) {
+    throw new BadRequestError('Cannot delete trips that have already returned')
+  }
+  if (utils.hasTimePassed(trip.start_time)) {
+    throw new BadRequestError('Cannot delete trips that have already started')
+  }
+
+  trip.requestedGear = req.db.all(`
+    SELECT name, count(gear) as quantity
+    FROM member_gear_requests AS mrg
+    LEFT JOIN trip_required_gear AS trg ON trg.id = mrg.gear
+    WHERE mrg.trip = ?
+    GROUP BY gear
+    UNION
+    SELECT name, quantity
+    FROM group_gear_requests
+    WHERE trip = ?
+    `, tripId, tripId)
+
+  const tripDeleteEmail = emails.getTripDeletedEmail(req.db, tripId)
+
   req.db.run('DELETE FROM trips WHERE id = ?', tripId)
+  mailer.sendBuiltEmail(tripDeleteEmail)
+  if (trip.requestedGear.length > 0) {
+    mailer.sendBuiltEmail(emails.getTripDeletedGearUpdateEmail(trip))
+  }
+
   res.set('HX-Redirect', '/my-trips')
   return res.sendStatus(200)
 }

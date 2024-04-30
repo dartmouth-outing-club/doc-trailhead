@@ -178,8 +178,11 @@ function getLeaderData (req, tripId, userId) {
   if (trip.left === 1) trip.check_in_enabled = true
   if (trip.returned === 1) trip.check_out_enabled = false
 
+  const has_departed = utils.hasTimePassed(trip.start_time)
+  const has_ownership = user.is_opo || trip.owner === userId
+  trip.can_delete = has_ownership && !trip.returned && !has_departed
+
   // Show approval buttons if user is an OPO staffer and there is something to approve
-  trip.can_delete = user.is_opo || trip.owner === userId
   trip.show_member_gear_approval_buttons = user.is_opo && memberRequestedGear.length > 0
   trip.show_group_gear_approval_buttons = user.is_opo && groupGearRequests.length > 0
   trip.show_pcard_approval_buttons = user.is_opo && tripPcardRequest
@@ -247,6 +250,7 @@ function getSignupData (req, tripId, userId) {
   `, { trip: tripId, user: userId })
 
   trip.is_on_trip = req.db.isSignedUpForTrip(tripId, userId)
+  trip.has_departed = utils.hasTimePassed(trip.start_time)
   trip.start_time = utils.getDatetimeElement(trip.start_time)
   trip.end_time = utils.getDatetimeElement(trip.end_time)
   trip.leader_names = leaderNames

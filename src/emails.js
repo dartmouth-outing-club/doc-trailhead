@@ -20,10 +20,19 @@ export function getNewTripEmail (db, tripId) {
 export function getTripDeletedEmail (db, tripId) {
   const trip = db.getTripEmailInfo(tripId)
   return {
-    name: 'Trip deleted',
+    name: 'Trip Deleted',
     address: trip.member_emails,
     subject: `Trip #${trip.id} deleted`,
     message: nunjucks.render('emails/trip-deleted.njk', { trip, constants })
+  }
+}
+
+export function getTripDeletedGearUpdateEmail (trip) {
+  return {
+    name: 'Trip Deleted (Gear Notice)',
+    address: constants.gearAdminEmails,
+    subject: `Trip ${trip.id} with gear requests was deleted`,
+    message: nunjucks.render('emails/trip-deleted-gear-notification.njk', { trip })
   }
 }
 

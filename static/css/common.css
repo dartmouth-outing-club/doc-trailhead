@@ -138,10 +138,6 @@ a.top-link:visited {
   color: inherit;
 }
 
-.error-message::before {
-  content: 'Trailhead Error: '
-}
-
 .error-message {
   padding: 20px;
   background-color: var(--warning-main-color);

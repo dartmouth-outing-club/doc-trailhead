@@ -1,0 +1,12 @@
+Hello,
+
+Trip #{{ trip.id }}: {{ trip.title }} was deleted, and they had requested the following gear:
+
+{% for gear in trip.requestedGear %}
+  - {{ gear.name }} {{ gear.quantity }}
+{% endfor %}
+
+Best,
+DOC Trailhead Platform
+
+This email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.

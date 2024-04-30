@@ -127,3 +127,8 @@ export function getDatetimeValueForUnixTime (unixTime) {
   const date = new Date(unixTime)
   return dateFormat(date, "yyyy-mm-dd'T'HH:MM:ss")
 }
+
+export function hasTimePassed (unixTime) {
+  const now = (new Date()).getTime()
+  return now > unixTime
+}

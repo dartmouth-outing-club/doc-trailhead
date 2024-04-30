@@ -63,6 +63,10 @@ export async function send (emailFunc, ...args) {
   return sendEmail(email)
 }
 
+export async function sendBuiltEmail (email) {
+  sendEmail(email)
+}
+
 async function sendEmail (email) {
   if (process.env.NODE_ENV !== 'production') {
     console.log('The following email was queued:')
