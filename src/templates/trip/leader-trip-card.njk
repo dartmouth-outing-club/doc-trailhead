@@ -252,6 +252,9 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 
 </section>
 
+<script id="attending-emails" type="text/plain" data-emails="{{ attending_emails_list }}"></script>
+<script id="pending-emails" type="text/plain" data-emails="{{ pending_emails_list }}"></script>
+
 <script>
 function toggleDeleteButton(checkbox) {
   const button = document.querySelector('.delete-trip')
@@ -268,17 +271,19 @@ async function copyLink() {
 }
 
 async function copyAttendingEmails() {
+  const emails = document.getElementById('attending-emails').getAttribute('data-emails')
   const button = document.getElementById('copy-attending-emails')
   const previousText = button.innerText
-  navigator.clipboard.writeText('{{attending_emails_list}}')
+  navigator.clipboard.writeText(emails)
   button.innerText = 'Emails Copied!'
   setTimeout(() => button.innerText = previousText, 1000)
 }
 
 async function copyPendingEmails() {
+  const emails = document.getElementById('pending-emails').getAttribute('data-emails')
   const button = document.getElementById('copy-pending-emails')
   const previousText = button.innerText
-  navigator.clipboard.writeText('{{pending_emails_list}}')
+  navigator.clipboard.writeText(emails)
   button.innerText = 'Emails Copied!'
   setTimeout(() => button.innerText = previousText, 1000)
 }
