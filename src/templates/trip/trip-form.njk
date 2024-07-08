@@ -54,16 +54,30 @@
 <label>Pickup Location<input name=pickup value="{{ trip.pickup }}" type=text required></label>
 <label>Dropoff Location<input name=dropoff value="{{ trip.dropoff }}" type=text required></label>
 
-<p>Things you must include:
-<ul>
-  <li>What you'll be doing on the trip
-  <li>A short introduction of the leaders
-  <li>Level of prior experience (if applicable) and what gear or clothing might be needed
-  <li>Rough itinerary - this is your trip plan on file, so please include route plan details like
-    where the vehicle will be parked, main and alternate routes, in case of emergency.
-</ul>
-<label class=block>Description<textarea name=description required>{{ trip.description }}</textarea></label>
+<div>
+  <p>
 
+  <div><label for=description>Description</label></div>
+  <div class=notice>
+    This is visible to everone, and should describe what you'll be doing on the trip.
+    Include a short introduction of the leaders, the level of prior experience, and what gear
+    or clothing might be needed.
+  </div>
+  <textarea id=description name=description required>{{ trip.description }}</textarea>
+</div>
+
+<div>
+  <div><label for=plan>Trip Plan</label></div>
+  <div class=notice>
+    The trip plan is only visible to leaders and OPO. It must include:
+    <ul>
+      <li>The destination
+      <li>Where the vehicle will be parked
+      <li>Main and alternate routes, in case of emergency
+    </ul>
+  </div>
+  <textarea id=plan name=plan>{{ trip.plan }}</textarea>
+</div>
 
 {% if not trip.id %}
 <h2>Trip Requests</h2>

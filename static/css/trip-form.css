@@ -13,8 +13,8 @@ form p.form-info {
 }
 
 label {
-  display: block;
-  margin: 10px;
+  margin: 10px 0;
+  font-weight: bold;
 }
 
 label > * {

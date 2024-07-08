@@ -90,10 +90,10 @@ export function createTrip (req, res) {
   const info = req.db.run(`
     INSERT INTO trips (
       title, cost, owner, club, experience_needed, private, start_time, end_time,
-      location, pickup, dropoff, description)
+      location, pickup, dropoff, description, plan)
     VALUES (
       @title, @cost, @owner, @club, @experience_needed, @private, @start_time,
-      @end_time, @location, @pickup, @dropoff, @description
+      @end_time, @location, @pickup, @dropoff, @description, @plan
     )
   `, trip)
 
@@ -125,7 +125,7 @@ export function editTrip (req, res) {
     SET
       title = @title, club = @club, cost = @cost, start_time = @start_time, end_time = @end_time,
       location = @location, experience_needed = @experience_needed, private = @private,
-      pickup = @pickup, dropoff = @dropoff, description = @description
+      pickup = @pickup, dropoff = @dropoff, description = @description, plan = @plan
     WHERE id = @id
   `, trip)
 
@@ -247,7 +247,8 @@ function convertFormInputToDbInput (input, userId) {
       location: input.location,
       pickup: input.pickup,
       dropoff: input.dropoff,
-      description: input.description
+      description: input.description,
+      plan: input.plan
     }
   } catch {
     console.warn('Malformed request to create trip, unable to parse body')

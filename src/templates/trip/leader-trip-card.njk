@@ -55,6 +55,14 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 </table>
 </div>
 
+<h2>Trip Plan</h2>
+<div class=notice>The Trip Plan is only visible to trip leaders and OPO.</div>
+{% if plan %}
+<p class=user-text>{{ plan }}</p>
+{% else %}
+<p class=notice>No trip plan set yet.</p>
+{% endif %}
+
 <h2>Approved trippes ({{ attending.length }})</h2>
 <div class=trip-table-overflow-wrapper>
 <table class=trip-table>
@@ -156,8 +164,8 @@ on time. 48 hours before trip-start you can begin checking out your trip.
     <tr><th>{{ item.name }}<td>{{ item.quantity }}
     {% endfor %}
   </table>
-  <p>
-  Note that this only includes the gear request of trippees that have been admitted.
+  <p class=notice>
+  Note: this only includes the gear request of trippees that have been admitted.
   Admitting additional trippees will change the request.
   </p>
   {% if show_member_gear_approval_buttons %}

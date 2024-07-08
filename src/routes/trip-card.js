@@ -15,6 +15,7 @@ function getLeaderData (req, tripId, userId) {
       end_time,
       pickup,
       description,
+      plan,
       left,
       returned,
       dropoff,
