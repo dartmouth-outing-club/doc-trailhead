@@ -1,14 +1,24 @@
 <section class=info-card>
-<header>Trip #{{ trip_id }}</header>
+<header>
+  <div>Trip #{{ trip_id }}</div>
+  <button id=share-link class="share-button" onclick="copyLink()">Copy Link &#128279;</button>
+</header>
+
 <h1>{{ title }}</h1>
 <div class=status-row>
   <div class="club-tag">{{ club }}</div>
   {{ trip_status }}
 </div>
 
+{% if is_opo %}
+<p>
+You are currently viewing this trip's signup page.
+<a href="/leader/trip/{{ trip_id }}">Click here to see the trip as a leader.</a>
+</p>
+{% endif %}
+
 <h2>Description</h2>
 <p class=user-text>{{ description }}</p>
-{% if is_opo %}<a href="/leader/trip/{{ trip_id }}">View trip as leader</a>{% endif %}
 
 <h2>Details</h2>
 <div class=dual-table-container>

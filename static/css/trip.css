@@ -1,5 +1,12 @@
 section header {
   color: var(--secondary-info-color);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.share-button {
+  height: 1.5rem;
 }
 
 h1 {
@@ -139,6 +146,12 @@ img.badge {
 
 .edit-row button {
   margin-right: 15px;
+}
+
+.user-text {
+  border: 2px solid #c4c4c4;
+  margin: 0 15px;
+  padding: 10px;
 }
 
 @media screen and (min-width: 800px) {

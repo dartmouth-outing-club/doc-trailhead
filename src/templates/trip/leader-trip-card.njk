@@ -1,14 +1,21 @@
 <section class=info-card>
-<header>Trip #{{ trip_id }}</header>
+
+<header>
+  <div>Trip #{{ trip_id }}</div>
+  <button id=share-link class="share-button" onclick="copyLink()">Copy Link &#128279;</button>
+</header>
+
 <h1>{{ title }}</h1>
 <div class=status-row>
   <div class="club-tag">{{ club }}</div>
   {{ status_tag | safe }}
   {{ full_gear_status_badge | safe }}
 </div>
-<div class=button-row>
-  <button id=share-link class="action edit" onclick="copyLink()">Share Link &#128279;</button>
-</div>
+
+<p>
+You are currently viewing this trip as a leader.
+<a href="/trip/{{ trip_id }}">Click here to see the trip signup page.</a>
+</p>
 
 {% if is_leader_for_trip %}
 <h2>Check-In and Check-Out</h2>
@@ -29,7 +36,6 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 
 <h2>Description</h2>
 <p class=user-text>{{ description }}</p>
-<a href="/trip/{{ trip_id }}">View trip signup/request gear</a>
 
 <h2>Details</h2>
 <div class=dual-table-container>
