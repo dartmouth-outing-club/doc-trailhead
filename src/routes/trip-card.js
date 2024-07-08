@@ -174,7 +174,7 @@ function getLeaderData (req, tripId, userId) {
 
   // Enable status buttons if we're close enough to trip-start
   const now = (new Date()).getTime()
-  if (trip.start_time + _48_HOURS_IN_MS > now) trip.check_out_enabled = true
+  if (trip.start_time + _48_HOURS_IN_MS < now) trip.check_out_enabled = true
   // Enable check-in if the trip has left; *disable* *check-out* if the trip has returned
   if (trip.left === 1) trip.check_in_enabled = true
   if (trip.returned === 1) trip.check_out_enabled = false
