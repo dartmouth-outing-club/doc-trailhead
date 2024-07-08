@@ -1,3 +1,6 @@
+/* Disabling some eslint rules so as to mess with the router formatting */
+/* eslint-disable no-multi-spaces */
+/* eslint-disable space-in-parens */
 import { Router } from 'express'
 
 import * as welcome from './routes/welcome.js'
