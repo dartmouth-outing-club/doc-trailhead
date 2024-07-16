@@ -55,7 +55,7 @@ export function getEditView (req, res) {
   const clubs = getClubs(req.db, req.user, res.locals.is_opo)
   const trip = req.db.get(`
     SELECT id, title, club, cost, coleader_can_edit, experience_needed, private, start_time,
-    end_time, location, pickup, dropoff, description
+    end_time, location, pickup, dropoff, description, plan
     FROM trips
     WHERE id = ?
   `, tripId)
