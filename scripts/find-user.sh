@@ -11,7 +11,7 @@ if [[ ! -n "${1-}" ]]; then
   usage
 fi
 
-sqlite3 ./trailhead.db <<EOF
+sqlite3 -column ./trailhead.db <<EOF
 SELECT id, cas_id, name
 FROM users
 WHERE name like '%$1%'
