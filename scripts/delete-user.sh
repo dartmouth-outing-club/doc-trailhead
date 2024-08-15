@@ -14,7 +14,7 @@ fi
 user_id="$1"
 
 echo 'Finding user:'
-sqlite3 -column ./trailhead.db <<EOF
+sqlite3 -box ./trailhead.db <<EOF
 WITH trips as (
   SELECT user as id, count(trip_members.user) as num_trips
   FROM trip_members
@@ -34,7 +34,7 @@ then
   exit 1
 fi
 
-sqlite3 -column ./trailhead.db <<EOF
+sqlite3 -box ./trailhead.db <<EOF
 DELETE FROM users
 WHERE id = $user_id;
 

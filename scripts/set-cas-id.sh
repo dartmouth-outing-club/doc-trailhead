@@ -15,7 +15,7 @@ user_id="$1"
 cas_id="$2"
 
 echo 'Finding user:'
-sqlite3 -column ./trailhead.db <<EOF
+sqlite3 -box ./trailhead.db <<EOF
 WITH trips as (
   SELECT user as id, count(trip_members.user) as num_trips
   FROM trip_members
@@ -35,7 +35,7 @@ then
   exit 1
 fi
 
-sqlite3 -column ./trailhead.db <<EOF
+sqlite3 -box ./trailhead.db <<EOF
 UPDATE USERS
 SET cas_id = '$cas_id'
 WHERE id = $user_id;
