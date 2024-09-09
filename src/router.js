@@ -7,7 +7,6 @@ import * as welcome from './routes/welcome.js'
 import * as assignments from './routes/assignments.js'
 import * as trip from './routes/trip.js'
 import * as profile from './routes/profile.js'
-import * as present from './routes/trip/present.js'
 import * as checkIn from './routes/trip/check-in.js'
 import * as checkOut from './routes/trip/check-out.js'
 import * as vehicleRequestView from './routes/vehicle-request.js'
@@ -120,8 +119,8 @@ router.get(     '/trip/:tripId/check-in',                   requireTripLeader, c
 router.put(     '/trip/:tripId/check-in',                   requireTripLeader, checkIn.put)
 router.delete(  '/trip/:tripId/check-in',                   requireTripLeader, checkIn.del)
 
-router.put(     '/trip/:tripId/present/:memberId',          requireTripLeader, present.put)
-router.delete(  '/trip/:tripId/present/:memberId',          requireTripLeader, present.del)
+router.put(     '/trip/:tripId/check-out/members/:memberId', requireTripLeader, checkOut.markPresent)
+router.delete(  '/trip/:tripId/check-out/members/:memberId', requireTripLeader, checkOut.markNotPresent)
 
 /*************
  * OPO Routes

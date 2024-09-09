@@ -9,13 +9,13 @@
       {% if member.attended %}
       <button
         class="action deny"
-        hx-delete="/trip/{{trip_id}}/present/{{member.id}}"
+        hx-delete="/trip/{{trip_id}}/check-out/members/{{member.id}}"
         >Mark Absent
       </button>
       {% else %}
       <button
         class="action approve"
-        hx-put="/trip/{{trip_id}}/present/{{member.id}}"
+        hx-put="/trip/{{trip_id}}/check-out/members/{{member.id}}"
         >Mark Present
       </button>
       {% endif %}
