@@ -112,13 +112,13 @@ router.delete(  '/trip/:tripId/pcard-request/cost/:costId', requireTripLeader, t
 router.get(     '/trip/:tripId/user/:userId',               requireTripLeader, profile.getUserTripView)
 router.get(     '/vehicle-request/:vehicleRequestId',       requireAuth,       vehicleRequestView.getVehicleRequestView)
 
-router.get(     '/trip/:tripId/check-out',                  requireTripLeader, checkOut.get)
-router.put(     '/trip/:tripId/check-out',                  requireTripLeader, checkOut.put)
-router.delete(  '/trip/:tripId/check-out',                  requireTripLeader, checkOut.del)
 router.get(     '/trip/:tripId/check-in',                   requireTripLeader, checkIn.get)
 router.put(     '/trip/:tripId/check-in',                   requireTripLeader, checkIn.put)
 router.delete(  '/trip/:tripId/check-in',                   requireTripLeader, checkIn.del)
 
+router.get(     '/trip/:tripId/check-out',                  requireTripLeader, checkOut.get)
+router.put(     '/trip/:tripId/check-out',                  requireTripLeader, checkOut.put)
+router.delete(  '/trip/:tripId/check-out',                  requireTripLeader, checkOut.del)
 router.put(     '/trip/:tripId/check-out/members/:memberId', requireTripLeader, checkOut.markPresent)
 router.delete(  '/trip/:tripId/check-out/members/:memberId', requireTripLeader, checkOut.markNotPresent)
 

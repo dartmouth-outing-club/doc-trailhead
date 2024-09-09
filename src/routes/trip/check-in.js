@@ -36,4 +36,3 @@ export function del (req, res) {
   res.set('HX-Refresh', 'true')
   res.sendStatus(200)
 }
-
