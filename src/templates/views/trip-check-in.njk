@@ -7,11 +7,11 @@
 <main>
 <section class=info-card>
 <h1>Trip Check-In ({{ title }})</h1>
-<p><a href="/trip/{{trip_id}}">Return to the trip overview page</a>
+<p><a href="/leader/trip/{{trip_id}}">Return to the trip overview page</a>
 {% if not checked_out %}
 <p>Your trip is not checked out, so there's no need to check it back in!
 <p><a href="/trip/{{trip_id}}/check-out">Go to the check-out page</a>
-<p><a href="/trip/{{trip_id}}">Return to the trip overview page</a>
+<p><a href="/leader/trip/{{trip_id}}">Return to the trip overview page</a>
 {% elseif not checked_in %}
 <div><button class="action approve"
              hx-put="/trip/{{trip_id}}/check-in"

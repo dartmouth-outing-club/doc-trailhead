@@ -1,27 +1,27 @@
-<div class=trip-table-overflow-wrapper>
-<table class=trip-table hx-target=this hx-swap=outerHTML>
-<thead><tr><th>Person<th>Attendance</tr></thead>
-<tbody>
-{% for member in members %}
-<tr>
-  <td>{{member.name}}
-  <td>
-    {% if member.attended %}
-    <button
-      class="action deny"
-      hx-delete="/trip/{{trip_id}}/present/{{member.id}}"
-      >Mark Absent
-    </button>
-    {% else %}
-    <button
-      class="action approve"
-      hx-put="/trip/{{trip_id}}/present/{{member.id}}"
-      >Mark Present
-    </button>
-    {% endif %}
-</tr>
-{%endfor %}
-</tbody>
-</table>
+<div class=trip-table-overflow-wrapper hx-target=this hx-swap=outerHTML>
+  <table class=trip-table>
+  <thead><tr><th>Person<th>Attendance</tr></thead>
+  <tbody>
+  {% for member in members %}
+  <tr>
+    <td>{{member.name}}
+    <td>
+      {% if member.attended %}
+      <button
+        class="action deny"
+        hx-delete="/trip/{{trip_id}}/present/{{member.id}}"
+        >Mark Absent
+      </button>
+      {% else %}
+      <button
+        class="action approve"
+        hx-put="/trip/{{trip_id}}/present/{{member.id}}"
+        >Mark Present
+      </button>
+      {% endif %}
+  </tr>
+  {%endfor %}
+  </tbody>
+  </table>
 </div>
 

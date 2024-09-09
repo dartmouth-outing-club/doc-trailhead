@@ -48,7 +48,7 @@ function getAttendanceData (req, tripId) {
 export function checkOut (req, res) {
   const tripId = req.params.tripId
   req.db.run('UPDATE trips SET left = TRUE WHERE id = ?', tripId)
-  res.set('HX-Redirect', `/trip/${tripId}/check-out`)
+  res.set('HX-Refresh', 'true')
   res.sendStatus(200)
 }
 
@@ -62,7 +62,7 @@ export function deleteCheckOut (req, res) {
   }
 
   req.db.run('UPDATE trips SET left = FALSE WHERE id = ?', tripId)
-  res.set('HX-Redirect', `/trip/${tripId}/check-out`)
+  res.set('HX-Refresh', 'true')
   res.sendStatus(200)
 }
 
@@ -73,7 +73,7 @@ export function checkIn (req, res) {
   const trip = req.db.get('SELECT marked_late FROM trips WHERE id = ?', tripId)
   if (trip.marked_late) mailer.send(emails.getLateTripBackAnnouncement, req.db, tripId, true)
 
-  res.set('HX-Redirect', `/trip/${tripId}/check-in`)
+  res.set('HX-Refresh', 'true')
   res.sendStatus(200)
 }
 
@@ -84,7 +84,7 @@ export function deleteCheckIn (req, res) {
   const trip = req.db.get('SELECT marked_late FROM trips WHERE id = ?', tripId)
   if (trip.marked_late) mailer.send(emails.getLateTripBackAnnouncement, req.db, tripId, false)
 
-  res.set('HX-Redirect', `/trip/${tripId}/check-in`)
+  res.set('HX-Refresh', 'true')
   res.sendStatus(200)
 }
 
