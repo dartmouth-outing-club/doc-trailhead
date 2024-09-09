@@ -7,13 +7,15 @@ import * as welcome from './routes/welcome.js'
 import * as assignments from './routes/assignments.js'
 import * as trip from './routes/trip.js'
 import * as profile from './routes/profile.js'
-import * as tripStatus from './routes/trip-status.js'
+import * as present from './routes/trip/present.js'
+import * as checkIn from './routes/trip/check-in.js'
+import * as checkOut from './routes/trip/check-out.js'
 import * as vehicleRequestView from './routes/vehicle-request.js'
 import * as allTripsView from './routes/all-trips.js'
 import * as myTripsView from './routes/my-trips.js'
-import * as tripRequests from './routes/trip-requests.js'
+import * as tripRequests from './routes/trip/trip-requests.js'
 
-import * as tripMembers from './routes/trip-members.js'
+import * as tripMembers from './routes/trip/trip-members.js'
 import * as gearApprovals from './routes/opo/gear-approvals.js'
 
 import * as tripApprovalsView from './routes/opo/trip-approvals.js'
@@ -84,8 +86,6 @@ router.get(     '/trip/search',                             requireOpo, trip.get
 router.post(    '/trip/search',                             requireOpo, trip.postSearch)
 router.get(     '/trip/:tripId',                            requireAuth, trip.getSignupView)
 router.get(     '/trip/:tripId/edit',                       requireTripLeader, trip.getEditView)
-router.get(     '/trip/:tripId/check-out',                  requireTripLeader, tripStatus.getCheckOutView)
-router.get(     '/trip/:tripId/check-in',                   requireTripLeader, tripStatus.getCheckInView)
 router.get(     '/trip/:tripId/requests',                   requireTripLeader, tripRequests.getRequestsView)
 
 /*********************
@@ -113,12 +113,15 @@ router.delete(  '/trip/:tripId/pcard-request/cost/:costId', requireTripLeader, t
 router.get(     '/trip/:tripId/user/:userId',               requireTripLeader, profile.getUserTripView)
 router.get(     '/vehicle-request/:vehicleRequestId',       requireAuth,       vehicleRequestView.getVehicleRequestView)
 
-router.put(     '/trip/:tripId/check-out',                  requireTripLeader, tripStatus.checkOut)
-router.delete(  '/trip/:tripId/check-out',                  requireTripLeader, tripStatus.deleteCheckOut)
-router.put(     '/trip/:tripId/check-in',                   requireTripLeader, tripStatus.checkIn)
-router.delete(  '/trip/:tripId/check-in',                   requireTripLeader, tripStatus.deleteCheckIn)
-router.put(     '/trip/:tripId/present/:memberId',          requireTripLeader, tripStatus.markUserPresent)
-router.delete(  '/trip/:tripId/present/:memberId',          requireTripLeader, tripStatus.markUserAbsent)
+router.get(     '/trip/:tripId/check-out',                  requireTripLeader, checkOut.get)
+router.put(     '/trip/:tripId/check-out',                  requireTripLeader, checkOut.put)
+router.delete(  '/trip/:tripId/check-out',                  requireTripLeader, checkOut.del)
+router.get(     '/trip/:tripId/check-in',                   requireTripLeader, checkIn.get)
+router.put(     '/trip/:tripId/check-in',                   requireTripLeader, checkIn.put)
+router.delete(  '/trip/:tripId/check-in',                   requireTripLeader, checkIn.del)
+
+router.put(     '/trip/:tripId/present/:memberId',          requireTripLeader, present.put)
+router.delete(  '/trip/:tripId/present/:memberId',          requireTripLeader, present.del)
 
 /*************
  * OPO Routes

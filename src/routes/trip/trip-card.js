@@ -1,5 +1,5 @@
-import * as utils from '../utils.js'
-import { getVehicleRequestData } from './vehicle-request.js'
+import * as utils from '../../utils.js'
+import { getVehicleRequestData } from '../vehicle-request.js'
 
 const _48_HOURS_IN_MS = 172800000
 

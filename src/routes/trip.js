@@ -1,6 +1,6 @@
 /* If you're looking for the method to create a trip, that's in /rest/trip.js */
 import * as utils from '../utils.js'
-import * as tripCard from './trip-card.js'
+import * as tripCard from './trip/trip-card.js'
 import * as emails from '../emails.js'
 import * as mailer from '../services/mailer.js'
 import { BadRequestError } from '../request/errors.js'

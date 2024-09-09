@@ -1,4 +1,4 @@
-import * as tripCard from '../trip-card.js'
+import * as tripCard from '../trip/trip-card.js'
 import * as vehicleRequestView from '../vehicle-request.js'
 import * as emails from '../../emails.js'
 import * as mailer from '../../services/mailer.js'

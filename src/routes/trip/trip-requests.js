@@ -1,5 +1,5 @@
-import { BadRequestError } from '../request/errors.js'
-import * as utils from '../utils.js'
+import { BadRequestError } from '../../request/errors.js'
+import * as utils from '../../utils.js'
 
 export function getRequestsView (req, res) {
   const tripId = req.params.tripId
