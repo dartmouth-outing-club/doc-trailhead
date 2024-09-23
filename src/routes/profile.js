@@ -1,4 +1,4 @@
-import { BadRequestError } from '../request/errors.js'
+import { NotFoundError } from '../request/errors.js'
 
 export function getProfileView (req, res) {
   if (req.query.card) {
@@ -41,12 +41,20 @@ export function getProfileCardEditable (req, res) {
 }
 
 export function getUserTripView (req, res) {
+  const { userId, tripId } = req.params
+  const isOnTrip = req.db.get(`SELECT 1 FROM trip_members WHERE trip = ? AND user = ?`,
+    tripId, userId
+  )
+  if (!isOnTrip) throw new NotFoundError(`User ${userId} not found`)
+
   const data = getProfileData(req, req.params.userId, true)
   return res.render('views/profile.njk', data)
 }
 
 function getProfileData (req, userId, hideControls) {
   const user = req.db.get('SELECT * FROM users WHERE id = ?', userId)
+  if (!user) throw new NotFoundError(`User ${userId} not found`)
+
   const certs = req.db
     .all('SELECT cert, is_approved FROM user_certs WHERE user = ?', userId)
     .map(item => `${item.cert}${item.is_approved === 0 ? ' (pending)' : ''}`)

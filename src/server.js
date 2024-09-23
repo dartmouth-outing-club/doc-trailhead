@@ -42,16 +42,14 @@ export function startServer (trailheadDb, port) {
 }
 
 function handleError (err, req, res, _next) {
-  switch (err.name) {
-    case 'BadRequestError':
-      return res.status(400).send(err.message)
-    default:
+  if (err.code < 500) {
+    res.status(err.code).send(err.message)
+  } else {
       console.error(`Unexpected error for ${req.method} ${req.url}, sending 500`)
       console.error(err.stack)
       console.error(req.body)
+    res.status(500).send('Sorry, Trailhead experienced an error. Please reach to OPO.')
   }
-
-  return res.status(500).send('Sorry, Trailhead experienced an error. Please reach to OPO.')
 }
 
 // For the packages we serve statically, specify the version exactly
