@@ -44,9 +44,9 @@ function handleError (err, req, res, _next) {
   if (err.code < 500) {
     res.status(err.code).send(err.message)
   } else {
-      console.error(`Unexpected error for ${req.method} ${req.url}, sending 500`)
-      console.error(err.stack)
-      console.error(req.body)
+    console.error(`Unexpected error for ${req.method} ${req.url}, sending 500`)
+    console.error(err.stack)
+    console.error(req.body)
     res.status(500).send('Sorry, Trailhead experienced an error. Please reach to OPO.')
   }
 }

@@ -1,4 +1,4 @@
-import { NotFoundError } from '../request/errors.js'
+import { BadRequestError, NotFoundError } from '../request/errors.js'
 
 export function getProfileView (req, res) {
   if (req.query.card) {
@@ -42,7 +42,7 @@ export function getProfileCardEditable (req, res) {
 
 export function getUserTripView (req, res) {
   const { userId, tripId } = req.params
-  const isOnTrip = req.db.get(`SELECT 1 FROM trip_members WHERE trip = ? AND user = ?`,
+  const isOnTrip = req.db.get('SELECT 1 FROM trip_members WHERE trip = ? AND user = ?',
     tripId, userId
   )
   if (!isOnTrip) throw new NotFoundError(`User ${userId} not found`)
