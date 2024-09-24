@@ -2,7 +2,6 @@ import fs from 'node:fs'
 import express from 'express'
 import morgan from 'morgan'
 import nunjucks from 'nunjucks'
-import bodyParser from 'body-parser'
 
 import apiRouter from './router.js'
 
@@ -21,7 +20,7 @@ export function startServer (trailheadDb, port) {
   app.use('/static', express.static('static'))
   app.yearCache(`/htmx-${HTMX_VERSION}`, 'node_modules/htmx.org/dist')
   app.yearCache(`/fullcalendar-${FULLCALENDAR_VERSION}`, 'node_modules/fullcalendar-scheduler')
-  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(express.urlencoded({ extended: true }))
 
   nunjucks
     .configure('./src/templates', { autoescape: true, express: app })
@@ -31,7 +30,7 @@ export function startServer (trailheadDb, port) {
   app.set('views', 'templates/views')
 
   app.use((req, _res, next) => { req.db = trailheadDb; next() })
-  app.get('/healthcheck', (req, res) => { res.send('OK') })
+  app.get('/healthcheck', (_, res) => { res.send('OK') })
   app.use('/', apiRouter)
   app.use(handleError)
 
