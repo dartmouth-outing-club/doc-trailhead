@@ -5,6 +5,8 @@
   "main": "src/app.js",
   "scripts": {
     "dev": "NODE_ENV=development nodemon -e js,njk --watch src --watch templates src/app.js",
+    "deploy": "ssh node@doc './redeploy.sh'",
+    "download-db": "./scripts/download-db.sh",
     "format": "eslint src --fix",
     "lint": "eslint src",
     "init-db": "./db/init-db.sh -fs",
