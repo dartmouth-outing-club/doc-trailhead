@@ -1,9 +1,10 @@
 import crypto from 'node:crypto'
-import passport from 'passport'
-import cas from 'passport-cas'
 
 import * as sessions from '../services/sessions.js'
 import * as constants from '../constants.js'
+
+const service_url = `${constants.backendURL}/signin-cas`
+const cas_url = 'https://login.dartmouth.edu/cas'
 
 /**
  * Require authentication for a route.
@@ -89,24 +90,43 @@ export function requireOpo (req, res, next) {
   })
 }
 
-export function signinCAS (req, res, next) {
-  passport.authenticate('cas', async (error, casId) => {
-    if (error) { return error }
-    if (!casId) { return res.redirect(constants.frontendURL) }
+export async function signinCAS (req, res) {
+  var ticket = req.query.ticket;
+  if (!ticket) return res.sendStatus(400)
 
-    let userId = req.db.getUserByCasId(casId)?.id
-    if (!userId) {
-      userId = req.db.insertUser(casId)
-      console.log(`Created new user ${userId} for casId ${casId}`)
-    }
+  // Validate the ticket that is provided with the CAS server to verify that it's valid
+  const params = new URLSearchParams({ service: service_url, ticket })
+  const validationUri = cas_url + '/validate?' + params
 
-    const token = await generateAndInsertNewToken(userId)
-    console.log(`Signed in user ${userId} for casId ${casId}`)
+  const validationRes = await fetch(validationUri)
+  const validationText = await validationRes.text()
+  const validaton = validationText.split('\n')
 
-    res.cookie('token', token, { secure: true, sameSite: 'Lax', httpOnly: true })
-    return res.redirect('/')
-  })(req, res, next)
+  // If the server sent back anything besides 'yes' in the first line, it's invalid
+  if (validaton.at(0) !== 'yes') {
+    console.error('CAS validation failed', validationText)
+    return res.sendStatus(500)
+  }
+
+  // The second line is the casId
+  const casId = validaton.at(1)
+  if (!casId) {
+    console.error(`CAS validated but returned empty casId`, validationText)
+    return res.sendStatus(502)
+  }
+
+  let userId = req.db.getUserByCasId(casId)?.id
+  if (!userId) {
+    userId = req.db.insertUser(casId)
+    console.log(`Created new user ${userId} for casId ${casId}`)
+  }
+
+  const token = await generateAndInsertNewToken(userId)
+  console.log(`Signed in user ${userId} for casId ${casId}`)
+  res.cookie('token', token, { secure: true, sameSite: 'Lax', httpOnly: true })
+  return res.redirect('/')
 }
+
 
 export function logout (req, res) {
   sessions.invalidateUserToken(req.user)
@@ -134,8 +154,11 @@ function sendToLogin (_req, res, _next) {
 }
 
 function denyLogin (req, res, next) {
-  if (req.method === 'GET') return sendToLogin(req, res, next)
-  return res.sendStatus(401)
+  if (req.method === 'GET') {
+    return sendToLogin(req, res, next)
+  } else {
+    return res.sendStatus(401)
+  }
 }
 
 /**
@@ -153,14 +176,3 @@ export function devLogin (_req, res) {
   res.cookie('token', 'devtoken', { secure: true, sameSite: 'Lax' })
   return res.redirect('/')
 }
-
-const casOptions = {
-  ssoBaseURL: 'https://login.dartmouth.edu/cas',
-  serverBaseURL: `${constants.backendURL}/signin-cas`
-}
-
-const casLogin = new cas.Strategy(casOptions, (user, done) => {
-  return done(null, user)
-})
-
-passport.use(casLogin)

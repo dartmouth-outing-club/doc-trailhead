@@ -1,4 +1,7 @@
+import * as constants from '../constants.js'
 import * as utils from '../utils.js'
+
+const LOGIN_URL = `https://login.dartmouth.edu/cas/login?service=${constants.backendURL}/signin-cas`
 
 export function get (req, res) {
   const now = new Date()
@@ -18,5 +21,5 @@ export function get (req, res) {
       }
     })
 
-  res.render('views/welcome.njk', { trips })
+  res.render('views/welcome.njk', { trips, login_url: LOGIN_URL} )
 }
