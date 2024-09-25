@@ -1,4 +1,4 @@
-import { test } from 'tap'
+import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
 import { startServer } from '../src/server.js'
