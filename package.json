@@ -16,13 +16,12 @@
     "start": "NODE_ENV=production node src/app.js",
     "test": "tap --no-coverage"
   },
-  "license": "ISC",
   "engines": {
-    "node": ">=18.15"
+    "node": ">=22"
   },
   "type": "module",
   "dependencies": {
-    "better-sqlite3": "^8.2.0",
+    "better-sqlite3": "^11.3.0",
     "date-arithmetic": "^4.1.0",
     "dateformat": "^3.0.3",
     "dotenv": "^8.2.0",
