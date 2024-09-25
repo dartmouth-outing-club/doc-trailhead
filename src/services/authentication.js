@@ -91,7 +91,7 @@ export function requireOpo (req, res, next) {
 }
 
 export async function signinCAS (req, res) {
-  var ticket = req.query.ticket;
+  const ticket = req.query.ticket
   if (!ticket) return res.sendStatus(400)
 
   // Validate the ticket that is provided with the CAS server to verify that it's valid
@@ -111,7 +111,7 @@ export async function signinCAS (req, res) {
   // The second line is the casId
   const casId = validaton.at(1)
   if (!casId) {
-    console.error(`CAS validated but returned empty casId`, validationText)
+    console.error('CAS validated but returned empty casId', validationText)
     return res.sendStatus(502)
   }
 
@@ -126,7 +126,6 @@ export async function signinCAS (req, res) {
   res.cookie('token', token, { secure: true, sameSite: 'Lax', httpOnly: true })
   return res.redirect('/')
 }
-
 
 export function logout (req, res) {
   sessions.invalidateUserToken(req.user)

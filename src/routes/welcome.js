@@ -21,5 +21,5 @@ export function get (req, res) {
       }
     })
 
-  res.render('views/welcome.njk', { trips, login_url: LOGIN_URL} )
+  res.render('views/welcome.njk', { trips, login_url: LOGIN_URL })
 }
