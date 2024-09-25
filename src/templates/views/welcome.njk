@@ -1,6 +1,107 @@
 {% include "common/site-head.njk" %}
 <title>DOC Trailhead</title>
-<link rel="stylesheet" href="/static/css/index.css">
+<style>
+body {
+  background-image: url('/static/images/background-no-brand.svg');
+  background-size: cover;
+  min-height: 100vh;
+  width: 100vw;
+}
+
+h1 {
+  font-size: 3em;
+  margin-left: 25px;
+}
+
+h2 {
+  font-size: 1.2em;
+}
+
+hr {
+  color: gray;
+}
+
+.login-card, .trip-card {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 5px 5px 10px rgba(0,0,0,.25);
+  margin: 25px;
+  text-align: center;
+}
+
+.login-card {
+  padding: 25px;
+}
+
+.login-card p {
+  font-size: 1.1em;
+}
+
+.login-card img {
+  width: 100px;
+}
+
+.login-card button {
+  appearance: button;
+  background-color: var(--approval-main-color);
+  border-radius: 6px;
+  border: none;
+  color: white;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 10px;
+  padding: 0.7em;
+}
+
+.login-card button a, .login-card button a.visited {
+  color: white;
+  text-decoration: none;
+}
+
+.trip-card {
+  position: relative;
+  overflow: hidden;
+  padding: 5px;
+}
+
+.trip-card img {
+  height: 130px;
+  opacity: 0.07;
+  position: absolute;
+  right: -25px;
+  top: 0px;
+  transform: rotate(28.1187deg);
+  width: 130px;
+  z-index: 1;
+}
+
+@media screen and (min-width: 800px) {
+  body {
+    display: flex;
+    flex-direction: row-reverse;
+  }
+
+  #login {
+    align-self: center;
+    flex: 2 1 0;
+  }
+
+  #up-next {
+    flex: 3 1 0;
+  }
+
+  .trip-card {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .trip-card > h2, .trip-card > div {
+    align-self: center;
+    flex: 1 1 0;
+  }
+}
+</style>
 
 <section id=login>
 <div class=login-card>
