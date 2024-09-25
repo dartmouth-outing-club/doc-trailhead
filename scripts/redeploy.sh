@@ -1,7 +1,7 @@
 #!/bin/bash
+# Note: this script is intended to be run from the source root, via `npm run deploy`
 set -ev
 
-cd ./doc-trailhead
 git pull
 npm prune --omit=dev
 npm install --omit=dev
