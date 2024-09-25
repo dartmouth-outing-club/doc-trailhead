@@ -14,7 +14,7 @@
     "set-admin": "./scripts/set-user.sh 1",
     "set-leader": "./scripts/set-user.sh 2",
     "start": "NODE_ENV=production node src/app.js",
-    "test": "tap --no-coverage"
+    "test": "node --test"
   },
   "engines": {
     "node": ">=22"
@@ -36,7 +36,6 @@
   "devDependencies": {
     "eslint": "^8.26.0",
     "eslint-config-standard": "^17.0.0",
-    "nodemon": "^3.1.7",
-    "tap": "^16.3.4"
+    "nodemon": "^3.1.7"
   }
 }
