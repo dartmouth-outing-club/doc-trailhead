@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <title>Print Sheet</title>
-<h1>Trip #{{ trip_id }} Print Sheet</h1>
+<h1>Gear Checkout Sheet</h1>
+
+<dl>
+  <dt>Title:</dt>
+  <dd>{{ title }}</dd>
+  <dt>Trip #</dt>
+  <dd>{{ trip_id }}</dd>
+</dl>
 
 <style>
 @media print {
@@ -17,6 +24,20 @@ body {
   margin: 0 auto;
   padding: .5in;
   background-color: white;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  margin-bottom: 40px;
+}
+
+dt {
+  font-weight: bold;
+}
+
+section {
+  margin-bottom: 80px;
 }
 
 table {
@@ -53,47 +74,81 @@ td {
 
 </style>
 
-<h2>Individual Gear</h2>
-<table>
-  <tr>
+<section>
+  <h2>Individual Gear</h2>
+  <table>
+    <tr>
     <th class=item>Item
     <th class=quantity>Qty
     <th class=packed>Packed?
     <th class=notes>Notes
     <th class=returned>Returned?
     <th class=condition>Condition
-  </tr>
-  {% for item in individual_gear %}
-  <tr>
+    </tr>
+    {% for item in individual_gear %}
+    <tr>
     <td class=item>{{ item.name }}
     <td class=quantity>{{ item.quantity }}
     <td class=packed>
     <td class=notes>
     <td class=returned>
     <td class=condition>
-  </tr>
-  {% endfor %}
-</table>
+    </tr>
+    {% endfor %}
+    <tr>
+    <td class=item>
+    <td class=quantity>
+    <td class=packed>
+    <td class=notes>
+    <td class=returned>
+    <td class=condition>
+    </tr><tr>
+    <td class=item>
+    <td class=quantity>
+    <td class=packed>
+    <td class=notes>
+    <td class=returned>
+    <td class=condition>
+    </tr>
+  </table>
+</section>
 
-<h2>Group Gear</h2>
-<table>
-  <tr>
+<section>
+  <h2>Group Gear</h2>
+  <table>
+    <tr>
     <th class=item>Item
     <th class=quantity>Qty
     <th class=packed>Packed?
     <th class=notes>Notes
     <th class=returned>Returned?
     <th class=condition>Condition
-  </tr>
-  {% for item in group_gear %}
-  <tr>
+    </tr>
+    {% for item in group_gear %}
+    <tr>
     <td class=item>{{ item.name }}
     <td class=quantity>{{ item.quantity }}
     <td class=packed>
     <td class=notes>
     <td class=returned>
     <td class=condition>
-  </tr>
-  {% endfor %}
-</table>
-
+    </tr>
+    {% endfor %}
+<tr>
+    <td class=item>
+    <td class=quantity>
+    <td class=packed>
+    <td class=notes>
+    <td class=returned>
+    <td class=condition>
+    </tr>
+<tr>
+    <td class=item>
+    <td class=quantity>
+    <td class=packed>
+    <td class=notes>
+    <td class=returned>
+    <td class=condition>
+    </tr>
+  </table>
+</section>
