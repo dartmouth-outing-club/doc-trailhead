@@ -1,4 +1,4 @@
-<section class=info-card>
+<div class=info-card>
 
 <header>
   <div>Trip #{{ trip_id }}</div>
@@ -18,6 +18,7 @@ You are currently viewing this trip as a leader.
 </p>
 
 {% if is_leader_for_trip %}
+<section>
 <h2>Check-In and Check-Out</h2>
 <p>It is very important to alert the Outdoor Programs Office that your trip is leaving and returning
 on time. 48 hours before trip-start you can begin checking out your trip.
@@ -32,8 +33,10 @@ on time. 48 hours before trip-start you can begin checking out your trip.
      >Check-In
   </a>
 </div>
+</section>
 {% endif %}
 
+<section>
 <h2>Description</h2>
 <p class=user-text>{{ description }}</p>
 
@@ -54,7 +57,9 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   <tr><th>Cost<td>{{ cost }}
 </table>
 </div>
+</section>
 
+<section>
 <h2>Trip Plan</h2>
 <div class=notice>The Trip Plan is only visible to trip leaders and OPO.</div>
 {% if plan %}
@@ -62,7 +67,9 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 {% else %}
 <p class=notice>No trip plan set yet.</p>
 {% endif %}
+</section>
 
+<section>
 <h2>Approved trippes ({{ attending.length }})</h2>
 <div class=trip-table-overflow-wrapper>
 <table class=trip-table>
@@ -110,7 +117,9 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 <div class=button-row>
     <button id=copy-attending-emails class="action edit" onclick="copyAttendingEmails()">Copy Emails</button>
 </div>
+</section>
 
+<section>
 <h2>Pending trippes ({{ pending.length }})</h2>
 <div class=trip-table-overflow-wrapper>
 <table class=trip-table>
@@ -155,7 +164,9 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 <div class=button-row>
   <button id=copy-pending-emails class="action edit" onclick="copyPendingEmails()">Copy Emails</button>
 </div>
+</section>
 
+<section>
 <div class=gear-requests-header>
   <h2>Gear Requests</h2>
   <a href="/trip/{{ trip_id }}/gear/print">Print</a>
@@ -202,9 +213,10 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   {% endif %}
   </div>
 </div>
+</section>
 
 {%if pcard_request %}
-<div>
+<section>
   <div class=table-status-row><h2>P-Card Request</h2>{{ pcard_request.status | safe }}</div>
   <p>Expected # of Participants: {{ pcard_request.num_people }}
   <table class="detail-table gear">
@@ -238,20 +250,25 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   {% else %}
   <p>Assigned P-Card: {{ pcard_request.assigned_pcard }}</p>
   {% endif %}
-</div>
+<section>
 {% endif %}
 
 {%if vehiclerequest_id %}
+<section>
 {% include "requests/vehicle-request-table.njk" %}
+</section>
 {% endif %}
 
+<section>
 <h2>Modify Trip</h2>
 <div class="edit-row">
   <a class="action edit" href="/trip/{{ trip_id }}/edit">Edit Trip</a>
   <a class="action edit" href="/trip/{{ trip_id }}/requests">Edit Requests</a>
 </div>
+</section>
 
 {% if can_delete %}
+<section>
 <h2>Delete Trip</h2>
 <p>Click this checkbox to enable the delete button:
 <input type=checkbox autocomplete=off onchange="toggleDeleteButton(this)">
@@ -264,10 +281,10 @@ on time. 48 hours before trip-start you can begin checking out your trip.
     hx-confirm="Are you sure you want to delete trip {{ title }}? Keep in mind that this will delete the associated vehicle request. This action cannot be reversed."
     >Delete Trip
 </button>
-{% endif %}
-</div>
-
 </section>
+{% endif %}
+
+</div>
 
 <script id="attending-emails" type="text/plain" data-emails="{{ attending_emails_list }}"></script>
 <script id="pending-emails" type="text/plain" data-emails="{{ pending_emails_list }}"></script>

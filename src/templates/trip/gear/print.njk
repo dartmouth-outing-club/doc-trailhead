@@ -3,8 +3,16 @@
 <h1>Trip #{{ trip_id }} Print Sheet</h1>
 
 <style>
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}
 
 body {
+  color: black;
+  background-color: white;
   width: 8in;
   margin: 0 auto;
   padding: .5in;
