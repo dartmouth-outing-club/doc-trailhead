@@ -13,6 +13,7 @@ import * as vehicleRequestView from './routes/vehicle-request.js'
 import * as allTripsView from './routes/all-trips.js'
 import * as myTripsView from './routes/my-trips.js'
 import * as tripRequests from './routes/trip/trip-requests.js'
+import * as gearPrint from './routes/trip/gear/print.js'
 
 import * as tripMembers from './routes/trip/trip-members.js'
 import * as gearApprovals from './routes/opo/gear-approvals.js'
@@ -54,6 +55,7 @@ router.get('/opo/trip-approvals', requireOpo, tripApprovalsView.get)
 router.get('/opo/manage-fleet', requireOpo, manageFleet.get)
 router.get('/opo/profile-approvals', requireOpo, profileApprovals.get)
 router.get('/leader/trip/:tripId', requireTripLeader, trip.getLeaderView)
+
 router.get('/opo/calendar', requireOpo, (_req, res) => {
   res.render('views/opo/calendar.njk', { LICENSE_KEY: process.env.FULLCALENDAR_LICENSE })
 })
@@ -105,6 +107,7 @@ router.put(     '/trip/:tripId/individual-gear',            requireTripLeader, t
 router.delete(  '/trip/:tripId/individual-gear/:gearId',    requireTripLeader, tripRequests.deleteIndividualGear)
 router.put(     '/trip/:tripId/group-gear',                 requireTripLeader, tripRequests.putGroupGear)
 router.delete(  '/trip/:tripId/group-gear/:gearId',         requireTripLeader, tripRequests.deleteGroupGear)
+router.get(     '/trip/:tripId/gear/print',                 requireTripLeader, gearPrint.getPrintView)
 router.put(     '/trip/:tripId/pcard-request',              requireTripLeader, tripRequests.putPcardRequest)
 router.delete(  '/trip/:tripId/pcard-request',              requireTripLeader, tripRequests.deletePcardRequest)
 router.delete(  '/trip/:tripId/pcard-request/cost/:costId', requireTripLeader, tripRequests.deleteOtherCost)

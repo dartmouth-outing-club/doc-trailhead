@@ -54,6 +54,7 @@ function getVehicleRequestData (req, tripId) {
 
 function getIndividualGearData (req, tripId) {
   const gear = req.db.all('SELECT id, name, size_type FROM trip_required_gear WHERE trip = ?', tripId)
+  // TODO it's insane that I'm returning the parameter again
   return { trip_id: tripId, individual_gear: gear }
 }
 

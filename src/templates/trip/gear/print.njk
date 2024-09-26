@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<title>Print Sheet</title>
+<h1>Trip #{{ trip_id }} Print Sheet</h1>
+
+<style>
+
+body {
+  width: 8in;
+  margin: 0 auto;
+  padding: .5in;
+  background-color: white;
+}
+
+table {
+  width: 90%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 5px;
+  border: 1px solid black;
+}
+
+th {
+  text-align: left;
+  font-weight: normal;
+  border-bottom: 3px solid black;
+}
+
+td {
+  height: 2rem;
+}
+
+.item {
+  width: 20%;
+}
+
+.notes {
+  width: 40%;
+}
+
+.returned, .packed .quantity {
+  width: fit-content;
+}
+
+</style>
+
+<h2>Individual Gear</h2>
+<table>
+  <tr>
+    <th class=item>Item
+    <th class=quantity>Qty
+    <th class=packed>Packed?
+    <th class=notes>Notes
+    <th class=returned>Returned?
+    <th class=condition>Condition
+  </tr>
+  {% for item in individual_gear %}
+  <tr>
+    <td class=item>{{ item.name }}
+    <td class=quantity>{{ item.quantity }}
+    <td class=packed>
+    <td class=notes>
+    <td class=returned>
+    <td class=condition>
+  </tr>
+  {% endfor %}
+</table>
+
+<h2>Group Gear</h2>
+<table>
+  <tr>
+    <th class=item>Item
+    <th class=quantity>Qty
+    <th class=packed>Packed?
+    <th class=notes>Notes
+    <th class=returned>Returned?
+    <th class=condition>Condition
+  </tr>
+  {% for item in group_gear %}
+  <tr>
+    <td class=item>{{ item.name }}
+    <td class=quantity>{{ item.quantity }}
+    <td class=packed>
+    <td class=notes>
+    <td class=returned>
+    <td class=condition>
+  </tr>
+  {% endfor %}
+</table>
+

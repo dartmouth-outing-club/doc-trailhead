@@ -156,9 +156,13 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   <button id=copy-pending-emails class="action edit" onclick="copyPendingEmails()">Copy Emails</button>
 </div>
 
+<div class=gear-requests-header>
+  <h2>Gear Requests</h2>
+  <a href="/trip/{{ trip_id }}/gear/print">Print</a>
+</div>
 <div class=dual-table-container>
 <div>
-  <div class=table-status-row><h2>Individual Gear</h2>{{ member_gear_status | safe }}</div>
+  <div class=table-status-row><h3>Individual Gear</h3>{{ member_gear_status | safe }}</div>
   <table class="detail-table gear">
     {% for item in member_requested_gear %}
     <tr><th>{{ item.name }}<td>{{ item.quantity }}
@@ -180,7 +184,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   {% endif %}
 </div>
 <div>
-  <div class=table-status-row><h2>Group Gear</h2>{{ group_gear_status | safe }}</div>
+  <div class=table-status-row><h3>Group Gear</h3>{{ group_gear_status | safe }}</div>
   <table class="detail-table gear">
     {% for item in group_gear %}
     <tr><th>{{ item.name }}<td>{{ item.quantity }}
@@ -197,7 +201,6 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   </div>
   {% endif %}
   </div>
-</div>
 </div>
 
 {%if pcard_request %}

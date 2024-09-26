@@ -111,12 +111,22 @@ img.badge {
 /*   background-color: gray; */
 /* } */
 
+.gear-requests-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.gear-requests-header a {
+  display: block;
+  align-self: center;
+}
+
 .table-status-row {
   display: flex;
   align-items: center;
 }
 
-.table-status-row h2 {
+.table-status-row h2, .table-status-row h3 {
   margin-right: 20px;
   display: inline;
 }
