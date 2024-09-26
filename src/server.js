@@ -12,7 +12,7 @@ const ONE_YEAR_IN_MS = 3.156e10
 const HTMX_VERSION = getPackageVersion('htmx.org')
 const FULLCALENDAR_VERSION = getPackageVersion('fullcalendar-scheduler')
 
-export function startServer (trailheadDb, port) {
+export function startServer(trailheadDb, port) {
   const app = express()
   app.use(morgan('dev'))
   app.yearCache = (route, path) => app.use(route, express.static(path, { maxAge: ONE_YEAR_IN_MS }))
@@ -40,7 +40,7 @@ export function startServer (trailheadDb, port) {
   return server
 }
 
-function handleError (err, req, res, _next) {
+function handleError(err, req, res, _next) {
   if (err.code < 500) {
     res.status(err.code).send(err.message)
   } else {
@@ -54,6 +54,6 @@ function handleError (err, req, res, _next) {
 // For the packages we serve statically, specify the version exactly
 // This function wouldn't work if you did something like "<5.0"
 // We append the package version to the URL so that the caches bust on upgrade
-function getPackageVersion (packageName) {
+function getPackageVersion(packageName) {
   return PACKAGE_JSON.dependencies[packageName].replace(/[^0-9.]/, '')
 }

@@ -1,7 +1,7 @@
 import * as emails from '../../emails.js'
 import * as mailer from '../../services/mailer.js'
 
-export function get (req, res) {
+export function get(req, res) {
   const tripId = req.params.tripId
   const trip = req.db.get(`
     SELECT
@@ -15,7 +15,7 @@ export function get (req, res) {
   res.render('views/trip-check-in.njk', trip)
 }
 
-export function put (req, res) {
+export function put(req, res) {
   const tripId = req.params.tripId
   req.db.run('UPDATE trips SET returned = TRUE WHERE id = ?', tripId)
 
@@ -26,7 +26,7 @@ export function put (req, res) {
   res.sendStatus(200)
 }
 
-export function del (req, res) {
+export function del(req, res) {
   const tripId = req.params.tripId
   req.db.run('UPDATE trips SET returned = FALSE WHERE id = ?', tripId)
 

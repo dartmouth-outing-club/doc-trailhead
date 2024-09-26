@@ -3,7 +3,7 @@ import Database from 'better-sqlite3'
 
 let db
 
-export function start (name) {
+export function start(name) {
   if (db !== undefined) throw new Error('ERROR: tried to start sqlite db that was already running')
 
   const dbName = name || ':memory:'
@@ -22,12 +22,12 @@ export function start (name) {
   console.log('Started sessions database')
 }
 
-export function stop () {
+export function stop() {
   db.close()
   db = undefined
 }
 
-function execFile (filePath) {
+function execFile(filePath) {
   const statements = fs.readFileSync(filePath).toString()
   return db.exec(statements)
 }
@@ -39,7 +39,7 @@ const _30_DAYS_IN_MS = 2592000000
  * Returns the userId if the token is valid, undefined otherwise.
  * Tokens are invalid if they do not exist in the database, or are over 30 days old.
  */
-export function getUserIdFromToken (token) {
+export function getUserIdFromToken(token) {
   const currentTimestamp = (new Date()).getTime()
 
   const result = getSessionByToken(token)
@@ -54,21 +54,21 @@ export function getUserIdFromToken (token) {
   return result.user
 }
 
-function getSessionByToken (token) {
+function getSessionByToken(token) {
   return db.prepare('SELECT user, timestamp FROM tokens WHERE token = ?').get(token)
 }
 
-export function insertOrReplaceToken (userId, token) {
+export function insertOrReplaceToken(userId, token) {
   const timestamp = (new Date()).getTime()
   db.prepare('INSERT OR REPLACE INTO tokens (user, token, timestamp) VALUES (?, ?, ?)')
     .run(userId, token, timestamp)
 }
 
-export function invalidateUserToken (userId) {
+export function invalidateUserToken(userId) {
   db.prepare('DELETE FROM tokens WHERE user = ?').run(userId)
 }
 
-export function invalidateToken (token) {
+export function invalidateToken(token) {
   db.prepare('DELETE FROM tokens WHERE token = ?').run(token)
 }
 
@@ -78,7 +78,7 @@ export function invalidateToken (token) {
  * Designated unsafe because there is no reason that you should use this in the normal course of
  * operation. It is is intended only for the developer route.
  */
-export function setTokenUnsafe (userId, token) {
+export function setTokenUnsafe(userId, token) {
   db.prepare('INSERT OR REPLACE INTO tokens (user, token) VALUES (? ,?)')
     .run(userId, token)
 }

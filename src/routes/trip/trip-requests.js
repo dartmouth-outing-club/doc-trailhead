@@ -1,7 +1,7 @@
 import { BadRequestError } from '../../request/errors.js'
 import * as utils from '../../utils.js'
 
-export function getRequestsView (req, res) {
+export function getRequestsView(req, res) {
   const tripId = req.params.tripId
   const statuses = req.db.get(`
     SELECT
@@ -27,7 +27,7 @@ export function getRequestsView (req, res) {
   })
 }
 
-function getVehicleRequestData (req, tripId) {
+function getVehicleRequestData(req, tripId) {
   const requested_vehicles = req.db.all(`
     SELECT type, pickup_time, return_time, trailer_needed, pass_needed, request_details
     FROM requested_vehicles
@@ -52,18 +52,18 @@ function getVehicleRequestData (req, tripId) {
   }
 }
 
-function getIndividualGearData (req, tripId) {
+function getIndividualGearData(req, tripId) {
   const gear = req.db.all('SELECT id, name, size_type FROM trip_required_gear WHERE trip = ?', tripId)
   // TODO it's insane that I'm returning the parameter again
   return { trip_id: tripId, individual_gear: gear }
 }
 
-function getGroupGearData (req, tripId) {
+function getGroupGearData(req, tripId) {
   const gear = req.db.all('SELECT rowid as id, name, quantity FROM group_gear_requests WHERE trip = ?', tripId)
   return { trip_id: tripId, group_gear: gear }
 }
 
-function getPcardData (req, tripId) {
+function getPcardData(req, tripId) {
   const pcard = req.db.get(`
     SELECT is_approved, num_people, snacks, breakfast, lunch, dinner
     FROM trip_pcard_requests
@@ -81,7 +81,7 @@ function getPcardData (req, tripId) {
   }
 }
 
-export function putVehicleRequest (req, res) {
+export function putVehicleRequest(req, res) {
   const input = { ...req.body }
   const tripId = req.params.tripId
 
@@ -129,7 +129,7 @@ export function putVehicleRequest (req, res) {
   res.render('components/save-complete-button.njk')
 }
 
-export function putIndividualGear (req, res) {
+export function putIndividualGear(req, res) {
   const tripId = req.params.tripId
   const input = { ...req.body }
   const items = Array.isArray(input.item) ? input.item : [input.item]
@@ -151,14 +151,14 @@ export function putIndividualGear (req, res) {
   res.render('requests/individual-gear.njk', { ...data })
 }
 
-export function deleteIndividualGear (req, res) {
+export function deleteIndividualGear(req, res) {
   const { tripId, gearId } = req.params
   req.db.run('DELETE FROM trip_required_gear WHERE id = ? AND trip = ?', gearId, tripId)
   const data = getIndividualGearData(req, tripId)
   res.render('requests/individual-gear.njk', { ...data })
 }
 
-export function putGroupGear (req, res) {
+export function putGroupGear(req, res) {
   const tripId = req.params.tripId
   const input = { ...req.body }
   const items = Array.isArray(input.item) ? input.item : [input.item]
@@ -180,14 +180,14 @@ export function putGroupGear (req, res) {
   res.render('requests/group-gear.njk', { ...data })
 }
 
-export function deleteGroupGear (req, res) {
+export function deleteGroupGear(req, res) {
   const { tripId, gearId } = req.params
   req.db.run('DELETE FROM group_gear_requests WHERE rowid = ? AND trip = ?', gearId, tripId)
   const data = getGroupGearData(req, tripId)
   res.render('requests/group-gear.njk', { ...data })
 }
 
-export function putPcardRequest (req, res) {
+export function putPcardRequest(req, res) {
   const tripId = req.params.tripId
   const { cost_name, cost_dollars } = req.body
 
@@ -227,14 +227,14 @@ export function putPcardRequest (req, res) {
   }
 }
 
-export function deletePcardRequest (req, res) {
+export function deletePcardRequest(req, res) {
   const tripId = req.params.tripId
   req.db.run('DELETE FROM trip_pcard_requests WHERE trip = ?', tripId)
   req.db.run('DELETE FROM pcard_request_costs WHERE trip = ?', tripId)
   res.render('requests/pcard-request.njk', getPcardData(req, tripId))
 }
 
-export function deleteOtherCost (req, res) {
+export function deleteOtherCost(req, res) {
   const { tripId, costId } = req.params
   req.db.run('DELETE FROM pcard_request_costs WHERE rowid = ? AND trip = ?', costId, tripId)
   res.render('requests/pcard-request.njk', getPcardData(req, tripId))

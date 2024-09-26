@@ -4,7 +4,7 @@ import { getVehicleRequestData } from '../vehicle-request.js'
 
 const _48_HOURS_IN_MS = 172800000
 
-function getLeaderData (req, tripId, userId) {
+function getLeaderData(req, tripId, userId) {
   const user = req.db.get('SELECT is_opo FROM users WHERE id = ?', userId)
   const trip = req.db.get(`
     SELECT
@@ -170,7 +170,7 @@ function getLeaderData (req, tripId, userId) {
   return trip
 }
 
-function getSignupData (req, tripId, userId) {
+function getSignupData(req, tripId, userId) {
   const user = req.db.get('SELECT is_opo FROM users WHERE id = ?', userId)
   const trip = req.db.get(`
     SELECT
@@ -224,22 +224,22 @@ function getSignupData (req, tripId, userId) {
   return trip
 }
 
-export function renderSignupCard (req, res, tripId, userId) {
+export function renderSignupCard(req, res, tripId, userId) {
   const trip = getSignupData(req, tripId, userId)
   return res.render('trip/signup-trip-card.njk', trip)
 }
 
-export function renderLeaderCard (req, res, tripId, userId) {
+export function renderLeaderCard(req, res, tripId, userId) {
   const trip = getLeaderData(req, tripId, userId)
   return res.render('trip/leader-trip-card.njk', trip)
 }
 
-export function renderSignupPage (req, res, tripId, userId) {
+export function renderSignupPage(req, res, tripId, userId) {
   const trip = getSignupData(req, tripId, userId)
   return res.render('views/trip.njk', trip)
 }
 
-export function renderLeaderPage (req, res, tripId, userId) {
+export function renderLeaderPage(req, res, tripId, userId) {
   const trip = getLeaderData(req, tripId, userId)
   return res.render('views/leader-trip.njk', trip)
 }

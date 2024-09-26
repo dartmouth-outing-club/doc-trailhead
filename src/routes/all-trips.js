@@ -1,6 +1,6 @@
 import * as utils from '../utils.js'
 
-export function get (req, res) {
+export function get(req, res) {
   const now = new Date()
   const show_list = req.query?.view === 'list'
   const showPrivate = res.locals.is_opo

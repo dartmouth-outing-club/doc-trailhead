@@ -14,7 +14,7 @@ const cas_url = 'https://login.dartmouth.edu/cas'
  * them up, but it requires some thought to do because there are key parts of the logic that you
  * don't want to duplicate.
  */
-export function requireAuth (req, res, next) {
+export function requireAuth(req, res, next) {
   const cookies = req.get('cookie')?.split('; ')
 
   if (!cookies) {
@@ -50,7 +50,7 @@ export function requireAuth (req, res, next) {
 }
 
 /** Allow the request if the user is a leader of ANY club, or an OPO staffer */
-export function requireAnyLeader (req, res, next) {
+export function requireAnyLeader(req, res, next) {
   return requireAuth(req, res, () => {
     if (res.locals.is_opo === true) return next()
     const isLeader = req.db.get(`
@@ -63,7 +63,7 @@ export function requireAnyLeader (req, res, next) {
 }
 
 /** Allow the request if the user is a leader the specific trip, or an OPO staffer */
-export function requireTripLeader (req, res, next) {
+export function requireTripLeader(req, res, next) {
   return requireAuth(req, res, () => {
     const tripId = req.params.tripId
     if (!tripId) throw new Error('Trip Leader authorization used on a route without a trip.')
@@ -83,14 +83,14 @@ export function requireTripLeader (req, res, next) {
 }
 
 /** Allow the request if the user is an OPO staffer */
-export function requireOpo (req, res, next) {
+export function requireOpo(req, res, next) {
   return requireAuth(req, res, () => {
     if (res.locals.is_opo === true) return next()
     return res.sendStatus(403)
   })
 }
 
-export async function signinCAS (req, res) {
+export async function signinCAS(req, res) {
   const ticket = req.query.ticket
   if (!ticket) return res.sendStatus(400)
 
@@ -127,19 +127,19 @@ export async function signinCAS (req, res) {
   return res.redirect('/')
 }
 
-export function logout (req, res) {
+export function logout(req, res) {
   sessions.invalidateUserToken(req.user)
   console.log(`Invalidate token for ${req.user}`)
   return sendToLogin(req, res)
 }
 
-async function generateAndInsertNewToken (userId) {
+async function generateAndInsertNewToken(userId) {
   const token = await getRandomKey()
   sessions.insertOrReplaceToken(userId, token)
   return token
 }
 
-async function getRandomKey () {
+async function getRandomKey() {
   return new Promise((resolve, reject) => {
     crypto.randomBytes(256, (err, buf) => {
       if (err) reject(err)
@@ -148,11 +148,11 @@ async function getRandomKey () {
   })
 }
 
-function sendToLogin (_req, res, _next) {
+function sendToLogin(_req, res, _next) {
   return res.redirect('/welcome')
 }
 
-function denyLogin (req, res, next) {
+function denyLogin(req, res, next) {
   if (req.method === 'GET') {
     return sendToLogin(req, res, next)
   } else {
@@ -166,7 +166,7 @@ function denyLogin (req, res, next) {
  * This function is intended only to be used when the application is in development mode. It sets
  * the browser to use the 'devtoken' cookie, and saves that cookie to log the user in as user #1.
  */
-export function devLogin (_req, res) {
+export function devLogin(_req, res) {
   if (process.env.NODE_ENV !== 'development') {
     console.error('The dev login route was accessed, which should only be possible in dev mode.')
     return res.sendStatus(404)

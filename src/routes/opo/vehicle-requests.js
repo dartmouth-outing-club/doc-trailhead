@@ -1,14 +1,14 @@
 import * as utils from '../../utils.js'
 import { getBadgeImgElement } from '../../utils.js'
 
-export function get (req, res) {
+export function get(req, res) {
   const requests = getVehicleRequests(req).map(getRowData)
   const reviewed_requests = requests.filter(request => request.status !== 'pending')
   const pending_requests = requests.filter(request => request.status === 'pending')
   res.render('views/opo/vehicle-requests.njk', { reviewed_requests, pending_requests })
 }
 
-function getVehicleRequests (req) {
+function getVehicleRequests(req) {
   const now = new Date()
   return req.db.all(`
     SELECT
@@ -32,7 +32,7 @@ function getVehicleRequests (req) {
 `, now.getTime())
 }
 
-function getRowData (request) {
+function getRowData(request) {
   return {
     ...request,
     pickup_time_element: utils.getDatetimeElement(request.first_pickup),

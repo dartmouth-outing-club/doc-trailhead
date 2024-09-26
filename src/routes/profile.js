@@ -1,6 +1,6 @@
 import { BadRequestError, NotFoundError } from '../request/errors.js'
 
-export function getProfileView (req, res) {
+export function getProfileView(req, res) {
   if (req.query.card) {
     return getProfileCard(req, res)
   }
@@ -19,12 +19,12 @@ export function getProfileView (req, res) {
   return res.render('views/profile.njk', data)
 }
 
-export function getNewUserView (req, res) {
+export function getNewUserView(req, res) {
   const data = getProfileData(req, req.user)
   return res.render('views/new-user.njk', data)
 }
 
-export function getProfileCard (req, res) {
+export function getProfileCard(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
@@ -32,7 +32,7 @@ export function getProfileCard (req, res) {
   return res.render('profile/profile-card.njk', data)
 }
 
-export function getProfileCardEditable (req, res) {
+export function getProfileCardEditable(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
@@ -40,7 +40,7 @@ export function getProfileCardEditable (req, res) {
   return res.render('profile/profile-card-editable.njk', data)
 }
 
-export function getUserTripView (req, res) {
+export function getUserTripView(req, res) {
   const { userId, tripId } = req.params
   const isOnTrip = req.db.get('SELECT 1 FROM trip_members WHERE trip = ? AND user = ?',
     tripId, userId
@@ -51,7 +51,7 @@ export function getUserTripView (req, res) {
   return res.render('views/profile.njk', data)
 }
 
-function getProfileData (req, userId, hideControls) {
+function getProfileData(req, userId, hideControls) {
   const user = req.db.get('SELECT * FROM users WHERE id = ?', userId)
   if (!user) throw new NotFoundError(`User ${userId} not found`)
 
@@ -87,7 +87,7 @@ function getProfileData (req, userId, hideControls) {
 
 const VALID_PHONE = /[0-9]{10,}/
 
-export function put (req, res) {
+export function put(req, res) {
   const formData = { ...req.body }
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
@@ -124,7 +124,7 @@ export function put (req, res) {
 }
 
 const VALID_CERTS = ['VAN', 'MICROBUS', 'TRAILER']
-export function getDriverCertRequest (req, res) {
+export function getDriverCertRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
@@ -149,7 +149,7 @@ export function getDriverCertRequest (req, res) {
   res.send(form).status(200)
 }
 
-export function postDriverCertRequest (req, res) {
+export function postDriverCertRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
@@ -174,7 +174,7 @@ export function postDriverCertRequest (req, res) {
   return getProfileCard(req, res)
 }
 
-export function getClubLeadershipRequest (req, res) {
+export function getClubLeadershipRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
@@ -222,7 +222,7 @@ export function getClubLeadershipRequest (req, res) {
   res.send(form).status(200)
 }
 
-export function postClubLeadershipRequest (req, res) {
+export function postClubLeadershipRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
@@ -235,7 +235,7 @@ export function postClubLeadershipRequest (req, res) {
   return getProfileCard(req, res)
 }
 
-export function deleteClubLeadershipRequest (req, res) {
+export function deleteClubLeadershipRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 

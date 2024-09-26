@@ -4,7 +4,7 @@ import * as emails from '../../emails.js'
 import * as mailer from '../../services/mailer.js'
 import { BadRequestError } from '../../request/errors.js'
 
-export function approveVehicleRequest (req, res) {
+export function approveVehicleRequest(req, res) {
   if (!req.params.requestId) return res.sendStatus(400)
   const vehiclerequest = req.db
     .get('SELECT id, trip FROM vehiclerequests WHERE id = ?', req.params.requestId)
@@ -55,7 +55,7 @@ export function approveVehicleRequest (req, res) {
   vehicleRequestView.renderVehicleRequestTable(req, res, vehiclerequest.id)
 }
 
-export function denyVehicleRequest (req, res) {
+export function denyVehicleRequest(req, res) {
   const vehicleRequestId = req.params.requestId
   if (!vehicleRequestId) return res.sendStatus(400)
   req.db.run('UPDATE vehiclerequests SET is_approved = false WHERE id = ?', req.params.requestId)
@@ -65,50 +65,50 @@ export function denyVehicleRequest (req, res) {
   vehicleRequestView.renderVehicleRequestTable(req, res, vehicleRequestId)
 }
 
-export function resetVehicleRequest (req, res) {
+export function resetVehicleRequest(req, res) {
   if (!req.params.requestId) return res.sendStatus(400)
   req.db.run('UPDATE vehiclerequests SET is_approved = null WHERE id = ?', req.params.requestId)
   req.db.run('DELETE FROM assignments WHERE vehiclerequest = ?', req.params.requestId)
   vehicleRequestView.renderVehicleRequestTable(req, res, req.params.requestId)
 }
 
-export function approveGroupGear (req, res) {
+export function approveGroupGear(req, res) {
   if (!req.params.tripId) return res.sendStatus(400)
   req.db.run('UPDATE trips SET group_gear_approved = true WHERE id = ?', req.params.tripId)
   tripCard.renderLeaderCard(req, res, req.params.tripId, req.user)
 }
 
-export function denyGroupGear (req, res) {
+export function denyGroupGear(req, res) {
   if (!req.params.tripId) return res.sendStatus(400)
   req.db.run('UPDATE trips SET group_gear_approved = false WHERE id = ?', req.params.tripId)
   tripCard.renderLeaderCard(req, res, req.params.tripId, req.user)
 }
 
-export function resetGroupGear (req, res) {
+export function resetGroupGear(req, res) {
   if (!req.params.tripId) return res.sendStatus(400)
   req.db.run('UPDATE trips SET group_gear_approved = null WHERE id = ?', req.params.tripId)
   tripCard.renderLeaderCard(req, res, req.params.tripId, req.user)
 }
 
-export function approveMemberGear (req, res) {
+export function approveMemberGear(req, res) {
   if (!req.params.tripId) return res.sendStatus(400)
   req.db.run('UPDATE trips SET member_gear_approved = true WHERE id = ?', req.params.tripId)
   tripCard.renderLeaderCard(req, res, req.params.tripId, req.user)
 }
 
-export function denyMemberGear (req, res) {
+export function denyMemberGear(req, res) {
   if (!req.params.tripId) return res.sendStatus(400)
   req.db.run('UPDATE trips SET member_gear_approved = false WHERE id = ?', req.params.tripId)
   tripCard.renderLeaderCard(req, res, req.params.tripId, req.user)
 }
 
-export function resetMemberGear (req, res) {
+export function resetMemberGear(req, res) {
   if (!req.params.tripId) return res.sendStatus(400)
   req.db.run('UPDATE trips SET member_gear_approved = null WHERE id = ?', req.params.tripId)
   tripCard.renderLeaderCard(req, res, req.params.tripId, req.user)
 }
 
-export function approvePcard (req, res) {
+export function approvePcard(req, res) {
   const tripId = req.params.tripId
   const assigned_pcard = req.body.assigned_pcard
   if (!assigned_pcard) return res.sendStatus(400)
@@ -117,13 +117,13 @@ export function approvePcard (req, res) {
   tripCard.renderLeaderCard(req, res, req.params.tripId, req.user)
 }
 
-export function denyPcard (req, res) {
+export function denyPcard(req, res) {
   if (!req.params.tripId) return res.sendStatus(400)
   req.db.run('UPDATE trip_pcard_requests SET is_approved = false WHERE trip = ?', req.params.tripId)
   tripCard.renderLeaderCard(req, res, req.params.tripId, req.user)
 }
 
-export function resetPcard (req, res) {
+export function resetPcard(req, res) {
   if (!req.params.tripId) return res.sendStatus(400)
   req.db.run('UPDATE trip_pcard_requests SET is_approved = null WHERE trip = ?', req.params.tripId)
   tripCard.renderLeaderCard(req, res, req.params.tripId, req.user)

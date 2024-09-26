@@ -32,7 +32,7 @@ const OPO_TRIPS_QUERY = `
       ON gg.trip = trips.id
 `
 
-export function get (req, res) {
+export function get(req, res) {
   const now = new Date()
   const pastTimeWindow = new Date(now.getTime() - _60_DAYS_IN_MS)
 
@@ -56,7 +56,7 @@ export function get (req, res) {
   res.render('views/opo/trip-approvals.njk', { past_trips, future_trips })
 }
 
-function convertToRow (trip) {
+function convertToRow(trip) {
   return {
     id: trip.id,
     title: trip.title,

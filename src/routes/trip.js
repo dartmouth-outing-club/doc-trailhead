@@ -5,7 +5,7 @@ import * as emails from '../emails.js'
 import * as mailer from '../services/mailer.js'
 import { BadRequestError } from '../request/errors.js'
 
-function getClubs (db, userId, isOpo) {
+function getClubs(db, userId, isOpo) {
   if (isOpo) {
     return db.all('SELECT id, name FROM clubs WHERE active = true')
   } else {
@@ -20,14 +20,14 @@ function getClubs (db, userId, isOpo) {
   }
 }
 
-export function getSignupView (req, res) {
+export function getSignupView(req, res) {
   const tripId = req.params.tripId
   const isValidTrip = req.db.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
   if (!isValidTrip) return res.render('views/missing-trip.njk')
   tripCard.renderSignupPage(req, res, tripId, req.user)
 }
 
-export function getLeaderView (req, res) {
+export function getLeaderView(req, res) {
   const tripId = req.params.tripId
   const isValidTrip = req.db.get('SELECT 1 as is_valid FROM trips WHERE id = ?', tripId)
   if (!isValidTrip) return res.render('views/missing-trip.njk')
@@ -40,14 +40,14 @@ export function getLeaderView (req, res) {
     : res.sendStatus(403)
 }
 
-export function getCreateView (req, res) {
+export function getCreateView(req, res) {
   const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
   const clubs = getClubs(req.db, req.user, res.locals.is_opo)
   const today = utils.getDatetimeValueForNow()
   res.render('views/create-trip.njk', { clubs, emails, today })
 }
 
-export function getEditView (req, res) {
+export function getEditView(req, res) {
   const tripId = req.params.tripId
   if (!req.db.isOpoOrLeaderForTrip(tripId, req.user)) return res.sendStatus(401)
 
@@ -73,13 +73,13 @@ export function getEditView (req, res) {
   res.render('views/edit-trip.njk', { clubs, emails, trip })
 }
 
-export function getUserView (req, res) {
+export function getUserView(req, res) {
   const { tripId, userId } = req.params
   const user = req.db.get('SELECT name FROM users WHERE id = ?', userId)
   return res.render('views/user.njk', { user_id: userId, trip_id: tripId, user_name: user.name })
 }
 
-export function createTrip (req, res) {
+export function createTrip(req, res) {
   if (!canCreateTripForClub(req.db, req.user, req.body.club)) {
     console.warn(`User ${req.user} tried to create a trip for ${req.body.club}, which they cannot.`)
     return res.sendStatus(403)
@@ -113,7 +113,7 @@ export function createTrip (req, res) {
   res.redirect(redirectUrl)
 }
 
-export function editTrip (req, res) {
+export function editTrip(req, res) {
   const tripId = req.params.tripId
   if (!req.db.isOpoOrLeaderForTrip(tripId, req.user)) return res.sendStatus(401)
 
@@ -141,7 +141,7 @@ export function editTrip (req, res) {
   return res.sendStatus(200)
 }
 
-export function deleteTrip (req, res) {
+export function deleteTrip(req, res) {
   const tripId = req.params.tripId
   if (!tripId || tripId < 1) return res.sendStatus(400)
 
@@ -179,11 +179,11 @@ export function deleteTrip (req, res) {
   return res.sendStatus(200)
 }
 
-export function getSearchView (_req, res) {
+export function getSearchView(_req, res) {
   res.render('views/trip/search.njk')
 }
 
-export function postSearch (req, res) {
+export function postSearch(req, res) {
   const showPrivate = res.locals.is_opo
 
   const title = req.body.title
@@ -210,7 +210,7 @@ export function postSearch (req, res) {
   return res.render('views/trip/search/results-table.njk', { trips })
 }
 
-function canCreateTripForClub (db, userId, clubId) {
+function canCreateTripForClub(db, userId, clubId) {
   if (db.isOpo(userId)) return true
 
   const userClubs = db
@@ -223,7 +223,7 @@ function canCreateTripForClub (db, userId, clubId) {
 }
 
 /** Validate and convert the input to a database-ready function */
-function convertFormInputToDbInput (input, userId) {
+function convertFormInputToDbInput(input, userId) {
   if (!input.title) throw new BadRequestError('missing title')
   if (!input.start_time) throw new BadRequestError('missing start time')
   if (!input.end_time) throw new BadRequestError('missing end time')
@@ -261,7 +261,7 @@ function convertFormInputToDbInput (input, userId) {
  * Parse the input body and return and array of new leaders to add.
  * Guaranteed to return an array.
  */
-function getLeaderIds (req) {
+function getLeaderIds(req) {
   const input = req.body
   const leaders = typeof input.leader === 'string' ? [input.leader] : input.leader
   const emails = leaders || []

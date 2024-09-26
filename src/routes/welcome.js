@@ -3,7 +3,7 @@ import * as utils from '../utils.js'
 
 const LOGIN_URL = `https://login.dartmouth.edu/cas/login?service=${constants.backendURL}/signin-cas`
 
-export function get (req, res) {
+export function get(req, res) {
   const now = new Date()
   const trips = req.db.all(`
     SELECT title, location, start_time, end_time, clubs.name as club

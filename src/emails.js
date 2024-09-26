@@ -6,7 +6,7 @@ const _48_HOURS_IN_MS = 172800000
 const _1_HOUR_IN_MS = 3600000
 const _2_HOURS_IN_MS = 7200000
 
-export function getNewTripEmail (db, tripId) {
+export function getNewTripEmail(db, tripId) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
   const leaderEmails = db.getTripLeaderEmails(tripId)
   return {
@@ -17,7 +17,7 @@ export function getNewTripEmail (db, tripId) {
   }
 }
 
-export function getTripDeletedEmail (db, tripId) {
+export function getTripDeletedEmail(db, tripId) {
   const trip = db.getTripEmailInfo(tripId)
   return {
     name: 'Trip Deleted',
@@ -27,7 +27,7 @@ export function getTripDeletedEmail (db, tripId) {
   }
 }
 
-export function getTripDeletedGearUpdateEmail (trip) {
+export function getTripDeletedGearUpdateEmail(trip) {
   return {
     name: 'Trip Deleted (Gear Notice)',
     address: constants.gearAdminEmails,
@@ -36,7 +36,7 @@ export function getTripDeletedGearUpdateEmail (trip) {
   }
 }
 
-export function getVehicleRequestProcessedEmail (db, tripId) {
+export function getVehicleRequestProcessedEmail(db, tripId) {
   const leaderEmails = db.getTripLeaderEmails(tripId)
   return {
     name: 'Trip Vehicle Request Processed',
@@ -46,7 +46,7 @@ export function getVehicleRequestProcessedEmail (db, tripId) {
   }
 }
 
-export function getVehicleRequestDeniedEmail (db, vehicleRequestId) {
+export function getVehicleRequestDeniedEmail(db, vehicleRequestId) {
   const recipients = db.getEmailForVehicleRequest(vehicleRequestId)
   return {
     name: 'Vehicle Request Denied Email',
@@ -56,7 +56,7 @@ export function getVehicleRequestDeniedEmail (db, vehicleRequestId) {
   }
 }
 
-export function getGearRequestChangedEmail (db, tripId, userId) {
+export function getGearRequestChangedEmail(db, tripId, userId) {
   const info = db.get(`
     SELECT title, users.name, users.email
     FROM trip_members
@@ -74,7 +74,7 @@ export function getGearRequestChangedEmail (db, tripId, userId) {
   }
 }
 
-export function getTripApplicationConfirmation (db, tripId, userId) {
+export function getTripApplicationConfirmation(db, tripId, userId) {
   const info = db.get(`
     SELECT title, users.name, users.email, owner_table.email as owner_email
     FROM trip_members
@@ -92,7 +92,7 @@ export function getTripApplicationConfirmation (db, tripId, userId) {
   }
 }
 
-export function getTripApprovalEmail (db, tripId, userId) {
+export function getTripApprovalEmail(db, tripId, userId) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
   const user = db.get('SELECT name, email FROM users WHERE id = ?', userId)
   const ownerEmail = db.getTripOwnerEmail(tripId)
@@ -104,7 +104,7 @@ export function getTripApprovalEmail (db, tripId, userId) {
   }
 }
 
-export function getTripRemovalEmail (db, tripId, userId) {
+export function getTripRemovalEmail(db, tripId, userId) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
   const user = db.get('SELECT name, email FROM users WHERE id = ?', userId)
   const ownerEmail = db.getTripOwnerEmail(tripId)
@@ -116,7 +116,7 @@ export function getTripRemovalEmail (db, tripId, userId) {
   }
 }
 
-export function getTripTooFullEmail (db, tripId, userId) {
+export function getTripTooFullEmail(db, tripId, userId) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
   const user = db.get('SELECT name, email FROM users WHERE id = ?', userId)
   const ownerEmail = db.getTripOwnerEmail(tripId)
@@ -128,7 +128,7 @@ export function getTripTooFullEmail (db, tripId, userId) {
   }
 }
 
-export function getUserLeftEmail (db, tripId, userId) {
+export function getUserLeftEmail(db, tripId, userId) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
   const user = db.get('SELECT name, email FROM users WHERE id = ?', userId)
   const leaderEmails = db.getTripLeaderEmails(tripId)
@@ -140,7 +140,7 @@ export function getUserLeftEmail (db, tripId, userId) {
   }
 }
 
-export function getCoLeaderConfirmation (db, tripId, userId) {
+export function getCoLeaderConfirmation(db, tripId, userId) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
   const user = db.get('SELECT name, email FROM users WHERE id = ?', userId)
   const ownerEmail = db.getTripOwnerEmail(tripId)
@@ -152,7 +152,7 @@ export function getCoLeaderConfirmation (db, tripId, userId) {
   }
 }
 
-export function getCoLeaderRemovalNotice (db, tripId, userId) {
+export function getCoLeaderRemovalNotice(db, tripId, userId) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
   const user = db.get('SELECT name, email FROM users WHERE id = ?', userId)
   return {
@@ -163,7 +163,7 @@ export function getCoLeaderRemovalNotice (db, tripId, userId) {
   }
 }
 
-export function getLateTripBackAnnouncement (db, tripId, isBack) {
+export function getLateTripBackAnnouncement(db, tripId, isBack) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
   const returnedText = !isBack ? 'NOT' : ''
   return {
@@ -174,7 +174,7 @@ export function getLateTripBackAnnouncement (db, tripId, isBack) {
   }
 }
 
-export function getGroupGearStatusUpdate (trip, leaderEmails, message) {
+export function getGroupGearStatusUpdate(trip, leaderEmails, message) {
   return {
     name: 'Group gear status update',
     address: leaderEmails,
@@ -183,7 +183,7 @@ export function getGroupGearStatusUpdate (trip, leaderEmails, message) {
   }
 }
 
-export function getGearRequiresReapprovalNotice (trip) {
+export function getGearRequiresReapprovalNotice(trip) {
   return {
     name: 'OPO gear re-approval requested',
     address: constants.gearAdminEmails,
@@ -192,7 +192,7 @@ export function getGearRequiresReapprovalNotice (trip) {
   }
 }
 
-export function getIndividualGearStatusUpdate (trip, leaderEmails, message) {
+export function getIndividualGearStatusUpdate(trip, leaderEmails, message) {
   return {
     name: 'Individual gear status update',
     address: leaderEmails,
@@ -200,7 +200,7 @@ export function getIndividualGearStatusUpdate (trip, leaderEmails, message) {
     message: nunjucks.render('emails/individual-gear-status.njk', { trip, message, constants })
   }
 }
-export function getPCardStatusUpdate (trip, leaderEmails) {
+export function getPCardStatusUpdate(trip, leaderEmails) {
   const statusText = trip.pcardStatus === 'approved' ? 'approved' : 'denied'
   return {
     name: 'Pcard status update',
@@ -210,7 +210,7 @@ export function getPCardStatusUpdate (trip, leaderEmails) {
   }
 }
 
-export function getTripGearChangedNotice (db, tripId) {
+export function getTripGearChangedNotice(db, tripId) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
   const leaderEmails = db.getTripLeaderEmails(tripId)
   return {
@@ -221,7 +221,7 @@ export function getTripGearChangedNotice (db, tripId) {
   }
 }
 
-export function getEmailsForTripsPendingCheckOut (db) {
+export function getEmailsForTripsPendingCheckOut(db) {
   const now = new Date()
   const emailWindow = new Date(now.getTime() + _48_HOURS_IN_MS)
   const trips = db.all(`
@@ -243,7 +243,7 @@ export function getEmailsForTripsPendingCheckOut (db) {
   return emails
 }
 
-export function getEmailsForTripsPendingCheckIn (db) {
+export function getEmailsForTripsPendingCheckIn(db) {
   const now = new Date()
   const emailWindow = new Date(now.getTime() + _2_HOURS_IN_MS)
   const trips = db.all(`
@@ -265,7 +265,7 @@ export function getEmailsForTripsPendingCheckIn (db) {
   return emails
 }
 
-export function getEmailsForFirstLateWarning (db) {
+export function getEmailsForFirstLateWarning(db) {
   const now = new Date()
   const returnWindow = new Date(now.getTime() - _1_HOUR_IN_MS)
   // LATE_90 obviously no longer accurately describes what this email is
@@ -290,7 +290,7 @@ export function getEmailsForFirstLateWarning (db) {
   return emails
 }
 
-export function getEmailsForSecondLateWarning (db) {
+export function getEmailsForSecondLateWarning(db) {
   const now = new Date()
   const returnWindow = new Date(now.getTime() - _2_HOURS_IN_MS)
   const trips = db.all(`

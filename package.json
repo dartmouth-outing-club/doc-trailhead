@@ -37,5 +37,16 @@
     "eslint": "^8.26.0",
     "eslint-config-standard": "^17.0.0",
     "nodemon": "^3.1.7"
+  },
+  "eslintConfig": {
+    "extends": "standard",
+    "rules": {
+      "camelcase": 0,
+      "n/handle-callback-err": 0,
+      "space-before-function-paren": [
+        "error",
+        "never"
+      ]
+    }
   }
 }

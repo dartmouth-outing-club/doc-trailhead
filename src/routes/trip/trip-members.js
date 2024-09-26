@@ -3,14 +3,14 @@ import * as mailer from '../../services/mailer.js'
 import * as tripCard from './trip-card.js'
 import { BadRequestError } from '../../request/errors.js'
 
-export function makeLeader (req, res) {
+export function makeLeader(req, res) {
   const { tripId, userId } = req.params
   req.db.run('UPDATE trip_members SET leader = 1 WHERE trip = ? and user = ?', tripId, userId)
   mailer.send(emails.getCoLeaderConfirmation, req.db, tripId, userId)
   return tripCard.renderLeaderCard(req, res, tripId, userId)
 }
 
-export function demote (req, res) {
+export function demote(req, res) {
   const { tripId, userId } = req.params
   // You can't demote yourself to a trippee
   if (req.user === userId) return res.sendStatus(400)
@@ -19,7 +19,7 @@ export function demote (req, res) {
   return tripCard.renderLeaderCard(req, res, tripId, userId)
 }
 
-export function admit (req, res) {
+export function admit(req, res) {
   const { tripId, userId } = req.params
   req.db.run('UPDATE trip_members SET pending = 0 WHERE trip = ? and user = ?', tripId, userId)
   const trip = req.db.get('SELECT id, title, member_gear_approved FROM trips WHERE id = ?', tripId)
@@ -37,7 +37,7 @@ export function admit (req, res) {
   return tripCard.renderLeaderCard(req, res, tripId, userId)
 }
 
-export function sendToWaitlist (req, res) {
+export function sendToWaitlist(req, res) {
   const { tripId, userId } = req.params
 
   // Can't send owner to wailist
@@ -49,7 +49,7 @@ export function sendToWaitlist (req, res) {
   return tripCard.renderLeaderCard(req, res, tripId, userId)
 }
 
-export function reject (req, res) {
+export function reject(req, res) {
   const { tripId, userId } = req.params
   if (!tripId || !userId) {
     console.warn('Bad request detected', tripId, userId)
@@ -65,7 +65,7 @@ export function reject (req, res) {
   return tripCard.renderLeaderCard(req, res, tripId, req.user)
 }
 
-export function signup (req, res) {
+export function signup(req, res) {
   const tripId = req.params.tripId
   if (!tripId) throw new BadRequestError('No tripId provided')
   if (isTripOver(req.db, tripId)) throw new BadRequestError('You cannot signup for a trip that already ended')
@@ -94,7 +94,7 @@ export function signup (req, res) {
   return tripCard.renderSignupCard(req, res, tripId, req.user)
 }
 
-export function leave (req, res) {
+export function leave(req, res) {
   const tripId = req.params.tripId
   const owner = req.db.get('SELECT owner FROM trips WHERE id = ?', tripId).owner
 
@@ -110,7 +110,7 @@ export function leave (req, res) {
   return tripCard.renderSignupCard(req, res, tripId, req.user)
 }
 
-function isTripOver (db, tripId) {
+function isTripOver(db, tripId) {
   const now = new Date()
   const trip = db.get('SELECT end_time FROM trips WHERE id = ?', tripId)
   const end_time = trip.end_time

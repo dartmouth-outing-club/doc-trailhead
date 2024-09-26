@@ -4,7 +4,7 @@ import Database from 'better-sqlite3'
 export default class TrailheadDatabaseConnection {
   #db
 
-  constructor (fileName) {
+  constructor(fileName) {
     const dbName = fileName || ':memory:'
     try {
       this.#db = new Database(dbName, { fileMustExist: true })
@@ -20,16 +20,16 @@ export default class TrailheadDatabaseConnection {
     console.log(`Starting sqlite database from file: ${this.getDatabaseFile()}`)
   }
 
-  getDatabaseFile () {
+  getDatabaseFile() {
     return this.#db.pragma('database_list')[0].file
   }
 
-  stop () {
+  stop() {
     this.#db.close()
     this.#db = undefined
   }
 
-  execFile (filePath) {
+  execFile(filePath) {
     const statements = fs.readFileSync(filePath).toString()
     return this.#db.exec(statements)
   }
@@ -37,11 +37,11 @@ export default class TrailheadDatabaseConnection {
   /**
    * REST functions
    */
-  get (query, ...params) {
+  get(query, ...params) {
     return this.#db.prepare(query).get(...params)
   }
 
-  all (query, ...params) {
+  all(query, ...params) {
     return this.#db.prepare(query).all(...params)
   }
 
@@ -52,17 +52,17 @@ export default class TrailheadDatabaseConnection {
    * final function. This is useful! You shouldn't be doing database transactions in any other parts
    * of the chain.
    */
-  withTransaction (func) {
+  withTransaction(func) {
     return (req, res) => {
       this.#db.transaction(() => func(req, res))()
     }
   }
 
-  run (query, ...params) {
+  run(query, ...params) {
     return this.#db.prepare(query).run(...params)
   }
 
-  runMany (query, values) {
+  runMany(query, values) {
     const statement = this.#db.prepare(query)
     values.forEach(parameters => {
       // Spread an array if using ? parameters
@@ -75,49 +75,49 @@ export default class TrailheadDatabaseConnection {
     })
   }
 
-  getUserById (id) {
+  getUserById(id) {
     return this.#db.prepare('SELECT * FROM users WHERE id = ?').get(id)
   }
 
-  getUserByCasId (casId) {
+  getUserByCasId(casId) {
     return this.#db.prepare('SELECT * FROM users WHERE cas_id = ?').get(casId)
   }
 
-  getUserByEmail (email) {
+  getUserByEmail(email) {
     return this.#db.prepare('SELECT * FROM users WHERE email = ?').get(email)
   }
 
-  getUserEmails (ids) {
+  getUserEmails(ids) {
     return ids.map(id => {
       const { email } = this.#db.prepare('SELECT email FROM users WHERE id = ?').get(id)
       return email
     })
   }
 
-  insertUser (casId) {
+  insertUser(casId) {
     const info = this.#db.prepare('INSERT INTO users (cas_id) VALUES (?)').run(casId)
     return info.lastInsertRowid
   }
 
-  isOpo (userId) {
+  isOpo(userId) {
     return this.get('SELECT is_opo FROM users WHERE id = ?', userId).is_opo === 1
   }
 
-  isSignedUpForTrip (tripId, userId) {
+  isSignedUpForTrip(tripId, userId) {
     return this.get('SELECT 1 FROM trip_members WHERE trip = ? AND user = ?',
       tripId, userId) !== undefined
   }
 
-  isLeaderForTrip (tripId, userId) {
+  isLeaderForTrip(tripId, userId) {
     return this.get('SELECT 1 FROM trip_members WHERE trip = ? AND user = ? AND leader = TRUE',
       tripId, userId) !== undefined
   }
 
-  isOpoOrLeaderForTrip (tripId, userId) {
+  isOpoOrLeaderForTrip(tripId, userId) {
     return this.isOpo(userId) || this.isLeaderForTrip(tripId, userId)
   }
 
-  getTripLeaderIds (tripId) {
+  getTripLeaderIds(tripId) {
     return this.#db.prepare(`
       SELECT user
       FROM users
@@ -127,13 +127,13 @@ export default class TrailheadDatabaseConnection {
       .map(user => user.user)
   }
 
-  getTripOwnerEmail (tripId) {
+  getTripOwnerEmail(tripId) {
     return this.get(
       'SELECT email FROM trips LEFT JOIN users ON trips.owner = users.id WHERE trips.id = ?',
       tripId).email
   }
 
-  getTripLeaderEmails (tripId) {
+  getTripLeaderEmails(tripId) {
     return this.all(`
     SELECT email
     FROM users
@@ -143,11 +143,11 @@ export default class TrailheadDatabaseConnection {
       .map(user => user.email)
   }
 
-  getActiveVehicles () {
+  getActiveVehicles() {
     return this.all('SELECT id, name FROM vehicles WHERE active = TRUE ORDER BY name')
   }
 
-  getTripEmailInfo (tripId) {
+  getTripEmailInfo(tripId) {
     const trip = this.get(`
     SELECT trips.id, title, users.email as owner_email
     FROM trips
@@ -164,7 +164,7 @@ export default class TrailheadDatabaseConnection {
     return trip
   }
 
-  getEmailForVehicleRequest (vehicleRequestId) {
+  getEmailForVehicleRequest(vehicleRequestId) {
     const email = this.get(`
     SELECT email
     FROM vehiclerequests

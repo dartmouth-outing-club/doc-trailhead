@@ -1,9 +1,9 @@
-function renderAttendanceTable (req, res, tripId) {
+function renderAttendanceTable(req, res, tripId) {
   const data = getAttendanceData(req, tripId)
   res.render('trip/attendance-table.njk', data)
 }
 
-export function getAttendanceData (req, tripId) {
+export function getAttendanceData(req, tripId) {
   const trip = req.db.get(`
     SELECT id AS trip_id, title, left AS checked_out, start_time
     FROM trips
@@ -21,19 +21,19 @@ export function getAttendanceData (req, tripId) {
   return { ...trip, members }
 }
 
-export function get (req, res) {
+export function get(req, res) {
   const data = getAttendanceData(req, req.params.tripId)
   res.render('views/trip-check-out.njk', data)
 }
 
-export function put (req, res) {
+export function put(req, res) {
   const tripId = req.params.tripId
   req.db.run('UPDATE trips SET left = TRUE WHERE id = ?', tripId)
   res.set('HX-Refresh', 'true')
   res.sendStatus(200)
 }
 
-export function del (req, res) {
+export function del(req, res) {
   const tripId = req.params.tripId
 
   const trip = req.db.get('SELECT returned FROM trips WHERE id = ?', tripId)
@@ -47,7 +47,7 @@ export function del (req, res) {
   res.sendStatus(200)
 }
 
-export function markPresent (req, res) {
+export function markPresent(req, res) {
   const { tripId, memberId } = req.params
   const info = req.db.run(`
     UPDATE trip_members
@@ -63,7 +63,7 @@ export function markPresent (req, res) {
   renderAttendanceTable(req, res, tripId)
 }
 
-export function markNotPresent (req, res) {
+export function markNotPresent(req, res) {
   const { tripId, memberId } = req.params
   const info = req.db.run(`
     UPDATE trip_members

@@ -1,16 +1,16 @@
 import * as utils from '../utils.js'
 
-export function renderVehicleRequestTable (req, res, vehicleRequestId) {
+export function renderVehicleRequestTable(req, res, vehicleRequestId) {
   const data = getVehicleRequestData(req, vehicleRequestId)
   res.render('requests/vehicle-request-table.njk', { ...data })
 }
 
-export function getVehicleRequestView (req, res) {
+export function getVehicleRequestView(req, res) {
   const data = getVehicleRequestData(req, req.params.vehicleRequestId)
   res.render('views/vehicle-request.njk', { ...data })
 }
 
-export function getVehicleRequestData (req, vehicleRequestId) {
+export function getVehicleRequestData(req, vehicleRequestId) {
   const available_vehicles = req.db.getActiveVehicles()
   // Note the ORDER BY ensures that the response_index is lined up
   const is_approved = req.db

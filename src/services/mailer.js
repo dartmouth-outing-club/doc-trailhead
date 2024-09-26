@@ -25,8 +25,8 @@ const transporter = nodemailer.createTransport({
  * a minute), but is totally reasonable for a scheduled email, where reliability is key and
  * a difference of minutes is totally unnoticable to the user.
  */
-export function createRecurringEmailSender (emailName, db, emailFunc) {
-  return async () => {
+export function createRecurringEmailSender(emailName, db, emailFunc) {
+  return async() => {
     const emails = emailFunc(db)
     console.log(`[Mailer] Sending emails for ${emails.length} trips`)
 
@@ -58,16 +58,16 @@ export function createRecurringEmailSender (emailName, db, emailFunc) {
  * Emails should contain the following text fields: name, address, subject, message
  * The name is used for logging purposes, the email content comprises the other three.
  */
-export async function send (emailFunc, ...args) {
+export async function send(emailFunc, ...args) {
   const email = emailFunc(...args)
   return sendEmail(email)
 }
 
-export async function sendBuiltEmail (email) {
+export async function sendBuiltEmail(email) {
   sendEmail(email)
 }
 
-async function sendEmail (email) {
+async function sendEmail(email) {
   if (process.env.NODE_ENV !== 'production') {
     console.log('The following email was queued:')
     console.log(email)
@@ -85,7 +85,7 @@ async function sendEmail (email) {
   console.log(`${email.name} email sent: ${info.response}`)
 }
 
-function markTripEmailSent (db, tripId, emailName) {
+function markTripEmailSent(db, tripId, emailName) {
   try {
     return db.run(`
       UPDATE trips
@@ -97,7 +97,7 @@ function markTripEmailSent (db, tripId, emailName) {
   }
 }
 
-function markTripLate (db, tripId) {
+function markTripLate(db, tripId) {
   try {
     markTripEmailSent(db, tripId, 'LATE_180')
     return db.run('UPDATE trips SET marked_late = true WHERE id = ?', tripId)

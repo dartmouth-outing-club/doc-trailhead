@@ -1,6 +1,6 @@
 const _30_DAYS_IN_MS = 2592000000
 
-export function get (req, res) {
+export function get(req, res) {
   const lastLimit = (new Date()).getTime() - _30_DAYS_IN_MS
   const vehicles = req.db.getActiveVehicles().map(vehicle => {
     return { id: vehicle.id, title: vehicle.name, eventColor: 'rgb(72, 158, 119)' }

@@ -1,6 +1,6 @@
 import dateFormat from 'dateformat'
 
-export function formatForTripForTables (trip) {
+export function formatForTripForTables(trip) {
   const title = trip.title.length < 38 ? trip.title : trip.title.substring(0, 38) + '...'
   const description = trip.description.length < 190
     ? trip.description
@@ -14,7 +14,7 @@ export function formatForTripForTables (trip) {
   }
 }
 
-export function getStatusTag (hasLeft, hasReturned, isLate) {
+export function getStatusTag(hasLeft, hasReturned, isLate) {
   if (hasReturned) {
     return '<div class="status-tag returned">Returned</div>'
   } else if (isLate) {
@@ -26,7 +26,7 @@ export function getStatusTag (hasLeft, hasReturned, isLate) {
   }
 }
 
-export function getBadgeImgUrl (name) {
+export function getBadgeImgUrl(name) {
   switch (name) {
     case 'approved':
     case 1:
@@ -41,7 +41,7 @@ export function getBadgeImgUrl (name) {
   }
 }
 
-export function getBadgeImgElement (name) {
+export function getBadgeImgElement(name) {
   switch (name) {
     case 'approved':
     case 1:
@@ -56,7 +56,7 @@ export function getBadgeImgElement (name) {
   }
 }
 
-export function getClubIcon (clubName) {
+export function getClubIcon(clubName) {
   switch (clubName) {
     case 'OPO':
       return '/static/icons/opo.jpg'
@@ -85,7 +85,7 @@ export function getClubIcon (clubName) {
   }
 }
 
-export function getDatetimeElement (unixTime, opts = {}) {
+export function getDatetimeElement(unixTime, opts = {}) {
   if (!unixTime) return undefined
   if (typeof unixTime !== 'number') {
     throw new Error(`Unexpected argument ${unixTime} received`)
@@ -106,7 +106,7 @@ export function getDatetimeElement (unixTime, opts = {}) {
   }
 }
 
-export function getDatetimeRangeElement (unixTimeStart, unixTimeEnd, opts = {}) {
+export function getDatetimeRangeElement(unixTimeStart, unixTimeEnd, opts = {}) {
   const startDate = new Date(unixTimeStart)
   const endDate = new Date(unixTimeEnd)
   const sameDay = startDate.getDate() === endDate.getDate()
@@ -114,7 +114,7 @@ export function getDatetimeRangeElement (unixTimeStart, unixTimeEnd, opts = {}) 
 }
 
 const _12_HOURS_IN_MS = 25600000
-export function getDatetimeValueForNow () {
+export function getDatetimeValueForNow() {
   // Tiny client-side hack that that keeps you from setting times before now(ish)
   try {
     const now = new Date()
@@ -123,12 +123,12 @@ export function getDatetimeValueForNow () {
   } catch (error) {}
 }
 
-export function getDatetimeValueForUnixTime (unixTime) {
+export function getDatetimeValueForUnixTime(unixTime) {
   const date = new Date(unixTime)
   return dateFormat(date, "yyyy-mm-dd'T'HH:MM:ss")
 }
 
-export function hasTimePassed (unixTime) {
+export function hasTimePassed(unixTime) {
   const now = (new Date()).getTime()
   return now > unixTime
 }
