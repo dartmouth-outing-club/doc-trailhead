@@ -43,10 +43,7 @@
     "rules": {
       "camelcase": 0,
       "n/handle-callback-err": 0,
-      "space-before-function-paren": [
-        "error",
-        "never"
-      ]
+      "space-before-function-paren": [ "error", "never" ]
     }
   }
 }
