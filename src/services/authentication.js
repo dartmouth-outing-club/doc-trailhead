@@ -6,6 +6,9 @@ import * as constants from '../constants.js'
 const service_url = `${constants.backendURL}/signin-cas`
 const cas_url = 'https://login.dartmouth.edu/cas'
 
+const CASID_RE = /<cas:name>([^<]*)<\/cas:name>/
+const NETID_RE = /<cas:netid>([^<]*)<\/cas:netid>/
+
 /**
  * Require authentication for a route.
  *
@@ -96,29 +99,37 @@ export async function signinCAS(req, res) {
 
   // Validate the ticket that is provided with the CAS server to verify that it's valid
   const params = new URLSearchParams({ service: service_url, ticket })
-  const validationUri = cas_url + '/validate?' + params
+  const validationUri = cas_url + '/serviceValidate?' + params
 
   const validationRes = await fetch(validationUri)
   const validationText = await validationRes.text()
-  const validaton = validationText.split('\n')
 
-  // If the server sent back anything besides 'yes' in the first line, it's invalid
-  if (validaton.at(0) !== 'yes') {
+  const partialCasId = validationText.match(CASID_RE)?.at(1)
+  const netId = validationText.match(NETID_RE)?.at(1)
+
+  // If the server did not send back a casId for that ticket, it's an invalid login
+  if (!partialCasId) {
     console.error('CAS validation failed', validationText)
-    return res.sendStatus(500)
+    return res.sendStatus(400)
   }
+  // Add the domain to the CasID to match what's in the database
+  const casId = partialCasId + '@DARTMOUTH.EDU'
 
-  // The second line is the casId
-  const casId = validaton.at(1)
-  if (!casId) {
-    console.error('CAS validated but returned empty casId', validationText)
-    return res.sendStatus(502)
-  }
-
-  let userId = req.db.getUserByCasId(casId)?.id
+  // Originally, we used an older version of CAS that only gave us the CasID.
+  // Now, finally, we have the NetID, which doesn't change when people's names change
+  // This smoothely upgrades people as they login
+  let userId = req.db.getUserByNetId(netId)?.id
+  // If there's no user with that NetID, look for one with that CasID
   if (!userId) {
-    userId = req.db.insertUser(casId)
-    console.log(`Created new user ${userId} for casId ${casId}`)
+    userId = req.db.getUserByCasId(casId)?.id
+    // If there's no one with that CasID OR that NetID, they're a new user, so insert them
+    if (!userId) {
+      userId = req.db.insertUser(netId, casId)
+      console.log(`Created new user ${userId} for netId ${netId}`)
+    // Otherwise, if they have a CasID but no NetID, insert their NetID
+    } else {
+      req.db.run('UPDATE users SET net_id = ? WHERE id = ?', netId, userId)
+    }
   }
 
   const token = await generateAndInsertNewToken(userId)

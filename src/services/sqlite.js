@@ -79,6 +79,10 @@ export default class TrailheadDatabaseConnection {
     return this.#db.prepare('SELECT * FROM users WHERE id = ?').get(id)
   }
 
+  getUserByNetId(netId) {
+    return this.#db.prepare('SELECT * FROM users WHERE net_id = ?').get(netId)
+  }
+
   getUserByCasId(casId) {
     return this.#db.prepare('SELECT * FROM users WHERE cas_id = ?').get(casId)
   }
@@ -94,8 +98,9 @@ export default class TrailheadDatabaseConnection {
     })
   }
 
-  insertUser(casId) {
-    const info = this.#db.prepare('INSERT INTO users (cas_id) VALUES (?)').run(casId)
+  insertUser(netId, casId) {
+    const info = this.#db.prepare('INSERT INTO users (net_id, cas_id) VALUES (?, ?)')
+      .run(netId, casId)
     return info.lastInsertRowid
   }
 
