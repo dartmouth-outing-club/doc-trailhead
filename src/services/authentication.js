@@ -1,6 +1,5 @@
 import crypto from 'node:crypto'
 
-import * as sessions from '../services/sessions.js'
 import * as constants from '../constants.js'
 
 const service_url = `${constants.backendURL}/signin-cas`
@@ -26,7 +25,7 @@ export function requireAuth(req, res, next) {
   }
 
   const cookieToken = cookies.find(item => item.substring(0, 5) === 'token')?.substring(6)
-  const userId = sessions.getUserIdFromToken(cookieToken)
+  const userId = req.db.getUserIdFromToken(cookieToken)
   // If there is a valid user session for that token, then add the user to request and move on
   if (userId) {
     req.user = userId
@@ -36,7 +35,7 @@ export function requireAuth(req, res, next) {
     `, userId)
 
     if (!userInfo) {
-      sessions.invalidateToken(cookieToken)
+      req.db.invalidateToken(cookieToken)
       return denyLogin(req, res, next)
     }
     if (!userInfo.is_profile_complete && !req.url.includes('/new-user')) {
@@ -48,7 +47,7 @@ export function requireAuth(req, res, next) {
   }
 
   // Otherwise, invalidate the token we received (redundant, but clean) and deny login
-  sessions.invalidateToken(cookieToken)
+  req.db.invalidateToken(cookieToken)
   return denyLogin(req, res, next)
 }
 
@@ -132,21 +131,21 @@ export async function signinCAS(req, res) {
     }
   }
 
-  const token = await generateAndInsertNewToken(userId)
+  const token = await generateAndInsertNewToken(req.db, userId)
   console.log(`Signed in user ${userId} for casId ${casId}`)
   res.cookie('token', token, { secure: true, sameSite: 'Lax', httpOnly: true })
   return res.redirect('/')
 }
 
 export function logout(req, res) {
-  sessions.invalidateUserToken(req.user)
+  req.db.invalidateUserToken(req.user)
   console.log(`Invalidate token for ${req.user}`)
   return sendToLogin(req, res)
 }
 
-async function generateAndInsertNewToken(userId) {
+async function generateAndInsertNewToken(db, userId) {
   const token = await getRandomKey()
-  sessions.insertOrReplaceToken(userId, token)
+  db.insertOrReplaceToken(userId, token)
   return token
 }
 
@@ -182,7 +181,7 @@ export function devLogin(_req, res) {
     console.error('The dev login route was accessed, which should only be possible in dev mode.')
     return res.sendStatus(404)
   }
-  sessions.setTokenUnsafe(1, 'devtoken')
+  req.db.setTokenUnsafe(1, 'devtoken')
   res.cookie('token', 'devtoken', { secure: true, sameSite: 'Lax' })
   return res.redirect('/')
 }

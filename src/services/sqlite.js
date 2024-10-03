@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import Database from 'better-sqlite3'
 
+const _30_DAYS_IN_MS = 2592000000
+
 export default class TrailheadDatabaseConnection {
   #db
 
@@ -178,5 +180,58 @@ export default class TrailheadDatabaseConnection {
   `, vehicleRequestId)?.email
 
     return email
+  }
+
+  /**
+   * Session Management
+   */
+
+  /**
+   * Get the user associated with the token provided.
+   * Returns the userId if the token is valid, undefined otherwise.
+   * Tokens are invalid if they do not exist in the database, or are over 30 days old.
+   */
+  getUserIdFromToken(token) {
+    const currentTimestamp = (new Date()).getTime()
+
+    const result = this.getSessionByToken(token)
+    if (!result) return undefined
+
+    if (result.timestamp + _30_DAYS_IN_MS < currentTimestamp) {
+      console.warn(`Token for user ${result.user} is expired, deleting it.`)
+      invalidateToken(token)
+      return undefined
+    }
+
+    return result.user
+  }
+
+  getSessionByToken(token) {
+    return this.#db.prepare('SELECT user, timestamp FROM tokens WHERE token = ?').get(token)
+  }
+
+  insertOrReplaceToken(userId, token) {
+    const timestamp = (new Date()).getTime()
+    this.#db.prepare('INSERT OR REPLACE INTO tokens (user, token, timestamp) VALUES (?, ?, ?)')
+      .run(userId, token, timestamp)
+  }
+
+  invalidateUserToken(userId) {
+    this.#db.prepare('DELETE FROM tokens WHERE user = ?').run(userId)
+  }
+
+  invalidateToken(token) {
+    this.#db.prepare('DELETE FROM tokens WHERE token = ?').run(token)
+  }
+
+  /**
+   * Set a specific token for a specific user.
+   *
+   * Designated unsafe because there is no reason that you should use this in the normal course of
+   * operation. It is is intended only for the developer route.
+   */
+  setTokenUnsafe(userId, token) {
+    this.#db.prepare('INSERT OR REPLACE INTO tokens (user, token) VALUES (? ,?)')
+      .run(userId, token)
   }
 }

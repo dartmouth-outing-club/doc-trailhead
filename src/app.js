@@ -2,20 +2,13 @@ import cron from 'node-cron'
 import * as emails from './emails.js'
 import * as server from './server.js'
 import * as mailer from './services/mailer.js'
-import * as sessions from './services/sessions.js'
 
 import TrailheadDatabaseConnection from './services/sqlite.js'
 
-const isTest = process.env.NODE_ENV === 'TESTS'
-
 const databaseFp = 'trailhead.db'
 const trailheadDb = new TrailheadDatabaseConnection(databaseFp)
-sessions.start(`sessions${isTest ? '' : ''}.db`)
 
-process.on('exit', () => {
-  trailheadDb.stop()
-  sessions.stop()
-})
+process.on('exit', () => { trailheadDb.stop() })
 process.on('SIGHUP', () => process.exit(128 + 1))
 process.on('SIGINT', () => process.exit(128 + 2))
 process.on('SIGTERM', () => process.exit(128 + 15))
