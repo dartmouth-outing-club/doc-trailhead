@@ -3,10 +3,12 @@
 <h1>Gear Checkout Sheet</h1>
 
 <dl>
-  <dt>Title:</dt>
-  <dd>{{ title }}</dd>
-  <dt>Trip #</dt>
-  <dd>{{ trip_id }}</dd>
+  <dt>Trip ID     <dd>{{ trip.id }}</dd>
+  <dt>Title       <dd>{{ trip.title }}</dd>
+  <dt>Subclub     <dd>{{ trip.club_name }}</dd>
+  <dt>Trip Leader <dd>{{ trip.owner_name }}</dd>
+  <dt>Start Time  <dd>{{ trip.start_time | safe }}</dd>
+  <dt>End Time    <dd>{{ trip.end_time | safe }}</dd>
 </dl>
 
 <style>
