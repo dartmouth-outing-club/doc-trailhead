@@ -4,7 +4,7 @@ This is the DOC Trailhead web application!
 Interested in contributing? See the [contributions guidelines](CONTRIBUTIONS.md).
 
 ## Quick Start
-To get started developing, run `npm run i` to install the dependencies and `npm run init-db` to
+To get started developing, run `npm i` to install the dependencies and `npm run init-db` to
 create the `trailhead.db` file. Then, you can run the server with `npm run dev` and visit it by
 navigating your browser to `localhost:8080`.
 

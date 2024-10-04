@@ -1,1 +1,0 @@
-ALTER TABLE trips ADD COLUMN plan TEXT;
