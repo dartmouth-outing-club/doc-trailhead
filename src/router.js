@@ -31,9 +31,6 @@ const router = Router()
 
 // Helper functions to make the routes a little more readable
 router.enableRender = (path) => router.get(`/${path}`, (_req, res) => res.render(`${path}.njk`))
-// TODO add back transactions
-// router.postTransaction = (...args) => router.post(...args.slice(0, -1), withTransaction(args.at(-1)))
-// router.putTransaction = (...args) => router.put(...args.slice(0, -1), withTransaction(args.at(-1)))
 
 router.get('/', requireAuth, (req, res) => {
   const is_opo = req.db.get('SELECT is_opo FROM users WHERE id = ?', req.user)?.is_opo

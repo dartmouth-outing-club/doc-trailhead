@@ -3,6 +3,9 @@ import Database from 'better-sqlite3'
 
 const _30_DAYS_IN_MS = 2592000000
 
+// Match all files with names like 3-migration-name.sql
+const MIGRATION_REGEX = /[0-9]+-.*\.sql/
+
 export default class TrailheadDatabaseConnection {
   #db
 
@@ -11,11 +14,20 @@ export default class TrailheadDatabaseConnection {
     try {
       this.#db = new Database(dbName, { fileMustExist: true })
     } catch (err) {
-      console.log(err)
       if (err.code === 'SQLITE_CANTOPEN') {
-        throw new Error(`Failed to open db ${dbName}. Did you remember to initialize the database?`)
+        console.log(`Note: database ${dbName} does not exist; starting new one`)
+        this.#db = new Database(dbName)
+      } else {
+        throw err
       }
     }
+
+    this.run(`
+      CREATE TABLE IF NOT EXISTS _migrations (
+        filename TEXT NOT NULL,
+        timestamp INTEGER DEFAULT CURRENT_TIMESTAMP
+      );
+    `)
 
     this.#db.pragma('journal_mode = WAL')
     this.#db.pragma('foreign_keys = ON')
@@ -36,28 +48,12 @@ export default class TrailheadDatabaseConnection {
     return this.#db.exec(statements)
   }
 
-  /**
-   * REST functions
-   */
   get(query, ...params) {
     return this.#db.prepare(query).get(...params)
   }
 
   all(query, ...params) {
     return this.#db.prepare(query).all(...params)
-  }
-
-  /**
-   * Wrap final middleware function in a database transaction.
-   *
-   * Note that because this calls the two-argument middleware (no next()) it can only be used as the
-   * final function. This is useful! You shouldn't be doing database transactions in any other parts
-   * of the chain.
-   */
-  withTransaction(func) {
-    return (req, res) => {
-      this.#db.transaction(() => func(req, res))()
-    }
   }
 
   run(query, ...params) {
@@ -76,6 +72,42 @@ export default class TrailheadDatabaseConnection {
       }
     })
   }
+
+  runMigrations(dirName) {
+    const migrations = fs.readdirSync(dirName, { withFileTypes: true })
+      .filter(item => !item.isDirectory() && MIGRATION_REGEX.test(item.name))
+      .map(item => {
+        // Get the leading number of the migration so that we know what order to run them in
+        const num = parseInt(item.name.match('[0-9]+')?.at(0))
+        const filepath = `${item.path}/${item.name}`
+        // Check whether the migration has been applied before
+        const isApplied = this.get(
+          `SELECT EXISTS (SELECT filename FROM _migrations WHERE filename = ?) as is_applied`,
+          item.name
+        ).is_applied === 1
+
+        return { num, filepath, isApplied, ...item }
+      })
+      .sort((a, b) => (a.num - b.num))
+
+    const unappliedMigrations = migrations.filter(migration => !migration.isApplied)
+    const appliedMigrationsCount = migrations.length - unappliedMigrations.length
+
+    console.log(`Migrations that were previously applied: ${appliedMigrationsCount}`)
+    console.log(`Migrations to apply: ${unappliedMigrations.length}`)
+
+    // Run all the unapplied migrations together in a single transaction
+    // If any of them fail, the database should stay in the same state
+    this.transaction(() => {
+      for (const migration of unappliedMigrations) {
+        console.log(`Applying migration ${migration.name}`)
+        this.execFile(migration.filepath)
+        this.run('INSERT INTO _migrations (filename) VALUES (?)', migration.name)
+      }
+    })()
+  }
+
+  /** Trailhead specifc routes */
 
   getUserById(id) {
     return this.#db.prepare('SELECT * FROM users WHERE id = ?').get(id)
