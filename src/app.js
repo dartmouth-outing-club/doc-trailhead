@@ -7,7 +7,7 @@ import TrailheadDatabaseConnection from './services/sqlite.js'
 
 const databaseFp = 'trailhead.db'
 const trailheadDb = new TrailheadDatabaseConnection(databaseFp)
-// trailheadDb.runMigrations('./db/migrations')
+trailheadDb.runMigrations('./db/migrations')
 
 process.on('exit', () => { trailheadDb.stop() })
 process.on('SIGHUP', () => process.exit(128 + 1))

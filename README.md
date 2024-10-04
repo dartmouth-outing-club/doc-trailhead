@@ -4,18 +4,15 @@ This is the DOC Trailhead web application!
 Interested in contributing? See the [contributions guidelines](CONTRIBUTIONS.md).
 
 ## Quick Start
-To get started developing, run `npm i` to install the dependencies and `npm run init-db` to
-create the `trailhead.db` file. Then, you can run the server with `npm run dev` and visit it by
-navigating your browser to `localhost:8080`.
+To get started developing, run `npm i` to install the dependencies.
+Then, you can run the server with `npm run dev` and visit it by navigating your browser to `localhost:8080`.
 
 Development commands:
 * `npm i` - install dependencies
 * `npm t` - run tests (requires SQLite installation)
 * `npm run dev` - run in development mode
 * `npm start` - run in production mode (requires `.env` file)
-* `npm run init-db` - create a clean version of the database, with a little bit of seed data
 * `npm run lint` - run the linter
-* `npm run migrate MIGRATION_FP` - run a database migration
 * `npm run format` - run the linter in `--fix` mode (might alter the code)
 
 Database commands

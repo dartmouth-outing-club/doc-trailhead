@@ -131,10 +131,6 @@ CREATE TABLE IF NOT EXISTS "trip_pcard_requests" (
   dinner INTEGER NOT NULL DEFAULT 0,
   other_costs TEXT NOT NULL DEFAULT '[]' -- Deprecated, no longer in use
 ) STRICT;
-CREATE TABLE _migrations (
-  name TEXT NOT NULL,
-  timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-) STRICT;
 CREATE TABLE IF NOT EXISTS "pcard_request_costs" (
   id INTEGER PRIMARY KEY,
   trip INTEGER REFERENCES trips ON DELETE CASCADE ON UPDATE CASCADE,

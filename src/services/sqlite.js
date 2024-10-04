@@ -56,6 +56,14 @@ export default class TrailheadDatabaseConnection {
     return this.#db.prepare(query).all(...params)
   }
 
+  prepare(query) {
+    return this.#db.prepare(query)
+  }
+
+  transaction(fn) {
+    return this.#db.transaction(fn)
+  }
+
   run(query, ...params) {
     return this.#db.prepare(query).run(...params)
   }
