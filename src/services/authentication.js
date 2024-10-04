@@ -176,7 +176,7 @@ function denyLogin(req, res, next) {
  * This function is intended only to be used when the application is in development mode. It sets
  * the browser to use the 'devtoken' cookie, and saves that cookie to log the user in as user #1.
  */
-export function devLogin(_req, res) {
+export function devLogin(req, res) {
   if (process.env.NODE_ENV !== 'development') {
     console.error('The dev login route was accessed, which should only be possible in dev mode.')
     return res.sendStatus(404)

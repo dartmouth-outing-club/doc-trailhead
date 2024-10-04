@@ -90,7 +90,7 @@ export default class TrailheadDatabaseConnection {
         const filepath = `${item.path}/${item.name}`
         // Check whether the migration has been applied before
         const isApplied = this.get(
-          `SELECT EXISTS (SELECT filename FROM _migrations WHERE filename = ?) as is_applied`,
+          'SELECT EXISTS (SELECT filename FROM _migrations WHERE filename = ?) as is_applied',
           item.name
         ).is_applied === 1
 
@@ -239,7 +239,7 @@ export default class TrailheadDatabaseConnection {
 
     if (result.timestamp + _30_DAYS_IN_MS < currentTimestamp) {
       console.warn(`Token for user ${result.user} is expired, deleting it.`)
-      invalidateToken(token)
+      this.invalidateToken(token)
       return undefined
     }
 
