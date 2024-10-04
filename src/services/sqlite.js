@@ -45,7 +45,12 @@ export default class TrailheadDatabaseConnection {
 
   execFile(filePath) {
     const statements = fs.readFileSync(filePath).toString()
-    return this.#db.exec(statements)
+    try {
+      this.#db.exec(statements)
+    } catch (err) {
+      console.error(`Error running executing file ${filePath}`, err)
+      throw err
+    }
   }
 
   get(query, ...params) {

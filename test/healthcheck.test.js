@@ -6,7 +6,6 @@ import TrailheadDatabaseConnection from '../src/services/sqlite.js'
 
 test('welcome page', async (t) => {
   const db = new TrailheadDatabaseConnection()
-  db.execFile('./db/trailhead-db-schema.sql')
   const server = startServer(db)
   const port = server.address().port
 

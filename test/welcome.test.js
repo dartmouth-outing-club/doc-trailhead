@@ -6,8 +6,7 @@ import TrailheadDatabaseConnection from '../src/services/sqlite.js'
 
 test('welcome page', async (t) => {
   const db = new TrailheadDatabaseConnection()
-  db.execFile('./db/trailhead-db-schema.sql')
-  db.execFile('./db/seed-data/1-clubs.sql')
+  db.runMigrations('./db/migrations')
   db.execFile('./db/seed-data/2-users.sql')
   db.execFile('./db/seed-data/3-trips.sql')
 
