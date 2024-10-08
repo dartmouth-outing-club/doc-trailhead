@@ -1,0 +1,6 @@
+SELECT title, date(start_time / 1000, 'unixepoch')
+FROM trips
+WHERE
+  title LIKE '%trail work%' or
+  title LIKE '%trailwork%'
+;
