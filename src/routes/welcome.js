@@ -1,7 +1,7 @@
 import * as constants from '../constants.js'
 import * as utils from '../utils.js'
 
-const LOGIN_URL = `https://login.dartmouth.edu/cas/login?service=${constants.backendURL}/signin-cas`
+const LOGIN_URL = `https://login.dartmouth.edu/cas/login?service=${constants.ORIGIN}/signin-cas`
 
 export function get(req, res) {
   const now = new Date()
