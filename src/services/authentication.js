@@ -2,7 +2,7 @@ import crypto from 'node:crypto'
 
 import * as constants from '../constants.js'
 
-const service_url = `${constants.backendURL}/signin-cas`
+const service_url = `${constants.ORIGIN}/signin-cas`
 const cas_url = 'https://login.dartmouth.edu/cas'
 
 const CASID_RE = /<cas:name>([^<]*)<\/cas:name>/

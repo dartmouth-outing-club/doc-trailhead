@@ -3,7 +3,7 @@ import dateFormat from 'dateformat'
 
 dotenv.config({ silent: true })
 
-export const backendURL = process.env.NODE_ENV === 'development' ? 'http://localhost:8080' : 'https://doc.dartmouth.edu'
+export const ORIGIN = process.env.NODE_ENV === 'development' ? 'http://localhost:8080' : 'https://doc.dartmouth.edu'
 
 export const OPOEmails = ['rory.c.gawler@dartmouth.edu', 'willow.nilsen@dartmouth.edu', 'kellen.t.appleton@dartmouth.edu', 'yong.sheng.ng@dartmouth.edu', 'Elizabeth.U.Keeley@dartmouth.edu']
 export const gearAdminEmails = ['Dartmouth.Outdoor.Rentals@Dartmouth.edu', 'Andrew.M.Deaett@dartmouth.edu']
