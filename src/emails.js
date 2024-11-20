@@ -65,10 +65,13 @@ export function getGearRequestChangedEmail(db, tripId, userId) {
     WHERE trip = ? AND trip_members.user = ?
   `, tripId, userId)
 
+  const trip = db.get('SELECT member_gear_approved FROM trips WHERE id = ?', tripId)
   const leaderEmails = db.getTripLeaderEmails(tripId)
+  const address = trip.member_gear_approved ? [ ...leaderEmails, ...constants.gearAdminEmails ] : leaderEmails
+
   return {
     name: 'Gear request changed',
-    address: leaderEmails,
+    address,
     subject: `Trip #${tripId}: ${info.name} changed gear requests`,
     message: nunjucks.render('emails/gear-request-changed.njk', { info, tripId, constants })
   }
