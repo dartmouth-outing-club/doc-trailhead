@@ -67,7 +67,7 @@ export function getGearRequestChangedEmail(db, tripId, userId) {
 
   const trip = db.get('SELECT member_gear_approved FROM trips WHERE id = ?', tripId)
   const leaderEmails = db.getTripLeaderEmails(tripId)
-  const address = trip.member_gear_approved ? [ ...leaderEmails, ...constants.gearAdminEmails ] : leaderEmails
+  const address = trip.member_gear_approved ? [...leaderEmails, ...constants.gearAdminEmails] : leaderEmails
 
   return {
     name: 'Gear request changed',
