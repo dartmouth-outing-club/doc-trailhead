@@ -118,6 +118,28 @@ input[type=search] {
   margin: 0 0 15px 10px;
 }
 
+.filters {
+  margin-right: 2em;
+}
+
+.filters > label {
+  margin: 10px 0;
+  font-weight: bold;
+  flex-direction: row;
+  display: flex;
+  align-items: center;
+  gap: .5em;
+}
+
+.filters > label > a > input {
+  font-size: 1.1em;
+}
+
+input[type=checkbox] {
+  height: 1.2em;
+  width: 1.2em;
+}
+
 form button.approve {
   padding: .25rem .5rem;
 }
