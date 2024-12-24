@@ -5,30 +5,32 @@
 {% include "common/site-nav.njk" %}
 <main>
 
-{% set view = 'list' if show_list else 'tiles' %}
-{% set experience = 'false' if beginners_only else 'true' %}
-
 <section class="info-card controls">
 <h1><img src="/static/icons/mountain-icon.svg">Explore Trips</h1>
 <div class=view-types>
   <div class=filters>
     <label>
-      <a hx-get="/all-trips?view={{ view }}&beginnersOnly={{ experience }}" hx-target="body">
-        <input type="checkbox" {% if beginners_only %} checked {% endif %} />
-      </a>
+      <input
+          hx-get="?view={{ view }}&beginnersOnly={{ 'false' if beginners_only else 'true' }}"
+          hx-push-url=true
+          hx-target="body"
+          type=checkbox
+          autocomplete=off
+          {{ 'checked' if beginners_only }}
+          >
       No experience needed
     </label>
   </div>
   <a
-    class="action filter-option {% if not show_list %}selected{% endif %}"
-    href="?view=tiles&beginnersOnly={{ 'true' if beginners_only else 'false' }}"
+    class="action filter-option {{ 'selected' if view == 'tiles' }}"
+    href="?view=tiles&beginnersOnly={{ beginners_only }}"
   >
     <img class=club-logo src="/static/icons/grid-icon.svg">
     <span>Tiles</span>
   </a>
   <a
-    class="action filter-option {% if show_list %}selected{% endif %}"
-    href="?view=list&beginnersOnly={{ 'true' if beginners_only else 'false' }}"
+    class="action filter-option {{ 'selected' if view == 'list' }}"
+    href="?view=list&beginnersOnly={{ beginners_only }}"
   >
     <img class=club-logo src="/static/icons/stack-icon.svg">
     <span>List</span>
