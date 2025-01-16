@@ -1,8 +1,11 @@
 import * as utils from '../utils.js'
 
+const LEGAL_VIEWS = ['list', 'tiles']
+
 export function get(req, res) {
   const now = new Date()
-  const show_list = req.query?.view === 'list'
+  const view = LEGAL_VIEWS.includes(req.query?.view) ? req.query.view : 'list'
+
   const beginners_only = req.query?.beginnersOnly === 'true'
   const showPrivate = res.locals.is_opo
 
@@ -20,5 +23,5 @@ export function get(req, res) {
 
   const trips = publicTrips.map(utils.formatForTripForTables)
 
-  res.render('views/all-trips.njk', { trips, show_list, beginners_only })
+  res.render('views/all-trips.njk', { trips, view, beginners_only })
 }

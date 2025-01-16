@@ -122,7 +122,7 @@ input[type=search] {
   margin-right: 2em;
 }
 
-.filters > label {
+.filters label {
   margin: 10px 0;
   font-weight: bold;
   flex-direction: row;
@@ -131,11 +131,11 @@ input[type=search] {
   gap: .5em;
 }
 
-.filters > label > a > input {
+.filters input {
   font-size: 1.1em;
 }
 
-input[type=checkbox] {
+.filters input[type=checkbox] {
   height: 1.2em;
   width: 1.2em;
 }
