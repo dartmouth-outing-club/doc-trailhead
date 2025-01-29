@@ -7,3 +7,5 @@ npm-debug.log
 *.db
 *-wal
 *-shm
+
+.DS_Store

@@ -5,9 +5,6 @@
 {% include "common/site-nav.njk" %}
 <main>
 
-{% set view = 'list' if show_list else 'tiles' %}
-{% set experience = 'false' if beginners_only else 'true' %}
-
 <section class="info-card controls">
 <h1><img src="/static/icons/mountain-icon.svg">Explore Trips</h1>
 <div class=view-types>
@@ -47,7 +44,7 @@
 </div>
 </section>
 
-{% if not show_list %}
+{% if view == 'tiles' %}
 <section class="trips">
 {% for trip in trips %}
 <a href=/trip/{{ trip.id }} class=trip-card>
@@ -83,4 +80,3 @@
 </section>
 {% endif%}
 </main>
-
