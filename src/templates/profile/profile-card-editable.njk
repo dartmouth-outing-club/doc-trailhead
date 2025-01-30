@@ -12,39 +12,8 @@
   </div>
 </section>
 <section>
-<dl>
-  <dt>Pronouns<dd><input type=text name=pronouns value="{{ pronoun }}">
-  <dt>Phone # <div class=hint>&nbsp;(just enter the number, no dashes)</div><dd><input type=text pattern="[0-9]{10,}" name="phone" value="{{ phone }}">
-  <dt>DASH<dd><input type=text name="dash_number" value="{{ dash_number }}">
-  <dt>Clothing Size<dd>
-      <select name="clothe_size" value="{{ clothe_size }}">
-        <option {{ 'selected' if clothe_size == 'Women-XS' }}>Women-XS
-        <option {{ 'selected' if clothe_size == 'Women-S' }}>Women-S
-        <option {{ 'selected' if clothe_size == 'Women-M' }}>Women-M
-        <option {{ 'selected' if clothe_size == 'Women-L' }}>Women-L
-        <option {{ 'selected' if clothe_size == 'Women-XL' }}>Women-XL
-        <option {{ 'selected' if clothe_size == 'Women-2XL' }}>Women-2XL
-        <option {{ 'selected' if clothe_size == 'Women-3XL' }}>Women-3XL
-        <option {{ 'selected' if clothe_size == 'Men-XS' }}>Men-XS
-        <option {{ 'selected' if clothe_size == 'Men-S' }}>Men-S
-        <option {{ 'selected' if clothe_size == 'Men-M' }}>Men-M
-        <option {{ 'selected' if clothe_size == 'Men-L' }}>Men-L
-        <option {{ 'selected' if clothe_size == 'Men-XL' }}>Men-XL
-        <option {{ 'selected' if clothe_size == 'Men-2XL' }}>Men-2XL
-        <option {{ 'selected' if clothe_size == 'Men-3XL' }}>Men-3XL
-      </select>
-  <dt>Shoe Size<dd>
-      <select name="shoe_size_sex">
-        <option {{ 'selected' if shoe_size_sex == 'Men' }}>Men
-        <option {{ 'selected' if shoe_size_sex == 'Women' }}>Women
-      </select>
-      <input id="shoe-size-input" type=number step=0.5 min=5.5 max=25 name="shoe_size_num" value="{{ shoe_size_num }}">
-  <dt>Height<dd>
-      <input type=number name="feet" value="{{ feet }}">ft.
-      <input type=number name="inches" value="{{ inches }}">in.
-  <dt>Allergies/Dietary Restrictions<dd><input type=text name="allergies_dietary_restrictions" value="{{ allergies_dietary_restrictions }}">
-  <dt>Medical Conditions<dd><input type=text name="medical_conditions" value="{{ medical_conditions }}">
-</dl>
+{% set noNameNorEmail = true %}
+{% include "profile/edit-profile-form.njk" %}
 </section>
 <section>
 <div class=button-row>
