@@ -38,7 +38,7 @@
         <option {{ 'selected' if shoe_size_sex == 'Men' }}>Men
         <option {{ 'selected' if shoe_size_sex == 'Women' }}>Women
       </select>
-      <input type=number name="shoe_size_num" value="{{ shoe_size_num }}">
+      <input id="shoe-size-input" type=number step=0.5 min=5.5 max=25 name="shoe_size_num" value="{{ shoe_size_num }}">
   <dt>Height<dd>
       <input type=number name="feet" value="{{ feet }}">ft.
       <input type=number name="inches" value="{{ inches }}">in.

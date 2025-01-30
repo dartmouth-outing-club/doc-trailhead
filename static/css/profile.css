@@ -86,6 +86,10 @@
   font-size: 1.1em;
 }
 
+#shoe-size-input {
+  width: 20%;
+}
+
 .profile-card input[type=number] {
   width: 15%;
   padding: .5em 1em;
