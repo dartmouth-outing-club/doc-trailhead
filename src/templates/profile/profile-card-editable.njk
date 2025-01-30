@@ -7,14 +7,14 @@
 <section class=profile-overview>
   <div class=profile-photo></div>
   <div class=profile-name>
-    <input type=text name=name value="{{ name }}" required>
-    <input type=email name=email value="{{ email }}" required class=email-row>
+    <input placeholder="Full Name" type=text name=name value="{{ name }}" required>
+    <input placeholder="Email" type=email name=email value="{{ email }}" required class=email-row>
   </div>
 </section>
 <section>
 <dl>
   <dt>Pronouns<dd><input type=text name=pronouns value="{{ pronoun }}">
-  <dt>Phone # <div class=hint>(just enter the number, no dashes)</div><dd><input type=text pattern="[0-9]{10,}" name="phone" value="{{ phone }}">
+  <dt>Phone # <div class=hint>&nbsp;(just enter the number, no dashes)</div><dd><input type=text pattern="[0-9]{10,}" name="phone" value="{{ phone }}">
   <dt>DASH<dd><input type=text name="dash_number" value="{{ dash_number }}">
   <dt>Clothing Size<dd>
       <select name="clothe_size" value="{{ clothe_size }}">
