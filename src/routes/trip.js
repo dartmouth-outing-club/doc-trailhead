@@ -52,13 +52,22 @@ export function getEditView(req, res) {
   if (!req.db.isOpoOrLeaderForTrip(tripId, req.user)) return res.sendStatus(401)
 
   const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
-  const clubs = getClubs(req.db, req.user, res.locals.is_opo)
+
   const trip = req.db.get(`
     SELECT id, title, club, cost, coleader_can_edit, experience_needed, private, start_time,
     end_time, location, pickup, dropoff, description, plan
     FROM trips
     WHERE id = ?
   `, tripId)
+
+  let clubs = getClubs(req.db, req.user, res.locals.is_opo)
+
+  const tripClub = req.db.get('SELECT id, name FROM clubs WHERE id = ?', trip.club)
+
+  if (tripClub && !clubs.some(club => club.id === tripClub.id)) {
+    clubs = [...clubs, tripClub]
+  }
+
   trip.leaders = req.db.all(`
     SELECT name
     FROM trip_members
