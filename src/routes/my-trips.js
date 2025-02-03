@@ -20,18 +20,11 @@ export function get(req, res) {
     ORDER BY start_time ASC
   `, userId, now.getTime() - _24_HOURS_IN_MS)
 
-  const trips = tripsForUser.map(trip => {
-    const title = trip.title.length < 38 ? trip.title : trip.title.substring(0, 38) + '...'
-    const description = trip.description.length < 190
-      ? trip.description
-      : trip.description.substring(0, 190) + '...'
-    return {
-      ...trip,
-      title,
-      description,
-      iconPath: utils.getClubIcon(trip.club),
-      time_element: utils.getDatetimeRangeElement(trip.start_time, trip.end_time)
-    }
-  })
+  const trips = tripsForUser.map(trip => ({
+    ...trip,
+    iconPath: utils.getClubIcon(trip.club),
+    time_element: utils.getDatetimeRangeElement(trip.start_time, trip.end_time)
+  }))
+
   res.render('views/my-trips.njk', { can_create_trip, trips })
 }

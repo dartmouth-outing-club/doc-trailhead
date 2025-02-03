@@ -1,14 +1,8 @@
 import dateFormat from 'dateformat'
 
 export function formatForTripForTables(trip) {
-  const title = trip.title.length < 38 ? trip.title : trip.title.substring(0, 38) + '...'
-  const description = trip.description.length < 190
-    ? trip.description
-    : trip.description.substring(0, 190) + '...'
   return {
     ...trip,
-    title,
-    description,
     icon_path: getClubIcon(trip.club),
     time_element: getDatetimeRangeElement(trip.start_time, trip.end_time)
   }

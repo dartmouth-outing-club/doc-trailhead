@@ -9,3 +9,4 @@ npm-debug.log
 *-shm
 
 .DS_Store
+.vscode

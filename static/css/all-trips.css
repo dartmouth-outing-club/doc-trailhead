@@ -68,6 +68,23 @@ a.trip-card {
   position: relative;
 }
 
+.trip-card h2, .trip-card p {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+}
+
+.trip-card h2 {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.trip-card p {
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+}
+
 .trip-card > * {
   margin: 10px 0;
 }
@@ -77,7 +94,7 @@ a.trip-card {
   transform: rotate(28.1187deg);
   height: 130px;
   width: 130px;
-  right: 5px;
+  right: 10px;
   position: absolute;
   z-index: 1;
 }
