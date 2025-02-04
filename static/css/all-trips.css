@@ -66,6 +66,12 @@ a.trip-card {
   margin: 15px;
   padding: 15px;
   position: relative;
+  overflow: hidden;
+}
+
+.trip-card-content {
+  height: 100%;
+  overflow: hidden;
 }
 
 .trip-card h2, .trip-card p {
@@ -85,7 +91,7 @@ a.trip-card {
   line-clamp: 5;
 }
 
-.trip-card > * {
+.trip-card-content > * {
   margin: 10px 0;
 }
 

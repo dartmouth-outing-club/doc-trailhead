@@ -64,10 +64,6 @@ input[type=checkbox]:checked {
   accent-color: var(--approval-main-color);
 }
 
-button {
-  cursor: pointer;
-}
-
 button.action, a.action {
   border: 2px solid white;
   border-radius: 6px;

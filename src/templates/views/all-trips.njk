@@ -45,15 +45,17 @@
 </section>
 
 {% if view == 'tiles' %}
-<section class="trips">
+<section class=trips>
 {% for trip in trips %}
 <a href=/trip/{{ trip.id }} class=trip-card>
-  <img class=club-logo src="{{ trip.icon_path | safe }}">
-  <header>Trip #{{ trip.id }}</header>
-  <h2>{{ trip.title }}</h2>
-  <div>{{ trip.time_element | safe }}</div>
-  <div class="club-tag">{{ trip.club }}</div>
-  <p>{{ trip.description }}</p>
+  <div class=trip-card-content>
+    <img class=club-logo src="{{ trip.icon_path | safe }}">
+    <header>Trip #{{ trip.id }}</header>
+    <h2>{{ trip.title }}</h2>
+    <div>{{ trip.time_element | safe }}</div>
+    <div class="club-tag">{{ trip.club }}</div>
+    <p>{{ trip.description }}</p>
+  </div>
 </a>
 {% endfor %}
 </section>

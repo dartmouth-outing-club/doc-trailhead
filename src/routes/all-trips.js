@@ -11,7 +11,7 @@ export function get(req, res) {
 
   const publicTrips = req.db.all(`
     SELECT trips.id, title, users.name as owner, location, start_time, end_time, description,
-      ifnull(clubs.name, 'None') as club
+      coalesce(clubs.name, 'None') as club
     FROM trips
     LEFT JOIN users on trips.owner = users.id
     LEFT JOIN clubs on trips.club = clubs.id

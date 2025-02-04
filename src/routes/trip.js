@@ -62,6 +62,7 @@ export function getEditView(req, res) {
 
   let clubs = getClubs(req.db, req.user, res.locals.is_opo)
 
+  // Add the current club to the list of clubs (if it's not already there)
   const tripClub = req.db.get('SELECT id, name FROM clubs WHERE id = ?', trip.club)
 
   if (tripClub && !clubs.some(club => club.id === tripClub.id)) {
