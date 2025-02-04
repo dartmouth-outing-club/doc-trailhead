@@ -5,7 +5,13 @@ export function get(req, res) {
 
 export function post(req, res) {
   const { name, type } = req.body
-  req.db.run('INSERT INTO vehicles (name, type) VALUES (?, ?)', name, type)
+  const vehicles = req.db.all('SELECT id, name, type FROM vehicles')
+  const vehicleExists = vehicles.some(vehicle => vehicle.name === name)
+  if (vehicleExists) {
+    req.db.run('UPDATE vehicles SET active = 1 WHERE name = ?', [name])
+  } else {
+    req.db.run('INSERT INTO vehicles (name, type) VALUES (?, ?)', name, type)
+  }
   return get(req, res)
 }
 
