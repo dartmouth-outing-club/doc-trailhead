@@ -79,6 +79,7 @@ a.trip-card {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   text-overflow: ellipsis;
+  word-wrap: break-word;
 }
 
 .trip-card h2 {
@@ -103,10 +104,6 @@ a.trip-card {
   right: 10px;
   position: absolute;
   z-index: 1;
-}
-
-.trip-card h2 {
-  word-wrap: break-word;
 }
 
 .trip-card header  {
