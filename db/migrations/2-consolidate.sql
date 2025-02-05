@@ -43,9 +43,6 @@ Where vehicle IN (38);
 DELETE FROM vehicles
 WHERE id IN (29, 24, 23, 31, 30, 12, 33, 34, 27,28,45,32,40,37,36,38);
 
--- Make a table of consolidated vehicles
-BEGIN;
-
 -- Table with consolidated cleaned vehicle names, min id of group, & active status
 WITH cleaned_vehicles AS (
     SELECT 
@@ -80,8 +77,6 @@ SET
     active = cv.active
 FROM consolidated_vehicles AS cv
 WHERE v.id = cv.id;
-
-COMMIT;
 
 
 -- Unccoment below to see various ids associated with each vehicle
