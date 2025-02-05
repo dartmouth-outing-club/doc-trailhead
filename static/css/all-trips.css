@@ -66,9 +66,33 @@ a.trip-card {
   margin: 15px;
   padding: 15px;
   position: relative;
+  overflow: hidden;
 }
 
-.trip-card > * {
+.trip-card-content {
+  height: 100%;
+  overflow: hidden;
+}
+
+.trip-card h2, .trip-card p {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+}
+
+.trip-card h2 {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.trip-card p {
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+}
+
+.trip-card-content > * {
   margin: 10px 0;
 }
 
@@ -77,13 +101,9 @@ a.trip-card {
   transform: rotate(28.1187deg);
   height: 130px;
   width: 130px;
-  right: 5px;
+  right: 10px;
   position: absolute;
   z-index: 1;
-}
-
-.trip-card h2 {
-  word-wrap: break-word;
 }
 
 .trip-card header  {
