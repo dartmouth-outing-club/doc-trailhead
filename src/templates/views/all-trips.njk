@@ -50,6 +50,11 @@
 <a href=/trip/{{ trip.id }} class=trip-card>
   <div class=trip-card-content>
     <img class=club-logo src="{{ trip.icon_path | safe }}">
+    {% if trip.status == 'pending' %}
+    <img class=status-icon src="/static/icons/pending-badge.svg">
+    {% elif trip.status == 'approved' %}
+    <img class=status-icon src="/static/icons/approved-badge.svg">
+    {% endif %}
     <header>Trip #{{ trip.id }}</header>
     <h2>{{ trip.title }}</h2>
     <div>{{ trip.time_element | safe }}</div>
