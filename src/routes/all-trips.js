@@ -4,14 +4,14 @@ const LEGAL_VIEWS = ['list', 'tiles']
 
 export function get(req, res) {
   const now = new Date()
-  const view = LEGAL_VIEWS.includes(req.query?.view) ? req.query.view : 'list'
+  const view = LEGAL_VIEWS.includes(req.query?.view) ? req.query.view : 'tiles'
 
   const beginners_only = req.query?.beginnersOnly === 'true'
   const showPrivate = res.locals.is_opo
 
   const publicTrips = req.db.all(`
     SELECT trips.id, title, users.name as owner, location, start_time, end_time, description,
-      clubs.name as club
+      coalesce(clubs.name, 'None') as club
     FROM trips
     LEFT JOIN users on trips.owner = users.id
     LEFT JOIN clubs on trips.club = clubs.id

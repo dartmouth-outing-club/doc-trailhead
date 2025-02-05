@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-SESSIONS_DB_NAME="sessions.db"
+SESSIONS_DB_NAME="trailhead.db"
 
 function usage {
   >&2 echo "Usage: set-user.sh USER_ID"

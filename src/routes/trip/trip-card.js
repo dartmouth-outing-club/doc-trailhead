@@ -10,7 +10,7 @@ function getLeaderData(req, tripId, userId) {
     SELECT
       trips.id as trip_id,
       title,
-      ifnull(clubs.name, 'None') as club,
+      coalesce(clubs.name, 'None') as club,
       owner,
       start_time,
       end_time,
@@ -176,7 +176,7 @@ function getSignupData(req, tripId, userId) {
     SELECT
       trips.id as trip_id,
       title,
-      ifnull(clubs.name, 'None') as club,
+      coalesce(clubs.name, 'None') as club,
       start_time,
       end_time,
       pickup,
