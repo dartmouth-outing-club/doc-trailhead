@@ -5,8 +5,6 @@ export function get(req, res) {
 
 export function post(req, res) {
   const { name, type } = req.body;
-
-  // Use upsert to insert a new vehicle or set active status to 1 if it already exists
   req.db.run(
     `INSERT INTO vehicles (name, type, active) 
      VALUES (?, ?, 1) 
@@ -15,15 +13,6 @@ export function post(req, res) {
     [name, type],
   );
   return get(req, res)
-  // const { name, type } = req.body
-  // const vehicles = req.db.all('SELECT id, name, type FROM vehicles')
-  // const vehicleExists = vehicles.some(vehicle => vehicle.name === name)
-  // if (vehicleExists) {
-  //   req.db.run('UPDATE vehicles SET active = 1 WHERE name = ?', [name])
-  // } else {
-  //   req.db.run('INSERT INTO vehicles (name, type) VALUES (?, ?)', name, type)
-  // }
-  // return get(req, res)
 }
 
 export function del(req, res) {
