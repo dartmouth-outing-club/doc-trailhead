@@ -4,14 +4,14 @@ export function get(req, res) {
 }
 
 export function post(req, res) {
-  const { name, type } = req.body;
+  const { name, type } = req.body
   req.db.run(
     `INSERT INTO vehicles (name, type, active) 
      VALUES (?, ?, 1) 
      ON CONFLICT(name) 
      DO UPDATE SET active = 1;`,
-    [name, type],
-  );
+    [name, type]
+  )
   return get(req, res)
 }
 
