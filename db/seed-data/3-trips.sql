@@ -183,4 +183,4 @@ VALUES
     'The null space', 'main()', 'return;', 15, 'This trip should be private and marked late.', 0, 0, NULL, NULL);
 
 INSERT INTO trip_members VALUES
-    (7, 1, 1, 0, 0),
+    (7, 1, 1, 0, 0);
