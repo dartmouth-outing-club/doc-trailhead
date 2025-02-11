@@ -48,6 +48,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   <tr><th>Pickup<td>{{ pickup }}
   <tr><th>Dropoff<td>{{ dropoff }}
   <tr><th>Destination<td>{{ location }}
+  <tr><th>Private<td>{{ "Yes" if private else "No"}}
 </table>
 <table class=detail-table>
   <tr><th>Leader<td>{{ owner_name }}
@@ -55,6 +56,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   <tr><th>Experience needed?<td>{{ experience_needed }}
   <tr><th>Subclub<td>{{ club }}
   <tr><th>Cost<td>{{ cost }}
+  <tr><th><td>
 </table>
 </div>
 </section>
