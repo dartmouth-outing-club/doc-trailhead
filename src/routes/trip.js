@@ -97,17 +97,25 @@ export function createTrip(req, res) {
 
   const trip = convertFormInputToDbInput(req.body, req.user)
 
-  const info = req.db.run(`
+  // Generate a random trip ID and ensure it's unique
+  let tripId = Math.floor((Math.random() * Math.pow(10, 8)))
+
+  while (req.db.get('SELECT id FROM trips WHERE id = ?', tripId)) {
+    tripId = Math.floor((Math.random() * Math.pow(10, 8)))
+  }
+
+  trip.id = tripId
+
+  req.db.run(`
     INSERT INTO trips (
       title, cost, owner, club, experience_needed, private, start_time, end_time,
-      location, pickup, dropoff, description, plan)
+      location, pickup, dropoff, description, plan, id)
     VALUES (
       @title, @cost, @owner, @club, @experience_needed, @private, @start_time,
-      @end_time, @location, @pickup, @dropoff, @description, @plan
+      @end_time, @location, @pickup, @dropoff, @description, @plan, @id
     )
   `, trip)
 
-  const tripId = info.lastInsertRowid
   const leaders = [trip.owner, ...getLeaderIds(req)]
   const tripMembers = leaders.map(userId => [tripId, userId, 1, 0])
   req.db.runMany(
