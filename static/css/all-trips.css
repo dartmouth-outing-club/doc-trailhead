@@ -174,3 +174,48 @@ form button.approve {
     margin: 20px;
   }
 }
+
+.my-trips-nav {
+  font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
+}
+
+.my-trips-nav ul {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+}
+
+.my-trips-nav li {
+  align-items: center;
+  border-bottom-color: white; /* Changing the border color keeps the box from shifting on hover */
+  border-bottom-style: solid;
+  border-bottom-width: 5px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  margin-right: 25px;
+  text-align: center;
+}
+
+.my-trips-nav img {
+  padding-right: 20px;
+  width: 24px;
+}
+
+.my-trips-nav a {
+  display: block;
+  padding: 30px 25px 25px 25px; /* Additional 5px on top to compensate for the bottom border */
+  font-size: 1.2em;
+  text-decoration: none;
+  color: black;
+}
+
+.my-trips-nav li:hover, .my-trips li.selected {
+  border-bottom-color: var(--approval-main-color);
+}
+
+.my-trips li:hover > a, .my-trips li.selected > a {
+  color: var(--approval-main-color);
+}
