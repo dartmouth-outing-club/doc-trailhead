@@ -34,6 +34,28 @@
   </div>
   {% endif %}
 </section>
+{% if trips_by_club | length > 0 %}
+<section class=recent-trips-section>
+  <h2>Incoming and Recent Trips</h2>
+  {% for club, trips in trips_by_club | dictsort %}
+    <h3>{{ club }}</h3>
+    <table class=trip-table>
+      <thead>
+      <tr>
+        <th>Title
+        <th>When
+      </tr>
+      <tbody>
+      {% for trip in trips %}
+        <tr>
+          <td><a href="/trip/{{trip.id}}">{{ trip.title }}</a>
+          <td><div>{{ trip.time_element | safe }}</div>
+        </tr>
+      {% endfor %}
+      </table>
+  {% endfor %}
+</section>
+{% endif %}
 {% if not hide_controls %}
 <section>
   <div class=button-row>
