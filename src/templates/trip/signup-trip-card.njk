@@ -18,7 +18,7 @@ You are currently viewing this trip's signup page.
 {% endif %}
 
 <h2>Description</h2>
-<div class=user-text>{{ description | safe }}</div>
+<div id="user-description" class=user-text>{{ description | safe }}</div>
 
 <h2>Details</h2>
 <div class=dual-table-container>
@@ -95,4 +95,10 @@ function enableForm(oldButton) {
   newButton.innerText = 'Save'
   oldButton.replaceWith(newButton)
 }
+
+const quill = new Quill('#user-description', {
+  theme: 'snow',
+  readOnly: true,
+  modules: { toolbar: false }
+})
 </script>
