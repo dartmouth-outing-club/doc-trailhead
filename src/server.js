@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import express from 'express'
+import bodyParser from 'body-parser'
 import morgan from 'morgan'
 import nunjucks from 'nunjucks'
 
@@ -14,6 +15,11 @@ const FULLCALENDAR_VERSION = getPackageVersion('fullcalendar-scheduler')
 
 export function startServer(trailheadDb, port) {
   const app = express()
+
+  // Increase the payload size limit
+  app.use(bodyParser.json({ limit: '10mb' }))
+  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }))
+
   app.use(morgan('dev'))
   app.yearCache = (route, path) => app.use(route, express.static(path, { maxAge: ONE_YEAR_IN_MS }))
 

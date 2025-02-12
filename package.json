@@ -20,6 +20,7 @@
   "type": "module",
   "dependencies": {
     "better-sqlite3": "^11.3.0",
+    "body-parser": "^1.20.3",
     "date-arithmetic": "^4.1.0",
     "dateformat": "^3.0.3",
     "dotenv": "^8.2.0",
@@ -41,7 +42,10 @@
     "rules": {
       "camelcase": 0,
       "n/handle-callback-err": 0,
-      "space-before-function-paren": [ "error", "never" ]
+      "space-before-function-paren": [
+        "error",
+        "never"
+      ]
     }
   }
 }

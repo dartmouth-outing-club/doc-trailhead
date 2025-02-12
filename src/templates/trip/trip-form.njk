@@ -63,7 +63,8 @@
     Include a short introduction of the leaders, the level of prior experience, and what gear
     or clothing might be needed.
   </div>
-  <textarea id=description name=description required>{{ trip.description }}</textarea>
+  <div id="editor">{{ trip.description | safe }}</div>
+  <input id=description name=description hidden value="{{ trip.description }}" />
 </div>
 
 <div>
@@ -104,6 +105,7 @@
 {% endif %}
 
 </form>
+
 <script>
 const template = document.querySelector('#leader-input')
 const form = document.querySelector('form')
@@ -114,10 +116,27 @@ function addLeader () {
   console.log(leaderInput)
   form.insertBefore(leaderInput, addLeaderButton)
 }
+
+const quill = new Quill('#editor', {
+  theme: 'snow',
+  placeholder: 'An exciting description of your trip...',
+  modules: {
+    toolbar: [
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ header: [1, 2, 3, false] }],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link', 'image'],
+      [{ 'align': [] }],
+      ['clean'],
+    ]
+  }
+})
+
+const descriptionInput = document.querySelector('#description')
+quill.on('text-change', () => descriptionInput.value = quill.root.innerHTML)
 </script>
 
 <datalist id=user-emails>
   {% for user in emails %}<option>{{ user.email }}
   {% endfor %}
 </datalist>
-

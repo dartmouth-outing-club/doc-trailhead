@@ -17,8 +17,14 @@
 
 @font-face {
   font-family: 'Nunito Sans Bold';
-  font-style: normal;
+  font-weight: bold;
   src: url('/static/fonts/NunitoSans-Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Nunito Sans Extra Bold';
+  font-weight: 800;
+  src: url('/static/fonts/NunitoSans-ExtraBold.ttf') format('truetype');
 }
 
 html {
@@ -46,6 +52,11 @@ h1, h2, h3 {
 
 h1 {
   font-size: 2em;
+}
+
+strong {
+  font-family: 'Nunito Sans Bold', 'Nunito Sans', sans-serif;
+  font-weight: bold;
 }
 
 p.user-text {
@@ -262,6 +273,20 @@ a.top-link:visited {
   display: flex;
   flex-wrap: wrap;
   margin-top: 10px;
+}
+
+.ql-toolbar {
+  border-radius: 6px 6px 0 0;
+}
+
+.ql-container {
+  border-radius: 0 0 6px 6px;
+  font-family: 'Nunito Sans', 'Open Sans', sans-serif !important;
+  font-size: 1em !important;
+}
+
+.ql-editor strong {
+  font-weight: 700;
 }
 
 @media screen and (min-width: 800px) {

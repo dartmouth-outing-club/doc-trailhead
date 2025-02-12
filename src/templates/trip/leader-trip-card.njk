@@ -38,7 +38,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 
 <section>
 <h2>Description</h2>
-<p class=user-text>{{ description }}</p>
+<div id="user-description" class=user-text>{{ description | safe }}</div>
 
 <h2>Details</h2>
 <div class=dual-table-container>
@@ -324,4 +324,9 @@ async function copyPendingEmails() {
   setTimeout(() => button.innerText = previousText, 1000)
 }
 
+const quill = new Quill('#user-description', {
+  theme: 'snow',
+  readOnly: true,
+  modules: { toolbar: false }
+})
 </script>

@@ -163,9 +163,22 @@ img.badge {
 }
 
 .user-text {
+  overflow: hidden;
   border: 2px solid #c4c4c4;
   margin: 0 15px;
   padding: 10px;
+}
+
+.user-text p {
+  margin: 0;
+}
+
+.user-text img {
+  max-width: 100%;
+}
+
+.ql-container {
+  border-radius: 6px !important;
 }
 
 @media screen and (min-width: 800px) {
