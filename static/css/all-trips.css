@@ -106,6 +106,16 @@ a.trip-card {
   z-index: 1;
 }
 
+.trip-card img.status-icon {
+  opacity: 1;
+  margin: 0;
+  height: 40px;
+  width: 40px;
+  right: 20px;
+  position: absolute;
+  z-index: 10;
+}
+
 .trip-card header  {
   color: var(--secondary-info-color);
 }
