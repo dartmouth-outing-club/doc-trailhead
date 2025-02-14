@@ -177,6 +177,12 @@ form button.approve {
 
 .my-trips-nav {
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
+  display: flex;
+  align-items: center; 
+  width: 100%;
+  margin: 20px 0; 
+  padding: 0 10px;
+  box-sizing: border-box;
 }
 
 .my-trips-nav ul {
@@ -185,37 +191,45 @@ form button.approve {
   justify-content: center;
   list-style: none;
   margin: 0;
+  padding: 0;
+  flex: 1;
+}
+
+@media (min-width: 768px) { 
+  .my-trips-nav ul {
+      margin-left: 12%; /* added so nav properly centers when screen is larger */
+  }
 }
 
 .my-trips-nav li {
+  display: flex;
   align-items: center;
-  border-bottom-color: white; /* Changing the border color keeps the box from shifting on hover */
+  border-bottom-color: white;
   border-bottom-style: solid;
   border-bottom-width: 5px;
   cursor: pointer;
-  display: flex;
-  flex-direction: row;
-  margin-right: 25px;
-  text-align: center;
-}
-
-.my-trips-nav img {
-  padding-right: 20px;
-  width: 24px;
+  margin: 0 10px;
 }
 
 .my-trips-nav a {
   display: block;
-  padding: 30px 25px 25px 25px; /* Additional 5px on top to compensate for the bottom border */
+  padding: 0px 15px;
   font-size: 1.2em;
   text-decoration: none;
   color: black;
 }
 
-.my-trips-nav li:hover, .my-trips li.selected {
+.my-trips-nav li:hover,
+.my-trips-nav li.selected {
   border-bottom-color: var(--approval-main-color);
 }
 
-.my-trips li:hover > a, .my-trips li.selected > a {
+.my-trips-nav li:hover > a,
+.my-trips-nav li.selected > a {
   color: var(--approval-main-color);
+}
+
+.my-trips-nav img {
+  padding-right: 20px;
+  width: 24px;
 }

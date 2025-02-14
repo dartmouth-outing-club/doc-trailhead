@@ -6,13 +6,29 @@
 {% include "common/site-nav.njk" %}
 <main>
 
-<section class="info-card">
+<section class="info-card controls">
 
-<nav class=my-trips-nav>
+<nav class=my-trips-nav view-types>
 <ul>
   <li><a href="/my-trips"><img src="/static/icons/mountain-icon.svg">Upcoming Trips</a>
   <li><a href="/my-past-trips"><img src="/static/icons/trip-icon.svg">Past Trips</a>
 </ul>
+<div class=filters>
+<label>
+    <input
+        id="showMyTrips"
+        name="showMyTrips"        
+        hx-get="?view={{ view }}&showAll={{ 'false' if show_all else 'true' }}&leaderOnly={{ 'false' if leader_only else 'true' }}"
+        hx-push-url=true
+        hx-target="body"
+        type="checkbox"
+        autocomplete="off"
+        {{ 'checked' if leader_only }} 
+        onchange="this.setAttribute('hx-get', this.checked ? '?view={{ view }}&showAll=true&leaderOnly=true' : '?view={{ view }}&showAll=false&leaderOnly=false')"
+    >
+    Led by Me
+</label>
+</div>
 </nav>
 
 </section>
