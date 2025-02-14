@@ -7,6 +7,7 @@ export function get(req, res) {
     const showAll = req.query.showAll === 'true';
     const leaderOnly = req.query.leaderOnly === 'true';
 
+
     const isLeaderQuery = `SELECT 1 as is_leader
                            FROM club_leaders 
                            WHERE user = ? and is_approved = TRUE`;
@@ -16,7 +17,7 @@ export function get(req, res) {
     const can_create_trip = res.locals.is_opo || is_leader;
 
     const tripsQuery = `
-        SELECT trips.id, title, location, start_time, end_time, description,
+        SELECT trips.id, title, location, start_time, end_time, description, leader,
         COALESCE(clubs.name, 'None') as club
         FROM trip_members
         LEFT JOIN trips ON trips.id = trip_members.trip

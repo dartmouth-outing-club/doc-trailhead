@@ -7,7 +7,7 @@ export function get(req, res) {
     const leaderOnly = req.query.leaderOnly === 'true';
 
     const tripsQuery = `
-      SELECT trips.id, title, location, start_time, end_time, description,
+      SELECT trips.id, title, location, start_time, end_time, description, leader,
       COALESCE(clubs.name, 'None') as club
       FROM trip_members
       JOIN trips ON trips.id = trip_members.trip
