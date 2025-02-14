@@ -2,35 +2,32 @@
 <title>My Trips - DOC Trailhead</title>
 <link rel="stylesheet" href="/static/css/all-trips.css?id=2">
 <link rel="stylesheet" href="/static/css/common.css?id=2">
-
 {% include "common/site-nav.njk" %}
+
 <main>
-
 <section class="info-card controls">
-
-<nav class=my-trips-nav view-types>
+<nav class="my-trips-nav view-types">
 <ul>
-  <li><a href="/my-trips"><img src="/static/icons/mountain-icon.svg">Upcoming Trips</a>
-  <li><a href="/my-past-trips"><img src="/static/icons/trip-icon.svg">Past Trips</a>
+  <li><a href="/my-trips"><img src="/static/icons/mountain-icon.svg">Upcoming Trips</a></li>
+  <li><a href="/my-past-trips"><img src="/static/icons/trip-icon.svg">Past Trips</a></li>
 </ul>
-<div class=filters>
+<div class="filters">
 <label>
     <input
         id="showMyTrips"
-        name="showMyTrips"        
+        name="showMyTrips"
         hx-get="?view={{ view }}&showAll={{ 'false' if show_all else 'true' }}&leaderOnly={{ 'false' if leader_only else 'true' }}"
         hx-push-url=true
         hx-target="body"
         type="checkbox"
         autocomplete="off"
-        {{ 'checked' if leader_only }} 
+        {{ 'checked' if leader_only }}
         onchange="this.setAttribute('hx-get', this.checked ? '?view={{ view }}&showAll=true&leaderOnly=true' : '?view={{ view }}&showAll=false&leaderOnly=false')"
     >
     Led by Me
 </label>
 </div>
 </nav>
-
 </section>
 
 <section class="trips">
@@ -40,9 +37,10 @@
     <img src="/static/icons/createtrip.svg">
   </a>
   {% endif %}
+  
   {% for trip in trips %}
-  <a href="/{% if trip.leader === 1 %}leader/{% endif %}trip/{{ trip.id }}" class=trip-card>
-    <img class=club-logo src="{{ trip.iconPath }}">
+  <a href="/{% if trip.leader === 1 %}leader/{% endif %}trip/{{ trip.id }}" class="trip-card">
+    <img class="club-logo" src="{{ trip.iconPath }}">
     <header>Trip #{{ trip.id }}</header>
     <h2>{{ trip.title }}</h2>
     <div>{{ trip.time_element | safe }}</div>
@@ -51,6 +49,4 @@
   </a>
   {% endfor %}
 </section>
-
 </main>
-

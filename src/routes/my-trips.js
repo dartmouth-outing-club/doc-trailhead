@@ -4,9 +4,16 @@ export function get(req, res) {
     const userId = req.user;
     const _24_HOURS_IN_MS = 86400000;
     const now = new Date();
-
-    const showAll = req.query.showAll === 'true'; 
+    const showAll = req.query.showAll === 'true';
     const leaderOnly = req.query.leaderOnly === 'true';
+
+    const isLeaderQuery = `SELECT 1 as is_leader
+                           FROM club_leaders 
+                           WHERE user = ? and is_approved = TRUE`;
+
+    const is_leader = req.db.get(isLeaderQuery, userId)?.is_leader === 1;
+
+    const can_create_trip = res.locals.is_opo || is_leader;
 
     const tripsQuery = `
         SELECT trips.id, title, location, start_time, end_time, description,
@@ -24,6 +31,7 @@ export function get(req, res) {
 
     res.render('views/my-trips.njk', {
         trips: tripsForUser,
+        can_create_trip,
         leader_only: leaderOnly,
         show_all: showAll
     });
