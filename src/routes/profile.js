@@ -1,4 +1,3 @@
-import { getDatetimeRangeElement } from '../utils.js'
 import { BadRequestError, NotFoundError } from '../request/errors.js'
 
 export function getProfileView(req, res) {
@@ -9,19 +8,19 @@ export function getProfileView(req, res) {
   const userId = parseInt(req.params.userId)
   if (!userId || userId === req.user) {
     res.locals.is_self = true
-    const data = getProfileData(req, res, req.user)
+    const data = getProfileData(req, req.user)
     return res.render('views/profile.njk', data)
   }
 
   if (!res.locals.is_opo) return res.sendStatus(403)
 
   res.locals.is_self = false
-  const data = getProfileData(req, res, userId)
+  const data = getProfileData(req, userId)
   return res.render('views/profile.njk', data)
 }
 
 export function getNewUserView(req, res) {
-  const data = getProfileData(req, res, req.user)
+  const data = getProfileData(req, req.user)
   return res.render('views/new-user.njk', data)
 }
 
@@ -29,7 +28,7 @@ export function getProfileCard(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
-  const data = getProfileData(req, res, userId)
+  const data = getProfileData(req, userId)
   return res.render('profile/profile-card.njk', data)
 }
 
@@ -48,17 +47,12 @@ export function getUserTripView(req, res) {
   )
   if (!isOnTrip) throw new NotFoundError(`User ${userId} not found`)
 
-  const data = getProfileData(req, res, req.params.userId, true)
+  const data = getProfileData(req, req.params.userId, true)
   return res.render('views/profile.njk', data)
 }
 
-function getProfileData(req, res, userId, hideControls) {
-  const user = req.db.get(`
-    SELECT id, height_inches, shoe_size, email, name, pronoun, clothe_size, net_id
-      dash_number, allergies_dietary_restrictions, medical_conditions, phone
-    FROM users WHERE id = ?
-  `, userId)
-
+function getProfileData(req, userId, hideControls) {
+  const user = req.db.get('SELECT * FROM users WHERE id = ?', userId)
   if (!user) throw new NotFoundError(`User ${userId} not found`)
 
   const certs = req.db
@@ -87,31 +81,7 @@ function getProfileData(req, res, userId, hideControls) {
     WHERE user = ?
   `, userId)?.clubs || 'none'
   user.hide_controls = hideControls
-
-  const showPrivate = res.locals.is_opo || userId === req.user
-
-  // Get all trips the user has been on
-  const trips = req.db.all(`
-    SELECT trips.id, title, location, start_time,
-      end_time, description, private, experience_needed,
-      coalesce(clubs.name, 'None') as club
-    FROM trips
-    LEFT JOIN trip_members ON trips.id = trip_members.trip
-    LEFT JOIN clubs ON trips.club = clubs.id
-    WHERE trip_members.user = ? ${showPrivate ? '' : 'AND trips.private = 0'}
-    ORDER BY start_time DESC
-  `, userId).map(trip => ({
-    ...trip,
-    time_element: getDatetimeRangeElement(trip.start_time, trip.end_time)
-  }))
-
-  // Group trips by club and limit to the last 5 trips per club
-  user.trips_by_club = trips.reduce((acc, trip) => {
-    if (!acc[trip.club]) acc[trip.club] = []
-    if (acc[trip.club].length < 5) acc[trip.club].push(trip)
-    return acc
-  }, {})
-
+  delete user.is_opo // TODO stop using a SELECT * so you don't have to do this
   return user
 }
 

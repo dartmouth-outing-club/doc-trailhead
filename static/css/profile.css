@@ -136,34 +136,3 @@
 .button-row {
   margin: .5em 0;
 }
-
-.recent-trips-section h2 {
-  margin: .3em 0 0 0;
-}
-
-.recent-trips-section h3 {
-  margin: 1em 0 .5em 0;
-}
-
-.recent-trips-section .trip-table {
-  margin-bottom: 1.5em;
-}
-
-.trip-table {
-  border: 3px solid #c4c4c4;
-  text-align: left;
-  width: 100%;
-}
-
-.trip-table th, .trip-table td {
-  padding: 10px;
-}
-
-.trip-table ul {
-  margin: 0;
-  padding: 0;
-}
-
-.trip-table thead {
-  background-color: var(--selection-accent-color);
-}
