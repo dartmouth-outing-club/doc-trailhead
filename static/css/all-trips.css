@@ -195,12 +195,6 @@ form button.approve {
   flex: 1;
 }
 
-@media (min-width: 768px) { 
-  .my-trips-nav ul {
-      margin-left: 12%; /* added so nav properly centers when screen is larger */
-  }
-}
-
 .my-trips-nav li {
   display: flex;
   align-items: center;

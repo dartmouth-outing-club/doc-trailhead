@@ -11,22 +11,6 @@
   <li><a href="/my-trips"><img src="/static/icons/mountain-icon.svg">Upcoming Trips</a></li>
   <li><a href="/my-past-trips"><img src="/static/icons/trip-icon.svg">Past Trips</a></li>
 </ul>
-<div class="filters">
-<label>
-    <input
-        id="showMyTrips"
-        name="showMyTrips"
-        hx-get="?view={{ view }}&showAll={{ 'false' if show_all else 'true' }}&leaderOnly={{ 'false' if leader_only else 'true' }}"
-        hx-push-url=true
-        hx-target="body"
-        type="checkbox"
-        autocomplete="off"
-        {{ 'checked' if leader_only }}
-        onchange="this.setAttribute('hx-get', this.checked ? '?view={{ view }}&showAll=true&leaderOnly=true' : '?view={{ view }}&showAll=false&leaderOnly=false')"
-    >
-    Led by Me
-</label>
-</div>
 </nav>
 </section>
 
@@ -40,7 +24,7 @@
   
   {% for trip in trips %}
   <a href="/{% if trip.leader === 1 %}leader/{% endif %}trip/{{ trip.id }}" class="trip-card">
-    <img class="club-logo" src="{{ trip.iconPath }}">
+    <img class=club-logo src="{{ trip.iconPath }}">
     <header>Trip #{{ trip.id }}</header>
     <h2>{{ trip.title }}</h2>
     <div>{{ trip.time_element | safe }}</div>

@@ -10,22 +10,6 @@
         <li><a href="/my-trips"><img src="/static/icons/mountain-icon.svg">Upcoming Trips</a></li>
         <li><a href="/my-past-trips"><img src="/static/icons/trip-icon.svg">Past Trips</a></li>
     </ul>
-    <div class=filters>
-        <label>
-            <input
-                id="showMyPastTrips"
-                name="showMyPastTrips"
-                hx-get="?view={{ view }}&leaderOnly={{ 'false' if leader_only else 'true' }}&showAll={{ 'false' if show_all else 'true' }}"
-                hx-push-url=true
-                hx-target="body"
-                type="checkbox"
-                autocomplete="off"
-                {{ 'checked' if leader_only }} 
-                onchange="this.setAttribute('hx-get', this.checked ? '?view={{ view }}&leaderOnly=true&showAll=false' : '?view={{ view }}&leaderOnly=false&showAll=true')"
-            >
-            Led by Me
-        </label>
-    </div>
 </nav>
 </section>
 
