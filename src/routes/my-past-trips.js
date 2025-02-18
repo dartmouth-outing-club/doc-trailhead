@@ -4,8 +4,6 @@ export function get(req, res) {
   const userId = req.user
   const now = new Date()
 
-  const leader_only = req.query.leader_only === 'true'
-
   const tripsQuery = `
       SELECT 
         trips.id, title, location, start_time, end_time, description, leader,
@@ -16,7 +14,6 @@ export function get(req, res) {
       WHERE
         trip_members.user = ? 
         AND end_time < ?
-        ${leader_only ? 'AND trip_members.leader = 1' : ''}
       ORDER BY end_time DESC
     `
 
@@ -27,5 +24,5 @@ export function get(req, res) {
       time_element: utils.getDatetimeRangeElement(trip.start_time, trip.end_time)
     }))
 
-  res.render('views/my-past-trips.njk', { trips, leader_only })
+  res.render('views/my-past-trips.njk', { trips })
 }

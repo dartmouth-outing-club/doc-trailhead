@@ -4,7 +4,6 @@ export function get(req, res) {
   const userId = req.user
   const _24_HOURS_IN_MS = 86400000
   const now = new Date()
-  const leader_only = req.query.leader_only === 'true'
 
   const is_leader_query = `SELECT 1 as is_leader
                            FROM club_leaders 
@@ -24,7 +23,6 @@ export function get(req, res) {
         WHERE 
           trip_members.user = ?
           AND end_time > ?
-          ${leader_only ? 'AND trip_members.leader = 1' : ''}
         ORDER BY start_time ASC
       `
 
@@ -37,7 +35,6 @@ export function get(req, res) {
 
   res.render('views/my-trips.njk', {
     trips,
-    can_create_trip,
-    leader_only
+    can_create_trip
   })
 }
