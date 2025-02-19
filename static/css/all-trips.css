@@ -174,3 +174,56 @@ form button.approve {
     margin: 20px;
   }
 }
+
+.my-trips-nav {
+  font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
+  display: flex;
+  align-items: center; 
+  width: 100%;
+  margin: 20px 0; 
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.my-trips-nav ul {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+}
+
+.my-trips-nav li {
+  display: flex;
+  align-items: center;
+  border-bottom-color: white;
+  border-bottom-style: solid;
+  border-bottom-width: 5px;
+  cursor: pointer;
+  margin: 0 10px;
+}
+
+.my-trips-nav a {
+  display: block;
+  padding: 0px 15px;
+  font-size: 1.2em;
+  text-decoration: none;
+  color: black;
+}
+
+.my-trips-nav li:hover,
+.my-trips-nav li.selected {
+  border-bottom-color: var(--approval-main-color);
+}
+
+.my-trips-nav li:hover > a,
+.my-trips-nav li.selected > a {
+  color: var(--approval-main-color);
+}
+
+.my-trips-nav img {
+  padding-right: 20px;
+  width: 24px;
+}

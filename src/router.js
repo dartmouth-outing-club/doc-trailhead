@@ -12,6 +12,7 @@ import * as checkOut from './routes/trip/check-out.js'
 import * as vehicleRequestView from './routes/vehicle-request.js'
 import * as allTripsView from './routes/all-trips.js'
 import * as myTripsView from './routes/my-trips.js'
+import * as myPastTripsView from './routes/my-past-trips.js'
 import * as tripRequests from './routes/trip/trip-requests.js'
 import * as gearPrint from './routes/trip/gear/print.js'
 
@@ -45,6 +46,7 @@ router.post('/logout', requireAuth, authentication.logout)
  **********************/
 router.get('/welcome', welcome.get)
 router.get('/my-trips', requireAuth, myTripsView.get)
+router.get('/my-past-trips', requireAuth, myPastTripsView.get)
 router.get('/create-trip', requireAnyLeader, trip.getCreateView)
 router.get('/all-trips', requireAuth, allTripsView.get)
 router.get('/opo/vehicle-requests', requireOpo, vehicleRequests.get)

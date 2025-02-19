@@ -1,15 +1,17 @@
 {% include "common/site-head.njk" %}
 <title>My Trips - DOC Trailhead</title>
-<link rel="stylesheet" href="/static/css/all-trips.css?id=1">
-
+<link rel="stylesheet" href="/static/css/all-trips.css?id=2">
+<link rel="stylesheet" href="/static/css/common.css?id=2">
 {% include "common/site-nav.njk" %}
-<main>
 
-<section class="info-card">
-<h1>
-  <img src="/static/icons/mountain-icon.svg">
-  My Trips
-</h1>
+<main>
+<section class="info-card controls">
+<nav class="my-trips-nav view-types">
+<ul>
+  <li><a href="/my-trips"><img src="/static/icons/mountain-icon.svg">Upcoming Trips</a></li>
+  <li><a href="/my-past-trips"><img src="/static/icons/trip-icon.svg">Past Trips</a></li>
+</ul>
+</nav>
 </section>
 
 <section class="trips">
@@ -19,8 +21,9 @@
     <img src="/static/icons/createtrip.svg">
   </a>
   {% endif %}
+  
   {% for trip in trips %}
-  <a href="/{% if trip.leader === 1 %}leader/{% endif %}trip/{{ trip.id }}" class=trip-card>
+  <a href="/{% if trip.leader === 1 %}leader/{% endif %}trip/{{ trip.id }}" class="trip-card">
     <img class=club-logo src="{{ trip.iconPath }}">
     <header>Trip #{{ trip.id }}</header>
     <h2>{{ trip.title }}</h2>
@@ -30,6 +33,4 @@
   </a>
   {% endfor %}
 </section>
-
 </main>
-
