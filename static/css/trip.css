@@ -40,6 +40,22 @@ section {
   width: 150px;
 }
 
+.trip-table {
+  text-align: center;
+}
+
+.trip-table ul {
+  padding: 0 1em;
+  text-align: left;
+}
+
+.member-buttons-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .trip-table td:last-child {
   text-align: right;
 }
