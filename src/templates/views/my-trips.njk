@@ -1,7 +1,7 @@
 {% include "common/site-head.njk" %}
 <title>My Trips - DOC Trailhead</title>
 <link rel="stylesheet" href="/static/css/all-trips.css?id=2">
-<link rel="stylesheet" href="/static/css/common.css?id=2">
+
 {% include "common/site-nav.njk" %}
 
 <main>
@@ -21,7 +21,7 @@
     <img src="/static/icons/createtrip.svg">
   </a>
   {% endif %}
-  
+
   {% for trip in trips %}
   <a href="/{% if trip.leader === 1 %}leader/{% endif %}trip/{{ trip.id }}" class="trip-card">
     <img class=club-logo src="{{ trip.iconPath }}">
