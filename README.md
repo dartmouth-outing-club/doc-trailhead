@@ -54,21 +54,23 @@ HTML.
 
 ## Deployment
 Trailhead is deployed on a DigitalOcean droplet and served behind an NGINX proxy.
+Trailhead is currently running on Node 22.
+
+### Upgrading
+To upgrade it to the latest stable version (22 at the time of this writing, but it won't be forever) using [the n module](https://www.npmjs.com/package/n):
+
+1. Log in as a sudo-capable user and run `sudo n stable`
+1. Log in as `node`
+1. Check the new node version is the one you expect with `node --version`
+1. `cd ~/doc-trailhead` and run `npm rebuild` (otherwise it will crash on startup)
+1. `cd ~` and `pm2 restart trailhead`
 
 ## Testing
-In order to run the end-to-end tests, Trailhead can be set up in a docker container. You can build
-and run it in the same step like this:
 
-```
-docker build -t trailhead-test -f ./test/Dockerfile . && docker run trailhead-test
-```
-
-If you have an SQLite version > 3.37 installed, you can just run the test suite locally with `npm
-run test`. The docker rigamarole is because we use some of the latest SQLite features to run our
-test suite, but older versions will be able to run the application just fine.
-
-If you don't already have Docker Desktop installed, and don't want to install it, give
-[Colima](https://github.com/abiosoft/colima/) a try.
+I'll admit I've had a couple fits and starts testing Trailhead and never quite come up with a solution I liked.
+The problem isn't that Trailhead couldn't be tested with Playwright or the like;
+it's that I'd really like for the tests to be as easy to start and run as the application is.
+So far I haven't put together a suite that does that (while still testing something useful).
 
 ## Appendix
 Here are some useful resources that might help you understand the tech stack better, if you're not
