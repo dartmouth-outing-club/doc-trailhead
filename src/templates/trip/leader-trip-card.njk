@@ -2,7 +2,10 @@
 
 <header>
   <div>Trip #{{ trip_id }}</div>
-  <button id=share-link class="share-button" onclick="copyLink()">Copy Link &#128279;</button>
+  <div class=share-template-row>
+    <button id=template class="share-button" onclick="copyLink()">Copy Link &#128279;</button>
+    <a class="action edit" href="/trip/{{ trip_id }}/template">New Trip from Template</a>
+  </div>
 </header>
 
 <h1>{{ title }}</h1>

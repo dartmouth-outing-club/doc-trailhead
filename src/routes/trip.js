@@ -49,6 +49,7 @@ export function getCreateView(req, res) {
 
 export function getEditView(req, res) {
   const tripId = req.params.tripId
+  const template = req.url.includes('/template');
   if (!req.db.isOpoOrLeaderForTrip(tripId, req.user)) return res.sendStatus(401)
 
   const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
@@ -80,7 +81,8 @@ export function getEditView(req, res) {
 
   trip.start_time = utils.getDatetimeValueForUnixTime(trip.start_time)
   trip.end_time = utils.getDatetimeValueForUnixTime(trip.end_time)
-  res.render('views/edit-trip.njk', { clubs, emails, trip })
+  
+  res.render('views/edit-trip.njk', { clubs, emails, trip, template })
 }
 
 export function getUserView(req, res) {

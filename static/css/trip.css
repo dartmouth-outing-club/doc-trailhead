@@ -5,6 +5,14 @@ section header {
   justify-content: space-between;
 }
 
+.share-template-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 10px;
+}
+
 .share-button {
   height: 1.5rem;
 }
