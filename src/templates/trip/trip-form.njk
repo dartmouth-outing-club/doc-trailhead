@@ -11,7 +11,7 @@
 
 <form
   class=info-card
-  {% if trip.id %}
+  {% if trip.id and not template%}
   hx-put="/trip/{{ trip.id }}"
   {% else %}
   action="/trip"
@@ -19,7 +19,9 @@
   {% endif %}
   >
 
-{% if trip.id %}
+{% if template %}
+<h1>Create Trip from Template</h1>
+{% elif trip.id %}
 <h1>Edit Trip #{{ trip.id }}</h1>
 {% else %}
 <h1>Create new trip</h1>
@@ -48,8 +50,8 @@
 <label>Don't show this trip on the public trips list<input name=is_private {% if trip.private %}checked {% endif %}type=checkbox></label>
 
 <h2>Date and Location</h2>
-<label>Start Time (EST)<input min="{{ today }}" name=start_time value="{{ trip.start_time }}" type=datetime-local required></label>
-<label>End Time (EST)<input min="{{ today }}" name=end_time value="{{ trip.end_time }}" type=datetime-local required></label>
+<label>Start Time (EST)<input min="{{ today }}" name=start_time value="{% if template %}{{ today }}{% else %}{{ trip.start_time }}{% endif %}" type=datetime-local required></label>
+<label>End Time (EST)<input min="{{ today }}" name=end_time value="{% if template %}{{ today }}{% else %}{{ trip.end_time }}{% endif %}" type=datetime-local required></label>
 <label>Trip Location<input name=location value="{{ trip.location }}" type=text required></label>
 <label>Pickup Location<input name=pickup value="{{ trip.pickup }}" type=text required></label>
 <label>Dropoff Location<input name=dropoff value="{{ trip.dropoff }}" type=text required></label>
@@ -79,7 +81,7 @@
   <textarea id=plan name=plan>{{ trip.plan }}</textarea>
 </div>
 
-{% if not trip.id %}
+{% if template or not trip.id %}
 <h2>Trip Requests</h2>
 <p class="form-info">
   Check the following box if you want to add vehicles, gear, or a pcard to the trip after creating
@@ -97,7 +99,7 @@
 <h2>Finish</h2>
 <p>Nothing on this page is saved until you click the button below.
 <p>
-{% if trip.id %}
+{% if not template and trip.id %}
 <button class="action approve" type=submit>Submit Changes</button>
 {% else %}
 <button class="action approve" type=submit>Create Trip</button>
