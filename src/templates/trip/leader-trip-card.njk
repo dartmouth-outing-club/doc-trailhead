@@ -78,7 +78,8 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 <thead>
 <tr>
   <th>Name
-  <th>Attended
+  {% if left === 1 %}<th>Attended{% endif %}
+  <th>Signed up on
   <th>Allergies/Dietary Restrictions
   <th>Medical Conditions
   <th>Gear Requests
@@ -88,7 +89,8 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 {% for member in attending %}
 <tr {% if member.leader === 1%}class="leader-row"{% endif %}>
   <td><a href="/trip/{{trip_id}}/user/{{member.id}}">{{ member.name }}</a>
-  <td>{{ member.attended }}
+  {% if left === 1 %}<td>{{ member.attended }}{% endif %}
+  <td>{{ member.time_element | safe if member.signed_up_on else "N/A" }}
   <td>{{ member.allergies_dietary_restrictions }}
   <td>{{ member.medical_conditions }}
   <td>
@@ -99,19 +101,21 @@ on time. 48 hours before trip-start you can begin checking out your trip.
     </ul>
   </td>
   <td>
-    <button class="action edit"
-            hx-put="/trip/{{ trip_id }}/waitlist/{{ member.id }}"
-            {% if member.id === owner %}disabled{% endif %}
-            >Un-admit</button>
-    {% if member.leader === 1 %}
-    <button class="action demote"
-            hx-delete="/trip/{{ trip_id }}/leader/{{ member.id }}"
-            {% if member.id === owner %}disabled{% endif %}
-            >Make trippee
-    </button>
-    {% else %}
-    <button class="action edit" hx-put="/trip/{{ trip_id }}/leader/{{ member.id }}">Make leader</button>
-    {% endif %}
+    <div class=member-buttons-container>
+      <button class="action edit"
+              hx-put="/trip/{{ trip_id }}/waitlist/{{ member.id }}"
+              {% if member.id === owner %}disabled{% endif %}
+              >Un-admit</button>
+      {% if member.leader === 1 %}
+      <button class="action demote"
+              hx-delete="/trip/{{ trip_id }}/leader/{{ member.id }}"
+              {% if member.id === owner %}disabled{% endif %}
+              >Make trippee
+      </button>
+      {% else %}
+      <button class="action edit" hx-put="/trip/{{ trip_id }}/leader/{{ member.id }}">Make leader</button>
+      {% endif %}
+    </div>
 </tr>
 {% endfor %}
 </table>
@@ -128,7 +132,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 <thead>
 <tr>
   <th>Name
-  <th>Attended
+  <th>Signed up on
   <th>Allergies/Dietary Restrictions
   <th>Medical Conditions
   <th>Gear Requests
@@ -138,7 +142,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 {% for member in pending %}
 <tr>
   <td><a href="/trip/{{trip_id}}/user/{{member.id}}">{{ member.name }}</a>
-  <td>{{ member.attended }}
+  <td>{{ member.time_element | safe if member.signed_up_on else "N/A" }}
   <td>{{ member.allergies_dietary_restrictions }}
   <td>{{ member.medical_conditions }}
   <td>
@@ -149,16 +153,18 @@ on time. 48 hours before trip-start you can begin checking out your trip.
     </ul>
   </td>
   <td>
-    <button class="action edit"
-            hx-put="/trip/{{ trip_id }}/member/{{ member.id }}"
-            {% if member_gear_approved === 1 %}
-            hx-confirm="Your gear request has already been approved; if {{ member.name }} requested any additional gear, accepting them onto the trip will cause the gear request to be un-approved, and sent back to OPO."
-            {% endif %}
-            >Admit</button>
-    <button class="action edit"
-            hx-delete="/trip/{{ trip_id }}/member/{{ member.id }}"
-            hx-confirm="Are you sure you want to reject {{ member.name }}? Keep in mind that doing so will also remove their gear request."
-            >Reject</button>
+    <div class=member-buttons-container>
+      <button class="action edit"
+              hx-put="/trip/{{ trip_id }}/member/{{ member.id }}"
+              {% if member_gear_approved === 1 %}
+              hx-confirm="Your gear request has already been approved; if {{ member.name }} requested any additional gear, accepting them onto the trip will cause the gear request to be un-approved, and sent back to OPO."
+              {% endif %}
+              >Admit</button>
+      <button class="action edit"
+              hx-delete="/trip/{{ trip_id }}/member/{{ member.id }}"
+              hx-confirm="Are you sure you want to reject {{ member.name }}? Keep in mind that doing so will also remove their gear request."
+              >Reject</button>
+    </div>
 </tr>
 {% endfor %}
 </table>
