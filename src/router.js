@@ -86,7 +86,6 @@ router.get(     '/trip/search',                             requireOpo, trip.get
 router.post(    '/trip/search',                             requireOpo, trip.postSearch)
 router.get(     '/trip/:tripId',                            requireAuth, trip.getSignupView)
 router.get(     '/trip/:tripId/edit',                       requireTripLeader, trip.getEditView)
-router.get(     '/trip/:tripId/template',                       requireTripLeader, trip.getEditView)
 router.get(     '/trip/:tripId/requests',                   requireTripLeader, tripRequests.getRequestsView)
 
 /*********************

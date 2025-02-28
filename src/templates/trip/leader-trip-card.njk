@@ -4,7 +4,7 @@
   <div>Trip #{{ trip_id }}</div>
   <div class=share-template-row>
     <button id=template class="share-button" onclick="copyLink()">Copy Link &#128279;</button>
-    <a class="action edit" href="/trip/{{ trip_id }}/template">New Trip from Template</a>
+    <a class="action edit" href="/create-trip?template={{ trip_id }}">New Trip from Template</a>
   </div>
 </header>
 
