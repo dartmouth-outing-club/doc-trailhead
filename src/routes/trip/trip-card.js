@@ -6,6 +6,7 @@ const _48_HOURS_IN_MS = 172800000
 
 function getLeaderData(req, tripId, userId) {
   const user = req.db.get('SELECT is_opo FROM users WHERE id = ?', userId)
+
   const trip = req.db.get(`
     SELECT
       trips.id as trip_id,
@@ -51,6 +52,7 @@ function getLeaderData(req, tripId, userId) {
     name,
     leader,
     pending,
+    signed_up_on,
     iif(trips.start_time < unixepoch() * 1000,
         '-',
         iif(attended = 0, 'No', 'Yes')) as attended,
@@ -62,7 +64,12 @@ function getLeaderData(req, tripId, userId) {
   LEFT JOIN users ON users.id = trip_members.user
   WHERE trip = ?
   ORDER BY is_owner DESC, trip_members.leader DESC, trip_members.rowid
-  `, tripId) // Display order is leaders first, followed by signup order
+  `, tripId).map(member => ({
+    ...member,
+    time_element: utils.getDatetimeElement(member.signed_up_on)
+  }))
+
+  // Display order for members is leaders first, followed by signup order
 
   const membersWithGear = members.map(member => {
     const requested_gear = req.db.all(`

@@ -72,8 +72,8 @@ export function signup(req, res) {
 
   // Add the trip member if they weren't there before
   const info = req.db.run(`
-    INSERT OR IGNORE INTO trip_members (trip, user, leader, pending)
-      VALUES (?, ?, false, true)`, tripId, req.user)
+    INSERT OR IGNORE INTO trip_members (trip, user, leader, pending, signed_up_on)
+      VALUES (?, ?, false, true, (strftime('%s', 'now') * 1000))`, tripId, req.user)
 
   // Reset the gear data and then add it again
   req.db.run('DELETE FROM member_gear_requests WHERE trip = ? AND user = ?', tripId, req.user)
