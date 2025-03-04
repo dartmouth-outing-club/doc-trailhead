@@ -42,19 +42,22 @@ export function getLeaderView(req, res) {
 
 export function getCreateView(req, res) {
   if (req.query.template) {
-    getEditView(req, res)
+    const tripId = req.query.template
+    renderFilledTripForm(req, res, tripId, true)
   } else {
     const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
     const clubs = getClubs(req.db, req.user, res.locals.is_opo)
     const today = utils.getDatetimeValueForNow()
-    res.render('views/create-trip.njk', { clubs, emails, today })
+    res.render('views/create-or-edit-trip.njk', { clubs, emails, today })
   }
 }
 
 export function getEditView(req, res) {
-  const template = req.url.includes('template')
-  const tripId = template ? req.query.template : req.params.tripId
+  const tripId = req.params.tripId
+  renderFilledTripForm(req, res, tripId, false)
+}
 
+function renderFilledTripForm(req, res, tripId, isTemplate) {
   if (!req.db.isOpoOrLeaderForTrip(tripId, req.user)) return res.sendStatus(401)
 
   const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
@@ -75,18 +78,22 @@ export function getEditView(req, res) {
     clubs = [...clubs, tripClub]
   }
 
-  trip.leaders = req.db.all(`
-    SELECT name
-    FROM trip_members
-    LEFT JOIN users on trip_members.user = users.id
-    WHERE trip = ? AND leader = TRUE
-  `, tripId)
-    .map(item => item.name)
-    .join(', ')
+  // We don't want to copy over the leaders or start times to a new trip
+  if (!isTemplate) {
+    trip.leaders = req.db.all(`
+      SELECT name
+      FROM trip_members
+      LEFT JOIN users on trip_members.user = users.id
+      WHERE trip = ? AND leader = TRUE
+    `, tripId)
+      .map(item => item.name)
+      .join(', ')
 
-  trip.start_time = utils.getDatetimeValueForUnixTime(trip.start_time)
-  trip.end_time = utils.getDatetimeValueForUnixTime(trip.end_time)
-  res.render('views/edit-trip.njk', { clubs, emails, trip, template })
+    trip.start_time = utils.getDatetimeValueForUnixTime(trip.start_time)
+    trip.end_time = utils.getDatetimeValueForUnixTime(trip.end_time)
+  }
+
+  res.render('views/create-or-edit-trip.njk', { clubs, emails, trip, isTemplate })
 }
 
 export function getUserView(req, res) {

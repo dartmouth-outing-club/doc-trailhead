@@ -1,10 +1,22 @@
 {% include "common/site-head.njk" %}
+
+{% if trip and not isTemplate %}
+<title>Edit Trip {{ trip.id }} - DOC Trailhead</title>
+{% else %}
 <title>Create Trip - DOC Trailhead</title>
+{% endif %}
+
 <link rel="stylesheet" href="/static/css/trip-form.css">
 
 {% include "common/site-nav.njk" %}
 
 <main>
+
+{% if trip and not isTemplate %}
 <a href="/my-trips" class=top-link>Back to trips page</a>
+{% else %}
+<a href="/leader/trip/{{trip.id}}" class=top-link>Back to trip #{{trip.id}}</a>
+{% endif %}
+
 {% include "trip/trip-form.njk" %}
 </main>

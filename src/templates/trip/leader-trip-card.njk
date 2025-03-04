@@ -2,10 +2,7 @@
 
 <header>
   <div>Trip #{{ trip_id }}</div>
-  <div class=share-template-row>
-    <button id=template class="share-button" onclick="copyLink()">Copy Link &#128279;</button>
-    <a class="action edit" href="/create-trip?template={{ trip_id }}">New Trip from Template</a>
-  </div>
+  <button id=template class="share-button" onclick="copyLink()">Copy Link &#128279;</button>
 </header>
 
 <h1>{{ title }}</h1>
@@ -265,7 +262,10 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 {% endif %}
 
 <section>
-<h2>Modify Trip</h2>
+<h2>Trip Settings</h2>
+<a href="/create-trip?template={{ trip_id }}">Create new trip with this as a template</a>
+
+<h3>Modify Trip</h3>
 <div class="edit-row">
   <a class="action edit" href="/trip/{{ trip_id }}/edit">Edit Trip</a>
   <a class="action edit" href="/trip/{{ trip_id }}/requests">Edit Requests</a>
@@ -273,8 +273,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 </section>
 
 {% if can_delete %}
-<section>
-<h2>Delete Trip</h2>
+<h3>Delete Trip</h3>
 <p>Click this checkbox to enable the delete button:
 <input type=checkbox autocomplete=off onchange="toggleDeleteButton(this)">
 <div class="edit-row">
@@ -286,7 +285,6 @@ on time. 48 hours before trip-start you can begin checking out your trip.
     hx-confirm="Are you sure you want to delete trip {{ title }}? Keep in mind that this will delete the associated vehicle request. This action cannot be reversed."
     >Delete Trip
 </button>
-</section>
 {% endif %}
 
 </div>
