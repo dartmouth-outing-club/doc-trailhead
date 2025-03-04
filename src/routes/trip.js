@@ -41,14 +41,20 @@ export function getLeaderView(req, res) {
 }
 
 export function getCreateView(req, res) {
-  const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
-  const clubs = getClubs(req.db, req.user, res.locals.is_opo)
-  const today = utils.getDatetimeValueForNow()
-  res.render('views/create-trip.njk', { clubs, emails, today })
+  if (req.query.template) {
+    getEditView(req, res)
+  } else {
+    const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
+    const clubs = getClubs(req.db, req.user, res.locals.is_opo)
+    const today = utils.getDatetimeValueForNow()
+    res.render('views/create-trip.njk', { clubs, emails, today })
+  }
 }
 
 export function getEditView(req, res) {
-  const tripId = req.params.tripId
+  const template = req.url.includes('template')
+  const tripId = template ? req.query.template : req.params.tripId
+
   if (!req.db.isOpoOrLeaderForTrip(tripId, req.user)) return res.sendStatus(401)
 
   const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
@@ -80,7 +86,7 @@ export function getEditView(req, res) {
 
   trip.start_time = utils.getDatetimeValueForUnixTime(trip.start_time)
   trip.end_time = utils.getDatetimeValueForUnixTime(trip.end_time)
-  res.render('views/edit-trip.njk', { clubs, emails, trip })
+  res.render('views/edit-trip.njk', { clubs, emails, trip, template })
 }
 
 export function getUserView(req, res) {

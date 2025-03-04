@@ -64,7 +64,11 @@ input[type=checkbox]:checked {
   accent-color: var(--approval-main-color);
 }
 
-button.action, a.action {
+a.template:hover{
+  cursor: pointer;
+}
+
+button.action, a.action, a.template {
   border: 2px solid white;
   border-radius: 6px;
   color: white;
@@ -78,6 +82,11 @@ a.action {
   text-decoration: none;
 }
 
+a.template {
+  border-color: gray;
+  background-color: gray;
+  color: white;
+}
 button.approve, a.approve {
   background-color: var(--approval-main-color);
   border-color: var(--approval-main-color);
