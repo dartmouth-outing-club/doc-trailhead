@@ -30,7 +30,7 @@
  * For more information on mitigating XSS:
  * https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html#output-encoding-for-html-contexts
  */
-function escapeHtmlText (value) {
+function escapeHtmlText(value) {
   const stringValue = value.toString()
   const entityMap = {
     '&': '&amp;',
@@ -63,7 +63,7 @@ function escapeHtmlText (value) {
  * escape the actual tags (<tr>, <p>, and so forth) that we're trying to build, only the parts that
  * someone could insert an unwanted tag.
  */
-export function html (strings, ...values) {
+export function html(strings, ...values) {
   const sanitizedValues = values.map(escapeHtmlText)
   // Using the sanitized values, substitute the values into the string
   return String.raw({ raw: strings }, ...sanitizedValues)
