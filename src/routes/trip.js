@@ -62,6 +62,7 @@ function renderFilledTripForm(req, res, tripId, isTemplate) {
 
   const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
 
+
   const trip = req.db.get(`
     SELECT id, title, club, cost, coleader_can_edit, experience_needed, private, start_time,
     end_time, location, pickup, dropoff, description, plan

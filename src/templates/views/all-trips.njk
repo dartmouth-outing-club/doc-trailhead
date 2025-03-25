@@ -6,79 +6,54 @@
 <main>
 
 <section class="info-card controls">
-<h1><img src="/static/icons/mountain-icon.svg">Explore Trips</h1>
-<div class=view-types>
-  <div class=filters>
-    <label>
-      <input
-          hx-get="?view={{ view }}&beginnersOnly={{ 'false' if beginners_only else 'true' }}"
-          hx-push-url=true
-          hx-target="body"
-          type=checkbox
-          autocomplete=off
-          {{ 'checked' if beginners_only }}
-          >
-      No experience needed
-    </label>
+<h1><img src="/static/icons/mountain-icon.svg">Explore</h1>
+<form
+  class=filters
+  hx-get="/all-tiles"
+  hx-include="[name=beginner_friendly], [name=subclub], [name=when], [name=search]"
+  hx-trigger="change"
+  hx-target="#trips"
+>
+  <div id=beginner-friendly-container>
+    <label for=beginner-friendly>Beginner Friendly</label>
+    <input id=beginner-friendly name=beginner_friendly type=checkbox />
   </div>
-  <a
-    class="action filter-option {{ 'selected' if view == 'tiles' }}"
-    href="?view=tiles&beginnersOnly={{ beginners_only }}"
-  >
-    <img class=club-logo src="/static/icons/grid-icon.svg">
-    <span>Tiles</span>
-  </a>
-  <a
-    class="action filter-option {{ 'selected' if view == 'list' }}"
-    href="?view=list&beginnersOnly={{ beginners_only }}"
-  >
-    <img class=club-logo src="/static/icons/stack-icon.svg">
-    <span>List</span>
-  </a>
-  {% if is_opo %}
-  <a class="action filter-option" href="/trip/search">
-    <img width=18 height=18 class=club-logo src="/static/icons/magnifying-glass.svg">
-    <span>Search</span>
-  </a>
-  {% endif %}
-</div>
-</section>
-
-{% if view == 'tiles' %}
-<section class=trips>
-{% for trip in trips %}
-<a href=/trip/{{ trip.id }} class=trip-card>
-  <div class=trip-card-content>
-    <img class=club-logo src="{{ trip.icon_path | safe }}">
-    <header>Trip #{{ trip.id }}</header>
-    <h2>{{ trip.title }}</h2>
-    <div>{{ trip.time_element | safe }}</div>
-    <div class="club-tag">{{ trip.club }}</div>
-    <p>{{ trip.description }}</p>
+  <div id=subclub-container>
+    <label for=subclub>Subclub</label>
+    <select
+      id=subclub
+      name=subclub>
+      <option value=-1>All clubs
+      {% for club in clubs %}
+        <option value="{{ club.id }}">{{ club.name }}
+      {% endfor %}
+    </select>
   </div>
-</a>
-{% endfor %}
+  <div id=when-container>
+    <label for=when>When</label>
+    <select id=when name=when>
+      <option value=upcoming>Upcoming</option>
+      {# <option value=all>Since the dawn of time</option> #}
+      <option value=today>Today</option>
+      <option value=tomorrow>Tomorrow</option>
+      <option value=next-seven-days>Next seven days</option>
+    </select>
+  </div>
+  <div class=separator></div>
+  <div id=search-container>
+    <label for=search class=search-label>Search</label>
+    <input
+      id=search
+      name=search
+      type=text
+      placeholder="Search trips..."
+      hx-get="/all-tiles"
+      hx-include="[name=beginner_friendly], [name=subclub], [name=when], [name=search]"
+      hx-trigger="keyup delay:500ms"
+      hx-target="#trips"
+    >
+  </div>
+</form>
 </section>
-{% else %}
-<section class=info-card>
-<div class=trip-table-overflow-wrapper>
-<table class=trip-table>
-  <thead>
-    <tr><th>Trip #<th>Trip<th>Club<th>Owner<th>Time
-  </thead>
-  <tbody>
-  {% for trip in trips %}
-    <tr>
-    <td>{{trip.id}}
-    <td><a href="/trip/{{trip.id}}">{{trip.title}}</a>
-    <td>{{trip.club}}
-    <td>{{trip.owner}}
-    <td>{{trip.time_element | safe }}
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
-</div>
-</section>
-{% endif%}
+{% include "trip/all-tiles.njk" %}
 </main>
