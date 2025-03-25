@@ -10,7 +10,7 @@
 <form
   class=filters
   hx-get="/all-tiles"
-  hx-include="[name=beginner_friendly], [name=subclub], [name=when], [name=search]"
+  hx-include="[name=beginner_friendly], [name=subclub], [name=search]"
   hx-trigger="change"
   hx-target="#trips"
 >
@@ -29,16 +29,6 @@
       {% endfor %}
     </select>
   </div>
-  <div id=when-container>
-    <label for=when>When</label>
-    <select id=when name=when>
-      <option value=upcoming>Upcoming</option>
-      {# <option value=all>Since the dawn of time</option> #}
-      <option value=today>Today</option>
-      <option value=tomorrow>Tomorrow</option>
-      <option value=next-seven-days>Next seven days</option>
-    </select>
-  </div>
   <div class=separator></div>
   <div id=search-container>
     <label for=search class=search-label>Search</label>
@@ -48,7 +38,7 @@
       type=text
       placeholder="Search trips..."
       hx-get="/all-tiles"
-      hx-include="[name=beginner_friendly], [name=subclub], [name=when], [name=search]"
+      hx-include="[name=beginner_friendly], [name=subclub], [name=search]"
       hx-trigger="keyup delay:500ms"
       hx-target="#trips"
     >
