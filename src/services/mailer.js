@@ -81,8 +81,13 @@ async function sendEmail(email) {
     text: email.message
   }
 
-  const info = await transporter.sendMail(mailOptions)
-  console.log(`${email.name} email sent: ${info.response}`)
+  try {
+    const info = await transporter.sendMail(mailOptions)
+    console.log(`${email.name} email sent: ${info.response}`)
+  } catch (err) {
+    console.log(`Failed to send email ${email.name} due to err:`)
+    console.log(err)
+  }
 }
 
 function markTripEmailSent(db, tripId, emailName) {
