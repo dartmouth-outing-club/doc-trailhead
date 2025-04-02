@@ -52,7 +52,7 @@ function getLeaderData(req, tripId, userId) {
     name,
     leader,
     pending,
-    signed_up_on,
+    created_at,
     iif(trips.start_time < unixepoch() * 1000,
         '-',
         iif(attended = 0, 'No', 'Yes')) as attended,
@@ -66,7 +66,7 @@ function getLeaderData(req, tripId, userId) {
   ORDER BY is_owner DESC, trip_members.leader DESC, trip_members.rowid
   `, tripId).map(member => ({
     ...member,
-    time_element: utils.getDatetimeElement(member.signed_up_on).replace('@', '<br>')
+    time_element: utils.getDatetimeElement(member.created_at).replace('@', '<br>')
   }))
 
   // Display order for members is leaders first, followed by signup order
