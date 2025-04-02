@@ -30,14 +30,26 @@ section {
   padding: 10px;
 }
 
-.trip-table ul {
-  margin: 0;
-  padding: 0;
-}
-
 .trip-table button {
   margin: 10px 0;
   width: 150px;
+}
+
+.trip-table {
+  text-align: center;
+}
+
+.trip-table ul {
+  margin: 0;
+  padding: 0 1em;
+  text-align: left;
+}
+
+.member-buttons-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .trip-table td:last-child {
