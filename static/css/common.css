@@ -263,6 +263,14 @@ a.top-link:visited {
   margin-top: 10px;
 }
 
+.alert-banner {
+  padding: 10px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: bold;
+  background-color: var(--warning-main-color);
+}
+
 @media screen and (min-width: 800px) {
   .site-nav {
     background-size: unset;
