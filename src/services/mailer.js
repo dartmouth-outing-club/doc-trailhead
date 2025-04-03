@@ -64,7 +64,7 @@ export async function send(emailFunc, ...args) {
 }
 
 export async function sendBuiltEmail(email) {
-  sendEmail(email)
+  return sendEmail(email)
 }
 
 async function sendEmail(email) {
