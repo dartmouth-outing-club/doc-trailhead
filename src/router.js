@@ -11,6 +11,7 @@ import * as checkIn from './routes/trip/check-in.js'
 import * as checkOut from './routes/trip/check-out.js'
 import * as vehicleRequestView from './routes/vehicle-request.js'
 import * as allTripsView from './routes/all-trips.js'
+import * as allTilesView from './routes/trip/all-tiles.js'
 import * as myTripsView from './routes/my-trips.js'
 import * as myPastTripsView from './routes/my-past-trips.js'
 import * as tripRequests from './routes/trip/trip-requests.js'
@@ -49,6 +50,7 @@ router.get('/my-trips', requireAuth, myTripsView.get)
 router.get('/my-past-trips', requireAuth, myPastTripsView.get)
 router.get('/create-trip', requireAnyLeader, trip.getCreateView)
 router.get('/all-trips', requireAuth, allTripsView.get)
+router.get('/all-tiles', requireAuth, allTilesView.get)
 router.get('/opo/vehicle-requests', requireOpo, vehicleRequests.get)
 router.get('/opo/trip-approvals', requireOpo, tripApprovalsView.get)
 router.get('/opo/manage-fleet', requireOpo, manageFleet.get)
