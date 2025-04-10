@@ -1,7 +1,7 @@
 <section class=info-card>
 <header>
   <div>Trip #{{ trip_id }}</div>
-  <button id=share-link class="share-button" onclick="copyLink()">Copy Link &#128279;</button>
+  <copy-button content="{{ORIGIN}}/trip/{{trip_id}}" confirmtext="Link Copied!">Copy Link &#128279;</copy-button>
 </header>
 
 <h1>{{ title }}</h1>

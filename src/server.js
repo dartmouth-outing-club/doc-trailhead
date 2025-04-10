@@ -4,6 +4,7 @@ import morgan from 'morgan'
 import nunjucks from 'nunjucks'
 
 import apiRouter from './router.js'
+import * as constants from './constants.js'
 
 process.env.TZ = 'America/New_York'
 
@@ -27,6 +28,7 @@ export function startServer(trailheadDb, port) {
     .addGlobal('NODE_ENV', process.env.NODE_ENV)
     .addGlobal('HTMX_VERSION', HTMX_VERSION)
     .addGlobal('FULLCALENDAR_VERSION', FULLCALENDAR_VERSION)
+    .addGlobal('ORIGIN', constants.ORIGIN)
   app.set('views', 'templates/views')
 
   app.use((req, _res, next) => { req.db = trailheadDb; next() })

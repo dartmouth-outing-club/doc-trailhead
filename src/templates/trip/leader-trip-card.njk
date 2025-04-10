@@ -2,7 +2,7 @@
 
 <header>
   <div>Trip #{{ trip_id }}</div>
-  <button id=template class="share-button" onclick="copyLink()">Copy Link &#128279;</button>
+  <copy-button content="{{ORIGIN}}/trip/{{trip_id}}" confirmtext="Link Copied!">Copy Link &#128279;</copy-button>
 </header>
 
 <h1>{{ title }}</h1>
@@ -121,7 +121,12 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 </table>
 </div>
 <div class=button-row>
-    <button id=copy-attending-emails class="action edit" onclick="copyAttendingEmails()">Copy Emails</button>
+  <copy-button
+    content="{{ attending_emails_list }}"
+    confirmtext="Emails Copied!"
+    class="action edit"
+    >Copy Emails
+  </copy-button>
 </div>
 </section>
 
@@ -170,7 +175,12 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 </table>
 </div>
 <div class=button-row>
-  <button id=copy-pending-emails class="action edit" onclick="copyPendingEmails()">Copy Emails</button>
+  <copy-button
+    content="{{ pending_emails_list }}"
+    confirmtext="Emails Copied!"
+    class="action edit"
+    >Copy Emails
+  </copy-button>
 </div>
 </section>
 
@@ -295,40 +305,10 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 
 </div>
 
-<script id="attending-emails" type="text/plain" data-emails="{{ attending_emails_list }}"></script>
-<script id="pending-emails" type="text/plain" data-emails="{{ pending_emails_list }}"></script>
-
 <script>
 function toggleDeleteButton(checkbox) {
   const button = document.querySelector('.delete-trip')
   button.disabled = !checkbox.checked
-}
-
-async function copyLink() {
-  const button = document.getElementById('share-link')
-  const previousText = button.innerText
-  const domain = window.location.origin
-  navigator.clipboard.writeText(`${domain}/trip/{{trip_id}}`)
-  button.innerText = 'Link Copied!'
-  setTimeout(() => button.innerText = previousText, 1000)
-}
-
-async function copyAttendingEmails() {
-  const emails = document.getElementById('attending-emails').getAttribute('data-emails')
-  const button = document.getElementById('copy-attending-emails')
-  const previousText = button.innerText
-  navigator.clipboard.writeText(emails)
-  button.innerText = 'Emails Copied!'
-  setTimeout(() => button.innerText = previousText, 1000)
-}
-
-async function copyPendingEmails() {
-  const emails = document.getElementById('pending-emails').getAttribute('data-emails')
-  const button = document.getElementById('copy-pending-emails')
-  const previousText = button.innerText
-  navigator.clipboard.writeText(emails)
-  button.innerText = 'Emails Copied!'
-  setTimeout(() => button.innerText = previousText, 1000)
 }
 
 </script>
