@@ -1,12 +1,8 @@
 import * as utils from '../utils.js'
 
-const LEGAL_VIEWS = ['list', 'tiles']
-
 export function get(req, res) {
   const now = new Date()
-  const view = LEGAL_VIEWS.includes(req.query?.view) ? req.query.view : 'tiles'
 
-  const beginners_only = req.query?.beginnersOnly === 'true'
   const showPrivate = res.locals.is_opo
 
   const publicTrips = req.db.all(`
@@ -17,11 +13,14 @@ export function get(req, res) {
     LEFT JOIN clubs on trips.club = clubs.id
     WHERE start_time > ?
     ${showPrivate ? '' : 'AND private = 0'}
-    ${beginners_only ? 'AND experience_needed = 0' : ''}
     ORDER BY start_time ASC
   `, now.getTime())
 
   const trips = publicTrips.map(utils.formatForTripForTables)
 
-  res.render('views/all-trips.njk', { trips, view, beginners_only })
+  // Clubs, sorted by name
+  const clubs = req.db.all('SELECT id, name FROM clubs')
+    .sort((a, b) => a.name.localeCompare(b.name))
+
+  res.render('views/all-trips.njk', { trips, clubs })
 }
