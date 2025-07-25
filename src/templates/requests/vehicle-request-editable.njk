@@ -6,7 +6,7 @@
     <label class=block>Type:
       <select name=type>
         <option>Van
-        <option>Microbus
+        <option>Minivan
         <option>Truck
         <option>Personal Vehicle
       </select>
@@ -48,7 +48,7 @@
     <label class=block>Type:
       <select name=type>
         <option {% if vehicle.type == 'Van' %}selected{% endif %}>Van
-        <option {% if vehicle.type == 'Microbus' %}selected{% endif %}>Microbus
+        <option {% if vehicle.type == 'Minivan' %}selected{% endif %}>Minivan
         <option {% if vehicle.type == 'Truck' %}selected{% endif %}>Truck
         <option {% if vehicle.type == 'PersonalVehicle' %}selected{% endif %}>PersonalVehicle
       </select>

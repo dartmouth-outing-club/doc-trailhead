@@ -123,11 +123,12 @@ export function put(req, res) {
   return getProfileCard(req, res)
 }
 
-const VALID_CERTS = ['VAN', 'MICROBUS', 'TRAILER']
+const VALID_CERTS = ['VAN', 'MINIVAN', 'TRAILER']
 export function getDriverCertRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
+  // TODO this is a little gnarly and could be cleaned up
   const driver_certs = req.db.all('SELECT cert, is_approved FROM user_certs WHERE user = ?', userId)
   const checkboxes = VALID_CERTS.map(cert => {
     const userCert = driver_certs.find(item => item.cert === cert)
