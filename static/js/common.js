@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', function () {
       errorDialog.innerText = evt.detail.serverResponse
       errorDialog.setAttribute('onclick', 'this.remove()')
 
+      // Delete existing error
+      for (const existingError of document.querySelectorAll('.site-nav + .error-message')) {
+        existingError.remove()
+      }
+
       // Get the nav and place the element after it
       const nav = document.querySelector('.site-nav')
       nav.insertAdjacentElement('afterend', errorDialog)
