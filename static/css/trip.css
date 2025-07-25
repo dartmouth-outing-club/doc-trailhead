@@ -110,7 +110,6 @@ img.badge {
 }
 
 .detail-table td {
-  color: var(--warning-background-color);
   padding: 0;
   text-align: right;
 }

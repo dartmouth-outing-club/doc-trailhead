@@ -68,6 +68,7 @@ function renderFilledTripForm(req, res, tripId, isTemplate) {
     FROM trips
     WHERE id = ?
   `, tripId)
+  trip.has_vehicle_requests = req.db.get(`SELECT id from vehiclerequests WHERE trip = ?`, tripId)
 
   let clubs = getClubs(req.db, req.user, res.locals.is_opo)
 
@@ -142,6 +143,7 @@ export function editTrip(req, res) {
 
   // TODO verify that user is OPO orleader for club. Not a security priority, just nice to have
   const trip = convertFormInputToDbInput(req.body, req.user)
+
   trip.id = tripId
   req.db.run(`
     UPDATE trips
@@ -247,9 +249,13 @@ function canCreateTripForClub(db, userId, clubId) {
 
 /** Validate and convert the input to a database-ready function */
 function convertFormInputToDbInput(input, userId) {
-  if (!input.title) throw new BadRequestError('missing title')
-  if (!input.start_time) throw new BadRequestError('missing start time')
-  if (!input.end_time) throw new BadRequestError('missing end time')
+  if (!input.title) throw new BadRequestError('Missing title')
+  if (!input.start_time) throw new BadRequestError('Missing start time')
+  if (!input.end_time) throw new BadRequestError('Missing end time')
+
+  if (trip.start_time > trip.end_time) {
+    throw new BadRequestError("Trip start time cannot be before the trip end time")
+  }
 
   try {
     const club = input.club > 0 ? input.club : null
@@ -278,6 +284,7 @@ function convertFormInputToDbInput(input, userId) {
     console.warn(input)
     throw new BadRequestError('Sorry, that is not a valid trip')
   }
+
 }
 
 /*

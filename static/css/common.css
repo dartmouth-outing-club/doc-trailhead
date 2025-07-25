@@ -5,8 +5,9 @@
   --heading-main-color: rgb(3, 55, 36);
   --secondary-info-color: rgb(144, 144, 144);
   --selection-accent-color: rgba(182, 236, 175, .658);
-  --warning-accent-color: #fdf0ed;
-  --warning-main-color: #ee6e52;
+  --warning-main-color: rgb(1990, 190, 108);
+  --error-accent-color: #fdf0ed;
+  --error-main-color: #ee6e52;
 }
 
 @font-face {
@@ -85,13 +86,13 @@ button.approve, a.approve {
 
 button.remove, a.remove {
   background-color: white;
-  border: 2px solid var(--warning-main-color);
-  color: var(--warning-main-color);
+  border: 2px solid var(--error-main-color);
+  color: var(--error-main-color);
 }
 
 button.deny, a.deny {
-  background-color: var(--warning-main-color);
-  border-color: var(--warning-main-color);
+  background-color: var(--error-main-color);
+  border-color: var(--error-main-color);
 }
 
 button.edit, a.edit {
@@ -101,9 +102,9 @@ button.edit, a.edit {
 }
 
 button.demote, a.demote {
-  color: var(--warning-main-color);
+  color: var(--error-main-color);
   background-color: white;
-  border: 2px solid var(--warning-main-color);
+  border: 2px solid var(--error-main-color);
 }
 
 button.action[disabled],
@@ -124,7 +125,7 @@ button.edit:hover {
 }
 
 button.demote:hover {
-  background-color: var(--warning-accent-color);
+  background-color: var(--error-accent-color);
 }
 
 a.top-link {
@@ -138,9 +139,16 @@ a.top-link:visited {
   color: inherit;
 }
 
-.error-message {
-  padding: 20px;
+.warn-message {
+  margin: 1rem 0;
+  padding: 1rem;
   background-color: var(--warning-main-color);
+}
+
+.error-message {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: var(--error-main-color);
   color: white;
 }
 
@@ -268,7 +276,7 @@ a.top-link:visited {
   color: white;
   font-size: 1.1rem;
   font-weight: bold;
-  background-color: var(--warning-main-color);
+  background-color: var(--error-main-color);
 }
 
 @media screen and (min-width: 800px) {

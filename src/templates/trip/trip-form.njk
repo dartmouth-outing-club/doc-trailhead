@@ -51,6 +51,14 @@
 <label>Don't show this trip on the public trips list<input name=is_private {% if trip.private %}checked {% endif %}type=checkbox></label>
 
 <h2>Date and Location</h2>
+
+{% if trip.has_vehicle_requests %}
+<div class="warn-message">
+This trip has vehicle requests associated with it.
+If you are changing the trip time, make sure to change any corresponding vehicle requests, as needed.
+</div>
+{% endif %}
+
 <label>Start Time (EST)<input min="{{ today }}" name=start_time value="{{ trip.start_time }}" type=datetime-local required></label>
 <label>End Time (EST)<input min="{{ today }}" name=end_time value="{{ trip.end_time }}" type=datetime-local required></label>
 <label>Trip Location<input name=location value="{{ trip.location }}" type=text required></label>

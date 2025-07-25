@@ -109,8 +109,15 @@ export function putVehicleRequest(req, res) {
     index++
   }
 
+
   // Delete the old request
   req.db.run('DELETE FROM vehiclerequests WHERE trip = ?', tripId)
+
+  // End if there are no vehicles anymore
+  if (vehicles.length === 0) {
+    return res.render('components/save-complete-button.njk')
+  }
+
   const info = req.db.run(`
       INSERT INTO vehiclerequests (requester, request_details, trip)
       VALUES (?, ?, ?)
