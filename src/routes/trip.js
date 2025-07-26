@@ -254,7 +254,7 @@ function convertFormInputToDbInput(input, userId) {
   if (!input.end_time) throw new BadRequestError('Missing end time')
 
   if (input.start_time > input.end_time) {
-    throw new BadRequestError('Trip start time cannot be before the trip end time')
+    throw new BadRequestError('Trip end time cannot be before the trip start time')
   }
 
   try {
