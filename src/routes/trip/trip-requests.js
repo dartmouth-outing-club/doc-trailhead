@@ -109,7 +109,6 @@ export function putVehicleRequest(req, res) {
     index++
   }
 
-
   // Delete the old request
   req.db.run('DELETE FROM vehiclerequests WHERE trip = ?', tripId)
 

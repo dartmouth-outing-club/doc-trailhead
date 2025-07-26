@@ -68,7 +68,7 @@ function renderFilledTripForm(req, res, tripId, isTemplate) {
     FROM trips
     WHERE id = ?
   `, tripId)
-  trip.has_vehicle_requests = req.db.get(`SELECT id from vehiclerequests WHERE trip = ?`, tripId)
+  trip.has_vehicle_requests = req.db.get('SELECT id from vehiclerequests WHERE trip = ?', tripId)
 
   let clubs = getClubs(req.db, req.user, res.locals.is_opo)
 
@@ -254,7 +254,7 @@ function convertFormInputToDbInput(input, userId) {
   if (!input.end_time) throw new BadRequestError('Missing end time')
 
   if (trip.start_time > trip.end_time) {
-    throw new BadRequestError("Trip start time cannot be before the trip end time")
+    throw new BadRequestError('Trip start time cannot be before the trip end time')
   }
 
   try {
@@ -284,7 +284,6 @@ function convertFormInputToDbInput(input, userId) {
     console.warn(input)
     throw new BadRequestError('Sorry, that is not a valid trip')
   }
-
 }
 
 /*
