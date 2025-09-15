@@ -2,9 +2,9 @@ import * as identity from '@azure/identity'
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js'
 import { Client } from '@microsoft/microsoft-graph-client'
 
-const OFFICE_TENANT_ID = process.env.TENANT_ID
-const OFFICE_CLIENT_ID = process.env.CLIENT_ID
-const OFFICE_CLIENT_SECRET = process.env.CLIENT_SECRET
+const OFFICE_TENANT_ID = process.env.OFFICE_TENANT_ID
+const OFFICE_CLIENT_ID = process.env.OFFICE_CLIENT_ID
+const OFFICE_CLIENT_SECRET = process.env.OFFICE_CLIENT_SECRET
 
 // This used to be a very nice and simple SMTP integration but I was forced off it (and doubled the
 // dependency graph) because of Microsoft's SMTP and Basic Auth deprecration.
