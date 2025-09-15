@@ -6,6 +6,15 @@ const _48_HOURS_IN_MS = 172800000
 const _1_HOUR_IN_MS = 3600000
 const _2_HOURS_IN_MS = 7200000
 
+export function deploymentSuccessEmail() {
+  return {
+    name: 'Deployment succeeded',
+    address: constants.deploymentEmails,
+    subject: 'Deployment succeeded',
+    message: 'Finished deploying trailhead'
+  }
+}
+
 export function getNewTripEmail(db, tripId) {
   const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
   const leaderEmails = db.getTripLeaderEmails(tripId)

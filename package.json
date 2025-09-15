@@ -19,6 +19,8 @@
   },
   "type": "module",
   "dependencies": {
+    "@azure/identity": "^4.12.0",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
     "better-sqlite3": "^11.3.0",
     "date-arithmetic": "^4.1.0",
     "dateformat": "^3.0.3",
@@ -28,7 +30,6 @@
     "htmx.org": "1.8.5",
     "morgan": "^1.10.1",
     "node-cron": "^2.0.3",
-    "nodemailer": "^6.8.0",
     "nunjucks": "^3.2.4"
   },
   "devDependencies": {
@@ -41,7 +42,10 @@
     "rules": {
       "camelcase": 0,
       "n/handle-callback-err": 0,
-      "space-before-function-paren": [ "error", "never" ]
+      "space-before-function-paren": [
+        "error",
+        "never"
+      ]
     }
   }
 }

@@ -1,14 +1,21 @@
-import nodemailer from 'nodemailer'
+import * as identity from '@azure/identity'
+import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js'
+import { Client } from '@microsoft/microsoft-graph-client'
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_ADDRESS,
-    pass: process.env.EMAIL_PASSWORD
-  }
+const OFFICE_TENANT_ID = process.env.TENANT_ID
+const OFFICE_CLIENT_ID = process.env.CLIENT_ID
+const OFFICE_CLIENT_SECRET = process.env.CLIENT_SECRET
+
+// This used to be a very nice and simple SMTP integration but I was forced off it (and doubled the
+// dependency graph) because of Microsoft's SMTP and Basic Auth deprecration.
+// Very irritating and obnoxious!
+const credential = new identity.ClientSecretCredential(
+  OFFICE_TENANT_ID, OFFICE_CLIENT_ID, OFFICE_CLIENT_SECRET
+)
+const authProvider = new TokenCredentialAuthenticationProvider(credential, {
+  scopes: ['https://graph.microsoft.com/.default']
 })
+const msGraphClient = Client.initWithMiddleware({ authProvider })
 
 /**
  * Create a function that can be run on a schedule to send emails.
@@ -74,16 +81,25 @@ async function sendEmail(email) {
     return undefined
   }
 
-  const mailOptions = {
-    from: 'doc.signup.no.reply@dartmouth.edu',
-    to: email.address,
-    subject: email.subject,
-    text: email.message
+  // Convert the recipients array to the format that Microsoft expects
+  const toRecipients =
+    (Array.isArray(email.address) ? email.address : [email.address])
+      .map(address => { return { emailAddress: { address } } })
+
+  const sendMail = {
+    message: {
+      subject: email.subject,
+      body: { contentType: 'Text', content: email.message },
+      toRecipients
+    },
+    saveToSentItems: 'false'
   }
 
   try {
-    const info = await transporter.sendMail(mailOptions)
-    console.log(`${email.name} email sent: ${info.response}`)
+    await msGraphClient
+      .api('/users/f004vmv@dartmouth.edu/sendMail')
+      .post(sendMail)
+    console.log(`${email.name} email sent successfully`)
   } catch (err) {
     console.log(`Failed to send email ${email.name} due to err:`)
     console.log(err)

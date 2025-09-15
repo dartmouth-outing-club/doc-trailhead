@@ -5,6 +5,10 @@ dotenv.config({ silent: true })
 
 export const ORIGIN = process.env.NODE_ENV === 'development' ? 'http://localhost:8080' : 'https://doc.dartmouth.edu'
 
+export const deploymentEmails = [
+  'Alexander.W.Petros@dartmouth.edu'
+]
+
 export const OPOEmails = [
   'Brad.Geismar@dartmouth.edu',
   'willow.nilsen@dartmouth.edu',
