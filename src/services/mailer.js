@@ -74,6 +74,8 @@ export async function sendBuiltEmail(email) {
   return sendEmail(email)
 }
 
+const DARTMOUTH_EMAIL_RE = /@dartmouth\.edu$/i
+
 async function sendEmail(email) {
   if (process.env.NODE_ENV !== 'production') {
     console.log('The following email was queued:')
@@ -84,6 +86,9 @@ async function sendEmail(email) {
   // Convert the recipients array to the format that Microsoft expects
   const toRecipients =
     (Array.isArray(email.address) ? email.address : [email.address])
+      // TODO start using NetID for email
+      // For now, only send to Dartmouth emails
+      .filter(address => address.match(DARTMOUTH_EMAIL_RE))
       .map(address => { return { emailAddress: { address } } })
 
   const sendMail = {
