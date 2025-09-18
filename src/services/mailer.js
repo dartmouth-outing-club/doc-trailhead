@@ -88,7 +88,7 @@ async function sendEmail(email) {
     (Array.isArray(email.address) ? email.address : [email.address])
       // TODO start using NetID for email
       // For now, only send to Dartmouth emails
-      .filter(address => address.match(DARTMOUTH_EMAIL_RE))
+      .filter(address => DARTMOUTH_EMAIL_RE.test(address))
       .map(address => { return { emailAddress: { address } } })
 
   const sendMail = {
