@@ -6,16 +6,19 @@ const OFFICE_TENANT_ID = process.env.OFFICE_TENANT_ID
 const OFFICE_CLIENT_ID = process.env.OFFICE_CLIENT_ID
 const OFFICE_CLIENT_SECRET = process.env.OFFICE_CLIENT_SECRET
 
-// This used to be a very nice and simple SMTP integration but I was forced off it (and doubled the
-// dependency graph) because of Microsoft's SMTP and Basic Auth deprecration.
-// Very irritating and obnoxious!
-const credential = new identity.ClientSecretCredential(
-  OFFICE_TENANT_ID, OFFICE_CLIENT_ID, OFFICE_CLIENT_SECRET
-)
-const authProvider = new TokenCredentialAuthenticationProvider(credential, {
-  scopes: ['https://graph.microsoft.com/.default']
-})
-const msGraphClient = Client.initWithMiddleware({ authProvider })
+let msGraphClient
+if (process.env.NODE_ENV !== 'development') {
+  // This used to be a very nice and simple SMTP integration but I was forced off it (and doubled the
+  // dependency graph) because of Microsoft's SMTP and Basic Auth deprecration.
+  // Very irritating and obnoxious!
+  const credential = new identity.ClientSecretCredential(
+    OFFICE_TENANT_ID, OFFICE_CLIENT_ID, OFFICE_CLIENT_SECRET
+  )
+  const authProvider = new TokenCredentialAuthenticationProvider(credential, {
+    scopes: ['https://graph.microsoft.com/.default']
+  })
+  msGraphClient = Client.initWithMiddleware({ authProvider })
+}
 
 /**
  * Create a function that can be run on a schedule to send emails.

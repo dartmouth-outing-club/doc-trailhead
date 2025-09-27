@@ -12,7 +12,7 @@
     "set-admin": "./scripts/set-user.sh 1",
     "set-leader": "./scripts/set-user.sh 2",
     "start": "NODE_ENV=production node src/app.js",
-    "test": "node --test"
+    "test": "NODE_ENV=development node --test"
   },
   "engines": {
     "node": ">=22"
