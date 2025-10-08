@@ -87,6 +87,7 @@ async function sendEmail(email) {
   }
 
   // Convert the recipients array to the format that Microsoft expects
+  console.log(`Recipients before mailing: ${email.address}`)
   const toRecipients =
     (Array.isArray(email.address) ? email.address : [email.address])
       // TODO start using NetID for email
@@ -107,7 +108,7 @@ async function sendEmail(email) {
     await msGraphClient
       .api('/users/f004vmv@dartmouth.edu/sendMail')
       .post(sendMail)
-    console.log(`${email.name} email sent successfully`)
+    console.log(`${email.name} email sent successfully to ${toRecipients}`)
   } catch (err) {
     console.log(`Failed to send email ${email.name} due to err:`)
     console.log(err)
