@@ -1,7 +1,6 @@
 <dl>
   {% if not noNameNorEmail %}
   <dt>Name <dd><input type=text name=name value="{{ name }}" required>
-  <dt>Email <dd><input type=text name=email value="{{ email }}" required>
   {% endif %}
   <dt>Pronouns<dd><input type=text name=pronouns value="{{ pronoun }}">
   <dt>Phone # <div class=hint>&nbsp;(just enter the number, no dashes)</div><dd><input type=text pattern="[0-9]{10,}" name="phone" value="{{ phone }}">

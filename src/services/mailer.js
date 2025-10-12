@@ -77,8 +77,6 @@ export async function sendBuiltEmail(email) {
   return sendEmail(email)
 }
 
-const DARTMOUTH_EMAIL_RE = /@dartmouth\.edu$/i
-
 async function sendEmail(email) {
   if (process.env.NODE_ENV !== 'production') {
     console.log('The following email was queued:')
@@ -87,12 +85,12 @@ async function sendEmail(email) {
   }
 
   // Convert the recipients array to the format that Microsoft expects
+  // Note that the API will flat reject any malformatted email addresses
+  // For this reason, we automatically create student emails from NetIDs
   console.log(`Recipients before mailing: ${email.address}`)
   const toRecipients =
     (Array.isArray(email.address) ? email.address : [email.address])
-      // TODO start using NetID for email
-      // For now, only send to Dartmouth emails
-      .filter(address => DARTMOUTH_EMAIL_RE.test(address))
+      .filter(address => address != null) // != tests for null or undefined
       .map(address => { return { emailAddress: { address } } })
 
   const sendMail = {

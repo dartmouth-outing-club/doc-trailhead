@@ -103,7 +103,6 @@ export function put(req, res) {
     UPDATE users
     SET
       name = @name,
-      email = @email,
       pronoun = @pronouns,
       dash_number = @dash_number,
       phone = @phone,
