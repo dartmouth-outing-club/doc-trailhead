@@ -120,15 +120,14 @@ const template = document.querySelector('#leader-input')
 const form = document.querySelector('form')
 const addLeaderButton = document.querySelector('#add-leader')
 function addLeader () {
-  console.log('appending')
   const leaderInput = template.content.cloneNode(true)
-  console.log(leaderInput)
   form.insertBefore(leaderInput, addLeaderButton)
 }
 </script>
 
 <datalist id=user-emails>
-  {% for user in emails %}<option>{{ user.email }}
+  {% for user in cas_ids %}
+    <option>{{ user.cas_id }}</option>
   {% endfor %}
 </datalist>
 

@@ -60,7 +60,7 @@ export function getEditView(req, res) {
 function renderFilledTripForm(req, res, tripId, isTemplate) {
   if (!req.db.isOpoOrLeaderForTrip(tripId, req.user)) return res.sendStatus(401)
 
-  const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
+  const cas_ids = req.db.all('SELECT id, cas_id FROM users WHERE cas_id IS NOT NULL')
 
   const trip = req.db.get(`
     SELECT id, title, club, cost, coleader_can_edit, experience_needed, private, start_time,
@@ -94,7 +94,7 @@ function renderFilledTripForm(req, res, tripId, isTemplate) {
     trip.end_time = utils.getDatetimeValueForUnixTime(trip.end_time)
   }
 
-  res.render('views/create-or-edit-trip.njk', { clubs, emails, trip, isTemplate })
+  res.render('views/create-or-edit-trip.njk', { clubs, cas_ids, trip, isTemplate })
 }
 
 export function getUserView(req, res) {
@@ -293,9 +293,9 @@ function convertFormInputToDbInput(input, userId) {
 function getLeaderIds(req) {
   const input = req.body
   const leaders = typeof input.leader === 'string' ? [input.leader] : input.leader
-  const emails = leaders || []
-  const ids = emails
-    .map(email => req.db.get('SELECT id FROM users WHERE email = ?', email))
+  const cas_ids = leaders || []
+  const ids = cas_ids
+    .map(email => req.db.get('SELECT id FROM users WHERE cas_id = ?', email))
     .map(item => item?.id)
   return ids
 }
