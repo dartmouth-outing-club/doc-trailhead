@@ -28,12 +28,16 @@ CREATE TABLE users (
   medical_conditions TEXT,
   clothe_size TEXT,
   shoe_size TEXT,
-  is_opo INTEGER NOT NULL DEFAULT FALSE
-, is_profile_complete INTEGER GENERATED ALWAYS AS (
-  id IS NOT NULL AND
-  email IS NOT NULL AND
-  name IS NOT NULL
-) VIRTUAL, height_inches INTEGER, phone TEXT, net_id TEXT) STRICT;
+  is_opo INTEGER NOT NULL DEFAULT FALSE,
+  is_profile_complete INTEGER GENERATED ALWAYS AS (
+    id IS NOT NULL AND
+    email IS NOT NULL AND
+    name IS NOT NULL
+  ) VIRTUAL,
+  height_inches INTEGER,
+  phone TEXT,
+  net_id TEXT
+) STRICT;
 CREATE TABLE user_certs (
   user INTEGER REFERENCES users ON DELETE CASCADE ON UPDATE CASCADE,
   cert TEXT, -- MICROBUS, VAN, TRAILER
