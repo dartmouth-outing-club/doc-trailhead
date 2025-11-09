@@ -54,7 +54,13 @@ HTML.
 
 ## Deployment
 Trailhead is deployed on a DigitalOcean droplet and served behind an NGINX proxy.
-Trailhead is currently running on Node 22.
+Trailhead is currently running on Node 22 and it is managed by pm2.
+
+When logged in as the trailhead-running user:
+
+* `pm2 ls` see trailhead (and related processes)
+* `pm2 resurrect` restart all the processes after a reboot
+
 
 ### Upgrading
 To upgrade it to the latest stable version (22 at the time of this writing, but it won't be forever) using [the n module](https://www.npmjs.com/package/n):
