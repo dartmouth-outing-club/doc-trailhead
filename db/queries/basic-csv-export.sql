@@ -9,7 +9,7 @@ FROM users;
 SELECT
     id,
     name,
-    iif(active, "TRUE", "FALSE") as is_active
+    iif(active, 'TRUE', 'FALSE') as is_active
 FROM clubs;
 
 .once trips.csv
@@ -29,7 +29,7 @@ FROM trips;
 SELECT
     trip,
     user,
-    iif(leader, "TRUE", "FALSE") as is_leader,
-    iif(pending, "TRUE", "FALSE") as is_pending
+    iif(leader, 'TRUE', 'FALSE') as is_leader,
+    iif(pending, 'TRUE', 'FALSE') as is_pending
 FROM trip_members;
 
