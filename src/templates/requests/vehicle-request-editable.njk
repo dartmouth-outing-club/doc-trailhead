@@ -1,3 +1,4 @@
+
 <section class=info-card>
     {% macro vehicleFieldset(default_pickup_time, default_return_time, requested_vehicle={}) %}
         {% set vehicle = requested_vehicle or {
@@ -34,16 +35,11 @@
             </label>
 
             <button class="action remove" type=button onclick="removeSelf(this)">Remove Vehicle</button>
-
         </fieldset>
     {% endmacro %}
 
 
     <template id=additional-vehicle>
-        <!-- TODO: fill in previous mileage as needed -->
-        <label class=block> estimated mileage: 
-        <input type=number name="mileage"> </input>
-        </label>
 
         {{ vehicleFieldset(default_pickup_time, default_return_time) }}
     </template>
@@ -52,14 +48,16 @@
 
   <h1>Vehicle Requests</h1>
 
-
-
   {% for vehicle in requested_vehicles %}
         {{ vehicleFieldset(default_pickup_time, default_return_time, vehicle) }}
   {% endfor %}
 
   <label id=notes-label for=notes-input {% if not requested_vehicles %}class="hidden"{% endif %} >Notes:</label>
   <textarea {% if not requested_vehicles %}class="hidden"{% endif %} type=text id=notes-input name=notes>{{ request_details }}</textarea>
+        <!-- TODO: fill in previous mileage as needed -->
+    <label class="hidden" id="mileage-label"> estimated trip mileage: 
+            <input class="hidden" type=number id="mileage-input" name="mileage" value="{{ requested_vehicles[0] and requested_vehicles[0].mileage | default(10)}}"> </input> 
+    </label>
 
   <div id=add-vehicle class=button-row>
     <button class="action edit" type=button onclick="addVehicle()">Add Vehicle</button>
@@ -70,15 +68,24 @@
   <script>
     function resetFormNumbers () {
       // Hide or unhide notes based on how many fieldsets there are
+        
       const fieldsets = document.querySelectorAll('fieldset')
+        // could reasonnnnnably just add a class to this?
       const notes = document.querySelector('#notes-label')
       const notesInput = document.querySelector('#notes-input')
+      const mileage = document.querySelector('#mileage-label')
+      const mileageInput = document.querySelector('#mileage-input')
       if (fieldsets.length === 0) {
         notes.classList.add('hidden')
         notesInput.classList.add('hidden')
+        mileage.classList.add('hidden')
+        mileageInput.classList.add('hidden')
+        mileageInput.value = 0
       } else {
         notesInput.classList.remove('hidden')
         notes.classList.remove('hidden')
+        mileage.classList.remove('hidden')
+        mileageInput.classList.remove('hidden')
       }
 
       fieldsets.forEach((fieldset, index) => {

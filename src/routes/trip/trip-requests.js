@@ -3,6 +3,7 @@ import * as utils from '../../utils.js'
 
 export function getRequestsView(req, res) {
   const tripId = req.params.tripId
+
   const statuses = req.db.get(`
     SELECT
       member_gear_approved,
@@ -29,7 +30,7 @@ export function getRequestsView(req, res) {
 
 function getVehicleRequestData(req, tripId) {
   const requested_vehicles = req.db.all(`
-    SELECT type, pickup_time, return_time, trailer_needed, pass_needed, request_details
+    SELECT type, pickup_time, return_time, trailer_needed, pass_needed, request_details, mileage
     FROM requested_vehicles
     LEFT JOIN vehiclerequests ON vehiclerequests.id = requested_vehicles.vehiclerequest
     WHERE vehiclerequests.trip = ?
@@ -117,10 +118,13 @@ export function putVehicleRequest(req, res) {
     return res.render('components/save-complete-button.njk')
   }
 
+
+
+
   const info = req.db.run(`
-      INSERT INTO vehiclerequests (requester, request_details, trip)
-      VALUES (?, ?, ?)
-      `, req.user, input.notes, tripId)
+      INSERT INTO vehiclerequests (requester, request_details, trip, mileage)
+      VALUES (?, ?, ?, ?)
+      `, req.user, input.notes, tripId, input.mileage)
   const vehiclerequestId = info.lastInsertRowid
 
   // Point all the vehicles to the new request
