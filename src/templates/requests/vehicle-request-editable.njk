@@ -1,76 +1,65 @@
 <section class=info-card>
-  <template id=additional-vehicle>
-  <fieldset>
-    <legend>Vehicle</legend>
-    <button class="action remove" type=button onclick="removeSelf(this)">Remove Vehicle</button>
-    <label class=block>Type:
-      <select name=type>
-        <option>Van
-        <option>Minivan
-        <option>Truck
-        <option>Personal Vehicle
-      </select>
-    </label>
-    <label class=block>
-      Pickup:
-      <input type=datetime-local name=pickup value="{{ default_pickup_time }}"required>
-    </label>
-    <label class=block>
-      Return:
-      <input type=datetime-local name=return value="{{ default_return_time }}"required>
-    </label>
-    <label class=block>Need a trailer hitch?
-      <input type=checkbox name=trailer_needed autocomplete=off>
-    </label>
-    <label class=block>Need a WMNF pass?
-      <input type=checkbox name=pass_needed autocomplete=off>
-    </label>
-  </fieldset>
-  </template>
+    {% macro vehicleFieldset(default_pickup_time, default_return_time, requested_vehicle={}) %}
+        {% set vehicle = requested_vehicle or {
+        type : "Truck",
+        pickup : default_pickup_time,
+        return : default_return_time, 
+        trailed_nedeed : false,
+        pass_needed : false
+        } %}
 
-  <form class=vehicle-form
-        hx-put="/trip/{{ trip_id }}/vehiclerequest"
-        hx-swap=outerHTML
-        hx-target="find button[type=submit]"
-        >
+        <fieldset>
+            <legend>Vehicle</legend>
+
+            <label class=block>Type: <select name=type>
+                <option {% if vehicle.type == 'Van' %}selected{% endif %}>Van
+                    <option {% if vehicle.type == 'Minivan' %}selected{% endif %}>Minivan
+                        <option {% if vehicle.type == 'Truck' %}selected{% endif %}>Truck
+                            <option {% if vehicle.type == 'PersonalVehicle' %}selected{% endif %}>PersonalVehicle
+            </select>
+            </label>
+
+            <label class=block>Pickup: <input value="{{ vehicle.pickup }}" type=datetime-local name=pickup required></label>
+
+            <label class=block>Return: <input value="{{ vehicle.return }}" type=datetime-local name=return required></label>
+
+            <label>
+                Need a trailer hitch?
+                <input type=checkbox name=trailer_needed autocomplete=off {% if vehicle.trailer_needed %}checked{% endif %}>
+            </label>
+
+            <label>
+                Need a WMNF pass?
+                <input type=checkbox name=pass_needed autocomplete=off {% if vehicle.pass_needed %}checked{% endif %}>
+            </label>
+
+            <button class="action remove" type=button onclick="removeSelf(this)">Remove Vehicle</button>
+
+        </fieldset>
+    {% endmacro %}
+
+
+    <template id=additional-vehicle>
+        <!-- TODO: fill in previous mileage as needed -->
+        <label class=block> estimated mileage: 
+        <input type=number name="mileage"> </input>
+        </label>
+
+        {{ vehicleFieldset(default_pickup_time, default_return_time) }}
+    </template>
+
+  <form class=vehicle-form hx-put="/trip/{{ trip_id }}/vehiclerequest" hx-swap=outerHTML hx-target="find button[type=submit]" >
+
   <h1>Vehicle Requests</h1>
 
-  <label id=notes-label
-         for=notes-input
-         {% if not requested_vehicles %}class="hidden"{% endif %}
-         >Notes:</label>
-  <textarea {% if not requested_vehicles %}class="hidden"{% endif %} type=text id=notes-input name=notes>{{ request_details }}</textarea>
-  {# Copying this from the template above is a bit of a shame but we're on a deadline here #}
+
+
   {% for vehicle in requested_vehicles %}
-  <fieldset>
-    <legend>Vehicle</legend>
-    <button class="action remove" type=button onclick="removeSelf(this)">Remove Vehicle</button>
-    <label class=block>Type:
-      <select name=type>
-        <option {% if vehicle.type == 'Van' %}selected{% endif %}>Van
-        <option {% if vehicle.type == 'Minivan' %}selected{% endif %}>Minivan
-        <option {% if vehicle.type == 'Truck' %}selected{% endif %}>Truck
-        <option {% if vehicle.type == 'PersonalVehicle' %}selected{% endif %}>PersonalVehicle
-      </select>
-    </label>
-    <label class=block>Pickup: <input value="{{ vehicle.pickup }}" type=datetime-local name=pickup required></label>
-    <label class=block>Return: <input value="{{ vehicle.return }}" type=datetime-local name=return required></label>
-    <label>
-      Need a trailer hitch?
-      <input type=checkbox
-             name=trailer_needed
-             autocomplete=off
-             {% if vehicle.trailer_needed %}checked{% endif %}>
-    </label>
-    <label>
-      Need a WMNF pass?
-      <input type=checkbox
-             name=pass_needed
-             autocomplete=off
-             {% if vehicle.pass_needed %}checked{% endif %}>
-    </label>
-  </fieldset>
+        {{ vehicleFieldset(default_pickup_time, default_return_time, vehicle) }}
   {% endfor %}
+
+  <label id=notes-label for=notes-input {% if not requested_vehicles %}class="hidden"{% endif %} >Notes:</label>
+  <textarea {% if not requested_vehicles %}class="hidden"{% endif %} type=text id=notes-input name=notes>{{ request_details }}</textarea>
 
   <div id=add-vehicle class=button-row>
     <button class="action edit" type=button onclick="addVehicle()">Add Vehicle</button>
