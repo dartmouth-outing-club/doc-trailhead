@@ -158,10 +158,13 @@ export function editTrip(req, res) {
   // Add new leaders
   const leaders = getLeaderIds(req)
   const values = leaders.map(userId => [tripId, userId, 1, 0])
-  req.db.runMany(
-    'INSERT OR IGNORE INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)',
-    values
-  )
+  //req.db.runMany( 'INSERT OR IGNORE INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)', values) 
+  req.db.runMany(`INSERT INTO trip_members (trip, user, leader, pending) 
+                    VALUES (?, ?, ?, ?) 
+                    ON CONFLICT (trip, user) DO UPDATE SET 
+                        leader = 1, 
+                        pending = 0 
+                `,values)
 
   res.set('HX-Redirect', `/leader/trip/${tripId}`)
   return res.sendStatus(200)
