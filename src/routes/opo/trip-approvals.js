@@ -2,8 +2,10 @@ import * as utils from '../../utils.js'
 
 const _60_DAYS_IN_MS = 5184000000
 const OPO_TRIPS_QUERY = `
-    SELECT trips.id,
+    SELECT 
+      trips.id,
       title,
+      mileage,
       location,
       start_time,
       users.name as owner,
@@ -51,15 +53,28 @@ export function get(req, res) {
       AND (mg_status != 'N/A' OR gg_status != 'N/A' OR pc_status != 'N/A' OR vr_status != 'N/A')
     ORDER BY start_time ASC`,
     now.getTime()
-  ).map(convertToRow)
+  )
+    console.log(future_trips)
+
+    future_trips.map(convertToRow)
 
   res.render('views/opo/trip-approvals.njk', { past_trips, future_trips })
 }
 
 function convertToRow(trip) {
+    /*
+        
+    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    for (const [key, value] of Object.entries(trip)) {
+        console.log(`${key} : ${value}`);
+    }
+    */
+
+
   return {
     id: trip.id,
     title: trip.title,
+    mileage: trip.mileage,
     owner: trip.owner,
     start_time_element: utils.getDatetimeElement(trip.start_time),
     mg_status_element: utils.getBadgeImgElement(trip.mg_status),
