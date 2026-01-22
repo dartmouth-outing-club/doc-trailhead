@@ -1,5 +1,5 @@
 #!/bin/bash
-# Note: this is intended to be run via the package.sjon
+# Note: this is intended to be run via the package.json
 set -euo pipefail
 if [[ -f trailhead.db-wal ]]; then
   echo "Database is still in use - make sure WAL is cleaned up."
