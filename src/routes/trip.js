@@ -45,10 +45,11 @@ export function getCreateView(req, res) {
     const tripId = req.query.template
     renderFilledTripForm(req, res, tripId, true)
   } else {
-    const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
+    //const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
+    const cas_ids = req.db.all('SELECT id, cas_id FROM users WHERE cas_id IS NOT NULL')
     const clubs = getClubs(req.db, req.user, res.locals.is_opo)
     const today = utils.getDatetimeValueForNow()
-    res.render('views/create-or-edit-trip.njk', { clubs, emails, today })
+    res.render('views/create-or-edit-trip.njk', { clubs, cas_ids, today })
   }
 }
 
@@ -295,7 +296,7 @@ function getLeaderIds(req) {
   const leaders = typeof input.leader === 'string' ? [input.leader] : input.leader
   const cas_ids = leaders || []
   const ids = cas_ids
-    .map(email => req.db.get('SELECT id FROM users WHERE cas_id = ?', email))
+    .map(email => req.db.get('SELECT id FROM users WHERE cas_id = ? collate nocase', email)) //NOTE: added collate nocase, any reason not to do this...?
     .map(item => item?.id)
   return ids
 }
