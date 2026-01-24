@@ -45,7 +45,6 @@ export function getCreateView(req, res) {
     const tripId = req.query.template
     renderFilledTripForm(req, res, tripId, true)
   } else {
-    //const emails = req.db.all('SELECT id, email FROM users WHERE email IS NOT NULL')
     const cas_ids = req.db.all('SELECT id, cas_id FROM users WHERE cas_id IS NOT NULL')
     const clubs = getClubs(req.db, req.user, res.locals.is_opo)
     const today = utils.getDatetimeValueForNow()
@@ -158,7 +157,6 @@ export function editTrip(req, res) {
   // Add new leaders
   const leaders = getLeaderIds(req)
   const values = leaders.map(userId => [tripId, userId, 1, 0])
-  //req.db.runMany( 'INSERT OR IGNORE INTO trip_members (trip, user, leader, pending) VALUES (?, ?, ?, ?)', values) 
   req.db.runMany(`INSERT INTO trip_members (trip, user, leader, pending) 
                     VALUES (?, ?, ?, ?) 
                     ON CONFLICT (trip, user) DO UPDATE SET 
@@ -299,7 +297,7 @@ function getLeaderIds(req) {
   const leaders = typeof input.leader === 'string' ? [input.leader] : input.leader
   const cas_ids = leaders || []
   const ids = cas_ids
-    .map(email => req.db.get('SELECT id FROM users WHERE cas_id = ? collate nocase', email)) //NOTE: added collate nocase, any reason not to do this...?
+    .map(email => req.db.get('SELECT id FROM users WHERE cas_id LIKE ? ', email)) 
     .map(item => item?.id)
   return ids
 }
