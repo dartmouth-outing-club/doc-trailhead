@@ -53,24 +53,12 @@ export function get(req, res) {
       AND (mg_status != 'N/A' OR gg_status != 'N/A' OR pc_status != 'N/A' OR vr_status != 'N/A')
     ORDER BY start_time ASC`,
     now.getTime()
-  )
-    console.log(future_trips)
-
-    future_trips.map(convertToRow)
+  ).map(convertToRow)
 
   res.render('views/opo/trip-approvals.njk', { past_trips, future_trips })
 }
 
 function convertToRow(trip) {
-    /*
-        
-    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-    for (const [key, value] of Object.entries(trip)) {
-        console.log(`${key} : ${value}`);
-    }
-    */
-
-
   return {
     id: trip.id,
     title: trip.title,
