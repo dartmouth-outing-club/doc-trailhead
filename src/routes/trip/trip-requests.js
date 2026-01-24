@@ -43,7 +43,6 @@ function getVehicleRequestData(req, tripId) {
       }
     })
   const times = req.db.get('SELECT start_time, end_time FROM trips WHERE id = ?', tripId)
-
   return {
     trip_id: tripId,
     request_details: requested_vehicles[0]?.request_details,
