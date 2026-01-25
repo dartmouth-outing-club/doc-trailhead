@@ -3,7 +3,6 @@ import * as utils from '../../utils.js'
 
 export function getRequestsView(req, res) {
   const tripId = req.params.tripId
-
   const statuses = req.db.get(`
     SELECT
       member_gear_approved,
