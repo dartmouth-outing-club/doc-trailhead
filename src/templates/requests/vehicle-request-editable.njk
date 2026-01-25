@@ -42,8 +42,8 @@
 
   <fieldset class="" id="trip-fieldset"> 
     <legend>Trip</legend>
-            <label class="" id="mileage-label"> Estimated Trip Mileage: </label> 
-        <input class="" id="mileage-input" name="mileage" type="number" min=1 required value="{{ requested_vehicles[0] and requested_vehicles[0].mileage }}"> </input>
+            <label class="hidden" id="mileage-label"> Estimated Trip Mileage: </label> 
+        <input class="hidden number-row" id="mileage-input" name="mileage" type="number" min=1 required value="{{ requested_vehicles[0] and requested_vehicles[0].mileage }}"> </input>
 
   <label id=notes-label
          for=notes-input

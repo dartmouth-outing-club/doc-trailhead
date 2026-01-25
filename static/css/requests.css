@@ -34,16 +34,14 @@ textarea {
   resize: vertical;
 }
 
-/* remove up/down arrows on non-firefox browsers */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;   
-    margin: 0;                 
+#mileage-input {
+  -webkit-appearance: none;   
+   margin: 0;                 
+  -moz-appearance: textfield;
 }
 
 input[type=number] {
   width: 50px;
-  -moz-appearance: textfield;
 }
 
 input[type=checkbox] {

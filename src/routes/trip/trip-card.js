@@ -23,6 +23,7 @@ function getLeaderData(req, tripId, userId) {
       dropoff,
       location,
       private,
+      mileage,
       users.name as owner_name,
       iif(experience_needed = 0, 'No', 'Yes') as experience_needed,
       cost,
