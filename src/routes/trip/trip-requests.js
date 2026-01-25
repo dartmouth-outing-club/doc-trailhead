@@ -117,9 +117,6 @@ export function putVehicleRequest(req, res) {
     return res.render('components/save-complete-button.njk')
   }
 
-
-
-
   const info = req.db.run(`
       INSERT INTO vehiclerequests (requester, request_details, trip, mileage)
       VALUES (?, ?, ?, ?)
