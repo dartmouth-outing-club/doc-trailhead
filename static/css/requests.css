@@ -34,6 +34,7 @@ textarea {
   resize: vertical;
 }
 
+/* remove up/down arrows on non-firefox browsers */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;   

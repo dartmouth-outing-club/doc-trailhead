@@ -1,139 +1,152 @@
 <section class=info-card>
-    {% macro vehicleFieldset(default_pickup_time, default_return_time, requested_vehicle={} ) %}
-        {% set vehicle = requested_vehicle %}
-        {% if requested_vehicle | length == 0 %} 
-            {% set vehicle = {
-                type : "Van",
-                pickup : default_pickup_time,
-                return : default_return_time, 
-                trailed_nedeed : false,
-                pass_needed : false
-            } %}
-        {% endif %}
+  <template id=additional-vehicle>
 
-    <fieldset>
-        <legend>Vehicle</legend>
+  <fieldset class="vehicle-fieldset">
+    <legend>Vehicle</legend>
+    <button class="action remove" type=button onclick="removeSelf(this)">Remove Vehicle</button>
+    <label class=block>Type:
+      <select name=type>
+        <option>Van
+        <option>Minivan
+        <option>Truck
+        <option>Personal Vehicle
+      </select>
+    </label>
 
-        <label class=block>Type: <select name=type>
-            <option {% if vehicle.type == 'Van' %}selected{% endif %}>Van
-                <option {% if vehicle.type == 'Minivan' %}selected{% endif %}>Minivan
-                    <option {% if vehicle.type == 'Truck' %}selected{% endif %}>Truck
-                        <option {% if vehicle.type == 'PersonalVehicle' %}selected{% endif %}>PersonalVehicle
-            </select>
-        </label>
+    <label class=block>
+      Pickup:
+      <input type=datetime-local name=pickup value="{{ default_pickup_time }}"required>
+    </label>
+    <label class=block>
+      Return:
+      <input type=datetime-local name=return value="{{ default_return_time }}"required>
+    </label>
+    <label class=block>Need a trailer hitch?
+      <input type=checkbox name=trailer_needed autocomplete=off>
+    </label>
+    <label class=block>Need a WMNF pass?
+      <input type=checkbox name=pass_needed autocomplete=off>
+    </label>
+  </fieldset>
+  </template>
 
-        <label class=block>Pickup: <input value="{{ vehicle.pickup }}" type=datetime-local name=pickup required></label>
-
-        <label class=block>Return: <input value="{{ vehicle.return }}" type=datetime-local name=return required></label>
-
-        <label>
-            Need a trailer hitch?
-            <input type=checkbox name=trailer_needed autocomplete=off {% if vehicle.trailer_needed %}checked{% endif %}>
-        </label>
-
-        <label>
-            Need a WMNF pass?
-            <input type=checkbox name=pass_needed autocomplete=off {% if vehicle.pass_needed %}checked{% endif %}>
-        </label>
-
-        <button class="action remove" type=button onclick="removeSelf(this)">Remove Vehicle</button>
-    </fieldset>
-    {% endmacro %}
-
-    <template id=additional-vehicle>
-        {{ vehicleFieldset(default_pickup_time, default_return_time) }}
-    </template>
+  <form class=vehicle-form
+        hx-put="/trip/{{ trip_id }}/vehiclerequest"
+        hx-swap=outerHTML
+        hx-target="find button[type=submit]"
+        >
+  <h1>Vehicle Requests</h1>
 
 
-    <form class=vehicle-form hx-put="/trip/{{ trip_id }}/vehiclerequest" hx-swap=outerHTML hx-target="find button[type=submit]" >
+  {# Copying this from the template above is a bit of a shame but we're on a deadline here #}
 
-        <h1>Vehicle Requests</h1>
+  <fieldset class="" id="trip-fieldset"> 
+    <legend>Trip</legend>
+            <label class="" id="mileage-label"> Estimated Trip Mileage: </label> 
+        <input class="" id="mileage-input" name="mileage" type="number" min=1 required value="{{ requested_vehicles[0] and requested_vehicles[0].mileage }}"> </input>
 
-        <fieldset>
-            <legend>Trip</legend>
+  <label id=notes-label
+         for=notes-input
+         {% if not requested_vehicles %}class="hidden"{% endif %}
+         >Notes:</label>
+  <textarea {% if not requested_vehicles %}class="hidden"{% endif %} type=text id=notes-input name=notes>{{ request_details }}</textarea>
 
+  </fieldset>
 
-            <label class="hidden" id="mileage-label"> Estimated Trip Mileage:
+  {% for vehicle in requested_vehicles %}
 
-            <br>
-                <input class="hidden no-spinner" type=number id="mileage-input" name="mileage" min=1 required value="{{ requested_vehicles[0] and requested_vehicles[0].mileage }}"> </input> 
-            </label>
-        </fieldset>
+  <fieldset class="vehicle-fieldset">
+    <legend>Vehicle</legend>
+    <button class="action remove" type=button onclick="removeSelf(this)">Remove Vehicle</button>
+    <label class=block>Type:
+      <select name=type>
+        <option {% if vehicle.type == 'Van' %}selected{% endif %}>Van
+        <option {% if vehicle.type == 'Minivan' %}selected{% endif %}>Minivan
+        <option {% if vehicle.type == 'Truck' %}selected{% endif %}>Truck
+        <option {% if vehicle.type == 'PersonalVehicle' %}selected{% endif %}>PersonalVehicle
+      </select>
+    </label>
+    <label class=block>Pickup: <input value="{{ vehicle.pickup }}" type=datetime-local name=pickup required></label>
+    <label class=block>Return: <input value="{{ vehicle.return }}" type=datetime-local name=return required></label>
+    <label>
+      Need a trailer hitch?
+      <input type=checkbox
+             name=trailer_needed
+             autocomplete=off
+             {% if vehicle.trailer_needed %}checked{% endif %}>
+    </label>
+    <label>
+      Need a WMNF pass?
+      <input type=checkbox
+             name=pass_needed
+             autocomplete=off
+             {% if vehicle.pass_needed %}checked{% endif %}>
+    </label>
+  </fieldset>
+  {% endfor %}
 
-        {% for vehicle in requested_vehicles %}
-            {{ vehicleFieldset(default_pickup_time, default_return_time, vehicle) }}
-        {% endfor %}
+  <div id=add-vehicle class=button-row>
+    <button class="action edit" type=button onclick="addVehicle()">Add Vehicle</button>
+    <button class="action approve" type=submit>Save</button>
+  </div>
+  </form>
 
-        <label id=notes-label for=notes-input {% if not requested_vehicles %}class="hidden"{% endif %} >Notes:</label>
-        <textarea {% if not requested_vehicles %}class="hidden"{% endif %} type=text id=notes-input name=notes>{{ request_details }}</textarea>
-
-        <div id=add-vehicle class=button-row>
-            <button class="action edit" type=button onclick="addVehicle()">Add Vehicle</button>
-            <button class="action approve" type=submit>Save</button>
-        </div>
-    </form>
-
-
-    <script>
+  <script>
     function resetFormNumbers () {
-        // Hide or unhide notes based on how many fieldsets there are
+      // Hide or unhide notes based on how many fieldsets there are
+      const fieldsets = document.querySelectorAll('.vehicle-fieldset')
+      const notes = document.querySelector('#notes-label')
+      const notesInput = document.querySelector('#notes-input')
+      const mileageInput = document.querySelector('#mileage-input')
 
-        const fieldsets = document.querySelectorAll('fieldset')
-        // could reasonnnnnably just add a class to this?
-        const notes = document.querySelector('#notes-label')
-        const notesInput = document.querySelector('#notes-input')
-        const mileage = document.querySelector('#mileage-label')
-        const mileageInput = document.querySelector('#mileage-input')
-        if (fieldsets.length === 0) {
-            notes.classList.add('hidden')
-            notesInput.classList.add('hidden')
-            mileage.classList.add('hidden')
-            mileageInput.classList.add('hidden')
-            mileageInput.required = false;
-            mileageInput.disabled = true;
-            mileageInput.value = '';
-        } else {
-            notesInput.classList.remove('hidden')
-            notes.classList.remove('hidden')
-            mileage.classList.remove('hidden')
-            mileageInput.classList.remove('hidden')
-            mileageInput.required = true;
-            mileageInput.disabled = false;
-        }
+      const tripFieldset = document.querySelector('#trip-fieldset')
+      if (fieldsets.length === 0) {
+        notes.classList.add('hidden')
+        notesInput.classList.add('hidden')
+        tripFieldset.classList.add('hidden')
+        mileageInput.required = false;
+        mileageInput.disabled = true;
+        mileageInput.value = '';
+      } else {
+        notesInput.classList.remove('hidden')
+        notes.classList.remove('hidden')
+        tripFieldset.classList.remove('hidden')
+        mileageInput.required = true;
+        mileageInput.disabled = false;
+      }
 
-        fieldsets.forEach((fieldset, index) => {
-            const vehicleNum = index + 1
-            // Add a number to the fieldset
-            fieldset.setAttribute('id', `fieldset-${vehicleNum}`)
-            // Add that number to all of the fieldset's children that have a name attribute
-            // The name attributes are the ones that will get sent as form data
-            const fields = document.querySelectorAll(`#fieldset-${vehicleNum} *[name]`)
-            fields.forEach(field => {
-                // Remove the previous "-", if one exists
-                const stub = field.name.split('-')[0]
-                field.setAttribute('name', `${stub}-${vehicleNum}`)
-            })
+      fieldsets.forEach((fieldset, index) => {
+        const vehicleNum = index + 1
+        // Add a number to the fieldset
+        fieldset.setAttribute('id', `fieldset-${vehicleNum}`)
+        // Add that number to all of the fieldset's children that have a name attribute
+        // The name attributes are the ones that will get sent as form data
+        const fields = document.querySelectorAll(`#fieldset-${vehicleNum} *[name]`)
+        fields.forEach(field => {
+          // Remove the previous "-", if one exists
+          const stub = field.name.split('-')[0]
+          field.setAttribute('name', `${stub}-${vehicleNum}`)
         })
+      })
     }
 
     function addVehicle () {
-        const template = document.querySelector('#additional-vehicle')
-        const form = document.querySelector('form.vehicle-form')
-        // NOTE: I moved notes to the end (so this appends before the notes label but now I'm not sure if it should go in the "trip" fieldset instead...
-        const notesLabel = document.querySelector('#notes-label')
-        const newRow = template.content.cloneNode(true)
-        form.insertBefore(newRow, notesLabel)
-        resetFormNumbers()
+      const template = document.querySelector('#additional-vehicle')
+      const form = document.querySelector('form.vehicle-form')
+      const vehicleButton = document.querySelector('#add-vehicle')
+      const newRow = template.content.cloneNode(true)
+      form.insertBefore(newRow, vehicleButton)
+      resetFormNumbers()
     }
 
     function removeSelf(item) {
-        item.parentElement.remove()
-        resetFormNumbers()
+      item.parentElement.remove()
+      resetFormNumbers()
     }
 
     // Run once every time this bit is loaded
     resetFormNumbers()
-    </script>
+  </script>
 
 </section>
 
