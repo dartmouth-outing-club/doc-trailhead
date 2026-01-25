@@ -47,12 +47,11 @@
                  required 
                  value="{{ requested_vehicles[0] and requested_vehicles[0].mileage }}"> 
     </fieldset>
-
     <label id=notes-label
          for=notes-input
          {% if not requested_vehicles %}class="hidden"{% endif %}
          >Notes:</label>
-      <textarea {% if not requested_vehicles %}class="hidden"{% endif %} type=text id=notes-input name=notes>{{ request_details }}</textarea>
+    <textarea {% if not requested_vehicles %}class="hidden"{% endif %} type=text id=notes-input name=notes>{{ request_details }}</textarea>
 
   {% for vehicle in requested_vehicles %}
   <fieldset class="vehicle-fieldset">
