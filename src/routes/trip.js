@@ -162,7 +162,7 @@ export function editTrip(req, res) {
                     ON CONFLICT (trip, user) DO UPDATE SET 
                         leader = 1, 
                         pending = 0 
-                `,values)
+                `, values)
 
   res.set('HX-Redirect', `/leader/trip/${tripId}`)
   return res.sendStatus(200)
@@ -297,7 +297,7 @@ function getLeaderIds(req) {
   const leaders = typeof input.leader === 'string' ? [input.leader] : input.leader
   const cas_ids = leaders || []
   const ids = cas_ids
-    .map(email => req.db.get('SELECT id FROM users WHERE cas_id LIKE ? ', email)) 
+    .map(email => req.db.get('SELECT id FROM users WHERE cas_id LIKE ? ', email))
     .map(item => item?.id)
   return ids
 }
