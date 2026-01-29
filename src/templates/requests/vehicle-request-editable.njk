@@ -37,9 +37,8 @@
   <h1>Vehicle Requests</h1>
   <fieldset class="hidden" id="trip-fieldset"> 
     <legend>Trip</legend>
-      <label class="hidden" id="mileage-label"> Estimated Trip Mileage: </label> 
-        <input class="hidden mileage-input" 
-               id="mileage-input" 
+      <label id="mileage-label"> Estimated Trip Mileage: </label> 
+        <input id="mileage-input" 
                name="mileage" 
                type="number" 
                min=1 
@@ -102,14 +101,12 @@
         notes.classList.add('hidden')
         notesInput.classList.add('hidden')
         tripFieldset.classList.add('hidden')
-        mileageInput.required = false;
         mileageInput.disabled = true;
         mileageInput.value = '';
       } else {
         notesInput.classList.remove('hidden')
         notes.classList.remove('hidden')
         tripFieldset.classList.remove('hidden')
-        mileageInput.required = true;
         mileageInput.disabled = false;
       }
 
