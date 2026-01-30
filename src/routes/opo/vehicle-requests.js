@@ -13,6 +13,7 @@ function getVehicleRequests(req) {
   return req.db.all(`
     SELECT
       vehiclerequests.id,
+      mileage,
       users.name as requester_name,
       trips.id as trip_id,
       iif(trips.id IS NOT NULL, trips.title, request_details) as reason,

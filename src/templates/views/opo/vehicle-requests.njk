@@ -14,12 +14,13 @@
 {% else %}
 <div class=trip-table-overflow-wrapper>
 <table class=trip-table>
-<thead><tr><th>Trip #<th>Title<th>Requester<th>Pickup<th>Return
+                <thead><tr><th>Trip #<th>Title<th>Mileage<th>Requester<th>Pickup<th>Return
 <tbody>
   {% for request in pending_requests %}
   <tr>
   <td>{{request.trip_id}}
   <td><a href="/leader/trip/{{request.trip_id}}#vehicle-request">{{request.reason}}</a>
+  <td>{{request.mileage}}
   <td>{{request.requester_name}}
   <td>{{request.pickup_time_element | safe }}
   <td>{{request.return_time_element | safe }}
