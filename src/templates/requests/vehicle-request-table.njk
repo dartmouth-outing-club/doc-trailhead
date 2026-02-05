@@ -6,9 +6,6 @@
     {{ vehiclerequest_badge | safe }}
   </div>
 
-  <table class="detail-table mileage">
-    <tr ><th>Estimate Trip Mileage<td>{{ mileage }}
-  </table>
 
   <h3>Request Notes</h3>
 
@@ -21,6 +18,7 @@
     <dt>Details<dd>{{ vehicle.details }}
     <dt>Pickup Time<dd>{{ vehicle.pickup_time | safe }}
     <dt>Return Time<dd>{{ vehicle.return_time | safe }}
+    <dt>Mileage<dd>{{ vehicle.mileage }}
     <dt>Trailer Hitch<dd>{{ vehicle.trailer_needed }}
     <dt>WMNF Pass<dd>{{ vehicle.pass_needed }}
   </dl>
