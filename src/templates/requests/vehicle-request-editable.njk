@@ -20,6 +20,14 @@
       Return:
       <input type=datetime-local name=return value="{{ default_return_time }}"required>
     </label>
+      <label id="mileage-label"> Estimated Trip Mileage: </label> 
+        <input id="mileage-input" 
+               name="mileage" 
+               type="number" 
+               min=1 
+               required 
+               value="{{ requested_vehicles[0] and requested_vehicles[0].mileage }}"> 
+
     <label class=block>Need a trailer hitch?
       <input type=checkbox name=trailer_needed autocomplete=off>
     </label>
@@ -35,16 +43,7 @@
         hx-target="find button[type=submit]"
         >
   <h1>Vehicle Requests</h1>
-  <fieldset class="hidden" id="trip-fieldset"> 
-    <legend>Trip</legend>
-      <label id="mileage-label"> Estimated Trip Mileage: </label> 
-        <input id="mileage-input" 
-               name="mileage" 
-               type="number" 
-               min=1 
-               required 
-               value="{{ requested_vehicles[0] and requested_vehicles[0].mileage }}"> 
-  </fieldset>
+
   <label id=notes-label
          for=notes-input
          {% if not requested_vehicles %}class="hidden"{% endif %}
@@ -65,6 +64,15 @@
     </label>
     <label class=block>Pickup: <input value="{{ vehicle.pickup }}" type=datetime-local name=pickup required></label>
     <label class=block>Return: <input value="{{ vehicle.return }}" type=datetime-local name=return required></label>
+
+      <label id="mileage-label"> Estimated Trip Mileage: </label> 
+        <input id="mileage-input" 
+               name="mileage" 
+               type="number" 
+               min=1 
+               required 
+               value="{{ vehicle.mileage }}"> 
+
     <label>
       Need a trailer hitch?
       <input type=checkbox
@@ -94,20 +102,23 @@
       const fieldsets = document.querySelectorAll('.vehicle-fieldset')
       const notes = document.querySelector('#notes-label')
       const notesInput = document.querySelector('#notes-input')
-      const mileageInput = document.querySelector('#mileage-input')
+      const mileageInputs = document.querySelectorAll('#mileage-input')
 
-      const tripFieldset = document.querySelector('#trip-fieldset')
       if (fieldsets.length === 0) {
         notes.classList.add('hidden')
         notesInput.classList.add('hidden')
-        tripFieldset.classList.add('hidden')
-        mileageInput.disabled = true;
-        mileageInput.value = '';
+            // TODO: horrifically ugly!
+        mileageInputs.forEach((mileageInput, index) => {
+            mileageInput.disabled = true;
+            mileageInput.value = '';
+        })
+        
       } else {
         notesInput.classList.remove('hidden')
         notes.classList.remove('hidden')
-        tripFieldset.classList.remove('hidden')
-        mileageInput.disabled = false;
+        mileageInputs.forEach((mileageInput, index) => {
+            mileageInput.disabled = false;
+        })
       }
 
       fieldsets.forEach((fieldset, index) => {
@@ -130,7 +141,13 @@
       const form = document.querySelector('form.vehicle-form')
       const vehicleButton = document.querySelector('#add-vehicle')
       const newRow = template.content.cloneNode(true)
+
+      //NOTE: assumes whatever they add first is most reasonable to be repeated
+      const firstMileage = document.querySelector('#mileage-input')
+      newMileage = newRow.querySelector("#mileage-input")
+      newMileage.value = firstMileage ? firstMileage.value : 0;
       form.insertBefore(newRow, vehicleButton)
+
       resetFormNumbers()
     }
 

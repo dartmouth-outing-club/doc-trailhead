@@ -5,7 +5,6 @@ const OPO_TRIPS_QUERY = `
     SELECT 
       trips.id,
       title,
-      mileage,
       location,
       start_time,
       users.name as owner,
@@ -62,7 +61,6 @@ function convertToRow(trip) {
   return {
     id: trip.id,
     title: trip.title,
-    mileage: trip.mileage,
     owner: trip.owner,
     start_time_element: utils.getDatetimeElement(trip.start_time),
     mg_status_element: utils.getBadgeImgElement(trip.mg_status),
