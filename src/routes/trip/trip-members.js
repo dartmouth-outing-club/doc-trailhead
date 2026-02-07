@@ -71,7 +71,7 @@ export function signup(req, res) {
   if (isTripOver(req.db, tripId)) throw new BadRequestError('You cannot signup for a trip that already ended')
 
   // Add the trip member if they weren't there before
-  const info = req.db.run(`
+  const tripMemberInsert = req.db.run(`
     INSERT OR IGNORE INTO trip_members (trip, user, leader, pending)
       VALUES (?, ?, false, true)`, tripId, req.user)
 
@@ -83,11 +83,8 @@ export function signup(req, res) {
       tripId, req.user, gearId)
   }
 
-  // If the trip member was inserted, that means they just applied,
-  // otherwise it means they changed their gear request
-  if (info.changes === 1) {
-    mailer.send(emails.getTripApplicationConfirmation, req.db, tripId, req.user)
-  } else {
+  // If tripMemberInsert was ignored, that means they just updated their gear request
+  if (tripMemberInsert.changes < 1) {
     mailer.send(emails.getGearRequestChangedEmail, req.db, tripId, req.user)
   }
 

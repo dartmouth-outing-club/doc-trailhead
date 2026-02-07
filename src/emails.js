@@ -15,17 +15,6 @@ export function deploymentSuccessEmail() {
   }
 }
 
-export function getNewTripEmail(db, tripId) {
-  const trip = db.get('SELECT id, title FROM trips WHERE id = ?', tripId)
-  const leaderEmails = db.getTripLeaderEmails(tripId)
-  return {
-    name: 'New trip',
-    address: leaderEmails,
-    subject: `New Trip #${tripId} created`,
-    message: nunjucks.render('emails/new-trip.njk', { trip, constants })
-  }
-}
-
 export function getTripDeletedEmail(db, tripId) {
   const trip = db.getTripEmailInfo(tripId)
   return {
@@ -83,24 +72,6 @@ export function getGearRequestChangedEmail(db, tripId, userId) {
     address,
     subject: `Trip #${tripId}: ${info.name} changed gear requests`,
     message: nunjucks.render('emails/gear-request-changed.njk', { info, tripId, constants })
-  }
-}
-
-export function getTripApplicationConfirmation(db, tripId, userId) {
-  const info = db.get(`
-    SELECT title, users.name, users.email, owner_table.email as owner_email
-    FROM trip_members
-    LEFT JOIN users ON users.id = trip_members.user
-    LEFT JOIN trips ON trips.id = trip_members.trip
-    LEFT JOIN users AS owner_table ON trips.owner = users.id
-    WHERE trip = ? AND user = ?
-  `, tripId, userId)
-
-  return {
-    name: 'Trip application confirmation',
-    address: info.email,
-    subject: "Confirmation: You've applied to go on a trip",
-    message: nunjucks.render('emails/trip-application-confirmation.njk', { info, tripId, constants })
   }
 }
 
