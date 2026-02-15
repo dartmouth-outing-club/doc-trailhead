@@ -14,20 +14,23 @@
 {% else %}
 <div class=trip-table-overflow-wrapper>
 <table class=trip-table>
-                <thead><tr><th>Trip #<th>Title <th> Mileage <th> Vehicle Count<th>Requester<th>Pickup<th>Return
+                <thead><tr><th>Trip #<th>Title <th> Mileage<th>Requester<th>Pickup<th>Return
 <tbody>
+  {% set last_trip_id = null %}
   {% for request in pending_requests %}
+
   <tr>
-  <td>{{request.trip_id}}
+    <td> {% if request.trip_id != last_trip_id %}
+            {{ request.trip_id}}
+                {% else %}
+                                
+        {% endif %}
+
+        {% set last_trip_id = request.trip_id %}
+
   <td><a href="/leader/trip/{{request.trip_id}}#vehicle-request">{{request.reason}}</a>
 
-    <td> {{request.trip_mileage}}
-    {% if request.trip_mileage == request.average_mileage %}
-        <td> {{ request.vcount}} 
-
-    {% else %}
-        <td> {{request.vcount}}*
-    {% endif %}
+    <td> {{request.mileage}}
 
   <td>{{request.requester_name}}
   <td>{{request.pickup_time_element | safe }}
@@ -46,12 +49,13 @@
 {% else %}
 <div class=trip-table-overflow-wrapper>
 <table class=trip-table>
-<thead><tr><th>Trip #<th>Title<th>Requester<th>Pickup<th>Return<th>Status
+                <thead><tr><th>Trip #<th>Title<th>Mileage<th>Requester<th>Pickup<th>Return<th>Status
 <tbody>
   {% for request in reviewed_requests %}
   <tr>
   <td>{{request.trip_id}}
   <td><a href="/leader/trip/{{request.trip_id}}#vehicle-request">{{request.reason}}</a>
+  <td>{{request.mileage}}
   <td>{{request.requester_name}}
   <td>{{request.pickup_time_element | safe }}
   <td>{{request.return_time_element | safe }}
