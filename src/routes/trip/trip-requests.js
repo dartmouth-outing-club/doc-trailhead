@@ -103,7 +103,7 @@ export function putVehicleRequest(req, res) {
       return_time,
       mileage: input[`mileage-${index}`],
       trailer_needed: input[`trailer_needed-${index}`] ? 1 : 0,
-      pass_needed: input[`pass_needed-${index}`] ? 1 : 0,
+      pass_needed: input[`pass_needed-${index}`] ? 1 : 0
     }
     vehicles.push(vehicle)
     index++

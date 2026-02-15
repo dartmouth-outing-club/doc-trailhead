@@ -10,7 +10,7 @@ export function get(req, res) {
 
 function getRequestedVehicles(req) {
   const now = new Date()
-    return req.db.all(`
+  return req.db.all(`
       SELECT 
         vehiclerequest, 
         pickup_time, 
@@ -26,7 +26,7 @@ function getRequestedVehicles(req) {
       JOIN users on users.id =  trips.owner 
       where pickup_time > ? 
       ORDER BY trip_id `, now.getTime()
-    )
+  )
 }
 
 function getRowData(request) {
