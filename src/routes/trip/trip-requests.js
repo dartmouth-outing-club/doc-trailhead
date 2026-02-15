@@ -117,12 +117,10 @@ export function putVehicleRequest(req, res) {
     return res.render('components/save-complete-button.njk')
   }
 
-  //TODO: prolly remove mileage from here...
-
   const info = req.db.run(`
-      INSERT INTO vehiclerequests (requester, request_details, trip, mileage)
-      VALUES (?, ?, ?, ?)
-      `, req.user, input.notes, tripId, input.mileage)
+      INSERT INTO vehiclerequests (requester, request_details, trip)
+      VALUES (?, ?, ?)
+      `, req.user, input.notes, tripId)
   const vehiclerequestId = info.lastInsertRowid
 
   // Point all the vehicles to the new request
