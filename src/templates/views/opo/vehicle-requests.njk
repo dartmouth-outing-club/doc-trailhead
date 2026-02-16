@@ -46,8 +46,7 @@
 <tbody>
   {% set last_trip_id = null %}
   {% for request in reviewed_requests %}
-
-  {% if request.trip_id != last_trip_id %}
+    {% if request.trip_id != last_trip_id %}
     <tr>
     <td>{{request.trip_id}}
     <td><a href="/leader/trip/{{request.trip_id}}#vehicle-request">{{request.reason}}</a>
@@ -56,10 +55,10 @@
     <td>{{request.return_time_element | safe }}
     <td>{{request.status_element | safe }}
     </tr>
-        </tr>
-      {% endif %}
+    {% endif %}
   {% set last_trip_id = request.trip_id %}
 {% endfor %}
+</tr>
 
 </table>
 </div>
