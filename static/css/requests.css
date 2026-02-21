@@ -36,12 +36,7 @@ textarea {
 
 #mileage-input {
   -webkit-appearance: none;   
-   margin: 0;                 
   -moz-appearance: textfield;
-}
-
-input[type=number] {
-  width: 50px;
 }
 
 input[type=checkbox] {

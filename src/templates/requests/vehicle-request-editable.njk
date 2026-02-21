@@ -11,7 +11,6 @@
         <option>Personal Vehicle
       </select>
     </label>
-
     <label class=block>
       Pickup:
       <input type=datetime-local name=pickup value="{{ default_pickup_time }}"required>
@@ -20,14 +19,11 @@
       Return:
       <input type=datetime-local name=return value="{{ default_return_time }}"required>
     </label>
-      <label id="mileage-label"> Estimated Vehicle Mileage: </label> 
-        <input id="mileage-input" 
-               name="mileage" 
-               type="number" 
-               min=1 
-               required 
-               value="{{ requested_vehicles[0] and requested_vehicles[0].mileage }}"> 
-
+    <label class=block id="mileage-label"> 
+      Estimated Vehicle Mileage:
+      <input id="mileage-input" name="mileage" type="number" min=1 required 
+             value="{{ requested_vehicles[0] and requested_vehicles[0].mileage }}"> 
+    </label> 
     <label class=block>Need a trailer hitch?
       <input type=checkbox name=trailer_needed autocomplete=off>
     </label>
@@ -62,17 +58,19 @@
         <option {% if vehicle.type == 'PersonalVehicle' %}selected{% endif %}>PersonalVehicle
       </select>
     </label>
-    <label class=block>Pickup: <input value="{{ vehicle.pickup }}" type=datetime-local name=pickup required></label>
-    <label class=block>Return: <input value="{{ vehicle.return }}" type=datetime-local name=return required></label>
-
-      <label id="mileage-label"> Estimated Vehicle Mileage: </label> 
-        <input id="mileage-input" 
-               name="mileage" 
-               type="number" 
-               min=1 
-               required 
-               value="{{ vehicle.mileage }}"> 
-
+    <label class=block>
+      Pickup: 
+      <input value="{{ vehicle.pickup }}" type=datetime-local name=pickup required>
+    </label>
+    <label class=block>
+      Return: 
+      <input value="{{ vehicle.return }}" type=datetime-local name=return required>
+    </label>
+    <label class=block id="mileage-label"> 
+      Estimated Vehicle Mileage:
+      <input id="mileage-input" name="mileage" type="number" min=1 required 
+             value="{{ requested_vehicles[0] and requested_vehicles[0].mileage }}"> 
+    </label> 
     <label>
       Need a trailer hitch?
       <input type=checkbox
@@ -107,12 +105,10 @@
       if (fieldsets.length === 0) {
         notes.classList.add('hidden')
         notesInput.classList.add('hidden')
-            // TODO: horrifically ugly!
         mileageInputs.forEach((mileageInput, index) => {
             mileageInput.disabled = true;
             mileageInput.value = '';
         })
-        
       } else {
         notesInput.classList.remove('hidden')
         notes.classList.remove('hidden')
@@ -141,8 +137,7 @@
       const form = document.querySelector('form.vehicle-form')
       const vehicleButton = document.querySelector('#add-vehicle')
       const newRow = template.content.cloneNode(true)
-
-      //NOTE: assumes whatever they add first is most reasonable to be repeated
+      //NOTE: assumes whatever they add first is most likely to be repeated
       const firstMileage = document.querySelector('#mileage-input')
       newMileage = newRow.querySelector("#mileage-input")
       newMileage.value = firstMileage ? firstMileage.value : 0;
