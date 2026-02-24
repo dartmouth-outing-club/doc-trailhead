@@ -5,7 +5,10 @@
     <h2 id=vehicle-request>Vehicle Request (#{{ vehiclerequest_id }})</h2>
     {{ vehiclerequest_badge | safe }}
   </div>
+
+
   <h3>Request Notes</h3>
+
   <p class="user-text">{{ vehiclerequest_details }}
   {% for vehicle in requested_vehicles %}
   <h3>Vehicle #{{ loop.index }}</h3>
@@ -15,6 +18,7 @@
     <dt>Details<dd>{{ vehicle.details }}
     <dt>Pickup Time<dd>{{ vehicle.pickup_time | safe }}
     <dt>Return Time<dd>{{ vehicle.return_time | safe }}
+    <dt>Mileage<dd>{{ vehicle.mileage }}
     <dt>Trailer Hitch<dd>{{ vehicle.trailer_needed }}
     <dt>WMNF Pass<dd>{{ vehicle.pass_needed }}
   </dl>

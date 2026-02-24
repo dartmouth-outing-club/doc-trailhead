@@ -1,6 +1,6 @@
 <section class=info-card>
   <template id=additional-vehicle>
-  <fieldset>
+  <fieldset class="vehicle-fieldset">
     <legend>Vehicle</legend>
     <button class="action remove" type=button onclick="removeSelf(this)">Remove Vehicle</button>
     <label class=block>Type:
@@ -19,6 +19,11 @@
       Return:
       <input type=datetime-local name=return value="{{ default_return_time }}"required>
     </label>
+    <label class=block id="mileage-label"> 
+      Estimated Vehicle Mileage:
+      <input id="mileage-input" name="mileage" type="number" min=1 required 
+             value="{{ requested_vehicles[0] and requested_vehicles[0].mileage }}"> 
+    </label> 
     <label class=block>Need a trailer hitch?
       <input type=checkbox name=trailer_needed autocomplete=off>
     </label>
@@ -40,9 +45,9 @@
          {% if not requested_vehicles %}class="hidden"{% endif %}
          >Notes:</label>
   <textarea {% if not requested_vehicles %}class="hidden"{% endif %} type=text id=notes-input name=notes>{{ request_details }}</textarea>
-  {# Copying this from the template above is a bit of a shame but we're on a deadline here #}
+
   {% for vehicle in requested_vehicles %}
-  <fieldset>
+  <fieldset class="vehicle-fieldset">
     <legend>Vehicle</legend>
     <button class="action remove" type=button onclick="removeSelf(this)">Remove Vehicle</button>
     <label class=block>Type:
@@ -53,8 +58,19 @@
         <option {% if vehicle.type == 'PersonalVehicle' %}selected{% endif %}>PersonalVehicle
       </select>
     </label>
-    <label class=block>Pickup: <input value="{{ vehicle.pickup }}" type=datetime-local name=pickup required></label>
-    <label class=block>Return: <input value="{{ vehicle.return }}" type=datetime-local name=return required></label>
+    <label class=block>
+      Pickup: 
+      <input value="{{ vehicle.pickup }}" type=datetime-local name=pickup required>
+    </label>
+    <label class=block>
+      Return: 
+      <input value="{{ vehicle.return }}" type=datetime-local name=return required>
+    </label>
+    <label class=block id="mileage-label"> 
+      Estimated Vehicle Mileage:
+      <input id="mileage-input" name="mileage" type="number" min=1 required 
+             value="{{ requested_vehicles[0] and requested_vehicles[0].mileage }}"> 
+    </label> 
     <label>
       Need a trailer hitch?
       <input type=checkbox
@@ -81,15 +97,24 @@
   <script>
     function resetFormNumbers () {
       // Hide or unhide notes based on how many fieldsets there are
-      const fieldsets = document.querySelectorAll('fieldset')
+      const fieldsets = document.querySelectorAll('.vehicle-fieldset')
       const notes = document.querySelector('#notes-label')
       const notesInput = document.querySelector('#notes-input')
+      const mileageInputs = document.querySelectorAll('#mileage-input')
+
       if (fieldsets.length === 0) {
         notes.classList.add('hidden')
         notesInput.classList.add('hidden')
+        mileageInputs.forEach((mileageInput, index) => {
+            mileageInput.disabled = true;
+            mileageInput.value = '';
+        })
       } else {
         notesInput.classList.remove('hidden')
         notes.classList.remove('hidden')
+        mileageInputs.forEach((mileageInput, index) => {
+            mileageInput.disabled = false;
+        })
       }
 
       fieldsets.forEach((fieldset, index) => {
@@ -112,7 +137,12 @@
       const form = document.querySelector('form.vehicle-form')
       const vehicleButton = document.querySelector('#add-vehicle')
       const newRow = template.content.cloneNode(true)
+      //NOTE: assumes whatever they add first is most likely to be repeated
+      const firstMileage = document.querySelector('#mileage-input')
+      newMileage = newRow.querySelector("#mileage-input")
+      newMileage.value = firstMileage ? firstMileage.value : 0;
       form.insertBefore(newRow, vehicleButton)
+
       resetFormNumbers()
     }
 

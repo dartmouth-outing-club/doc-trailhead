@@ -146,18 +146,18 @@ img.badge {
   display: inline;
 }
 
+dl.vehicle-table  {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+}
+
 .vehicle-table dt {
   color: var(--heading-main-color);
-  display: inline;
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
 }
 
 .vehicle-table dt::after {
     content: ": ";
-}
-
-.vehicle-table dd {
-  display: inline;
 }
 
 .vehicle-table dd::after {

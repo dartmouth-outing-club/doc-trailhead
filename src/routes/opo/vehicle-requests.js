@@ -2,41 +2,38 @@ import * as utils from '../../utils.js'
 import { getBadgeImgElement } from '../../utils.js'
 
 export function get(req, res) {
-  const requests = getVehicleRequests(req).map(getRowData)
+  const requests = getRequestedVehicles(req).map(getRowData)
   const reviewed_requests = requests.filter(request => request.status !== 'pending')
   const pending_requests = requests.filter(request => request.status === 'pending')
   res.render('views/opo/vehicle-requests.njk', { reviewed_requests, pending_requests })
 }
 
-function getVehicleRequests(req) {
+function getRequestedVehicles(req) {
   const now = new Date()
   return req.db.all(`
-    SELECT
-      vehiclerequests.id,
-      users.name as requester_name,
-      trips.id as trip_id,
-      iif(trips.id IS NOT NULL, trips.title, request_details) as reason,
-      first_pickup,
-      last_return,
-      iif(is_approved IS NULL, 'pending', iif(is_approved = 1, 'approved', 'denied')) as status
-    FROM vehiclerequests
-    LEFT JOIN (
-      SELECT vehiclerequest, min(pickup_time) AS first_pickup, max(return_time) AS last_return
-      FROM requested_vehicles
-      GROUP BY vehiclerequest
-    ) ON vehiclerequest = vehiclerequests.id
-    LEFT JOIN users ON users.id = vehiclerequests.requester
-    LEFT JOIN trips ON trips.id = vehiclerequests.trip
-    WHERE last_return > ?
-    ORDER BY first_pickup ASC
-`, now.getTime())
+      SELECT 
+        vehiclerequest, 
+        pickup_time, 
+        return_time, 
+        requested_vehicles.mileage,
+        users.name as requester_name,
+        trips.id as trip_id,
+        trips.title as reason,
+        iif(vehiclerequests.is_approved IS NULL, 'pending', iif(is_approved = 1, 'approved', 'denied')) as status
+      FROM requested_vehicles 
+      JOIN vehiclerequests ON vehiclerequests.id = requested_vehicles.vehiclerequest
+      JOIN trips ON trips.id = vehiclerequests.trip
+      JOIN users on users.id =  trips.owner 
+      where pickup_time > ? 
+      ORDER BY trip_id `, now.getTime()
+  )
 }
 
 function getRowData(request) {
   return {
     ...request,
-    pickup_time_element: utils.getDatetimeElement(request.first_pickup),
-    return_time_element: utils.getDatetimeElement(request.last_return),
+    pickup_time_element: utils.getDatetimeElement(request.pickup_time),
+    return_time_element: utils.getDatetimeElement(request.return_time),
     status_element: getBadgeImgElement(request.status)
   }
 }

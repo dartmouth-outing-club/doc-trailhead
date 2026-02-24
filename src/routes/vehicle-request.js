@@ -24,6 +24,7 @@ export function getVehicleRequestData(req, vehicleRequestId) {
       details,
       pickup_time,
       return_time,
+      mileage,
       iif(trailer_needed = 1, 'Yes', 'No') as trailer_needed,
       iif(pass_needed = 1, 'Yes', 'No') as pass_needed
     FROM requested_vehicles

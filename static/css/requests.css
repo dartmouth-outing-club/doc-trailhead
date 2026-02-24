@@ -23,6 +23,7 @@ input, textarea, select {
   border-radius: 6px;
   border: 1px solid gray;
   padding: 7px;
+  margin-top: 0.1rem;
 }
 
 textarea {
@@ -33,8 +34,9 @@ textarea {
   resize: vertical;
 }
 
-input[type=number] {
-  width: 50px;
+#mileage-input {
+  -webkit-appearance: none;   
+  -moz-appearance: textfield;
 }
 
 input[type=checkbox] {

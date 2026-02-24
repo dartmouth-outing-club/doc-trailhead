@@ -2,7 +2,8 @@ import * as utils from '../../utils.js'
 
 const _60_DAYS_IN_MS = 5184000000
 const OPO_TRIPS_QUERY = `
-    SELECT trips.id,
+    SELECT 
+      trips.id,
       title,
       location,
       start_time,

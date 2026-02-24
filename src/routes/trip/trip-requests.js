@@ -29,7 +29,7 @@ export function getRequestsView(req, res) {
 
 function getVehicleRequestData(req, tripId) {
   const requested_vehicles = req.db.all(`
-    SELECT type, pickup_time, return_time, trailer_needed, pass_needed, request_details
+    SELECT type, pickup_time, return_time, trailer_needed, pass_needed, request_details, requested_vehicles.mileage
     FROM requested_vehicles
     LEFT JOIN vehiclerequests ON vehiclerequests.id = requested_vehicles.vehiclerequest
     WHERE vehiclerequests.trip = ?
@@ -42,7 +42,6 @@ function getVehicleRequestData(req, tripId) {
       }
     })
   const times = req.db.get('SELECT start_time, end_time FROM trips WHERE id = ?', tripId)
-
   return {
     trip_id: tripId,
     request_details: requested_vehicles[0]?.request_details,
@@ -102,6 +101,7 @@ export function putVehicleRequest(req, res) {
       type: input[`type-${index}`],
       pickup_time,
       return_time,
+      mileage: input[`mileage-${index}`],
       trailer_needed: input[`trailer_needed-${index}`] ? 1 : 0,
       pass_needed: input[`pass_needed-${index}`] ? 1 : 0
     }
@@ -128,8 +128,8 @@ export function putVehicleRequest(req, res) {
 
   req.db.runMany(`
     INSERT INTO requested_vehicles
-      (vehiclerequest, type, pickup_time, return_time, trailer_needed, pass_needed)
-    VALUES (@vehiclerequest, @type, @pickup_time, @return_time, @trailer_needed, @pass_needed)
+      (vehiclerequest, type, pickup_time, return_time, trailer_needed, pass_needed, mileage)
+    VALUES (@vehiclerequest, @type, @pickup_time, @return_time, @trailer_needed, @pass_needed, @mileage)
   `, vehicles)
 
   res.render('components/save-complete-button.njk')
