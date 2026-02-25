@@ -11,21 +11,21 @@ export function get(req, res) {
 function getRequestedVehicles(req) {
   const now = new Date()
   return req.db.all(`
-      SELECT 
-        vehiclerequest, 
-        pickup_time, 
-        return_time, 
+      SELECT
+        vehiclerequest,
+        pickup_time,
+        return_time,
         requested_vehicles.mileage,
         users.name as requester_name,
         trips.id as trip_id,
         trips.title as reason,
         iif(vehiclerequests.is_approved IS NULL, 'pending', iif(is_approved = 1, 'approved', 'denied')) as status
-      FROM requested_vehicles 
+      FROM requested_vehicles
       JOIN vehiclerequests ON vehiclerequests.id = requested_vehicles.vehiclerequest
       JOIN trips ON trips.id = vehiclerequests.trip
-      JOIN users on users.id =  trips.owner 
-      where pickup_time > ? 
-      ORDER BY trip_id `, now.getTime()
+      JOIN users on users.id =  trips.owner
+      WHERE pickup_time > ?
+      ORDER BY pickup_time `, now.getTime()
   )
 }
 
