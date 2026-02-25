@@ -18,14 +18,17 @@ function getRequestedVehicles(req) {
         requested_vehicles.mileage,
         users.name as requester_name,
         trips.id as trip_id,
-        trips.title as reason,
+        trips.title as reason,  
+        trips.start_time,
+        clubs.name as club_requesting,
         iif(vehiclerequests.is_approved IS NULL, 'pending', iif(is_approved = 1, 'approved', 'denied')) as status
       FROM requested_vehicles
       JOIN vehiclerequests ON vehiclerequests.id = requested_vehicles.vehiclerequest
       JOIN trips ON trips.id = vehiclerequests.trip
       JOIN users on users.id =  trips.owner
+      JOIN clubs on clubs.id = trips.club
       WHERE pickup_time > ?
-      ORDER BY pickup_time `, now.getTime()
+      ORDER BY start_time `, now.getTime()
   )
 }
 
