@@ -1,4 +1,5 @@
 import { BadRequestError, NotFoundError } from '../request/errors.js'
+import dateFormat from 'dateformat'
 
 export function getProfileView(req, res) {
   if (req.query.card) {
@@ -55,10 +56,17 @@ function getProfileData(req, userId, hideControls) {
   const user = req.db.get('SELECT * FROM users WHERE id = ?', userId)
   if (!user) throw new NotFoundError(`User ${userId} not found`)
 
-  const certs = req.db
-    .all('SELECT cert, is_approved FROM user_certs WHERE user = ?', userId)
+  const certs_vehicles = req.db
+    .all('SELECT cert, is_approved FROM certs_vehicles WHERE user = ?', userId)
     .map(item => `${item.cert}${item.is_approved === 0 ? ' (pending)' : ''}`)
     .join(', ')
+
+  const certs_med = req.db.get('SELECT type, expiration FROM certs_med WHERE user = ?', userId)
+  if (certs_med) {
+    user.medcert_type = certs_med.type
+    const medcert_expiration_date = new Date(certs_med.expiration)
+    user.medcert_expiration = dateFormat(medcert_expiration_date, 'mm-dd-yyyy')
+  }
 
   if (user.shoe_size) {
     const split = user.shoe_size.split('-')
@@ -70,7 +78,7 @@ function getProfileData(req, userId, hideControls) {
   user.inches = user.height_inches % 12
   user.height = `${user.feet}'${user.inches}"`
 
-  user.driver_certifications = certs.length > 0 ? certs : 'none'
+  user.driver_certifications = certs_vehicles.length > 0 ? certs_vehicles : 'none'
   user.leader_for = req.db.get(`
     SELECT group_concat(
       iif(is_approved = 1, name, name || ' (pending)'),
@@ -114,6 +122,15 @@ export function put(req, res) {
     WHERE id = @user_id
   `, formData)
 
+  const medcert_type = formData.medcert_type
+  const medcert_expiration = new Date(formData.medcert_expiration).getTime()
+  if (medcert_type && medcert_expiration) {
+    req.db.run(`
+    INSERT or IGNORE INTO certs_med 
+    (user, type, expiration) VALUES (?, ?, ?) 
+    `, formData.user_id, medcert_type, medcert_expiration)
+  }
+
   if (formData.new_user === 'true') {
     res.set('HX-Redirect', '/all-trips')
     return res.sendStatus(200)
@@ -122,17 +139,18 @@ export function put(req, res) {
   return getProfileCard(req, res)
 }
 
-const VALID_CERTS = ['VAN', 'MINIVAN', 'TRAILER']
+const VALID_VEHICLE_CERTS = ['VAN', 'MINIVAN', 'TRAILER']
+// TODO: driver -> vehicle
 export function getDriverCertRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   // TODO this is a little gnarly and could be cleaned up
-  const driver_certs = req.db.all('SELECT cert, is_approved FROM user_certs WHERE user = ?', userId)
-  const checkboxes = VALID_CERTS.map(cert => {
+  const driver_certs = req.db.all('SELECT cert, is_approved FROM certs_vehicles WHERE user = ?', userId)
+  const checkboxes = VALID_VEHICLE_CERTS.map(cert => {
     const userCert = driver_certs.find(item => item.cert === cert)
     const attributes = userCert ? `checked ${userCert.is_approved && !res.locals.is_opo ? 'disabled ' : ''}` : ''
-    return `<label><input ${attributes}type=checkbox name=cert value=${cert}></input>${cert}</label>`
+    return `<label><input ${attributes}type=checkbox name=vehicle_cert value=${cert}></input>${cert}</label>`
   })
   const form = `
 <form hx-boost=true
@@ -155,19 +173,19 @@ export function postDriverCertRequest(req, res) {
 
   // If you're the user, delete all the *pending* requests and add the new ones
   // If you're OPO, you can just delete all the requests
-  req.db.run(`DELETE FROM user_certs WHERE user = ? ${!res.locals.is_opo ? 'and is_approved = 0' : ''}`, userId)
+  req.db.run(`DELETE FROM certs_vehicles WHERE user = ? ${!res.locals.is_opo ? 'and is_approved = 0' : ''}`, userId)
 
   // If the body is empty, that means the user has removed their certs, and we're done
-  if (!req.body.cert) return getProfileCard(req, res)
+  if (!req.body.vehicle_cert) return getProfileCard(req, res)
 
   // body-parser weirdness: if there's a single value it's a string, if there's multiple it's an
   // array of strings
   const is_approved = res.locals.is_opo === true ? 1 : 0
-  const certs = typeof req.body.cert === 'string' ? [req.body.cert] : req.body.cert
-  certs
-    .filter(cert => VALID_CERTS.includes(cert))
+  const certs_vehicles = typeof req.body.vehicle_cert === 'string' ? [req.body.vehicle_cert] : req.body.vehicle_cert
+  certs_vehicles
+    .filter(cert => VALID_VEHICLE_CERTS.includes(cert))
     .map(cert => req.db.run(
-      'INSERT OR IGNORE INTO user_certs (user, cert, is_approved) VALUES (?, ?, ?)',
+      'INSERT OR IGNORE INTO certs_vehicles (user, cert, is_approved) VALUES (?, ?, ?)',
       userId, cert, is_approved
     )) // INSERT OR IGNORE so that existing, approved certs will not be overwritten
 
@@ -177,6 +195,19 @@ export function postDriverCertRequest(req, res) {
 export function getClubLeadershipRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
+
+  const certs_med = req.db.get('SELECT type, expiration FROM certs_med WHERE user = ?', userId)
+  if (!certs_med) {
+    const disclaimer = `
+<div>
+  <div class="warn-message">
+  You do not have any med certs saved. Please make sure you have a valid med cert before requesting club leadership.
+  </div>
+  <button class="action deny" hx-get="/profile/${userId}?card=true">Cancel</button>
+</div>
+    `
+    res.send(disclaimer).status(200)
+  }
 
   const userClubs = req.db.all(`
     SELECT clubs.id, name, is_approved

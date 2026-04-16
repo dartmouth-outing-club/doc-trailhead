@@ -20,6 +20,23 @@
   justify-content: center;
 }
 
+.profile-card dl {
+  display: grid;
+  grid-template-columns: max-content auto;
+  align-items: start;
+  margin-right: 20
+}
+
+.profile-card dt {
+    grid-column: 1
+}
+
+.profile-card dd {
+    grid-column: 2;
+    text-align: right;
+    margin: 0;
+}
+
 .profile-name {
   justify-content: center;
   display: flex;
@@ -78,7 +95,7 @@
   font-size: 1.1em;
 }
 
-.profile-card select, .profile-card input[type=number] {
+.profile-card select, .profile-card input[type=number], .profile-card input[type=date] {
   border: 2px solid #c4c4c4;
   border-radius: 10px;
   background: white;
