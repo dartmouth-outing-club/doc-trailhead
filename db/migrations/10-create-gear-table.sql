@@ -9,3 +9,10 @@ CREATE TABLE gear (
   active INTEGER DEFAULT TRUE
 ) STRICT;
 
+
+--alter table group_gear_requests add column is_approved integer NOT NULL default 0;
+--alter table member_gear_requests add column is_approved integer NOT NULL default 0;
+
+--alter table group_gear_requests add column gear_id INTEGER references gear(id) on update cascade;
+--alter table member_gear_requests add column gear_id INTEGER references gear(id) on update cascade;
+

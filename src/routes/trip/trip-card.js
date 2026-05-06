@@ -248,7 +248,18 @@ export function renderSignupPage(req, res, tripId, userId) {
   return res.render('views/trip.njk', trip)
 }
 
+//TODO: what are the differences between this an renderLeaderCard..?
 export function renderLeaderPage(req, res, tripId, userId) {
   const trip = getLeaderData(req, tripId, userId)
   return res.render('views/leader-trip.njk', trip)
+}
+
+export function renderMemberGear(req, res, tripId, userId) {
+  const trip = getLeaderData(req, tripId, userId)
+  return res.render('trip/member-gear-table.njk', trip)
+}
+
+export function renderGroupGear(req, res, tripId, userId) {
+  const trip = getLeaderData(req, tripId, userId)
+  return res.render('trip/group-gear-table.njk', trip)
 }

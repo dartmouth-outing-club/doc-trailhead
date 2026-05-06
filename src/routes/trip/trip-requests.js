@@ -63,12 +63,11 @@ function getIndividualGearData(req, tripId) {
     // and maybe a "description tag for requests"
   const gear = req.db.all('SELECT trip_required_gear.id, gear.name, size_type FROM trip_required_gear join gear on gear.id = trip_required_gear.name WHERE trip = ? ', tripId)
     console.log(gear)
-  // TODO it's insane that I'm returning the parameter again //NOTE: dont worry, i'm probably about to do something worse ! 
+  // TODO it's insane that I'm returning the parameter again 
   return { trip_id: tripId, individual_gear: gear }
 }
 
 function getGroupGearData(req, tripId) {
-
     //NOTE: rowid?? 
     //NOTE: also why is this "group_gear_requests" but the other table is "trip_required_gear"
   const gear = req.db.all('SELECT group_gear_requests.rowid as id, gear.name, group_gear_requests.quantity FROM group_gear_requests join gear on gear.id = group_gear_requests.name WHERE trip = ?', tripId)
@@ -162,8 +161,6 @@ export function putIndividualGear(req, res) {
     return { trip: tripId, name: item, size_type: measurements[index] }
   })
 
-
-  //TODO: ideally this should insert a reference to the gear database to allow for something to be renamed
 
   req.db.runMany(`
     INSERT INTO trip_required_gear (trip, name, size_type)

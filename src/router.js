@@ -133,16 +133,20 @@ router.put(     '/opo/vehiclerequest/:requestId/approve',   requireOpo, gearAppr
 router.put(     '/opo/vehiclerequest/:requestId/deny',      requireOpo, gearApprovals.denyVehicleRequest)
 router.put(     '/opo/vehiclerequest/:requestId/reset',     requireOpo, gearApprovals.resetVehicleRequest)
 
-router.put(     '/opo/member-gear/:tripId/approve',         requireOpo, gearApprovals.approveMemberGear)
-router.put(     '/opo/member-gear/:tripId/deny',            requireOpo, gearApprovals.denyMemberGear)
-router.put(     '/opo/member-gear/:tripId/reset',           requireOpo, gearApprovals.resetMemberGear)
+router.put(     '/opo/member-gear/:tripId/approve/:gearId',           requireOpo, gearApprovals.approveMemberGear)
+router.put(     '/opo/member-gear/:tripId/deny/:gearId',              requireOpo, gearApprovals.denyMemberGear)
+router.put(     '/opo/member-gear/:tripId/reset/:gearId',             requireOpo, gearApprovals.resetMemberGear)
+router.get(     '/opo/member-gear/:tripId/adjust/:gearId/:quantity',  requireOpo, gearApprovals.getAdjustMemberGear)
+router.put(     '/opo/member-gear/:tripId/adjust/:gearId/',           requireOpo, gearApprovals.putAdjustMemberGear)
 
-router.put(     '/opo/group-gear/:tripId/approve',          requireOpo, gearApprovals.approveGroupGear)
-router.put(     '/opo/group-gear/:tripId/deny',             requireOpo, gearApprovals.denyGroupGear)
-router.put(     '/opo/group-gear/:tripId/reset',            requireOpo, gearApprovals.resetGroupGear)
-
-router.get(     '/opo/group-gear/:tripId/adjust',            requireOpo, gearApprovals.getAdjustGroupGear)
-router.put(     '/opo/group-gear/:tripId/adjust/:quantity',  requireOpo, gearApprovals.putAdjustGroupGear)
+router.put(     '/opo/group-gear/:tripId/approve/:gearId',            requireOpo, gearApprovals.approveGroupGear)
+router.put(     '/opo/group-gear/:tripId/deny/:gearId',               requireOpo, gearApprovals.denyGroupGear)
+router.put(     '/opo/group-gear/:tripId/reset/:gearId',              requireOpo, gearApprovals.resetGroupGear)
+router.get(     '/opo/group-gear/:tripId/adjust/:gearId/:quantity',   requireOpo, gearApprovals.getAdjustGroupGear)
+router.put(     '/opo/group-gear/:tripId/adjust/:gearId/',            requireOpo, gearApprovals.putAdjustGroupGear)
+//NOTE: this quantity needs to get moved to a diff request
+//"get adjust" 
+// and then a "post adjust" get the quantity
 
 router.put(     '/opo/pcard/:tripId/approve',               requireOpo, gearApprovals.approvePcard)
 router.put(     '/opo/pcard/:tripId/deny',                  requireOpo, gearApprovals.denyPcard)

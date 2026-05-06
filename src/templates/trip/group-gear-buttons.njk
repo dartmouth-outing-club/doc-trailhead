@@ -1,0 +1,18 @@
+<div id="group-gear-buttons" class=button-row>
+  <button class="action deny" hx-put="/opo/group-gear/{{ trip_id }}/deny/{{ item.gear_id }}"
+                              hx-target="#group-gear-table"
+                              hx-swap="innerHTML" >Deny</button>
+  <button class="action edit" hx-get="/opo/group-gear/{{ trip_id }}/adjust/{{ item.gear_id }}/{{ item.quantity }}"
+                              hx-target="closest div"
+                              hx-swap="innerHTML" >Adjust</button>
+  {% if item.is_approved === 1 %}
+  <button class="action edit" hx-put="/opo/group-gear/{{ trip_id }}/reset/{{ item.gear_id }}"
+                              hx-target="#group-gear-table"
+                              hx-swap="innerHTML" >Reset</button>
+  {% else %}
+  <button class="action approve" hx-put="/opo/group-gear/{{ trip_id }}/approve/{{ item.gear_id }}"
+                                 hx-target="#group-gear-table"
+                                 hx-swap="innerHTML" >Approve</button>
+  {% endif %}
+</div>
+
