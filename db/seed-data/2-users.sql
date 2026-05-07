@@ -7,7 +7,7 @@ VALUES
   ('trippee.user.2@DARTMOUTH.EDU',NULL,'Trippee User 2',NULL,'She / Her / Her','10013947','None','None','Women-M','Women-9.5','72',0),
   ('trippee.user.3@DARTMOUTH.EDU',NULL,'Trippee User 3',NULL,'They / Them / Their','100428466','None','None','Women-L','Women-9.5','68',0);
 
-INSERT INTO user_certs VALUES
+INSERT INTO certs_vehicles VALUES
   (1,'MICROBUS',1),
   (1,'VAN',1),
   (1,'TRAILER',1),
