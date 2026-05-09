@@ -171,7 +171,7 @@ export function getDriverCertRequest(req, res) {
   const checkboxes = VALID_VEHICLE_CERTS.map(cert => {
     const userCert = driver_certs.find(item => item.cert === cert)
     const attributes = userCert ? `checked ${userCert.is_approved && !res.locals.is_opo ? 'disabled ' : ''}` : ''
-    return `<label><input ${attributes}type=checkbox name=cert value=${cert}></input>${cert}</label>`
+    return `<label><input ${attributes}type=checkbox name=vehicle_cert value=${cert}></input>${cert}</label>`
   })
   const form = `
 <form hx-boost=true
@@ -197,7 +197,7 @@ export function postDriverCertRequest(req, res) {
   req.db.run(`DELETE FROM certs_vehicles WHERE user = ? ${!res.locals.is_opo ? 'and is_approved = 0' : ''}`, userId)
 
   // If the body is empty, that means the user has removed their certs, and we're done
-  if (!req.body.cert) return getProfileCard(req, res)
+  if (!req.body.vehicle_cert) return getProfileCard(req, res)
 
   // body-parser weirdness: if there's a single value it's a string, if there's multiple it's an
   // array of strings
