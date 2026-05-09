@@ -220,8 +220,8 @@ export function getClubLeadershipRequest(req, res) {
 
   const certs_med = req.db.get('SELECT type, expiration FROM certs_med WHERE user = ?', userId)
   if (!certs_med) {
-    //NOTE: I think I'd like to organize all warning message templates but I don't want to decide on where that will be yet...
-    return res.render("profile/no-medcert-warning.njk", {userId})
+    // NOTE: I think I'd like to organize all warning message templates but I don't want to decide on where that will be yet...
+    return res.render('profile/no-medcert-warning.njk', { userId })
   }
 
   const clubs_with_user = req.db.all(`
@@ -243,7 +243,7 @@ export function getClubLeadershipRequest(req, res) {
     ORDER BY name
   `, userId)
 
-  return res.render("profile/club-leadership-form.njk", {userId, clubs_with_user, clubs_without_user})
+  return res.render('profile/club-leadership-form.njk', { userId, clubs_with_user, clubs_without_user })
 
   /*
 
@@ -326,7 +326,7 @@ export function getClubChairRequest(req, res) {
     ORDER BY name
   `, userId)
 
-  return res.render("profile/club-chair-form.njk", {userId, clubs_with_user, clubs_without_user})
+  return res.render('profile/club-chair-form.njk', { userId, clubs_with_user, clubs_without_user })
 }
 
 export function postClubChairRequest(req, res) {

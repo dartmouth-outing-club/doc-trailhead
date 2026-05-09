@@ -46,20 +46,21 @@ export function get(req, res) {
   const medcertValid = !medcertExpiringSoon
 
   if (res.locals.is_opo) {
-    medcert_status = "valid"
+    medcert_status = 'valid'
   } else if (!is_leader) {
-    medcert_status = "not_leader"
+    medcert_status = 'not_leader'
   } else if (!userMedcert) {
-    medcert_status = "not_found"
+    medcert_status = 'not_found'
   } else if (medcertExpired) {
-    medcert_status = "expired"
+    medcert_status = 'expired'
   } else if (medcertExpiringSoon) {
-    medcert_status = "expiring_soon"
+    medcert_status = 'expiring_soon'
   } else if (medcertValid) {
-    medcert_status = "valid"
+    medcert_status = 'valid'
   } else {
-    // TODO: Log error 
-    medcertStatus = medcertStatusEnum.NOT_FOUND
+    // TODO: Log error
+    console.error(`Error: Attempting to fetch user ${userId}'s medcert information resulted in an unexpected error`)
+    medcert_status = 'not_found'
   }
 
   res.render('views/my-trips.njk', {
