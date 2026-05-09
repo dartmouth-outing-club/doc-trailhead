@@ -220,19 +220,11 @@ export function getClubLeadershipRequest(req, res) {
 
   const certs_med = req.db.get('SELECT type, expiration FROM certs_med WHERE user = ?', userId)
   if (!certs_med) {
-
-    const disclaimer = `
-<div>
-  <div class="warn-message">
-  You do not have any med certs saved. Please make sure you have a valid med cert saved to your profile before requesting club leadership.
-  </div>
-  <button class="action deny" hx-get="/profile/${userId}?card=true">Cancel</button>
-</div>
-    `
-    res.send(disclaimer).status(200)
+    //NOTE: I think I'd like to organize all warning message templates but I don't want to decide on where that will be yet...
+    return res.render("profile/no-medcert-warning.njk", {userId})
   }
 
-  const userClubs = req.db.all(`
+  const clubs_with_user = req.db.all(`
     SELECT clubs.id, name, opo_approved
     FROM club_leaders
     LEFT JOIN clubs ON clubs.id = club_leaders.club
@@ -240,7 +232,7 @@ export function getClubLeadershipRequest(req, res) {
     ORDER BY name
   `, userId)
 
-  const clubsWithoutUser = req.db.all(`
+  const clubs_without_user = req.db.all(`
     SELECT id, name
     FROM clubs
     WHERE active = 1 AND NOT EXISTS
@@ -251,7 +243,12 @@ export function getClubLeadershipRequest(req, res) {
     ORDER BY name
   `, userId)
 
+  return res.render("profile/club-leadership-form.njk", {userId, clubs_with_user, clubs_without_user})
+
+  /*
+
   const clubListItems = userClubs.map(club => `
+
   <li>${club.name}${club.opo_approved === 0 ? ' (pending)' : ''}
   <button
           hx-delete="/profile/${userId}/club-leadership/${club.id}"
@@ -262,6 +259,7 @@ export function getClubLeadershipRequest(req, res) {
   `)
   const options = clubsWithoutUser.map(club => `<option value=${club.id}>${club.name}</option>`)
   const form = `
+
 <form hx-boost=true
       hx-push-url=false
       action=/profile/${userId}/club-leadership
@@ -275,6 +273,7 @@ export function getClubLeadershipRequest(req, res) {
 </form>
   `
   res.send(form).status(200)
+  */
 }
 
 export function postClubLeadershipRequest(req, res) {
@@ -299,7 +298,8 @@ export function deleteClubLeadershipRequest(req, res) {
     .run('DELETE FROM club_leaders WHERE user = ? AND club = ?', userId, clubId)
 
   if (changes < 1) return res.sendStatus(400)
-  return res.send('').status(200)
+
+  return getClubLeadershipRequest(req, res)
 }
 
 export function getClubChairRequest(req, res) {
@@ -307,7 +307,7 @@ export function getClubChairRequest(req, res) {
 
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
-  const userClubs = req.db.all(`
+  const clubs_with_user = req.db.all(`
     SELECT clubs.id, name, is_approved
     FROM club_chairs
     LEFT JOIN clubs ON clubs.id = club_chairs.club
@@ -315,7 +315,7 @@ export function getClubChairRequest(req, res) {
     ORDER BY name
   `, userId)
 
-  const clubsWithoutUser = req.db.all(`
+  const clubs_without_user = req.db.all(`
     SELECT id, name
     FROM clubs
     WHERE active = 1 AND NOT EXISTS
@@ -326,31 +326,9 @@ export function getClubChairRequest(req, res) {
     ORDER BY name
   `, userId)
 
-  const clubListItems = userClubs.map(club => `
-  <li>${club.name}${club.is_approved === 0 ? ' (pending)' : ''}
-  <button
-          hx-delete="/profile/${userId}/club-chair/${club.id}"
-          hx-confirm="Are you sure you want to remove yourself as a${club.is_approved === 0 ? ' (pending)' : ''} chair of ${club.name}?"
-          hx-target="closest li"
-          hx-swap="outerHTML"
-  ><img src="/static/icons/close-icon.svg"></button>
-  `)
-  const options = clubsWithoutUser.map(club => `<option value=${club.id}>${club.name}</option>`)
-  const form = `
-<form hx-boost=true
-      hx-push-url=false
-      action=/profile/${userId}/club-chair
-      method=post class="club-leadership-request">
-<ul>${clubListItems.join(' ')}</ul>
-<div>
-  <select name=club>${options}</select>
-  <button class="action approve" type=submit>Request</button>
-</div>
-  <button class="action deny" hx-get="/profile/${userId}?card=true">Close</button>
-</form>
-  `
-  res.send(form).status(200)
+  return res.render("profile/club-chair-form.njk", {userId, clubs_with_user, clubs_without_user})
 }
+
 export function postClubChairRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
@@ -374,5 +352,5 @@ export function deleteClubChairRequest(req, res) {
     .run('DELETE FROM club_chairs WHERE user = ? AND club = ?', userId, clubId)
 
   if (changes < 1) return res.sendStatus(400)
-  return res.send('').status(200)
+  return getClubChairRequest(req, res)
 }
