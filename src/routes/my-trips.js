@@ -35,45 +35,37 @@ export function get(req, res) {
       time_element: utils.getDatetimeRangeElement(trip.start_time, trip.end_time)
     }))
 
-  const medcertStatusEnum = Object.freeze({
-    EXPIRED: 'expired',
-    EXPIRING_SOON: 'expiring_soon',
-    VALID: 'valid',
-    NOT_FOUND: 'not_found',
-    NOT_LEADER: 'not_leader'
-  })
-  // let userMedcert;
-  let medcertStatus = medcertStatusEnum.NOT_LEADER
-  let medcertExpirationDate
+  const userMedcert = req.db.get('SELECT expiration from certs_med where user = ?', userId)
+  const today = new Date().getTime()
+
+  let medcert_status
+  const medcert_expiration_date = dateFormat(userMedcert.expiration, 'mm-dd-yyyy')
+
+  const medcertExpired = (today) > userMedcert.expiration
+  const medcertExpiringSoon = (today + _60_DAYS_IN_MS) > userMedcert.expiration
+  const medcertValid = !medcertExpiringSoon
 
   if (res.locals.is_opo) {
-    medcertStatus = medcertStatusEnum.VALID
-  } else if (is_leader) {
-    const userMedcert = req.db.get('SELECT expiration from certs_med where user = ?', userId)
-    const today = new Date().getTime()
-    if (userMedcert) {
-      // NOTE: slightly redundant for the sake of readability...
-      const medcertExpiration = userMedcert.expiration
-      medcertExpirationDate = dateFormat(userMedcert.expiration, 'mm-dd-yyyy')
-      const medcertExpired = (today) > medcertExpiration
-      const medcertExpiringSoon = (today + _60_DAYS_IN_MS) > medcertExpiration
-      if (medcertExpired) {
-        medcertStatus = medcertStatusEnum.EXPIRED
-      } else if (medcertExpiringSoon) {
-        medcertStatus = medcertStatusEnum.EXPIRING_SOON
-      } else {
-        medcertStatus = medcertStatusEnum.VALID
-      }
-    } else {
-      // NOTE: ensure this isn't an issue for OPO...
-      medcertStatus = medcertStatusEnum.NOT_FOUND
-    }
+    medcert_status = "valid"
+  } else if (!is_leader) {
+    medcert_status = "not_leader"
+  } else if (!userMedcert) {
+    medcert_status = "not_found"
+  } else if (medcertExpired) {
+    medcert_status = "expired"
+  } else if (medcertExpiringSoon) {
+    medcert_status = "expiring_soon"
+  } else if (medcertValid) {
+    medcert_status = "valid"
+  } else {
+    // TODO: Log error 
+    medcertStatus = medcertStatusEnum.NOT_FOUND
   }
 
   res.render('views/my-trips.njk', {
     trips,
-    medcert_status: medcertStatus,
-    medcert_expiration_date: medcertExpirationDate,
+    medcert_status,
+    medcert_expiration_date,
     can_create_trip
   })
 }

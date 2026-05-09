@@ -220,10 +220,11 @@ export function getClubLeadershipRequest(req, res) {
 
   const certs_med = req.db.get('SELECT type, expiration FROM certs_med WHERE user = ?', userId)
   if (!certs_med) {
+
     const disclaimer = `
 <div>
   <div class="warn-message">
-  You do not have any med certs saved. Please make sure you have a valid med cert saved before requesting club leadership.
+  You do not have any med certs saved. Please make sure you have a valid med cert saved to your profile before requesting club leadership.
   </div>
   <button class="action deny" hx-get="/profile/${userId}?card=true">Cancel</button>
 </div>
