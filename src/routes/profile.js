@@ -140,15 +140,22 @@ export function put(req, res) {
   `, formData)
 
   const medcertType = formData.medcert_type
+
+  const medcertNotNone = medcertType != "none"
   // slight nonsense to avoid worrying about timezones
   const medcertExpiration = new Date(formData.medcert_expiration + 'T00:00:00').getTime()
 
-  if (medcertType && medcertExpiration) {
+
+  if (medcertNotNone && medcertExpiration) {
+    console.log("TYPE B")
     req.db.run('INSERT or REPLACE INTO certs_med (user, type, expiration) VALUES (?, ?, ?) ', formData.user_id, medcertType, medcertExpiration)
-  } else if (!medcertType) {
+  } else if (!medcertNotNone) {
+    //NOTE: not a huge fan of this variable name now...
     req.db.run('DELETE FROM certs_med where user = ?', formData.user_id)
+    console.log("TYPE C")
   } else {
-    return res.sendStatus(400).json({ error: 'Form data malformed: Submitted with just one of medcert type and expiration date.' })
+    console.log("TYPE D")
+    //return res.sendStatus(400).json({ error: 'Form data malformed: Submitted with just one of medcert type or expiration date.' })
   }
 
   if (formData.new_user === 'true') {
@@ -244,36 +251,6 @@ export function getClubLeadershipRequest(req, res) {
   `, userId)
 
   return res.render('profile/club-leadership-form.njk', { userId, clubs_with_user, clubs_without_user })
-
-  /*
-
-  const clubListItems = userClubs.map(club => `
-
-  <li>${club.name}${club.opo_approved === 0 ? ' (pending)' : ''}
-  <button
-          hx-delete="/profile/${userId}/club-leadership/${club.id}"
-          hx-confirm="Are you sure you want to remove yourself as a${club.opo_approved === 0 ? ' (pending)' : ''} leader of ${club.name}?"
-          hx-target="closest li"
-          hx-swap="outerHTML"
-  ><img src="/static/icons/close-icon.svg"></button>
-  `)
-  const options = clubsWithoutUser.map(club => `<option value=${club.id}>${club.name}</option>`)
-  const form = `
-
-<form hx-boost=true
-      hx-push-url=false
-      action=/profile/${userId}/club-leadership
-      method=post class="club-leadership-request">
-<ul>${clubListItems.join(' ')}</ul>
-<div>
-  <select name=club>${options}</select>
-  <button class="action approve" type=submit>Request</button>
-</div>
-  <button class="action deny" hx-get="/profile/${userId}?card=true">Close</button>
-</form>
-  `
-  res.send(form).status(200)
-  */
 }
 
 export function postClubLeadershipRequest(req, res) {
