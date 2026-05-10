@@ -58,7 +58,6 @@ export function get(req, res) {
   } else if (medcertValid) {
     medcert_status = 'valid'
   } else {
-    // TODO: Log error
     console.error(`Error: Attempting to fetch user ${userId}'s medcert information resulted in an unexpected error`)
     medcert_status = 'not_found'
   }

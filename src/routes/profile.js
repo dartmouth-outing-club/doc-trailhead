@@ -337,7 +337,6 @@ export function postClubChairRequest(req, res) {
   if (!club) return res.sendStatus(400)
 
   const today = Math.floor(new Date().getTime())
-  // NOTE: this is actually so ugly and surely should use a better function...
   const is_approved = res.locals.is_opo === true ? 1 : 0
   req.db.run('INSERT INTO club_chairs (user, club, chair_since, is_approved) VALUES (?, ?, ?, ?)',
     userId, club, today, is_approved)
