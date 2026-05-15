@@ -141,21 +141,16 @@ export function put(req, res) {
 
   const medcertType = formData.medcert_type
 
-  const medcertNotNone = medcertType != "none"
+  const medcertNotNone = medcertType !== 'none'
   // slight nonsense to avoid worrying about timezones
   const medcertExpiration = new Date(formData.medcert_expiration + 'T00:00:00').getTime()
 
-
   if (medcertNotNone && medcertExpiration) {
-    console.log("TYPE B")
     req.db.run('INSERT or REPLACE INTO certs_med (user, type, expiration) VALUES (?, ?, ?) ', formData.user_id, medcertType, medcertExpiration)
   } else if (!medcertNotNone) {
-    //NOTE: not a huge fan of this variable name now...
     req.db.run('DELETE FROM certs_med where user = ?', formData.user_id)
-    console.log("TYPE C")
   } else {
-    console.log("TYPE D")
-    //return res.sendStatus(400).json({ error: 'Form data malformed: Submitted with just one of medcert type or expiration date.' })
+    // return res.sendStatus(400).json({ error: 'Form data malformed: Submitted with just one of medcert type or expiration date.' })
   }
 
   if (formData.new_user === 'true') {
@@ -167,7 +162,7 @@ export function put(req, res) {
 }
 
 // NOTE: I really should have been more consistent with "driver" or "vehicle"
-// I kinda liked "vehicle" but I realized I shouldn't change all the wording unless OPO is fine with it
+// (I kinda liked "vehicle" but I realized I shouldn't change all the wording unless OPO is fine with it)
 const VALID_VEHICLE_CERTS = ['VAN', 'MINIVAN', 'TRAILER']
 export function getDriverCertRequest(req, res) {
   const userId = parseInt(req.params.userId)
