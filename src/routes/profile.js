@@ -1,5 +1,6 @@
 import { BadRequestError, NotFoundError } from '../request/errors.js'
 import dateFormat from 'dateformat'
+import * as utils from '../utils.js'
 
 export function getProfileView(req, res) {
   if (req.query.card) {
@@ -52,6 +53,7 @@ export function getUserTripView(req, res) {
   return res.render('views/profile.njk', data)
 }
 
+
 function getProfileData(req, userId, hideControls) {
   const user = req.db.get('SELECT * FROM users WHERE id = ?', userId)
   if (!user) throw new NotFoundError(`User ${userId} not found`)
@@ -61,16 +63,14 @@ function getProfileData(req, userId, hideControls) {
     .map(item => `${item.cert}${item.is_approved === 0 ? ' (pending)' : ''}`)
     .join(', ')
 
-  const now = new Date()
-  const todayISO = now.toISOString().split('T')[0] // used for min date of medcert expiration
-  user.today_iso = todayISO
+  user.today_iso = utils.getDateValueForToday()
 
   const certs_med = req.db.get('SELECT type, expiration FROM certs_med WHERE user = ?', userId)
   if (certs_med) {
     user.medcert_type = certs_med.type
-    const medcert_expiration_date = new Date(certs_med.expiration)
-    user.medcert_expiration_iso = medcert_expiration_date.toISOString().split('T')[0] // for form input
+    const medcert_expiration_date = new Date(certs_med.expiration) //TODO: medcertfile?
     user.medcert_expiration = dateFormat(medcert_expiration_date, 'mm-dd-yyyy') // for table view
+    user.medcert_expiration_iso = dateFormat(medcert_expiration_date, 'isoDate') // for form input
   } else {
     user.medcert_type = 'none'
   }
@@ -140,17 +140,14 @@ export function put(req, res) {
   `, formData)
 
   const medcertType = formData.medcert_type
+  const medcertExpiration = new Date(formData.medcert_expiration + 'T00:00:00').getTime() 
 
-  const medcertNotNone = medcertType !== 'none'
-  // slight nonsense to avoid worrying about timezones
-  const medcertExpiration = new Date(formData.medcert_expiration + 'T00:00:00').getTime()
-
-  if (medcertNotNone && medcertExpiration) {
+  if ((medcertType !== 'none') && medcertExpiration) {
     req.db.run('INSERT or REPLACE INTO certs_med (user, type, expiration) VALUES (?, ?, ?) ', formData.user_id, medcertType, medcertExpiration)
-  } else if (!medcertNotNone) {
+  } else if (medcertType === 'none') {
     req.db.run('DELETE FROM certs_med where user = ?', formData.user_id)
   } else {
-    // return res.sendStatus(400).json({ error: 'Form data malformed: Submitted with just one of medcert type or expiration date.' })
+    return res.sendStatus(400).json({ error: 'Form data malformed: Submitted with invalid expiration.' })
   }
 
   if (formData.new_user === 'true') {

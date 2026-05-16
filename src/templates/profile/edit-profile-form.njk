@@ -48,19 +48,13 @@
 </dl>
 
 <script>
-  //TODO what am i even doing here????
-  document.getElementById('medcert_type').addEventListener('input', () => {
-    const medcertType = document.getElementById('medcert_type')
-    const medcertExpiration = document.getElementById('medcert_expiration')
-    if (medcertType.value != 'none') {
-      medcertExpiration.setCustomValidity(`Please provide an expiration date for ${medcertType.value} certification.`);
-    } 
-  });
-
-  document.getElementById('medcert_expiration').addEventListener('change', () => {
-    const medcertExpiration = document.getElementById('medcert_expiration')
-    if (medcertExpiration.value)
-      medcertExpiration.setCustomValidity('');
-  });
-  secondItem.reportValidity()
+  document.getElementById('medcert_type').addEventListener('change', () => {
+    const type = document.getElementById('medcert_type')
+    const expiration = document.getElementById('medcert_expiration')
+    expiration.setCustomValidity(type.value !== 'none' && !expiration.value ? 
+      `Please provide an expiration date for ${type.value} certification.` : '');
+  })
+  document.getElementById('medcert_expiration').addEventListener('change', (e) => {
+    e.target.setCustomValidity('');
+  })
 </script>

@@ -27,18 +27,10 @@ export function get(req, res) {
    LEFT JOIN certs_med ON certs_med.user = club_leaders.user
    WHERE opo_approved = 0 AND chair_approved = 0 AND clubid in (${clubIds.join(',')})
    `).map(row => {
-    if (!row.medcert_expiration) {
-      row.medcert_expiration = null
-      return row
-    }
-    const date = new Date(row.medcert_expiration)
-    if (isNaN(date.getTime())) {
-      row.medcert_expiration = null
-      return row
-    }
-    row.medcert_expiration = dateFormat(date, 'mm-dd-yyyy')
-    return row
-  })
+     const date = new Date(row.medcert_expiration)
+     row.medcert_expiration = !isNaN(date.getTime()) ? dateFormat(date, 'mm-dd-yyyy') : null
+     return row
+   })
 
   return res.render('views/chair/profile-approvals.njk', { leadership_requests })
 }

@@ -1,7 +1,4 @@
 import dateFormat from 'dateformat'
-/* NOTE: Some queries in this repo use true/false and some use 1/0, I tried to at least be locally consistent and have this file only use true/false.
- * In particular, for club leadership (which must be chair approved AND opo approved) I feel true/false is more legible
- */
 
 export function get(req, res) {
   const leadership_requests = req.db.all(`
