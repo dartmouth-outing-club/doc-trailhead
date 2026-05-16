@@ -53,7 +53,6 @@ export function getUserTripView(req, res) {
   return res.render('views/profile.njk', data)
 }
 
-
 function getProfileData(req, userId, hideControls) {
   const user = req.db.get('SELECT * FROM users WHERE id = ?', userId)
   if (!user) throw new NotFoundError(`User ${userId} not found`)
@@ -68,7 +67,7 @@ function getProfileData(req, userId, hideControls) {
   const certs_med = req.db.get('SELECT type, expiration FROM certs_med WHERE user = ?', userId)
   if (certs_med) {
     user.medcert_type = certs_med.type
-    const medcert_expiration_date = new Date(certs_med.expiration) //TODO: medcertfile?
+    const medcert_expiration_date = new Date(certs_med.expiration) // TODO: medcertfile?
     user.medcert_expiration = dateFormat(medcert_expiration_date, 'mm-dd-yyyy') // for table view
     user.medcert_expiration_iso = dateFormat(medcert_expiration_date, 'isoDate') // for form input
   } else {
@@ -140,7 +139,7 @@ export function put(req, res) {
   `, formData)
 
   const medcertType = formData.medcert_type
-  const medcertExpiration = new Date(formData.medcert_expiration + 'T00:00:00').getTime() 
+  const medcertExpiration = new Date(formData.medcert_expiration + 'T00:00:00').getTime()
 
   if ((medcertType !== 'none') && medcertExpiration) {
     req.db.run('INSERT or REPLACE INTO certs_med (user, type, expiration) VALUES (?, ?, ?) ', formData.user_id, medcertType, medcertExpiration)
