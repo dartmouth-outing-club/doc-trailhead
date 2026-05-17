@@ -13,9 +13,9 @@
 <main>
 
 {% if trip and not isTemplate %}
-<a href="/my-trips" class=top-link>Back to trips page</a>
-{% else %}
 <a href="/leader/trip/{{trip.id}}" class=top-link>Back to trip #{{trip.id}}</a>
+{% else %}
+<a href="/my-trips" class=top-link>Back to trips page</a>
 {% endif %}
 
 {% include "trip/trip-form.njk" %}
