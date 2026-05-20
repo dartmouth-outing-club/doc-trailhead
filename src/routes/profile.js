@@ -185,7 +185,6 @@ export function getDriverCertRequest(req, res) {
   `
   res.send(form).status(200)
 }
-
 export function postDriverCertRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
@@ -200,7 +199,7 @@ export function postDriverCertRequest(req, res) {
   // body-parser weirdness: if there's a single value it's a string, if there's multiple it's an
   // array of strings
   const is_approved = res.locals.is_opo === true ? 1 : 0
-  const certs_vehicles = typeof req.body.cert === 'string' ? [req.body.cert] : req.body.cert
+  const certs_vehicles = typeof req.body.vehicle_cert === 'string' ? [req.body.vehicle_cert] : req.body.vehicle_cert
   certs_vehicles
     .filter(cert => VALID_VEHICLE_CERTS.includes(cert))
     .map(cert => req.db.run(
