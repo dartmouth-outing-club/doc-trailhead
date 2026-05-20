@@ -128,21 +128,24 @@
   margin-bottom: 20px;
 }
 
-.club-leadership-request {
+.club-leadership-request ul {
   font-size: 1.1em;
   list-style: none;
   padding: 0;
 }
 
-.club-leadership-request button {
+.club-leadership-request ul button {
   background-color: white;
   border: none;
   padding: 0;
 }
 
-.club-leadership-request img {
+.club-leadership-request ul img {
   height: 15px;
   margin: 0;
+  background-color: white;
+  border: none;
+  padding: 0;
 }
 
 .hint {

@@ -1,0 +1,24 @@
+<form hx-boost=true
+      hx-push-url=false
+      action=/profile/{{userId}}/driver-cert
+      method=post class="driver-cert">
+
+  <div class="checkbox-row">
+    {% for vehicle in vehicles %}
+      <label> 
+        <input type=checkbox 
+        {{ "checked" if vehicle.checked }} 
+        name=vehicle_cert 
+        value={{vehicle.cert}} 
+        {{ "disabled" if vehicle.disabled }}> </input> 
+        {{vehicle.cert}} 
+      </label>
+    {% endfor %}
+
+  </div>
+  <div class="button-row">
+    <button class="action deny" hx-get="/profile/{{userId}}?card=true">Cancel</button>
+    <button class="action approve" type=submit>Save</button>
+  </div>
+</form>
+

@@ -33,18 +33,18 @@
       <input type=number name="inches" min=0 max=11 value="{{ inches }}">in.
   <dt>Allergies/Dietary Restrictions<dd><input type=text name="allergies_dietary_restrictions" value="{{ allergies_dietary_restrictions }}">
   <dt>Medical Conditions<dd><input type=text name="medical_conditions" value="{{ medical_conditions }}">
-  <dt>Med Cert<dd> 
-      <select id="medcert_type" name="medcert_type" required>
-        <option > none
-        <option {{ 'selected' if medcert_type == "Basic First Aid(+CPR)"}}> Basic First Aid(+CPR) 
-        <option {{ 'selected' if medcert_type == "WFA"}}> WFA
-        <option {{ 'selected' if medcert_type == "WAFA"}}> WAFA
-        <option {{ 'selected' if medcert_type == "WFR"}}> WFR
-        <option {{ 'selected' if medcert_type == "OEC"}}> OEC
-        <option {{ 'selected' if medcert_type == "W-EMT"}}> W-EMT
-      </select>
-  <dt> Med Cert Expiration <dd> 
-      <input id="medcert_expiration" name="medcert_expiration" type="date" min="{{ today_iso }}" value={{ medcert_expiration_iso }}>  
+    <dt> Med Cert 
+    <dd> <select name="medcert_type">
+            <option> None
+            <option> Basic First Aid(+CPR)
+            <option> WFA
+            <option> WAFA
+            <option> WFR
+            <option> OEC
+            <option> W-EMT
+        </select>
+    <dt> Med Cert Expiration 
+    <dd> <input name="medcert_expiration" type="date" default="expiration date?">  
 </dl>
 
 <script>

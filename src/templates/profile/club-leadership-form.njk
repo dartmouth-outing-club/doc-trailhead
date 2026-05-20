@@ -16,13 +16,13 @@
       hx-push-url=false
       action=/profile/{{userId}}/club-leadership
       method=post class="club-leadership-request">
-<div>
-  <select name=club>
-    {% for club in clubs_without_user %}
-    <option value={{club.id}}>{{club.name}}</option>
-    {% endfor %}
-  </select>
-  <button class="action approve" type=submit>Request</button>
-</div>
-<button class="action deny" hx-get="/profile/{{ userId }}?card=true">Close</button>
+  <div>
+    <select name=club>
+      {% for club in clubs_without_user %}
+      <option value={{club.id}}>{{club.name}}</option>
+      {% endfor %}
+    </select>
+    <button class="action approve" type=submit>Request</button>
+  </div>
+  <button class="action deny" hx-get="/profile/{{ userId }}?card=true">Close</button>
 </form>

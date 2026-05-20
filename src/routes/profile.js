@@ -157,33 +157,20 @@ export function put(req, res) {
   return getProfileCard(req, res)
 }
 
-// NOTE: I really should have been more consistent with "driver" or "vehicle"
-// (I kinda liked "vehicle" but I realized I shouldn't change all the wording unless OPO is fine with it)
 const VALID_VEHICLE_CERTS = ['VAN', 'MINIVAN', 'TRAILER']
 export function getDriverCertRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
-  // TODO this is a little gnarly and could be cleaned up
-  const driver_certs = req.db.all('SELECT cert, is_approved FROM certs_vehicles WHERE user = ?', userId)
-  const checkboxes = VALID_VEHICLE_CERTS.map(cert => {
-    const userCert = driver_certs.find(item => item.cert === cert)
-    const attributes = userCert ? `checked ${userCert.is_approved && !res.locals.is_opo ? 'disabled ' : ''}` : ''
-    return `<label><input ${attributes}type=checkbox name=vehicle_cert value=${cert}></input>${cert}</label>`
+  // NOTE: cert column sounds awkward now
+  const vehicle_certs = req.db.all('SELECT cert, is_approved FROM certs_vehicles WHERE user = ?', userId)
+  const vehicles = VALID_VEHICLE_CERTS.map(cert => {
+    const userCert = vehicle_certs.find(item => item.cert === cert)
+    return userCert ? { cert, checked: true, disabled: userCert.is_approved && !res.locals.is_opo } 
+    : { cert }
   })
-  const form = `
-<form hx-boost=true
-      hx-push-url=false
-      action=/profile/${userId}/driver-cert
-      method=post class="driver-cert">
-<div class="checkbox-row">${checkboxes.join('\n')}</div>
-<div class="button-row">
-  <button class="action deny" hx-get="/profile/${userId}?card=true">Cancel</button>
-  <button class="action approve" type=submit>Save</button>
-</div>
-</form>
-  `
-  res.send(form).status(200)
+
+  return res.render('profile/vehicle-cert-form.njk', { userId, vehicles })
 }
 export function postDriverCertRequest(req, res) {
   const userId = parseInt(req.params.userId)
@@ -195,6 +182,8 @@ export function postDriverCertRequest(req, res) {
 
   // If the body is empty, that means the user has removed their certs, and we're done
   if (!req.body.vehicle_cert) return getProfileCard(req, res)
+  
+  console.log(req.body.vehicle_cert)
 
   // body-parser weirdness: if there's a single value it's a string, if there's multiple it's an
   // array of strings
