@@ -184,8 +184,6 @@ export function postDriverCertRequest(req, res) {
   // If the body is empty, that means the user has removed their certs, and we're done
   if (!req.body.vehicle_cert) return getProfileCard(req, res)
 
-  console.log(req.body.vehicle_cert)
-
   // body-parser weirdness: if there's a single value it's a string, if there's multiple it's an
   // array of strings
   const is_approved = res.locals.is_opo === true ? 1 : 0
