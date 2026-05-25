@@ -215,12 +215,6 @@ export function getClubLeadershipRequest(req, res) {
 
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
-  const certs_med = req.db.get('SELECT type, expiration FROM certs_med WHERE user = ?', userId)
-  if (!certs_med) {
-    // NOTE: I think I'd like to organize all warning message templates but I don't want to decide on where that will be yet...
-    return res.render('profile/no-medcert-warning.njk', { userId })
-  }
-
   const clubs_with_user = req.db.all(`
     SELECT clubs.id, name, opo_approved
     FROM club_leaders
