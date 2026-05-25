@@ -7,6 +7,7 @@
   </div>
 </section>
 <section>
+  <h2> Personal Info </h2>
   <dl>
     <dt>Pronouns<dd>{{ pronoun }}
     <dt>Phone #<dd>{{ phone }}
@@ -19,23 +20,31 @@
   </dl>
 </section>
 <section>
-  <dl>
-    <dt>Med cert <dd>{{ medcert_type }}
-    <dt>Med cert valid until <dd>{{ medcert_expiration }}
+  <h2 title="Note: These are not needed to participate in trips, but are required if you plan to become a trip leader. If you're interestd, ask a leader in your club of interest for more information!"> Certifications </h2>
+  <dl title="Add or change med certs by clicking 'edit profile' below!" >
+    <dt >Med Cert <dd>{{ medcert_type }}
+    <dt>Med Cert Expiration <dd>{{ medcert_expiration }}
+    <dt>Driver Certifications<dd>{{ driver_certifications }}
   </dl>
+    <div hx-swap=innerHTML hx-target="closest section" class=button-row>
+      <button class="action edit" hx-get="/profile/{{ id }}/driver-cert">
+        {{ 'Edit' if is_opo == true else 'Request' }} Driver Cert
+      </button>
+    </div>
 </section>
 <section>
+  <h2> Permissions </h2>
   <dl>
-<dt>Leader For<dd>{{ leader_for }}
-    <dt>Driver Certifications<dd>{{ driver_certifications }}
+    <dt>Leader For<dd>{{ leader_for }}
+    <dt>Chair For<dd>{{ chair_for}}
   </dl>
   {% if not hide_controls %}
   <div hx-swap=innerHTML hx-target="closest section" class=button-row>
-    <button class="action edit" hx-get="/profile/{{ id }}/driver-cert">
-      {{ 'Edit' if is_opo == true else 'Request' }} Driver Cert
-    </button>
     <button class="action edit" hx-get="/profile/{{ id }}/club-leadership">
       {{ 'Edit' if is_opo == true else 'Request' }} Club Leadership
+    </button>
+    <button class="action edit" hx-get="/profile/{{ id }}/club-chair">
+      {{ 'Edit' if is_opo == true else 'Request' }} Club Chair
     </button>
   </div>
   {% endif %}

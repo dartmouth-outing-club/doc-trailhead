@@ -41,8 +41,13 @@ export function requireAuth(req, res, next) {
     if (!userInfo.is_profile_complete && !req.url.includes('/new-user')) {
       return res.redirect(303, '/new-user')
     }
-
     res.locals.is_opo = userInfo.is_opo === 1
+
+    const isChair = req.db.get(`
+      SELECT 1 as is_chair FROM club_chairs WHERE user = ? and is_approved = TRUE`,
+    req.user)?.is_chair >= 1
+
+    res.locals.is_chair = isChair
     return next()
   }
 
@@ -56,10 +61,20 @@ export function requireAnyLeader(req, res, next) {
   return requireAuth(req, res, () => {
     if (res.locals.is_opo === true) return next()
     const isLeader = req.db.get(`
-      SELECT 1 as is_leader FROM club_leaders WHERE user = ? and is_approved = TRUE`,
+      SELECT 1 as is_leader FROM club_leaders WHERE user = ? and opo_approved = TRUE AND chair_approved = TRUE`,
     req.user)?.is_leader === 1
 
     if (isLeader) return next()
+    return res.sendStatus(403)
+  })
+}
+
+/** Allow the request if the user is a chair of ANY club. */
+export function requireAnyChair(req, res, next) {
+  return requireAuth(req, res, () => {
+    const isChair = req.db.get(`
+      SELECT 1 as is_chair FROM club_chairs WHERE user = ? and is_approved = TRUE`, req.user)?.is_chair >= 1
+    if (isChair) return next()
     return res.sendStatus(403)
   })
 }
@@ -70,15 +85,24 @@ export function requireTripLeader(req, res, next) {
     const tripId = req.params.tripId
     if (!tripId) throw new Error('Trip Leader authorization used on a route without a trip.')
 
+    // NOTE: is this not "req.db.isLeaderForTrip)" ?
     const isLeader = req.db.get(`
       SELECT 1 as is_leader
       FROM trip_members WHERE user = ? AND trip = ? AND leader = 1
     `, req.user, tripId)?.is_leader === 1
 
-    // Set a variable that says the current use is a leader for THIS trip
-    if (isLeader) res.locals.is_leader_for_trip = true
+    const isCorrectChair = req.db.get(`
+      SELECT 1 as is_chair FROM club_chairs     
+        WHERE 
+          user = ? AND 
+          is_approved = TRUE AND 
+          club = (select club from trips where id = ?)
+    `, req.user, tripId)?.is_chair === 1
 
-    if (res.locals.is_opo === true || isLeader) return next()
+    // Set a variable that says the current user is a leader for THIS trip
+    if (isLeader) res.locals.is_leader_for_trip = true
+    // Proceed if user is actual leader, the respective chair for the trip's club, or OPO staff
+    if (res.locals.is_opo === true || isCorrectChair || isLeader) return next()
 
     return res.sendStatus(403)
   })
@@ -98,10 +122,13 @@ export async function signinCAS(req, res) {
 
   // Validate the ticket that is provided with the CAS server to verify that it's valid
   const params = new URLSearchParams({ service: service_url, ticket })
+  console.log(`val url: ${cas_url}`)
+
   const validationUri = cas_url + '/serviceValidate?' + params
 
   const validationRes = await fetch(validationUri)
   const validationText = await validationRes.text()
+  console.log(`validation : ${validationText}`)
 
   const partialCasId = validationText.match(CASID_RE)?.at(1)
   const netId = validationText.match(NETID_RE)?.at(1)

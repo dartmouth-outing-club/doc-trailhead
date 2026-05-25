@@ -15,6 +15,21 @@
 </section>
 
 <section class="trips">
+  {% if medcert_status == "expiring_soon" %}
+    <div class="warn-message">
+        Please note your medcert is set to expire soon. You will lose the ability to create trips if you do not update it before {{ medcert_expiration_date }}
+    </div>
+  {% elif medcert_status == "expired" %}
+    <div class="urgent-message">
+        Please note your current medcert has expired as of {{ medcert_expiration_date }}. You will lose the ability to create trips if you do not update it soon.
+    </div>
+  {% elif medcert_status == "not_found" %} 
+    <div class="error-message">
+        <!--Error: You are a leader but no medcert information could be found. Please go to your profile to add one. If you are not a leader and received this message please contact OPO. -->
+        You are recognized as a leader but no medcert information could be found. Please go to your profile and click "Edit profile" to add one. Moving forward this will help us determine who is eligible to lead trips. If you do not add one, you will soon lose the ability to create trips and OPO may choose to prevent you from leading. If you need help or believe you received this message in error, please reach out to OPO.
+    </div>
+  {% endif %}
+
   {% if can_create_trip %}
   <a href="/create-trip" class="trip-card new-trip">
     <h2>Create a Trip</h2>

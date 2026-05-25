@@ -117,6 +117,10 @@ export function getDatetimeValueForNow() {
   } catch (error) {}
 }
 
+export function getDateValueForToday() {
+  return new Date().toISOString().split('T')[0]
+}
+
 export function getDatetimeValueForUnixTime(unixTime) {
   const date = new Date(unixTime)
   return dateFormat(date, "yyyy-mm-dd'T'HH:MM:ss")

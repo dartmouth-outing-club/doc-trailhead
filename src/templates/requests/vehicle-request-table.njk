@@ -23,7 +23,7 @@
     <dt>WMNF Pass<dd>{{ vehicle.pass_needed }}
   </dl>
   <dl class=vehicle-table>
-  {%if is_opo %}
+  {% if is_opo %}
     <dt><label for="vehicle-{{ loop.index }}">Assigned Vehicle</label></dt>
     <dd>
       <select id="vehicle-{{ loop.index }}"

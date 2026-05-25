@@ -1,0 +1,49 @@
+{% include "common/site-head.njk" %}
+<title>Profile Approvals - DOC Trailhead</title>
+<link rel="stylesheet" href="/static/css/approvals.css">
+
+{% include "common/site-nav.njk" %}
+{% include "common/chair-nav.njk" %}
+
+<main>
+
+<section class="leaders info-card">
+<h1>Leadership Requests</h1>
+{% if leadership_requests.length === 0 %}
+<div><div class=notice>All set for now</div></div>
+{% else %}
+<table class=trip-table>
+<thead><tr><th>Person<th>Request<th>Medcert<th>Medcert expiration<th></tr></thead>
+<tbody>
+{% for request in leadership_requests %}
+  <tr>
+  <td>{{request.requester_name}}
+  <td>{{request.requested_item}}
+  <td>{{request.medcert_type}}
+  <td>{{request.medcert_expiration}}
+  <td>
+    <button
+      class="action deny"
+      hx-confirm="Deny {{request.requester_name}} as a leader for {{request.requested_item}}?"
+      hx-delete="/chair/profile-approvals/leaders/{{request.req_id}}"
+      hx-target="closest tr"
+      hx-swap="outerHTML swap:.7s"
+      >Deny
+    </button>
+    <button
+      class="action approve"
+      hx-confirm="Approve {{request.requester_name}} as a leader for {{request.requested_item}}?"
+      hx-put="/chair/profile-approvals/leaders/{{request.req_id}}"
+      hx-target="closest tr"
+      hx-swap="outerHTML swap:.7s"
+      >Approve
+    </button>
+  </tr>
+{% endfor %}
+</table>
+{% endif %}
+</section>
+
+
+</main>
+

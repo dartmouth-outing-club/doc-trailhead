@@ -63,7 +63,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 
 <section>
 <h2>Trip Plan</h2>
-<div class=notice>The Trip Plan is only visible to trip leaders and OPO.</div>
+<div class=notice>The Trip Plan is only visible to trip leaders, respective club chairs, and OPO.</div>
 {% if plan %}
 <p class=user-text>{{ plan }}</p>
 {% else %}
@@ -80,8 +80,10 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   <th>Name
   <th>Attended
   <th>Signed up on
-  <th>Allergies/Dietary Restrictions
-  <th>Medical Conditions
+  {% if (is_opo or is_leader_for_trip ) %} 
+      <th>Allergies/Dietary Restrictions
+      <th>Medical Conditions
+  {% endif %}
   <th>Gear Requests
   <th>
 </tr>
@@ -91,8 +93,10 @@ on time. 48 hours before trip-start you can begin checking out your trip.
   <td><a href="/trip/{{trip_id}}/user/{{member.id}}">{{ member.name }}</a>
   <td>{{ member.attended }}
   <td>{{ member.time_element | safe }}
-  <td>{{ member.allergies_dietary_restrictions }}
-  <td>{{ member.medical_conditions }}
+  {% if (is_opo or is_leader_for_trip ) %} 
+      <td>{{ member.allergies_dietary_restrictions }}
+      <td>{{ member.medical_conditions }}
+  {% endif %}
   <td>
     <ul>
       {% for gear in member.requested_gear %}
@@ -101,6 +105,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
     </ul>
   </td>
   <td>
+  {% if (is_opo or is_leader_for_trip ) %} 
     <div class=member-buttons-container>
       <button class="action edit"
               hx-put="/trip/{{ trip_id }}/waitlist/{{ member.id }}"
@@ -116,6 +121,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
       <button class="action edit" hx-put="/trip/{{ trip_id }}/leader/{{ member.id }}">Make leader</button>
       {% endif %}
     </div>
+    {% endif %}
 </tr>
 {% endfor %}
 </table>
@@ -138,8 +144,10 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 <tr>
   <th>Name
   <th>Signed up on
-  <th>Allergies/Dietary Restrictions
-  <th>Medical Conditions
+  {% if (is_opo or is_leader_for_trip ) %} 
+      <th>Allergies/Dietary Restrictions
+      <th>Medical Conditions
+  {% endif %}
   <th>Gear Requests
   <th>
 </tr>
@@ -148,8 +156,10 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 <tr>
   <td><a href="/trip/{{trip_id}}/user/{{member.id}}">{{ member.name }}</a>
   <td>{{ member.time_element | safe }}
-  <td>{{ member.allergies_dietary_restrictions }}
-  <td>{{ member.medical_conditions }}
+  {% if (is_opo or is_leader_for_trip ) %} 
+      <td>{{ member.allergies_dietary_restrictions }}
+      <td>{{ member.medical_conditions }}
+  {% endif %}
   <td>
     <ul>
       {% for gear in member.requested_gear %}
@@ -281,11 +291,13 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 <h2>Trip Settings</h2>
 <a href="/create-trip?template={{ trip_id }}">Create new trip with this as a template</a>
 
+{% if is_opo or is_leader_for_trip %}
 <h3>Modify Trip</h3>
 <div class="edit-row">
   <a class="action edit" href="/trip/{{ trip_id }}/edit">Edit Trip</a>
   <a class="action edit" href="/trip/{{ trip_id }}/requests">Edit Requests</a>
 </div>
+{% endif %}
 </section>
 
 {% if can_delete %}

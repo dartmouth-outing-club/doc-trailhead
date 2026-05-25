@@ -1,17 +1,17 @@
 import * as utils from '../../utils.js'
 
-//
-// also double users + double trip_members feels reallllly messy?
 const _60_DAYS_IN_MS = 5184000000
-const OPO_TRIPS_QUERY = `
+
+const CLUB_CHAIR_TRIPS_QUERY = `
     SELECT 
       trips.id,
       title,
+      clubs.id as clubid, 
+      clubs.name as clubname, 
       location,
       start_time,
-      owner.name as owner,
+      users.name as owner,
       group_gear_approved,
-      json_group_array(certs_med.expiration) as medcert_expirations,
       iif(vr.id IS NULL,
         'N/A',
         iif(vr.is_approved IS NULL, 'pending', iif(vr.is_approved = 0, 'denied', 'approved'))
@@ -20,23 +20,16 @@ const OPO_TRIPS_QUERY = `
         'N/A',
         iif(pc.is_approved IS NULL, 'pending', iif(pc.is_approved = 0, 'denied', 'approved'))
       ) AS pc_status,
-      iif(trips.member_gear_approved IS NULL,
-        iif(mg.count IS NULL, 'N/A', 'pending'),
-        iif(trips.member_gear_approved = 1, 'approved', 'denied')) as mg_status,
-      iif(trips.group_gear_approved IS NULL,
-        iif(gg.count IS NULL, 'N/A', 'pending'),
-        iif(trips.group_gear_approved = 1, 'approved', 'denied')) as gg_status
-      
+    iif(trips.member_gear_approved IS NULL,
+      iif(mg.count IS NULL, 'N/A', 'pending'),
+      iif(trips.member_gear_approved = 1, 'approved', 'denied')) as mg_status,
+    iif(trips.group_gear_approved IS NULL,
+      iif(gg.count IS NULL, 'N/A', 'pending'),
+      iif(trips.group_gear_approved = 1, 'approved', 'denied')) as gg_status
     FROM trips
-
-    LEFT JOIN users as owner on owner.id = trips.owner 
+    JOIN clubs on clubs.id = trips.club
+    LEFT JOIN users on trips.owner = users.id
     LEFT JOIN trip_pcard_requests AS pc ON pc.trip = trips.id
-
-    LEFT JOIN trip_members ON trip_members.trip = trips.id AND trip_members.leader = 1
-
-    LEFT JOIN users as leaders on leaders.id = trip_members.user
-    LEFT JOIN certs_med on certs_med.user = leaders.id
-
     LEFT JOIN vehiclerequests AS vr ON vr.trip = trips.id
     LEFT JOIN (SELECT trip, count(*) as count FROM member_gear_requests GROUP BY trip) AS mg
       ON mg.trip = trips.id
@@ -48,34 +41,47 @@ export function get(req, res) {
   const now = new Date()
   const pastTimeWindow = new Date(now.getTime() - _60_DAYS_IN_MS)
 
+  const userId = parseInt(req.user)
+
+  const userChairIn = req.db.all(`
+    SELECT 
+        clubs.id,
+        clubs.name
+    FROM club_chairs
+    LEFT JOIN clubs ON clubs.id = club_chairs.club
+    WHERE user = ? AND is_approved = 1
+    ORDER BY name
+  `, userId)
+
+  // TODO: if users are chair in multiple clubs, ideally let them filter which to see
+  const clubIds = userChairIn.map(({ id }) => id)
+  const club_names = userChairIn.map(({ name }) => name)
+
   const past_trips = req.db.all(
-    `${OPO_TRIPS_QUERY}
+    `${CLUB_CHAIR_TRIPS_QUERY}
     WHERE start_time > @low_time
       AND start_time < @high_time
-      AND (mg_status != 'N/A' OR gg_status != 'N/A' OR pc_status != 'N/A' OR vr_status != 'N/A')
-    GROUP BY trips.id
-    ORDER BY start_time DESC
-      `,
+      AND clubid in (${clubIds.join(',')})
+    ORDER BY start_time DESC`,
     { low_time: pastTimeWindow.getTime(), high_time: now.getTime() }
   ).map(convertToRow)
 
   const future_trips = req.db.all(
-    `${OPO_TRIPS_QUERY}
+    `${CLUB_CHAIR_TRIPS_QUERY}
     WHERE start_time > ?
-      AND (mg_status != 'N/A' OR gg_status != 'N/A' OR pc_status != 'N/A' OR vr_status != 'N/A')
-    GROUP BY trips.id
-    ORDER BY start_time ASC
-      `,
+      AND clubid in (${clubIds.join(',')})
+    ORDER BY start_time ASC`,
     now.getTime()
   ).map(convertToRow)
 
-  res.render('views/opo/trip-approvals.njk', { past_trips, future_trips })
+  res.render('views/chair/trip-overview.njk', { club_names, past_trips, future_trips })
 }
 
 function convertToRow(trip) {
   return {
     id: trip.id,
     title: trip.title,
+    clubname: trip.clubname,
     owner: trip.owner,
     start_time_element: utils.getDatetimeElement(trip.start_time),
     mg_status_element: utils.getBadgeImgElement(trip.mg_status),

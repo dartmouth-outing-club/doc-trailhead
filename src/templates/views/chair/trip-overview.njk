@@ -1,0 +1,76 @@
+{% include "common/site-head.njk" %}
+<title>Trip Overview - DOC Trailhead</title>
+<link rel="stylesheet" href="/static/css/approvals.css">
+
+{% include "common/site-nav.njk" %}
+{% include "common/chair-nav.njk" %}
+
+<main>
+
+<section class="pending info-card">
+        <h1>Pending Trips </h1>
+        You are a club chair for:
+        {%for name in club_names%} 
+            {{name}} 
+            {%if not loop.last%},{% endif %} 
+        {%endfor%} 
+
+{% if future_trips.length === 0 %}
+<div class=notice>All set for now</div>
+{% else %}
+<div class=trip-table-overflow-wrapper>
+<table class=trip-table>
+  <thead>
+  <tr><th>Trip<th>Club<th>Owner<th>Start Time<th>Indiv. Gear<th>Group Gear<th>Vehicles<th>P-Card</tr>
+  </thead>
+  <tbody>
+  {% for trip in future_trips %}
+    <tr>
+    <td><a href="/leader/trip/{{trip.id}}">{{trip.title}}</a>
+    <td>{{trip.clubname}}
+    <td>{{trip.owner}}
+    <td>{{trip.start_time_element | safe }}
+    <td>{{trip.mg_status_element | safe }}
+    <td>{{trip.gg_status_element | safe }}
+    <td>{{trip.vr_status_element | safe }}
+    <td>{{trip.pc_status_element | safe }}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+
+</section>
+
+<section class="past info-card">
+<h1>Past Trips</h1>
+{% if future_trips.length === 0 %}
+<div class=notice>All set for now</div>
+{% else %}
+<div class=trip-table-overflow-wrapper>
+<table class=trip-table>
+  <thead>
+    <tr><th>Trip #<th>Trip<th>Start Time<th>Owner<th>Indiv. Gear<th>Group Gear<th>Vehicles<th>P-Card</tr>
+  </thead>
+  <tbody>
+  {% for trip in past_trips %}
+    <tr>
+    <td>{{trip.id}}
+    <td><a href="/leader/trip/{{trip.id}}">{{trip.title}}</a>
+    <td>{{trip.start_time_element | safe }}
+    <td>{{trip.owner}}
+    <td>{{trip.mg_status_element | safe }}
+    <td>{{trip.gg_status_element | safe }}
+    <td>{{trip.vr_status_element | safe }}
+    <td>{{trip.pc_status_element | safe }}
+    </tr>
+  {% endfor %}
+  <tbody>
+</table>
+</div>
+{% endif %}
+</section>
+
+</main>
+

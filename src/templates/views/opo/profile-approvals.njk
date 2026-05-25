@@ -58,7 +58,7 @@
     <button
       class="action deny"
       hx-confirm="Deny {{request.requester_name}} as a leader for {{request.requested_item}}?"
-      hx-delete="/opo/profile-approvals/certs/{{request.req_id}}"
+      hx-delete="/opo/profile-approvals/vehiclecerts/{{request.req_id}}"
       hx-target="closest tr"
       hx-swap="outerHTML swap:.7s"
       >Deny
@@ -66,10 +66,74 @@
     <button
       class="action approve"
       hx-confirm="Approve {{request.requester_name}} as a leader for {{request.requested_item}}?"
-      hx-put="/opo/profile-approvals/certs/{{request.req_id}}"
+      hx-put="/opo/profile-approvals/vehiclecerts/{{request.req_id}}"
       hx-target="closest tr"
       hx-swap="outerHTML swap:.7s"
       >Approve
+    </button>
+  </tr>
+{% endfor %}
+</table>
+{% endif %}
+</section>
+
+<section class="certs info-card">
+<h1>Club Chair Requests</h1>
+{% if chair_requests.length === 0 %}
+<div><div class=notice>All set for now</div></div>
+{% else %}
+<table class=trip-table>
+<thead><tr><th>Person<th>Request<th></tr></thead>
+<tbody>
+{% for request in chair_requests %}
+  <tr>
+  <td>{{request.requester_name}}
+  <td>{{request.requested_item}}
+  <td>
+    <button
+      class="action deny"
+      hx-confirm="Deny {{request.requester_name}} as a chair for {{request.requested_item}}?"
+      hx-delete="/opo/profile-approvals/chair/{{request.req_id}}"
+      hx-target="closest tr"
+      hx-swap="outerHTML swap:.7s"
+      >Deny
+    </button>
+    <button
+      class="action approve"
+      hx-confirm="Approve {{request.requester_name}} as a chair for {{request.requested_item}}?"
+      hx-put="/opo/profile-approvals/chair/{{request.req_id}}"
+      hx-target="closest tr"
+      hx-swap="outerHTML swap:.7s"
+      >Approve
+    </button>
+  </tr>
+{% endfor %}
+</table>
+{% endif %}
+</section>
+
+<section class="chair info-card">
+
+<h1>Active Club Chairs</h1>
+{% if active_chairs.length === 0 %}
+<div><div class=notice>There are no club chairs yet</div></div>
+{% else %}
+<table class=trip-table>
+<thead><tr><th>Person<th>Chair For<th>Chair Since<th></tr></thead>
+<tbody>
+{% for club_chair in active_chairs %}
+  <tr>
+  <td>{{club_chair.user_name}}
+  <td>{{club_chair.club_name}}
+  <td>{{club_chair.chair_since}}
+  <td>
+    <button
+      class="action deny"
+      hx-confirm="Remove {{club_chair.user_name}} as a chair for {{club_chair.club_name}}?"
+      hx-delete="/opo/profile-approvals/chair/{{club_chair.chair_id}}"
+      hx-target="closest tr"
+      hx-swap="outerHTML swap:.7s"
+      > Remove
     </button>
   </tr>
 {% endfor %}

@@ -145,6 +145,12 @@ a.top-link:visited {
   background-color: var(--warning-main-color);
 }
 
+.urgent-message {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: var(--error-main-color);
+}
+
 .error-message {
   margin: 1rem 0;
   padding: 1rem;
