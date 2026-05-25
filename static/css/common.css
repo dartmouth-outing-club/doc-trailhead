@@ -24,6 +24,7 @@
 
 html {
   font-family: 'Nunito Sans', 'Open Sans', sans-serif;
+  scrollbar-gutter: stable;
 }
 
 body {
