@@ -1,10 +1,9 @@
 import * as utils from '../../utils.js'
 
-//
 // also double users + double trip_members feels reallllly messy?
 const _60_DAYS_IN_MS = 5184000000
 const OPO_TRIPS_QUERY = `
-    SELECT 
+    SELECT
       trips.id,
       title,
       location,
@@ -26,10 +25,10 @@ const OPO_TRIPS_QUERY = `
       iif(trips.group_gear_approved IS NULL,
         iif(gg.count IS NULL, 'N/A', 'pending'),
         iif(trips.group_gear_approved = 1, 'approved', 'denied')) as gg_status
-      
+
     FROM trips
 
-    LEFT JOIN users as owner on owner.id = trips.owner 
+    LEFT JOIN users as owner on owner.id = trips.owner
     LEFT JOIN trip_pcard_requests AS pc ON pc.trip = trips.id
 
     LEFT JOIN trip_members ON trip_members.trip = trips.id AND trip_members.leader = 1

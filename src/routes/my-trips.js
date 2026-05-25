@@ -9,7 +9,7 @@ export function get(req, res) {
   const now = new Date()
 
   const is_leader_query = `SELECT 1 as is_leader
-                           FROM club_leaders 
+                           FROM club_leaders
                            WHERE user = ? and opo_approved = TRUE`
 
   const is_leader = req.db.get(is_leader_query, userId)?.is_leader === 1
@@ -17,13 +17,13 @@ export function get(req, res) {
   const can_create_trip = res.locals.is_opo || is_leader
 
   const tripsQuery = `
-        SELECT 
+        SELECT
           trips.id, title, location, start_time, end_time, description, leader,
           coalesce(clubs.name, 'None') as club
         FROM trip_members
         JOIN trips ON trips.id = trip_members.trip
         LEFT JOIN clubs ON trips.club = clubs.id
-        WHERE 
+        WHERE
           trip_members.user = ?
           AND end_time > ?
         ORDER BY start_time ASC
@@ -39,26 +39,16 @@ export function get(req, res) {
   const today = new Date().getTime()
 
   let medcert_status
-  const medcert_expiration_date = dateFormat(userMedcert.expiration, 'mm-dd-yyyy')
-
-  const medcertExpired = (today) > userMedcert.expiration
-  const medcertExpiringSoon = (today + _60_DAYS_IN_MS) > userMedcert.expiration
-  const medcertValid = !medcertExpiringSoon
-
-  if (res.locals.is_opo) {
-    medcert_status = 'valid'
-  } else if (!is_leader) {
-    medcert_status = 'not_leader'
-  } else if (!userMedcert) {
-    medcert_status = 'not_found'
-  } else if (medcertExpired) {
-    medcert_status = 'expired'
-  } else if (medcertExpiringSoon) {
-    medcert_status = 'expiring_soon'
-  } else if (medcertValid) {
-    medcert_status = 'valid'
+  let medcert_expiration_date
+  if (userMedcert) {
+    medcert_expiration_date = dateFormat(userMedcert.expiration, 'mm-dd-yyyy')
+    const medcertExpiringSoon = (today + _60_DAYS_IN_MS) > userMedcert.expiration
+    if (today > userMedcert.expiration) {
+      medcert_status = 'expired'
+    } else if (medcertExpiringSoon) {
+      medcert_status = 'expiring_soon'
+    }
   } else {
-    console.error(`Error: Attempting to fetch user ${userId}'s medcert information resulted in an unexpected error`)
     medcert_status = 'not_found'
   }
 
