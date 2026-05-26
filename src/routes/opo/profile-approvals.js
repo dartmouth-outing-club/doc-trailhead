@@ -54,14 +54,14 @@ export function denyLeadershipRequest(req, res) {
   return res.status(200).send('')
 }
 
-export function approveDriverCertRequest(req, res) {
+export function approveVehicleCertRequest(req, res) {
   const rowid = req.params.req_id
   if (!rowid) return res.sendStatus(400)
   req.db.run('UPDATE certs_vehicles SET is_approved = TRUE WHERE rowid = ?', rowid)
   return res.status(200).send('')
 }
 
-export function denyDriverCertRequest(req, res) {
+export function denyVehicleCertRequest(req, res) {
   const rowid = req.params.req_id
   if (!rowid) return res.sendStatus(400)
   req.db.run('DELETE FROM certs_vehicles WHERE rowid = ? AND is_approved = FALSE', rowid)

@@ -29,15 +29,23 @@
 </section>
 
 <section>
-  <h2>Certifications</h2>
+  <h2>Vehicle Certifications</h2>
+
   <dl>
-    <dt>Driver Certifications<dd>{{ driver_certifications }}
+    <dt>Van Certified?</dt>
+    <dd>{{ van_cert.status | default('No') }}</dd>
+
+    <dt>Minivan Certified?</dt>
+    <dd>{{ minivan_cert.status | default('No') }}</dd>
+
+    <dt>Trailer Certified?</dt>
+    <dd>{{ trailer_cert.status | default('No') }}</dd>
   </dl>
 
   {% if not hide_controls %}
   <div hx-swap=innerHTML hx-target="closest section" class=button-row>
     <button class="action edit" hx-get="/profile/{{ id }}/driver-cert">
-      {{ 'Edit' if is_opo == true else 'Request' }} Driver Cert
+      {{ 'Edit' if is_opo == true else 'Request' }} Vehicle Cert
     </button>
   </div>
   {% endif %}

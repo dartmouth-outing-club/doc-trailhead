@@ -73,7 +73,7 @@
   display: grid;
   grid-template-columns: max-content auto;
   font-size: 1.2em;
-  margin: 0;
+  margin: 1rem 0;
 }
 
 .profile-card dt, .profile-card dd {
@@ -117,15 +117,13 @@
   margin-right: 5px;
 }
 
-.driver-cert-request .checkbox-row {
-  display: flex;
-  font-size: 1.3em;
-  justify-content: center;
+.vehicle-cert-request label {
+   font-size: 1.3em;
+   display: block;
 }
 
-.driver-cert-request input[type=checkbox]{
+.vehicle-cert-request input[type=checkbox]{
    border: 1px solid #939393;
-   margin-left: 20px;
 }
 
 .club-leadership-request > * {

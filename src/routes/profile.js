@@ -68,13 +68,16 @@ function getProfileData(req, userId, hideControls) {
   const user = req.db.get('SELECT * FROM users WHERE id = ?', userId)
   if (!user) throw new NotFoundError(`User ${userId} not found`)
 
-  const certs_vehicles = req.db
-    .all('SELECT cert, is_approved FROM certs_vehicles WHERE user = ?', userId)
-    .map(item => `${item.cert}${item.is_approved === 0 ? ' (pending)' : ''}`)
-    .join(', ')
+  const certs_vehicles = req.db.all(`
+    SELECT cert, iif(is_approved, 'Approved', 'Pending') as status
+    FROM certs_vehicles WHERE user = ?
+    `, userId
+  )
+  user.van_cert = certs_vehicles.find(c => c.cert === 'VAN')
+  user.minivan_cert = certs_vehicles.find(c => c.cert === 'MINIVAN')
+  user.trailer_cert = certs_vehicles.find(c => c.cert === 'TRAILER')
 
   user.today_iso = utils.getDateValueForToday()
-
   const certs_med = req.db.get('SELECT type, expiration FROM certs_med WHERE user = ?', userId)
   if (certs_med) {
     user.medcert_type = certs_med.type
@@ -95,7 +98,6 @@ function getProfileData(req, userId, hideControls) {
   user.inches = user.height_inches % 12
   user.height = `${user.feet}'${user.inches}"`
 
-  user.driver_certifications = certs_vehicles.length > 0 ? certs_vehicles : 'none'
   user.club_roles = req.db.all(`
     SELECT
       clubs.name as club,
@@ -171,35 +173,33 @@ export function put(req, res) {
   return getProfileCard(req, res)
 }
 
-// NOTE: I really should have been more consistent with "driver" or "vehicle"
-// (I kinda liked "vehicle" but I realized I shouldn't change all the wording unless OPO is fine with it)
 const VALID_VEHICLE_CERTS = ['VAN', 'MINIVAN', 'TRAILER']
-export function getDriverCertRequest(req, res) {
+export function getVehicleCertRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   // TODO this is a little gnarly and could be cleaned up
-  const driver_certs = req.db.all('SELECT cert, is_approved FROM certs_vehicles WHERE user = ?', userId)
+  const vehicle_certs = req.db.all('SELECT cert, is_approved FROM certs_vehicles WHERE user = ?', userId)
   const checkboxes = VALID_VEHICLE_CERTS.map(cert => {
-    const userCert = driver_certs.find(item => item.cert === cert)
+    const userCert = vehicle_certs.find(item => item.cert === cert)
     const attributes = userCert ? `checked ${userCert.is_approved && !res.locals.is_opo ? 'disabled ' : ''}` : ''
     return `<label><input ${attributes}type=checkbox name=vehicle_cert value=${cert}></input>${cert}</label>`
   })
   const form = `
-<form hx-boost=true
-      hx-push-url=false
-      action=/profile/${userId}/driver-cert
-      method=post class="driver-cert">
-<div class="checkbox-row">${checkboxes.join('\n')}</div>
-<div class="button-row">
-  <button class="action deny" hx-get="/profile/${userId}?card=true">Cancel</button>
-  <button class="action approve" type=submit>Save</button>
-</div>
-</form>
+  <form hx-boost=true
+        hx-push-url=false
+        action=/profile/${userId}/driver-cert
+        method=post class="vehicle-cert-request">
+    ${checkboxes.join('\n')}
+    <div class="button-row">
+      <button class="action deny" hx-get="/profile/${userId}?card=true">Cancel</button>
+      <button class="action approve" type=submit>Save</button>
+    </div>
+  </form>
   `
   res.send(form).status(200)
 }
-export function postDriverCertRequest(req, res) {
+export function postVehicleCertRequest(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
