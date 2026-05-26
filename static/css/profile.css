@@ -38,9 +38,6 @@
     margin: 0;
 }
 
-/* @media screen and (min-width: 800px) { */
-/* } */
-
 .profile-name {
   justify-content: center;
   display: flex;
@@ -70,26 +67,34 @@
 }
 
 .profile-card dl {
-  display: grid;
-  grid-template-columns: max-content auto;
   font-size: 1.2em;
-  margin: 1rem 0;
-}
-
-.profile-card dt, .profile-card dd {
-  padding: 5px;
 }
 
 .profile-card dt {
   font-family: 'Nunito Sans Bold', 'Open Sans', sans-serif;
-  grid-column: 1;
-  display: flex;
-  align-items: center;
 }
 
-.profile-card dd {
-  grid-column: 2;
-  text-align: right;
+@media screen and (min-width: 800px) {
+  .profile-card dl {
+    display: grid;
+    grid-template-columns: max-content auto;
+    margin: 1rem 0;
+  }
+
+  .profile-card dt, .profile-card dd {
+    padding: 5px;
+  }
+
+  .profile-card dt {
+    grid-column: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  .profile-card dd {
+    grid-column: 2;
+    text-align: right;
+  }
 }
 
 .profile-card input[type=text], .profile-card input[type=email] {
@@ -125,6 +130,22 @@
 .vehicle-cert-request input[type=checkbox]{
    border: 1px solid #939393;
 }
+
+.club-roles {
+  table-layout: fixed;
+  border-collapse: collapse;
+  border-spacing: 2rem 0;
+  font-size: 1.1rem;
+}
+
+.club-roles th {
+  text-align: left;
+}
+
+.club-roles td, .club_roles td {
+  padding-right: 2rem;
+}
+
 
 .club-leadership-request > * {
   margin-bottom: 20px;
