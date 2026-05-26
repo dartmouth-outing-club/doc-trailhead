@@ -2,6 +2,17 @@ import { BadRequestError, NotFoundError } from '../request/errors.js'
 import dateFormat from 'dateformat'
 import * as utils from '../utils.js'
 
+const VALID_PHONE = /[0-9]{10,}/
+const VALID_MED_CERTS = [
+  '(none)',
+  'Basic First Aid(+CPR)',
+  'WFA',
+  'WAFA',
+  'WFR',
+  'OEC',
+  'W-EMT',
+]
+
 export function getProfileView(req, res) {
   if (req.query.card) {
     return getProfileCard(req, res)
@@ -67,9 +78,9 @@ function getProfileData(req, userId, hideControls) {
   const certs_med = req.db.get('SELECT type, expiration FROM certs_med WHERE user = ?', userId)
   if (certs_med) {
     user.medcert_type = certs_med.type
-    const medcert_expiration_date = new Date(certs_med.expiration) // TODO: medcertfile?
-    user.medcert_expiration = dateFormat(medcert_expiration_date, 'mm-dd-yyyy') // for table view
-    user.medcert_expiration_iso = dateFormat(medcert_expiration_date, 'isoDate') // for form input
+    const medcert_expiration_date = new Date(certs_med.expiration)
+    user.medcert_expiration = dateFormat(medcert_expiration_date, 'mm-dd-yyyy')
+    user.medcert_expiration_iso = dateFormat(medcert_expiration_date, 'isoDate')
   } else {
     user.medcert_type = 'none'
   }
@@ -85,31 +96,26 @@ function getProfileData(req, userId, hideControls) {
   user.height = `${user.feet}'${user.inches}"`
 
   user.driver_certifications = certs_vehicles.length > 0 ? certs_vehicles : 'none'
-  user.leader_for = req.db.get(`
-    SELECT group_concat(
-      iif(opo_approved = 1, name, name || ' (pending)'),
-      ', '
-    ) as clubs
+  user.club_roles = req.db.all(`
+    SELECT
+      clubs.name as club,
+      iif(opo_approved = 1, 'Leader', 'Leader (pending)') as role
     FROM club_leaders
     LEFT JOIN clubs ON club_leaders.club = clubs.id
     WHERE user = ?
-  `, userId)?.clubs || 'none'
-
-  user.chair_for = req.db.get(`
-    SELECT group_concat(
-      iif(is_approved = 1, name, name || ' (pending)'),
-      ', '
-    ) as clubs
+    UNION
+    SELECT
+      clubs.name as club,
+      iif(is_approved = 1, 'Chair', 'Chair (pending)') as role
     FROM club_chairs
     LEFT JOIN clubs ON club_chairs.club = clubs.id
     WHERE user = ?
-  `, userId)?.clubs || 'none'
+  `, userId, userId)
+
   user.hide_controls = hideControls
   delete user.is_opo // TODO stop using a SELECT * so you don't have to do this
   return user
 }
-
-const VALID_PHONE = /[0-9]{10,}/
 
 export function put(req, res) {
   const formData = { ...req.body }
@@ -141,12 +147,20 @@ export function put(req, res) {
   const medcertType = formData.medcert_type
   const medcertExpiration = new Date(formData.medcert_expiration + 'T00:00:00').getTime()
 
-  if ((medcertType !== 'none') && medcertExpiration) {
-    req.db.run('INSERT or REPLACE INTO certs_med (user, type, expiration) VALUES (?, ?, ?) ', formData.user_id, medcertType, medcertExpiration)
-  } else if (medcertType === 'none') {
+  if (!VALID_MED_CERTS.includes(medcertType)) {
+    throw new BadRequestError(`Invalid med cert type: ${medcertType}`)
+  }
+
+  if (medcertType === '(none)') {
     req.db.run('DELETE FROM certs_med where user = ?', formData.user_id)
+  } else if (medcertType !== 'none' && medcertExpiration) {
+    req.db.run(`
+      INSERT or REPLACE INTO certs_med (user, type, expiration)
+      VALUES (?, ?, ?) `,
+      formData.user_id, medcertType, medcertExpiration
+    )
   } else {
-    return res.sendStatus(400).json({ error: 'Form data malformed: Submitted with invalid expiration.' })
+    throw new BadRequestError('Form data malformed: Submitted with invalid expiration.')
   }
 
   if (formData.new_user === 'true') {

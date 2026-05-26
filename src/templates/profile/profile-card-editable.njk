@@ -11,10 +11,10 @@
     <input disabled type=email name=email value="{{ email }}" required class=email-row>
   </div>
 </section>
-<section>
 {% set noNameNorEmail = true %}
+
 {% include "profile/edit-profile-form.njk" %}
-</section>
+
 <section>
 <div class=button-row>
   <button class="action deny" hx-get="/profile/{{ id }}/cancel-edit">Cancel</button>

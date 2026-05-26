@@ -20,22 +20,26 @@
   justify-content: center;
 }
 
-.profile-card dl {
+.profile-card .edit-profile {
   display: grid;
-  grid-template-columns: max-content auto;
+  grid-template-columns: 3fr 2fr;
   align-items: start;
+  gap: .5rem 4rem;
   margin-right: 20
 }
 
-.profile-card dt {
+.profile-card .edit-profile label {
     grid-column: 1
 }
 
-.profile-card dd {
+.profile-card .edit-profile input {
     grid-column: 2;
     text-align: right;
     margin: 0;
 }
+
+/* @media screen and (min-width: 800px) { */
+/* } */
 
 .profile-name {
   justify-content: center;

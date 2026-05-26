@@ -17,27 +17,48 @@
     <dt>Height<dd>{{ height }}
     <dt>Allergies/Dietary Restrictions<dd>{{ allergies_dietary_restrictions }}
     <dt>Medical Conditions<dd>{{ medical_conditions }}
-  </dl>
-</section>
-<section>
-  <h2 title="Note: These are not needed to participate in trips, but are required if you plan to become a trip leader. If you're interestd, ask a leader in your club of interest for more information!"> Certifications </h2>
-  <dl title="Add or change med certs by clicking 'edit profile' below!" >
     <dt >Med Cert <dd>{{ medcert_type }}
     <dt>Med Cert Expiration <dd>{{ medcert_expiration }}
+  </dl>
+
+{% if not hide_controls %}
+<button class="action edit" hx-get="/profile/{{ id }}/edit-profile">Edit profile</button>
+
+{% endif %}
+
+</section>
+
+<section>
+  <h2>Certifications</h2>
+  <dl>
     <dt>Driver Certifications<dd>{{ driver_certifications }}
   </dl>
-    <div hx-swap=innerHTML hx-target="closest section" class=button-row>
-      <button class="action edit" hx-get="/profile/{{ id }}/driver-cert">
-        {{ 'Edit' if is_opo == true else 'Request' }} Driver Cert
-      </button>
-    </div>
+
+  {% if not hide_controls %}
+  <div hx-swap=innerHTML hx-target="closest section" class=button-row>
+    <button class="action edit" hx-get="/profile/{{ id }}/driver-cert">
+      {{ 'Edit' if is_opo == true else 'Request' }} Driver Cert
+    </button>
+  </div>
+  {% endif %}
 </section>
+
 <section>
-  <h2> Permissions </h2>
-  <dl>
-    <dt>Leader For<dd>{{ leader_for }}
-    <dt>Chair For<dd>{{ chair_for}}
-  </dl>
+  <h2>Club Roles</h2>
+
+  <table class="detail-table">
+    <tr>
+      <th>Club</th>
+      <th>Role</th>
+    </tr>
+    {% for club_role in club_roles %}
+    <tr>
+      <td>{{ club_role.club }}</td>
+      <td>{{ club_role.role }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
   {% if not hide_controls %}
   <div hx-swap=innerHTML hx-target="closest section" class=button-row>
     <button class="action edit" hx-get="/profile/{{ id }}/club-leadership">
@@ -49,14 +70,11 @@
   </div>
   {% endif %}
 </section>
-{% if not hide_controls %}
+
 <section>
-  <div class=button-row>
-    {% if is_self == true %}
-    <form method=post action="/logout"><button class="action deny">Logout</button></form>
-    {% endif %}
-    <button class="action edit" hx-get="/profile/{{ id }}/edit-profile">Edit profile</button>
-  </div>
+  {% if is_self == true %}
+  <form method=post action="/logout"><button class="action deny">Logout</button></form>
+  {% endif %}
 </section>
-{% endif %}
+
 </div>
