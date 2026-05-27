@@ -17,7 +17,7 @@
 <tbody>
 {% for request in leadership_requests %}
   <tr>
-  <td>{{request.requester_name}}
+  <td><a href="/profile/{{ request.requester_id }}">{{request.requester_name}}</a>
   <td>{{request.requested_item}}
   <td>
     <button
@@ -52,7 +52,7 @@
 <tbody>
 {% for request in cert_requests %}
   <tr>
-  <td>{{request.requester_name}}
+  <td><a href="/profile/{{ request.requester_id }}">{{request.requester_name}}</a>
   <td>{{request.requested_item}}
   <td>
     <button
@@ -87,13 +87,13 @@
 <tbody>
 {% for request in chair_requests %}
   <tr>
-  <td>{{request.requester_name}}
+  <td><a href="/profile/{{ request.requester_id }}">{{request.requester_name}}</a>
   <td>{{request.requested_item}}
   <td>
     <button
       class="action deny"
       hx-confirm="Deny {{request.requester_name}} as a chair for {{request.requested_item}}?"
-      hx-delete="/opo/profile-approvals/chair/{{request.req_id}}"
+      hx-delete="/opo/profile-approvals/chair-request/{{request.req_id}}"
       hx-target="closest tr"
       hx-swap="outerHTML swap:.7s"
       >Deny
@@ -101,7 +101,7 @@
     <button
       class="action approve"
       hx-confirm="Approve {{request.requester_name}} as a chair for {{request.requested_item}}?"
-      hx-put="/opo/profile-approvals/chair/{{request.req_id}}"
+      hx-put="/opo/profile-approvals/chair-request/{{request.req_id}}"
       hx-target="closest tr"
       hx-swap="outerHTML swap:.7s"
       >Approve
@@ -119,21 +119,12 @@
 <div><div class=notice>There are no club chairs yet</div></div>
 {% else %}
 <table class=trip-table>
-<thead><tr><th>Person<th>Club<th></tr></thead>
+<thead><tr><th>Person<th>Club</tr></thead>
 <tbody>
 {% for club_chair in club_chairs %}
   <tr>
-  <td>{{club_chair.user_name}}
+  <td><a href="/profile/{{ club_chair.user_id }}">{{club_chair.user_name}}</a>
   <td>{{club_chair.club_name}}
-  <td>
-    <button
-      class="action deny"
-      hx-confirm="Remove {{club_chair.user_name}} as a chair for {{club_chair.club_name}}?"
-      hx-delete="/opo/profile-approvals/chair/{{club_chair.chair_id}}"
-      hx-target="closest tr"
-      hx-swap="outerHTML swap:.7s"
-      > Remove
-    </button>
   </tr>
 {% endfor %}
 </table>

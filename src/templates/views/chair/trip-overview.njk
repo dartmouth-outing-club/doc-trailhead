@@ -8,12 +8,8 @@
 <main>
 
 <section class="pending info-card">
-        <h1>Pending Trips </h1>
-        You are a club chair for:
-        {%for name in club_names%} 
-            {{name}} 
-            {%if not loop.last%},{% endif %} 
-        {%endfor%} 
+<h1>Upcoming Trips</h1>
+You are a club chair for: {{ club_names | join(', ')}}
 
 {% if future_trips.length === 0 %}
 <div class=notice>All set for now</div>

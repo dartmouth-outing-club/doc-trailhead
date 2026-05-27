@@ -3,11 +3,11 @@ import * as utils from '../../utils.js'
 const _60_DAYS_IN_MS = 5184000000
 
 const CLUB_CHAIR_TRIPS_QUERY = `
-    SELECT 
+    SELECT
       trips.id,
       title,
-      clubs.id as clubid, 
-      clubs.name as clubname, 
+      clubs.id as clubid,
+      clubs.name as clubname,
       location,
       start_time,
       users.name as owner,
@@ -44,12 +44,10 @@ export function get(req, res) {
   const userId = parseInt(req.user)
 
   const userChairIn = req.db.all(`
-    SELECT 
-        clubs.id,
-        clubs.name
-    FROM club_chairs
-    LEFT JOIN clubs ON clubs.id = club_chairs.club
-    WHERE user = ? AND is_approved = 1
+    SELECT clubs.id, clubs.name
+    FROM club_leaders
+    LEFT JOIN clubs ON clubs.id = club_leaders.club
+    WHERE user = ? AND is_chair = 1
     ORDER BY name
   `, userId)
 

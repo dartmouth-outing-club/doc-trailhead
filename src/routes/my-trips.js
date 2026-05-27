@@ -8,13 +8,7 @@ export function get(req, res) {
   const _24_HOURS_IN_MS = 86400000
   const now = new Date()
 
-  const is_leader_query = `SELECT 1 as is_leader
-                           FROM club_leaders
-                           WHERE user = ? and opo_approved = TRUE`
-
-  const is_leader = req.db.get(is_leader_query, userId)?.is_leader === 1
-
-  const can_create_trip = res.locals.is_opo || is_leader
+  const can_create_trip = res.locals.is_opo || req.db.isLeader(req.user)
 
   const tripsQuery = `
         SELECT
@@ -23,9 +17,7 @@ export function get(req, res) {
         FROM trip_members
         JOIN trips ON trips.id = trip_members.trip
         LEFT JOIN clubs ON trips.club = clubs.id
-        WHERE
-          trip_members.user = ?
-          AND end_time > ?
+        WHERE trip_members.user = ? AND end_time > ?
         ORDER BY start_time ASC
       `
   const trips = req.db.all(tripsQuery, userId, now.getTime() - _24_HOURS_IN_MS)

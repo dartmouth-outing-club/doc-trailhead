@@ -4,16 +4,14 @@
   <tr>
     <th>Name
     <th>Email
-    <th>Profile
   </tr>
   </thead>
 
   <tbody>
   {% for user in users %}
   <tr>
-    <td>{{user.name}}
+    <td><a href="/profile/{{user.id}}">{{user.name}}</a></td>
     <td>{{user.email}}</td>
-    <td><a href="/profile/{{user.id}}">Profile</a></td>
   </tr>
   {% endfor %}
   </tbody>

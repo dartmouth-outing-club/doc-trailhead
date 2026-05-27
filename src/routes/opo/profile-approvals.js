@@ -2,6 +2,7 @@ export function get(req, res) {
   const leadership_requests = req.db.all(`
      SELECT
       clr.rowid as req_id,
+      users.id AS requester_id,
       users.name AS requester_name,
       clubs.name AS requested_item
      FROM club_leader_requests AS clr
@@ -13,6 +14,7 @@ export function get(req, res) {
   const chair_requests = req.db.all(`
      SELECT
       ccr.rowid as req_id,
+      users.id AS requester_id,
       users.name AS requester_name,
       clubs.name AS requested_item
      FROM club_chair_requests AS ccr
@@ -23,6 +25,7 @@ export function get(req, res) {
   const club_chairs = req.db.all(`
      SELECT
        club_leaders.rowid as chair_id,
+       users.id AS user_id,
        users.name AS user_name,
        clubs.name AS club_name
      FROM club_leaders
@@ -33,7 +36,11 @@ export function get(req, res) {
    `)
 
   const cert_requests = req.db.all(`
-   SELECT certs_vehicles.rowid as req_id, users.name AS requester_name, cert AS requested_item
+   SELECT
+    certs_vehicles.rowid as req_id,
+    users.id as requester_id,
+    users.name AS requester_name,
+    cert AS requested_item
    FROM certs_vehicles
    LEFT JOIN users ON users.id = certs_vehicles.user
    WHERE is_approved = FALSE`)

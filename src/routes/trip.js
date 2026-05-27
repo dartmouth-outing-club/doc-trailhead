@@ -14,7 +14,7 @@ function getClubs(db, userId, isOpo) {
       SELECT clubs.id, clubs.name
       FROM club_leaders
       LEFT JOIN clubs ON clubs.id = club_leaders.club
-      WHERE user = ? AND opo_approved = 1
+      WHERE user = ?
       ORDER BY name
       `, userId)
   }
@@ -35,13 +35,9 @@ export function getLeaderView(req, res) {
   // Leader view is available only if the user is the leader of that trip or on OPO
   const is_opo = req.db.isOpo(req.user)
   const is_leader = req.db.isLeaderForTrip(tripId, req.user)
+  const is_chair = req.db.isChairForTripClub(tripId, req.user)
 
-  const isChair = req.db.get(`
-      SELECT 1 as is_chair FROM club_chairs
-      WHERE user = ? AND is_approved = TRUE AND club = (select club from trips where id = ?)
-    `, req.user, tripId)?.is_chair === 1
-
-  return is_opo || is_leader || isChair
+  return is_opo || is_leader || is_chair
     ? tripCard.renderLeaderPage(req, res, tripId, req.user)
     : res.sendStatus(403)
 }

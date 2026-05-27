@@ -151,6 +151,10 @@ export default class TrailheadDatabaseConnection {
     return info.lastInsertRowid
   }
 
+  isLeader(userId) {
+    return this.get('SELECT 1 FROM club_leaders WHERE user = ?', userId) !== undefined
+  }
+
   isChair(userId) {
     return this.get('SELECT 1 FROM club_leaders WHERE user = ? AND is_chair = 1',
       userId) !== undefined
