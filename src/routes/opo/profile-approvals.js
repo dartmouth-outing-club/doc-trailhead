@@ -59,7 +59,7 @@ export function approveLeadershipRequest(req, res) {
       WHERE rowid = ?
     `, rowid)
 
-  req.db.run(`DELETE FROM club_leader_requests WHERE rowid = ?`, rowid)
+  req.db.run('DELETE FROM club_leader_requests WHERE rowid = ?', rowid)
   return res.status(200).send('')
 }
 
@@ -67,7 +67,7 @@ export function approveLeadershipRequest(req, res) {
 export function denyLeadershipRequest(req, res) {
   const rowid = req.params.req_id
   if (!rowid) return res.sendStatus(400)
-  req.db.run(`DELETE FROM club_leader_requests WHERE clr.rowid = ?`, rowid)
+  req.db.run('DELETE FROM club_leader_requests WHERE clr.rowid = ?', rowid)
   return res.status(200).send('')
 }
 
@@ -95,14 +95,14 @@ export function approveChairRequest(req, res) {
       WHERE rowid = ?
     `, rowid)
 
-  req.db.run(`DELETE FROM club_chair_requests WHERE rowid = ?`, rowid)
+  req.db.run('DELETE FROM club_chair_requests WHERE rowid = ?', rowid)
   return res.status(200).send('')
 }
 
 export function denyChairRequest(req, res) {
   const rowid = req.params.req_id
   if (!rowid) return res.sendStatus(400)
-  req.db.run(`DELETE FROM club_chair_requests WHERE rowid = ?`, rowid)
+  req.db.run('DELETE FROM club_chair_requests WHERE rowid = ?', rowid)
   return res.status(200).send('')
 }
 

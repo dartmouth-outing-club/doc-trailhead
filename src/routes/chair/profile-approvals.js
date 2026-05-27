@@ -15,7 +15,7 @@ export function get(req, res) {
      LEFT JOIN certs_med ON certs_med.user = clr.user
      LEFT JOIN club_leaders AS cl ON clr.club = cl.club AND cl.user = ? AND cl.is_chair = 1
      WHERE chair_approved = 0 AND cl.user IS NOT NULL
-   `, userId);
+   `, userId)
 
   return res.render('views/chair/profile-approvals.njk', { leadership_requests })
 }

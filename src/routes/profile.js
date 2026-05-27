@@ -10,7 +10,7 @@ const VALID_MED_CERTS = [
   'WAFA',
   'WFR',
   'OEC',
-  'W-EMT',
+  'W-EMT'
 ]
 
 export function getProfileView(req, res) {
@@ -163,7 +163,7 @@ export function put(req, res) {
     req.db.run(`
       INSERT or REPLACE INTO certs_med (user, type, expiration)
       VALUES (?, ?, ?) `,
-      formData.user_id, medcertType, medcertExpiration
+    formData.user_id, medcertType, medcertExpiration
     )
   } else {
     throw new BadRequestError('Form data malformed: Submitted with invalid expiration.')
@@ -320,11 +320,11 @@ export function postClubChairRequest(req, res) {
   if (res.locals.is_opo) {
     req.db.run(`
       INSERT OR REPLACE INTO club_leaders (user, club, is_chair) VALUES (?, ?, 1)`,
-      userId, club)
+    userId, club)
   } else {
     req.db.run(`
       INSERT OR REPLACE INTO club_chair_requests (user, club) VALUES (?, ?)`,
-      userId, club)
+    userId, club)
   }
 
   return getProfileCard(req, res)
