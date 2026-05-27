@@ -119,13 +119,12 @@
 <div><div class=notice>There are no club chairs yet</div></div>
 {% else %}
 <table class=trip-table>
-<thead><tr><th>Person<th>Chair For<th>Chair Since<th></tr></thead>
+<thead><tr><th>Person<th>Club<th></tr></thead>
 <tbody>
-{% for club_chair in active_chairs %}
+{% for club_chair in club_chairs %}
   <tr>
   <td>{{club_chair.user_name}}
   <td>{{club_chair.club_name}}
-  <td>{{club_chair.chair_since}}
   <td>
     <button
       class="action deny"

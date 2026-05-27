@@ -41,13 +41,9 @@ export function requireAuth(req, res, next) {
     if (!userInfo.is_profile_complete && !req.url.includes('/new-user')) {
       return res.redirect(303, '/new-user')
     }
+
     res.locals.is_opo = userInfo.is_opo === 1
-
-    const isChair = req.db.get(`
-      SELECT 1 as is_chair FROM club_chairs WHERE user = ? and is_approved = TRUE`,
-    req.user)?.is_chair >= 1
-
-    res.locals.is_chair = isChair
+    res.locals.is_chair = req.db.isChair(req.user)
     return next()
   }
 
@@ -72,8 +68,7 @@ export function requireAnyLeader(req, res, next) {
 /** Allow the request if the user is a chair of ANY club. */
 export function requireAnyChair(req, res, next) {
   return requireAuth(req, res, () => {
-    const isChair = req.db.get(`
-      SELECT 1 as is_chair FROM club_chairs WHERE user = ? and is_approved = TRUE`, req.user)?.is_chair >= 1
+    const isChair = req.db.isChair(req.user)
     if (isChair) return next()
     return res.sendStatus(403)
   })
@@ -85,19 +80,8 @@ export function requireTripLeader(req, res, next) {
     const tripId = req.params.tripId
     if (!tripId) throw new Error('Trip Leader authorization used on a route without a trip.')
 
-    // NOTE: is this not "req.db.isLeaderForTrip)" ?
-    const isLeader = req.db.get(`
-      SELECT 1 as is_leader
-      FROM trip_members WHERE user = ? AND trip = ? AND leader = 1
-    `, req.user, tripId)?.is_leader === 1
-
-    const isCorrectChair = req.db.get(`
-      SELECT 1 as is_chair FROM club_chairs     
-        WHERE 
-          user = ? AND 
-          is_approved = TRUE AND 
-          club = (select club from trips where id = ?)
-    `, req.user, tripId)?.is_chair === 1
+    const isLeader = req.db.isLeaderForTrip(tripId, req.user)
+    const isCorrectChair = req.db.isChairForTripClub(tripId, req.user)
 
     // Set a variable that says the current user is a leader for THIS trip
     if (isLeader) res.locals.is_leader_for_trip = true

@@ -41,6 +41,7 @@ export function getProfileCard(req, res) {
   const userId = parseInt(req.params.userId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
+  res.locals.is_self = req.user === userId
   const data = getProfileData(req, userId)
   return res.render('profile/profile-card.njk', data)
 }
@@ -99,20 +100,23 @@ function getProfileData(req, userId, hideControls) {
   user.height = `${user.feet}'${user.inches}"`
 
   user.club_roles = req.db.all(`
-    SELECT
-      clubs.name as club,
-      iif(opo_approved = 1, 'Leader', 'Leader (pending)') as role
+    SELECT clubs.name as club, iif(is_chair, 'Chair', 'Leader') as role
     FROM club_leaders
     LEFT JOIN clubs ON club_leaders.club = clubs.id
     WHERE user = ?
+  `, userId)
+
+  user.requested_club_roles = req.db.all(`
+    SELECT clubs.name as club, 'Leader' as role
+    FROM club_leader_requests AS clr
+    LEFT JOIN clubs ON clr.club = clubs.id
+    WHERE user = @userId
     UNION
-    SELECT
-      clubs.name as club,
-      iif(is_approved = 1, 'Chair', 'Chair (pending)') as role
-    FROM club_chairs
-    LEFT JOIN clubs ON club_chairs.club = clubs.id
-    WHERE user = ?
-  `, userId, userId)
+    SELECT clubs.name as club, 'Chair' as role
+    FROM club_chair_requests AS ccr
+    LEFT JOIN clubs ON ccr.club = clubs.id
+    WHERE user = @userId
+  `, { userId })
 
   user.hide_controls = hideControls
   delete user.is_opo // TODO stop using a SELECT * so you don't have to do this
@@ -230,23 +234,25 @@ export function getClubLeadershipRequest(req, res) {
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   const clubs_with_user = req.db.all(`
-    SELECT clubs.id, name, opo_approved
-    FROM club_leaders
-    LEFT JOIN clubs ON clubs.id = club_leaders.club
-    WHERE user = ?
+    WITH user_leadership AS (
+      SELECT club, 1 as is_approved FROM club_leaders WHERE user = @userId
+      UNION
+      SELECT club, 0 as is_approved FROM club_leader_requests WHERE user = @userId
+    )
+    SELECT clubs.id, name, is_approved
+    FROM user_leadership
+    LEFT JOIN clubs ON clubs.id = user_leadership.club
     ORDER BY name
-  `, userId)
+  `, { userId })
 
   const clubs_without_user = req.db.all(`
     SELECT id, name
     FROM clubs
-    WHERE active = 1 AND NOT EXISTS
-      (SELECT *
-      FROM club_leaders AS cl
-      WHERE user = ? AND cl.club = clubs.id
-      )
+    LEFT JOIN club_leaders AS cl ON clubs.id = cl.club AND cl.user = @userId
+    LEFT JOIN club_leader_requests AS clr ON clubs.id = clr.club AND clr.user = @userId
+    WHERE active = 1 AND cl.user IS NULL AND clr.user IS NULL
     ORDER BY name
-  `, userId)
+  `, { userId })
 
   return res.render('profile/club-leadership-form.njk', { userId, clubs_with_user, clubs_without_user })
 }
@@ -258,10 +264,9 @@ export function postClubLeadershipRequest(req, res) {
   const club = req.body.club
   if (!club) return res.sendStatus(400)
 
-  const opo_approved = res.locals.is_opo === true ? 1 : 0
-  // NOTE: should chairs auto-approve themselves?
-  req.db.run('INSERT INTO club_leaders (user, club, opo_approved) VALUES (?, ?, ?)',
-    userId, club, opo_approved)
+  const table_name = res.locals.is_opo ? 'club_leaders' : 'club_leader_requests'
+  req.db.run(`INSERT OR REPLACE INTO ${table_name} (user, club) VALUES (?, ?)`,
+    userId, club)
   return getProfileCard(req, res)
 }
 
@@ -269,10 +274,9 @@ export function deleteClubLeadershipRequest(req, res) {
   const userId = parseInt(req.params.userId)
   const clubId = parseInt(req.params.clubId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
-  const { changes } = req.db
-    .run('DELETE FROM club_leaders WHERE user = ? AND club = ?', userId, clubId)
 
-  if (changes < 1) return res.sendStatus(400)
+  req.db.run('DELETE FROM club_leaders WHERE user = ? AND club = ?', userId, clubId)
+  req.db.run('DELETE FROM club_leader_requests WHERE user = ? AND club = ?', userId, clubId)
 
   return getClubLeadershipRequest(req, res)
 }
@@ -283,23 +287,25 @@ export function getClubChairRequest(req, res) {
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
   const clubs_with_user = req.db.all(`
+    WITH user_leadership AS (
+      SELECT club, 1 as is_approved FROM club_leaders WHERE user = @userId AND is_chair = TRUE
+      UNION
+      SELECT club, 0 as is_approved FROM club_chair_requests WHERE user = @userId
+    )
     SELECT clubs.id, name, is_approved
-    FROM club_chairs
-    LEFT JOIN clubs ON clubs.id = club_chairs.club
-    WHERE user = ?
+    FROM user_leadership
+    LEFT JOIN clubs ON clubs.id = user_leadership.club
     ORDER BY name
-  `, userId)
+  `, { userId })
 
   const clubs_without_user = req.db.all(`
     SELECT id, name
     FROM clubs
-    WHERE active = 1 AND NOT EXISTS
-      (SELECT *
-      FROM club_chairs AS chair
-      WHERE user = ? AND chair.club = clubs.id
-      )
+    LEFT JOIN club_leaders AS cl ON clubs.id = cl.club AND cl.user = @userId AND is_chair = TRUE
+    LEFT JOIN club_chair_requests AS clr ON clubs.id = clr.club AND clr.user = @userId
+    WHERE active = 1 AND cl.user IS NULL AND clr.user IS NULL
     ORDER BY name
-  `, userId)
+  `, { userId })
 
   return res.render('profile/club-chair-form.njk', { userId, clubs_with_user, clubs_without_user })
 }
@@ -311,10 +317,16 @@ export function postClubChairRequest(req, res) {
   const club = req.body.club
   if (!club) return res.sendStatus(400)
 
-  const today = Math.floor(new Date().getTime())
-  const is_approved = res.locals.is_opo === true ? 1 : 0
-  req.db.run('INSERT INTO club_chairs (user, club, chair_since, is_approved) VALUES (?, ?, ?, ?)',
-    userId, club, today, is_approved)
+  if (res.locals.is_opo) {
+    req.db.run(`
+      INSERT OR REPLACE INTO club_leaders (user, club, is_chair) VALUES (?, ?, 1)`,
+      userId, club)
+  } else {
+    req.db.run(`
+      INSERT OR REPLACE INTO club_chair_requests (user, club) VALUES (?, ?)`,
+      userId, club)
+  }
+
   return getProfileCard(req, res)
 }
 export function deleteClubChairRequest(req, res) {
@@ -322,9 +334,8 @@ export function deleteClubChairRequest(req, res) {
   const clubId = parseInt(req.params.clubId)
   if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
 
-  const { changes } = req.db
-    .run('DELETE FROM club_chairs WHERE user = ? AND club = ?', userId, clubId)
+  req.db.run('UPDATE club_leaders SET is_chair = 0 WHERE user = ? AND club = ?', userId, clubId)
+  req.db.run('DELETE FROM club_chair_requests WHERE user = ? AND club = ?', userId, clubId)
 
-  if (changes < 1) return res.sendStatus(400)
   return getClubChairRequest(req, res)
 }

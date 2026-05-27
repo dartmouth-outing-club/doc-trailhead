@@ -1,4 +1,5 @@
 <div class="club-leadership-request">
+  <h2>Edit Club Chair</h2>
   <ul>
   {% for club in clubs_with_user %}
     <li> {{club.name}}
@@ -22,7 +23,7 @@
     <option value={{club.id}}>{{club.name}}</option>
     {% endfor %}
   </select>
-  <button class="action approve" type=submit>Request</button>
+  <button class="action approve" type=submit>Add</button>
 </div>
 <button class="action deny" hx-get="/profile/{{ userId }}?card=true">Close</button>
 </form>

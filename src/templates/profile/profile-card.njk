@@ -45,7 +45,7 @@
   {% if not hide_controls %}
   <div hx-swap=innerHTML hx-target="closest section" class=button-row>
     <button class="action edit" hx-get="/profile/{{ id }}/driver-cert">
-      {{ 'Edit' if is_opo == true else 'Request' }} Vehicle Cert
+      {{ 'Edit' if is_opo == true else 'Request' }} vehicle cert
     </button>
   </div>
   {% endif %}
@@ -55,25 +55,31 @@
   <h2>Club Roles</h2>
 
   <table class="club-roles">
-    <tr>
-      <th>Club</th>
-      <th>Role</th>
-    </tr>
+    <tr> <th>Club</th> <th>Role</th> <th>Status</th> </tr>
     {% for club_role in club_roles %}
     <tr>
       <td>{{ club_role.club }}</td>
       <td>{{ club_role.role }}</td>
+      <td>Active</td>
+    </tr>
+    {% endfor %}
+    {% for club_role in requested_club_roles %}
+    <tr>
+      <td>{{ club_role.club }}</td>
+      <td>{{ club_role.role }}</td>
+      <td>Requested</td>
     </tr>
     {% endfor %}
   </table>
 
+
   {% if not hide_controls %}
   <div hx-swap=innerHTML hx-target="closest section" class=button-row>
     <button class="action edit" hx-get="/profile/{{ id }}/club-leadership">
-      {{ 'Edit' if is_opo == true else 'Request' }} Club Leadership
+      Edit Club Leadership
     </button>
     <button class="action edit" hx-get="/profile/{{ id }}/club-chair">
-      {{ 'Edit' if is_opo == true else 'Request' }} Club Chair
+      Edit Club Chair
     </button>
   </div>
   {% endif %}
@@ -81,7 +87,9 @@
 
 <section>
   {% if is_self == true %}
-  <form method=post action="/logout"><button class="action deny">Logout</button></form>
+  <form method=post action="/logout">
+    <button class="action deny">Logout</button>
+  </form>
   {% endif %}
 </section>
 

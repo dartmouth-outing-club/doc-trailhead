@@ -1,34 +1,36 @@
-import dateFormat from 'dateformat'
-
 export function get(req, res) {
   const leadership_requests = req.db.all(`
-   SELECT club_leaders.rowid as req_id, users.name AS requester_name, clubs.name AS requested_item
-   FROM club_leaders
-   LEFT JOIN clubs ON clubs.id = club_leaders.club
-   LEFT JOIN users ON users.id = club_leaders.user
-   WHERE opo_approved = FALSE and chair_approved = TRUE
+     SELECT
+      clr.rowid as req_id,
+      users.name AS requester_name,
+      clubs.name AS requested_item
+     FROM club_leader_requests AS clr
+     LEFT JOIN clubs ON clubs.id = clr.club
+     LEFT JOIN users ON users.id = clr.user
+     WHERE chair_approved = TRUE
    `)
 
   const chair_requests = req.db.all(`
-   SELECT club_chairs.rowid as req_id, users.name AS requester_name, clubs.name AS requested_item
-   FROM club_chairs
-   LEFT JOIN clubs ON clubs.id = club_chairs.club
-   LEFT JOIN users ON users.id = club_chairs.user
-   WHERE is_approved = FALSE
+     SELECT
+      ccr.rowid as req_id,
+      users.name AS requester_name,
+      clubs.name AS requested_item
+     FROM club_chair_requests AS ccr
+     LEFT JOIN clubs ON clubs.id = ccr.club
+     LEFT JOIN users ON users.id = ccr.user
    `)
 
-  const active_chairs = req.db.all(`
-   SELECT club_chairs.rowid as chair_id, chair_since, users.name AS user_name, clubs.name AS club_name
-   FROM club_chairs
-   LEFT JOIN clubs ON clubs.id = club_chairs.club
-   LEFT JOIN users ON users.id = club_chairs.user
-   WHERE is_approved = TRUE
-   ORDER BY club_name, chair_since
-   `).map(row => {
-    const date = new Date(row.chair_since)
-    row.chair_since = dateFormat(date, 'mm-dd-yyyy')
-    return row
-  })
+  const club_chairs = req.db.all(`
+     SELECT
+       club_leaders.rowid as chair_id,
+       users.name AS user_name,
+       clubs.name AS club_name
+     FROM club_leaders
+       LEFT JOIN clubs ON clubs.id = club_leaders.club
+       LEFT JOIN users ON users.id = club_leaders.user
+     WHERE is_chair = TRUE
+     ORDER BY club_name, club_leaders.rowid
+   `)
 
   const cert_requests = req.db.all(`
    SELECT certs_vehicles.rowid as req_id, users.name AS requester_name, cert AS requested_item
@@ -36,13 +38,21 @@ export function get(req, res) {
    LEFT JOIN users ON users.id = certs_vehicles.user
    WHERE is_approved = FALSE`)
 
-  return res.render('views/opo/profile-approvals.njk', { leadership_requests, chair_requests, active_chairs, cert_requests })
+  const data = { leadership_requests, chair_requests, club_chairs, cert_requests }
+  return res.render('views/opo/profile-approvals.njk', data)
 }
 
 export function approveLeadershipRequest(req, res) {
   const rowid = req.params.req_id
   if (!rowid) return res.sendStatus(400)
-  req.db.run('UPDATE club_leaders SET opo_approved = TRUE WHERE rowid = ? AND chair_approved = TRUE', rowid)
+  req.db.run(`
+      INSERT OR REPLACE INTO club_leaders (user, club, is_chair)
+      SELECT user, club, FALSE
+      FROM club_leader_requests
+      WHERE rowid = ?
+    `, rowid)
+
+  req.db.run(`DELETE FROM club_leader_requests WHERE rowid = ?`, rowid)
   return res.status(200).send('')
 }
 
@@ -50,7 +60,7 @@ export function approveLeadershipRequest(req, res) {
 export function denyLeadershipRequest(req, res) {
   const rowid = req.params.req_id
   if (!rowid) return res.sendStatus(400)
-  req.db.run('DELETE FROM club_leaders WHERE rowid = ? AND opo_approved = FALSE', rowid)
+  req.db.run(`DELETE FROM club_leader_requests WHERE clr.rowid = ?`, rowid)
   return res.status(200).send('')
 }
 
@@ -71,15 +81,21 @@ export function denyVehicleCertRequest(req, res) {
 export function approveChairRequest(req, res) {
   const rowid = req.params.req_id
   if (!rowid) return res.sendStatus(400)
-  const today = Math.floor(new Date().getTime()) // NOTE: this is actually so ugly and surely a better option exists...
-  req.db.run('UPDATE club_chairs SET is_approved = TRUE, chair_since = ? WHERE rowid = ?', today, rowid)
+  req.db.run(`
+      INSERT OR REPLACE INTO club_leaders (user, club, is_chair)
+      SELECT user, club, TRUE
+      FROM club_chair_requests
+      WHERE rowid = ?
+    `, rowid)
+
+  req.db.run(`DELETE FROM club_chair_requests WHERE rowid = ?`, rowid)
   return res.status(200).send('')
 }
 
 export function denyChairRequest(req, res) {
   const rowid = req.params.req_id
   if (!rowid) return res.sendStatus(400)
-  req.db.run('DELETE FROM club_chairs WHERE rowid = ?', rowid)
+  req.db.run(`DELETE FROM club_chair_requests WHERE rowid = ?`, rowid)
   return res.status(200).send('')
 }
 

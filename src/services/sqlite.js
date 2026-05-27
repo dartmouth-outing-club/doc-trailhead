@@ -151,6 +151,11 @@ export default class TrailheadDatabaseConnection {
     return info.lastInsertRowid
   }
 
+  isChair(userId) {
+    return this.get('SELECT 1 FROM club_leaders WHERE user = ? AND is_chair = 1',
+      userId) !== undefined
+  }
+
   isOpo(userId) {
     return this.get('SELECT is_opo FROM users WHERE id = ?', userId).is_opo === 1
   }
@@ -163,6 +168,15 @@ export default class TrailheadDatabaseConnection {
   isLeaderForTrip(tripId, userId) {
     return this.get('SELECT 1 FROM trip_members WHERE trip = ? AND user = ? AND leader = TRUE',
       tripId, userId) !== undefined
+  }
+
+  isChairForTripClub(tripId, userId) {
+    return this.get(`
+      SELECT 1
+      FROM trips
+      LEFT JOIN club_leaders on club_leaders.club = trips.club
+      WHERE trips.id = ? AND user = ? AND club_leaders.is_chair = TRUE
+    `, tripId, userId) !== undefined
   }
 
   isOpoOrLeaderForTrip(tripId, userId) {

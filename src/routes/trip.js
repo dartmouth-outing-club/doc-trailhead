@@ -37,7 +37,7 @@ export function getLeaderView(req, res) {
   const is_leader = req.db.isLeaderForTrip(tripId, req.user)
 
   const isChair = req.db.get(`
-      SELECT 1 as is_chair FROM club_chairs     
+      SELECT 1 as is_chair FROM club_chairs
       WHERE user = ? AND is_approved = TRUE AND club = (select club from trips where id = ?)
     `, req.user, tripId)?.is_chair === 1
 
@@ -161,11 +161,11 @@ export function editTrip(req, res) {
   // Add new leaders
   const leaders = getLeaderIds(req)
   const values = leaders.map(userId => [tripId, userId, 1, 0])
-  req.db.runMany(`INSERT INTO trip_members (trip, user, leader, pending) 
-                    VALUES (?, ?, ?, ?) 
-                    ON CONFLICT (trip, user) DO UPDATE SET 
-                        leader = 1, 
-                        pending = 0 
+  req.db.runMany(`INSERT INTO trip_members (trip, user, leader, pending)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT (trip, user) DO UPDATE SET
+                        leader = 1,
+                        pending = 0
                 `, values)
 
   res.set('HX-Redirect', `/leader/trip/${tripId}`)

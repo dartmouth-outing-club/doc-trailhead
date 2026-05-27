@@ -1,14 +1,15 @@
 <div class="club-leadership-request">
+  <h2>Edit Club Leadership</h2>
   <ul>
-  {% for club in clubs_with_user %}
-    <li> {{club.name}}
-    <button
-        hx-delete="/profile/{{userId}}/club-leadership/{{club.id}}"
-        hx-confirm="Are you sure you want to remove yourself as a {{'(pending) ' if club.opo_approved === 0 else ''}}leader of {{club.name}} ?"
-        hx-target="closest section"
-        hx-swap="innerHTML"
-    ><img src="/static/icons/close-icon.svg"></button>
-  {% endfor %}
+    {% for club in clubs_with_user %}
+    <li> {{club.name}} {{'(pending) ' if club.is_approved === 0 else ''}}
+      <button
+          hx-delete="/profile/{{userId}}/club-leadership/{{club.id}}"
+          hx-confirm="Are you sure you want to remove yourself as a{{' (pending)' if club.is_approved === 0 else ''}} leader of {{club.name}} ?"
+          hx-target="closest section"
+          hx-swap="innerHTML"
+          ><img src="/static/icons/close-icon.svg"></button>
+      {% endfor %}
   </ul>
 </div>
 
@@ -22,7 +23,7 @@
     <option value={{club.id}}>{{club.name}}</option>
     {% endfor %}
   </select>
-  <button class="action approve" type=submit>Request</button>
+  <button class="action approve" type=submit>Add</button>
 </div>
 <button class="action deny" hx-get="/profile/{{ userId }}?card=true">Close</button>
 </form>
