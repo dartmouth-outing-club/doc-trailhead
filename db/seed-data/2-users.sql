@@ -18,10 +18,10 @@ INSERT INTO certs_vehicles VALUES
   (5,'MICROBUS',0),
   (5,'VAN',0);
 
-INSERT INTO club_leaders VALUES
-  (1, 4, 1, 1),
-  (1, 11, 1, 1),
-  (1, 15, 1, 1),
-  (2, 4, 1, 1),
-  (3, 4, 1, 1),
-  (4, 4, 0, 0);
+INSERT INTO club_leaders(user, club, is_chair) VALUES
+  (1, 4, 0),
+  (1, 11, 0),
+  (1, 15, 0),
+  (2, 4, 0),
+  (3, 4, 0),
+  (4, 4, 0);
