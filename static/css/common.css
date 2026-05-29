@@ -33,7 +33,8 @@ body {
 }
 
 main {
-  padding: 30px 20px;
+  margin: 30px auto;
+  max-width: 1200px;
 }
 
 main > .info-card, main > .trip-card {
@@ -140,21 +141,18 @@ a.top-link:visited {
   color: inherit;
 }
 
-.warn-message {
-  margin: 1rem 0;
-  padding: 1rem;
+.message {
+  margin-bottom: 1rem;
+  padding: .5rem;
+  font-size: 1.1rem;
+  border-radius: 6px;
+}
+
+.warn {
   background-color: var(--warning-main-color);
 }
 
-.urgent-message {
-  margin: 1rem 0;
-  padding: 1rem;
-  background-color: var(--error-main-color);
-}
-
-.error-message {
-  margin: 1rem 0;
-  padding: 1rem;
+.error {
   background-color: var(--error-main-color);
   color: white;
 }
@@ -198,7 +196,6 @@ a.top-link:visited {
   background: white;
   border-radius: 10px;
   box-shadow: 5px 5px 20px rgba(0,0,0,.25);
-  max-width: 1200px;
   padding: 10px 20px 10px 20px;
 }
 
