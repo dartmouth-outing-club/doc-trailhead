@@ -1,13 +1,23 @@
 <section class=info-card hx-target=this hx-swap=outerHTML>
   <template id=additional-individual-gear>
     <div class=gear-row>
-      <input type=text name=item required>
+
+      <select name=item
+              autocomplete=off
+              required
+              >
+        {% for g in available_individual_gear %}
+        <option {% if g.id === g.id %}selected {% endif %}value="{{g.id}}">{{g.name}}</option>
+        {% endfor %}
+        </select>
+
       <select name=measurement>
         <option value=none>No measurement
         <option value=Shoe>Shoe
         <option value=Clothe>Clothing
         <option value=Height>Height
       </select>
+
       <button class=close-button type=button onclick="this.parentElement.remove()">
         <img alt="Close Icon" src="/static/icons/close-icon.svg">
       </button>

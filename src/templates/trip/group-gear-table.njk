@@ -1,0 +1,10 @@
+<div id="group-gear-table">
+  <table class="detail-table gear">
+    {% for item in group_gear %}
+      <tr><th>{{ item.name }}<td>{{ item.quantity }}
+        {% if show_group_gear_approval_buttons %}
+          {% include "trip/group-gear-buttons.njk" %}
+        {% endif %}
+    {% endfor %}
+  </table>
+</div>

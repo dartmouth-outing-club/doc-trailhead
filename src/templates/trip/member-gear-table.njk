@@ -1,0 +1,14 @@
+<div id="member-gear-table"> 
+  <table class="detail-table gear">
+    {% for item in member_requested_gear %}
+    <tr><th>{{ item.name }}<td>{{ item.quantity }}
+      {% if show_member_gear_approval_buttons %}
+          {% include "trip/member-gear-buttons.njk" %}
+      {% endif %}
+    {% endfor %}
+  </table>
+  <p class=notice>
+  Note: this only includes the gear request of trippees that have been admitted.
+  Admitting additional trippees will change the request.
+  </p>
+</div>

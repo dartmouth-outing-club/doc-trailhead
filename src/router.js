@@ -23,6 +23,7 @@ import * as tripApprovalsView from './routes/opo/trip-approvals.js'
 import * as vehicleRequests from './routes/opo/vehicle-requests.js'
 import * as profileApprovals from './routes/opo/profile-approvals.js'
 import * as manageFleet from './routes/opo/manage-fleet.js'
+import * as manageGear from './routes/opo/manage-gear.js'
 
 import * as chairTripOverview from './routes/chair/trip-overview.js'
 import * as chairProfileApprovals from './routes/chair/profile-approvals.js'
@@ -54,6 +55,7 @@ router.get('/all-trips', requireAuth, allTripsView.get)
 router.get('/opo/vehicle-requests', requireOpo, vehicleRequests.get)
 router.get('/opo/trip-approvals', requireOpo, tripApprovalsView.get)
 router.get('/opo/manage-fleet', requireOpo, manageFleet.get)
+router.get('/opo/manage-gear', requireOpo, manageGear.get)
 router.get('/opo/profile-approvals', requireOpo, profileApprovals.get)
 router.get('/leader/trip/:tripId', requireTripLeader, trip.getLeaderView)
 
@@ -139,13 +141,20 @@ router.put(     '/opo/vehiclerequest/:requestId/approve',   requireOpo, gearAppr
 router.put(     '/opo/vehiclerequest/:requestId/deny',      requireOpo, gearApprovals.denyVehicleRequest)
 router.put(     '/opo/vehiclerequest/:requestId/reset',     requireOpo, gearApprovals.resetVehicleRequest)
 
-router.put(     '/opo/member-gear/:tripId/approve',         requireOpo, gearApprovals.approveMemberGear)
-router.put(     '/opo/member-gear/:tripId/deny',            requireOpo, gearApprovals.denyMemberGear)
-router.put(     '/opo/member-gear/:tripId/reset',           requireOpo, gearApprovals.resetMemberGear)
+router.put(     '/opo/member-gear/:tripId/approve/:gearId',           requireOpo, gearApprovals.approveMemberGear)
+router.put(     '/opo/member-gear/:tripId/deny/:gearId',              requireOpo, gearApprovals.denyMemberGear)
+router.put(     '/opo/member-gear/:tripId/reset/:gearId',             requireOpo, gearApprovals.resetMemberGear)
+router.get(     '/opo/member-gear/:tripId/adjust/:gearId/:quantity',  requireOpo, gearApprovals.getAdjustMemberGear)
+router.put(     '/opo/member-gear/:tripId/adjust/:gearId/',           requireOpo, gearApprovals.putAdjustMemberGear)
 
-router.put(     '/opo/group-gear/:tripId/approve',          requireOpo, gearApprovals.approveGroupGear)
-router.put(     '/opo/group-gear/:tripId/deny',             requireOpo, gearApprovals.denyGroupGear)
-router.put(     '/opo/group-gear/:tripId/reset',            requireOpo, gearApprovals.resetGroupGear)
+router.put(     '/opo/group-gear/:tripId/approve/:gearId',            requireOpo, gearApprovals.approveGroupGear)
+router.put(     '/opo/group-gear/:tripId/deny/:gearId',               requireOpo, gearApprovals.denyGroupGear)
+router.put(     '/opo/group-gear/:tripId/reset/:gearId',              requireOpo, gearApprovals.resetGroupGear)
+router.get(     '/opo/group-gear/:tripId/adjust/:gearId/:quantity',   requireOpo, gearApprovals.getAdjustGroupGear)
+router.put(     '/opo/group-gear/:tripId/adjust/:gearId/',            requireOpo, gearApprovals.putAdjustGroupGear)
+//NOTE: this quantity needs to get moved to a diff request
+//"get adjust" 
+// and then a "post adjust" get the quantity
 
 router.put(     '/opo/pcard/:tripId/approve',               requireOpo, gearApprovals.approvePcard)
 router.put(     '/opo/pcard/:tripId/deny',                  requireOpo, gearApprovals.denyPcard)
@@ -153,6 +162,9 @@ router.put(     '/opo/pcard/:tripId/reset',                 requireOpo, gearAppr
 
 router.post(    '/opo/manage-fleet',                        requireOpo, manageFleet.post)
 router.delete(  '/opo/manage-fleet/:id',                    requireOpo, manageFleet.del)
+
+router.post(    '/opo/manage-gear',                        requireOpo, manageGear.post)
+router.delete(  '/opo/manage-gear/:id',                    requireOpo, manageGear.del)
 
 router.put(     '/opo/profile-approvals/leaders/:req_id',   requireOpo, profileApprovals.approveLeadershipRequest)
 router.delete(  '/opo/profile-approvals/leaders/:req_id',   requireOpo, profileApprovals.denyLeadershipRequest)

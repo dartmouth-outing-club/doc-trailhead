@@ -1,7 +1,16 @@
 <section class=info-card hx-target=this hx-swap=outerHTML>
   <template id=additional-group-gear>
     <div class=gear-row>
-      <input type=text name=item required>
+
+      <select name=item
+              autocomplete=off
+              required
+              >
+        {% for g in available_group_gear %}
+        <option {% if g.id === g.id %}selected {% endif %}value="{{g.id}}">{{g.name}}</option>
+        {% endfor %}
+        </select>
+
       <input type=number name=quantity min=1 value=1 required>
       <button class=close-button type=button onclick="this.parentElement.remove()">
         <img alt="Close Icon" src="/static/icons/close-icon.svg">

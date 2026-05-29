@@ -1,0 +1,66 @@
+{% include "common/site-head.njk" %}
+<title>Manage Gear - DOC Trailhead</title>
+<link rel="stylesheet" href="/static/css/manage-fleet.css">
+
+{% include "common/site-nav.njk" %}
+<main>
+
+<section class="add-vehicle info-card">
+<h1>Add Gear</h1>
+<form action="/opo/manage-gear" method=post>
+  <label for=name>Gear  Name</label>
+  <input type=text id=name name=name placeholder="headlamp">
+  <label for=gearclass>Gear Class</label>
+  <!--TODO: a filter by class?-->
+  <select id=gearclass name=gearclass><option>Individual<option>Group </select>
+
+  <label for=description>Gear Description</label>
+  <input id=description name=description type=text placeholder="Min 250+ lumens for night-hiking, less for camp">
+
+  <label for=type>Gear Type</label>
+  <input id=type name=type type=text placeholder="lights">
+
+  <label for=quantity>Gear Quantity</label>
+  <input id=quantity name=quantity type=number value=1 min=1>
+
+  <label for=rental_fee>Rental Fee ($)</label>
+  <input id=rental_fee name=rental_fee type=number value=1 min=1>
+
+  <label for=replacement_fee>Replacement Fee ($)</label>
+  <input id=replacement_fee name=replacement_fee type=number value=1 min=1>
+
+  <button class="action approve">Add</button>
+
+</form>
+</section>
+
+<section class="fleet info-card">
+<h1>Gear</h1>
+<div class=trip-table-overflow-wrapper>
+<table class=trip-table>
+<thead><tr><th>Name<th>Class<th>Description<th>Type<th>Quantity<th>Rental Fee<th>Replacement Fee<th>
+<tbody>
+{% for gear in all_gear %}
+  <tr>
+    <td>{{ gear.name }}
+    <td>{{ gear.class }}
+    <td>{{ gear.description }}
+    <td>{{ gear.type }}
+    <td>{{ gear.quantity }}
+    <td>{{ gear.rental_fee }}
+    <td>{{ gear.replacement_fee }}
+    <td><button
+        class="action deny"
+        hx-confirm="Delete {{ gear.name }} from list?"
+        hx-delete="/opo/manage-gear/{{ gear.id }}"
+        hx-target="closest tr"
+        hx-swap="outerHTML swap:.7s"
+      >Delete</button>
+  </tr>
+{% endfor %}
+</table>
+</div>
+</section>
+
+</main>
+

@@ -2,6 +2,10 @@ import { BadRequestError } from '../../request/errors.js'
 import * as utils from '../../utils.js'
 
 export function getRequestsView(req, res) {
+
+  const available_individual_gear = req.db.getActiveGear("Individual")
+  const available_group_gear = req.db.getActiveGear("Group")
+
   const tripId = req.params.tripId
   const statuses = req.db.get(`
     SELECT
@@ -23,7 +27,9 @@ export function getRequestsView(req, res) {
     ...vehicleData,
     ...individualGearData,
     ...groupGearData,
-    ...pcardData
+    ...pcardData,
+    available_individual_gear,
+    available_group_gear
   })
 }
 
@@ -52,13 +58,19 @@ function getVehicleRequestData(req, tripId) {
 }
 
 function getIndividualGearData(req, tripId) {
-  const gear = req.db.all('SELECT id, name, size_type FROM trip_required_gear WHERE trip = ?', tripId)
-  // TODO it's insane that I'm returning the parameter again
+    //TODO: add option for "other" or to mark optional / required
+    // where "name" is actually the gearid 
+    // and maybe a "description tag for requests"
+  const gear = req.db.all('SELECT trip_required_gear.id, gear.name, size_type FROM trip_required_gear join gear on gear.id = trip_required_gear.name WHERE trip = ? ', tripId)
+    console.log(gear)
+  // TODO it's insane that I'm returning the parameter again 
   return { trip_id: tripId, individual_gear: gear }
 }
 
 function getGroupGearData(req, tripId) {
-  const gear = req.db.all('SELECT rowid as id, name, quantity FROM group_gear_requests WHERE trip = ?', tripId)
+    //NOTE: rowid?? 
+    //NOTE: also why is this "group_gear_requests" but the other table is "trip_required_gear"
+  const gear = req.db.all('SELECT group_gear_requests.rowid as id, gear.name, group_gear_requests.quantity FROM group_gear_requests join gear on gear.id = group_gear_requests.name WHERE trip = ?', tripId)
   return { trip_id: tripId, group_gear: gear }
 }
 
@@ -139,6 +151,7 @@ export function putIndividualGear(req, res) {
   const tripId = req.params.tripId
   const input = { ...req.body }
   const items = Array.isArray(input.item) ? input.item : [input.item]
+    console.log(items);
   const measurements = Array.isArray(input.measurement) ? input.measurement : [input.measurement]
 
   if (items.length !== measurements.length) return res.sendStatus(400)
@@ -147,6 +160,7 @@ export function putIndividualGear(req, res) {
   const gear = items.map((item, index) => {
     return { trip: tripId, name: item, size_type: measurements[index] }
   })
+
 
   req.db.runMany(`
     INSERT INTO trip_required_gear (trip, name, size_type)

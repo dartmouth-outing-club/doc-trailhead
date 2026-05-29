@@ -217,6 +217,10 @@ export default class TrailheadDatabaseConnection {
     return this.all('SELECT id, name FROM vehicles WHERE active = TRUE ORDER BY name')
   }
 
+  getActiveGear(gearclass) {
+    return this.all('SELECT id, name FROM gear WHERE active = TRUE AND class= ? ORDER BY name', gearclass)
+  }
+
   getTripEmailInfo(tripId) {
     const trip = this.get(`
     SELECT trips.id, title, users.email as owner_email

@@ -202,44 +202,12 @@ on time. 48 hours before trip-start you can begin checking out your trip.
 <div class=dual-table-container>
 <div>
   <div class=table-status-row><h3>Individual Gear</h3>{{ member_gear_status | safe }}</div>
-  <table class="detail-table gear">
-    {% for item in member_requested_gear %}
-    <tr><th>{{ item.name }}<td>{{ item.quantity }}
-    {% endfor %}
-  </table>
-  <p class=notice>
-  Note: this only includes the gear request of trippees that have been admitted.
-  Admitting additional trippees will change the request.
-  </p>
-  {% if show_member_gear_approval_buttons %}
-  <div class=button-row>
-    <button class="action deny" hx-put="/opo/member-gear/{{ trip_id }}/deny">Deny</button>
-    {% if member_gear_approved === 1 %}
-    <button class="action edit" hx-put="/opo/member-gear/{{ trip_id }}/reset">Reset</button>
-    {% else %}
-    <button class="action approve" hx-put="/opo/member-gear/{{ trip_id }}/approve">Approve</button>
-    {% endif %}
-  </div>
-  {% endif %}
+  {% include "trip/member-gear-table.njk" %}
 </div>
+
 <div>
   <div class=table-status-row><h3>Group Gear</h3>{{ group_gear_status | safe }}</div>
-  <table class="detail-table gear">
-    {% for item in group_gear %}
-    <tr><th>{{ item.name }}<td>{{ item.quantity }}
-    {% endfor %}
-  </table>
-  {% if show_group_gear_approval_buttons %}
-  <div class=button-row>
-    <button class="action deny" hx-put="/opo/group-gear/{{ trip_id }}/deny">Deny</button>
-    {% if group_gear_approved === 1 %}
-    <button class="action edit" hx-put="/opo/group-gear/{{ trip_id }}/reset">Reset</button>
-    {% else %}
-    <button class="action approve" hx-put="/opo/group-gear/{{ trip_id }}/approve">Approve</button>
-    {% endif %}
-  </div>
-  {% endif %}
-  </div>
+  {% include "trip/group-gear-table.njk" %}
 </div>
 </section>
 

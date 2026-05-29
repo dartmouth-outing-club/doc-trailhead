@@ -1,10 +1,10 @@
 export function getIndividualRequestedGear(db, tripId) {
-// I couldn't immediately think of a sophisticated way to combine these three queries
+  // I couldn't immediately think of a sophisticated way to combine these three queries
   // I think is one area where a better database structure would help, but might be unnecessary
   // Anyway it's not that fancy, just one GROUP BY for shoes and one for clothes
   // Everything else is not sized
   const requestedShoes = db.all(`
-    SELECT trg.name || ' (' || shoe_size || ')' AS name, count(users.name) AS quantity
+    SELECT trg.name || ' (' || shoe_size || ')' AS name, count(users.name) AS quantity, gear_id, is_approved
     FROM member_gear_requests AS mgr
     LEFT JOIN trip_required_gear AS trg ON trg.id = mgr.gear
     LEFT JOIN users on mgr.user = users.id
@@ -14,7 +14,7 @@ export function getIndividualRequestedGear(db, tripId) {
   `, tripId, tripId)
 
   const requestedClothes = db.all(`
-    SELECT trg.name || ' (' || clothe_size || ')' AS name, count(users.name) AS quantity
+    SELECT trg.name || ' (' || clothe_size || ')' AS name, count(users.name) AS quantity, gear_id, is_approved
     FROM member_gear_requests AS mgr
     LEFT JOIN trip_required_gear AS trg ON trg.id = mgr.gear
     LEFT JOIN users on mgr.user = users.id
@@ -24,7 +24,7 @@ export function getIndividualRequestedGear(db, tripId) {
   `, tripId, tripId)
 
   const requestedElse = db.all(`
-    SELECT trg.name, count(users.name) AS quantity
+    SELECT trg.name, count(users.name) AS quantity, gear_id, is_approved
     FROM member_gear_requests AS mgr
     LEFT JOIN trip_required_gear AS trg ON trg.id = mgr.gear
     LEFT JOIN users on mgr.user = users.id
@@ -42,6 +42,9 @@ export function getIndividualRequestedGear(db, tripId) {
 
 export function getGroupRequestedGear(db, tripId) {
   return db.all(`
-    SELECT name, quantity FROM group_gear_requests WHERE trip = ? ORDER BY quantity DESC
+    SELECT group_gear_requests.name, group_gear_requests.quantity, gear_id, is_approved
+    FROM group_gear_requests 
+    LEFT JOIN gear on gear.id = gear_id
+    WHERE trip = ? ORDER BY group_gear_requests.quantity DESC
   `, tripId)
 }

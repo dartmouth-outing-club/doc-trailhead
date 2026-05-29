@@ -1,0 +1,14 @@
+<form>
+  <input id="quantity" name="quantity" type=number value={{quantity}}>
+  {% if gear_type == "group" %}
+  <button class="action approve" hx-put="/opo/group-gear/{{ trip_id }}/adjust/{{ gear_id }}/"
+                                 hx-include="#quantity"
+                                 hx-target="#group-gear-table"
+                                 hx-swap="innerHTML" >Approve</button>
+
+  {% elif gear_type == "member" %}
+  <button class="action approve" hx-put=""
+                                 hx-target=""
+                                 hx-swap="" >Approve</button>
+  {% endif %}
+</form>
