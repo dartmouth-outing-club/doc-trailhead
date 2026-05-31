@@ -69,15 +69,6 @@ function getProfileData(req, userId, hideControls) {
   const user = req.db.get('SELECT * FROM users WHERE id = ?', userId)
   if (!user) throw new NotFoundError(`User ${userId} not found`)
 
-  const certs_vehicles = req.db.all(`
-    SELECT cert, iif(is_approved, 'Approved', 'Pending') as status
-    FROM certs_vehicles WHERE user = ?
-    `, userId
-  )
-  user.van_cert = certs_vehicles.find(c => c.cert === 'VAN')
-  user.minivan_cert = certs_vehicles.find(c => c.cert === 'MINIVAN')
-  user.trailer_cert = certs_vehicles.find(c => c.cert === 'TRAILER')
-
   user.today_iso = utils.getDateValueForToday()
   const certs_med = req.db.get('SELECT type, expiration FROM certs_med WHERE user = ?', userId)
   if (certs_med) {
