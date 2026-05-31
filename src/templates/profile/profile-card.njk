@@ -23,32 +23,7 @@
 
 {% if not hide_controls %}
 <button class="action edit" hx-get="/profile/{{ id }}/edit-profile">Edit profile</button>
-
 {% endif %}
-
-</section>
-
-<section>
-  <h2>Vehicle Certifications</h2>
-
-  <dl>
-    <dt>Van Certified?</dt>
-    <dd>{{ van_cert.status | default('No') }}</dd>
-
-    <dt>Minivan Certified?</dt>
-    <dd>{{ minivan_cert.status | default('No') }}</dd>
-
-    <dt>Trailer Certified?</dt>
-    <dd>{{ trailer_cert.status | default('No') }}</dd>
-  </dl>
-
-  {% if not hide_controls %}
-  <div hx-swap=innerHTML hx-target="closest section" class=button-row>
-    <button class="action edit" hx-get="/profile/{{ id }}/driver-cert">
-      {{ 'Edit' if is_opo == true else 'Request' }} vehicle cert
-    </button>
-  </div>
-  {% endif %}
 </section>
 
 <section>
