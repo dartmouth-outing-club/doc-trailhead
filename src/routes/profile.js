@@ -177,57 +177,6 @@ export function put(req, res) {
   return getProfileCard(req, res)
 }
 
-const VALID_VEHICLE_CERTS = ['VAN', 'MINIVAN', 'TRAILER']
-export function getVehicleCertRequest(req, res) {
-  const userId = parseInt(req.params.userId)
-  if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
-
-  // TODO this is a little gnarly and could be cleaned up
-  const vehicle_certs = req.db.all('SELECT cert, is_approved FROM certs_vehicles WHERE user = ?', userId)
-  const checkboxes = VALID_VEHICLE_CERTS.map(cert => {
-    const userCert = vehicle_certs.find(item => item.cert === cert)
-    const attributes = userCert ? `checked ${userCert.is_approved && !res.locals.is_opo ? 'disabled ' : ''}` : ''
-    return `<label><input ${attributes}type=checkbox name=vehicle_cert value=${cert}></input>${cert}</label>`
-  })
-  const form = `
-  <form hx-boost=true
-        hx-push-url=false
-        action=/profile/${userId}/driver-cert
-        method=post class="vehicle-cert-request">
-    ${checkboxes.join('\n')}
-    <div class="button-row">
-      <button class="action deny" hx-get="/profile/${userId}?card=true">Cancel</button>
-      <button class="action approve" type=submit>Save</button>
-    </div>
-  </form>
-  `
-  res.send(form).status(200)
-}
-export function postVehicleCertRequest(req, res) {
-  const userId = parseInt(req.params.userId)
-  if (userId !== req.user && !res.locals.is_opo) return res.sendStatus(403)
-
-  // If you're the user, delete all the *pending* requests and add the new ones
-  // If you're OPO, you can just delete all the requests
-  req.db.run(`DELETE FROM certs_vehicles WHERE user = ? ${!res.locals.is_opo ? 'and is_approved = 0' : ''}`, userId)
-
-  // If the body is empty, that means the user has removed their certs, and we're done
-  if (!req.body.vehicle_cert) return getProfileCard(req, res)
-
-  // body-parser weirdness: if there's a single value it's a string, if there's multiple it's an
-  // array of strings
-  const is_approved = res.locals.is_opo === true ? 1 : 0
-  const certs_vehicles = typeof req.body.vehicle_cert === 'string' ? [req.body.vehicle_cert] : req.body.vehicle_cert
-  certs_vehicles
-    .filter(cert => VALID_VEHICLE_CERTS.includes(cert))
-    .map(cert => req.db.run(
-      'INSERT OR IGNORE INTO certs_vehicles (user, cert, is_approved) VALUES (?, ?, ?)',
-      userId, cert, is_approved
-    )) // INSERT OR IGNORE so that existing, approved certs will not be overwritten
-
-  return getProfileCard(req, res)
-}
-
 export function getClubLeadershipRequest(req, res) {
   const userId = parseInt(req.params.userId)
 
