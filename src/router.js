@@ -75,8 +75,6 @@ router.get(     '/profile/:userId',                         requireAuth, profile
 router.put(     '/profile/:userId',                         requireAuth, profile.put)
 router.get(     '/profile/:userId/edit-profile',            requireAuth, profile.getProfileCardEditable)
 router.get(     '/profile/:userId/cancel-edit',             requireAuth, profile.getProfileCard)
-router.get(     '/profile/:userId/driver-cert',             requireAuth, profile.getVehicleCertRequest)
-router.post(    '/profile/:userId/driver-cert',             requireAuth, profile.postVehicleCertRequest)
 router.get(     '/profile/:userId/club-leadership',         requireAuth, profile.getClubLeadershipRequest)
 router.post(    '/profile/:userId/club-leadership',         requireAuth, profile.postClubLeadershipRequest)
 router.delete(  '/profile/:userId/club-leadership/:clubId', requireAuth, profile.deleteClubLeadershipRequest)
@@ -156,8 +154,6 @@ router.delete(  '/opo/manage-fleet/:id',                    requireOpo, manageFl
 
 router.put(     '/opo/profile-approvals/leaders/:req_id',   requireOpo, profileApprovals.approveLeadershipRequest)
 router.delete(  '/opo/profile-approvals/leaders/:req_id',   requireOpo, profileApprovals.denyLeadershipRequest)
-router.put(     '/opo/profile-approvals/vehiclecerts/:req_id',     requireOpo, profileApprovals.approveVehicleCertRequest)
-router.delete(  '/opo/profile-approvals/vehiclecerts/:req_id',     requireOpo, profileApprovals.denyVehicleCertRequest)
 router.put(     '/opo/profile-approvals/chair-request/:req_id',     requireOpo, profileApprovals.approveChairRequest)
 router.delete(  '/opo/profile-approvals/chair-request/:req_id',     requireOpo, profileApprovals.denyChairRequest)
 router.post(    '/opo/profile-approvals/search',            requireOpo, profileApprovals.searchUsers)
