@@ -53,9 +53,11 @@ function getLeaderData(req, tripId, userId) {
     leader,
     pending,
     created_at,
-    iif(trips.start_time < unixepoch() * 1000,
-        '-',
-        iif(attended = 0, 'No', 'Yes')) as attended,
+    CASE 
+      WHEN trips.start_time > unixepoch() * 1000 THEN '-'
+      WHEN attended = 0 THEN 'No'
+      WHEN attended = 1 THEN 'Yes' 
+    END as attended,
     allergies_dietary_restrictions,
     medical_conditions,
     iif(users.id = trips.owner, 1, 0) as is_owner
