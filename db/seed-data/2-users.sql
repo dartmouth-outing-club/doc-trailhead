@@ -7,17 +7,6 @@ VALUES
   ('trippee.user.2@DARTMOUTH.EDU',NULL,'Trippee User 2',NULL,'She / Her / Her','10013947','None','None','Women-M','Women-9.5','72',0),
   ('trippee.user.3@DARTMOUTH.EDU',NULL,'Trippee User 3',NULL,'They / Them / Their','100428466','None','None','Women-L','Women-9.5','68',0);
 
-INSERT INTO certs_vehicles VALUES
-  (1,'MICROBUS',1),
-  (1,'VAN',1),
-  (1,'TRAILER',1),
-  (2,'MICROBUS',1),
-  (2,'VAN',1),
-  (3,'MICROBUS',1),
-  (4,'MICROBUS',0),
-  (5,'MICROBUS',0),
-  (5,'VAN',0);
-
 INSERT INTO club_leaders(user, club, is_chair) VALUES
   (1, 4, 0),
   (1, 11, 0),

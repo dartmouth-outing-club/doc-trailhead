@@ -43,41 +43,6 @@
 </section>
 
 <section class="certs info-card">
-<h1>Vehicle certification requests</h1>
-{% if cert_requests.length === 0 %}
-<div><div class=notice>All set for now</div></div>
-{% else %}
-<table class=trip-table>
-<thead><tr><th>Person<th>Request<th></tr></thead>
-<tbody>
-{% for request in cert_requests %}
-  <tr>
-  <td><a href="/profile/{{ request.requester_id }}">{{request.requester_name}}</a>
-  <td>{{request.requested_item}}
-  <td>
-    <button
-      class="action deny"
-      hx-confirm="Deny {{request.requester_name}} as a leader for {{request.requested_item}}?"
-      hx-delete="/opo/profile-approvals/vehiclecerts/{{request.req_id}}"
-      hx-target="closest tr"
-      hx-swap="outerHTML swap:.7s"
-      >Deny
-    </button>
-    <button
-      class="action approve"
-      hx-confirm="Approve {{request.requester_name}} as a leader for {{request.requested_item}}?"
-      hx-put="/opo/profile-approvals/vehiclecerts/{{request.req_id}}"
-      hx-target="closest tr"
-      hx-swap="outerHTML swap:.7s"
-      >Approve
-    </button>
-  </tr>
-{% endfor %}
-</table>
-{% endif %}
-</section>
-
-<section class="certs info-card">
 <h1>Club Chair Requests</h1>
 {% if chair_requests.length === 0 %}
 <div><div class=notice>All set for now</div></div>
