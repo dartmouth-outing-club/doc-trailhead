@@ -1,0 +1,12 @@
+<p>
+If you had an incident or a near-miss on your trip,
+<a href="https://docs.google.com/forms/u/1/d/e/1FAIpQLSeo9jIcTGNstZ1uADtovDjJT8kkPtS-YpRwzJC2MZkVkbH0hw/viewform">
+  click here to file an incident report.</a>
+
+{% if pcard_approved == 1 %} 
+<p>
+Your trip has an approved pcard request associated with it. 
+<a href="https://docs.google.com/forms/d/e/1FAIpQLSeO7JDqULXJHDhtWAwvKFWqQN4McF3P71OOgCiWPp_wpuAGMg/viewform">
+  Please make sure to fill out the expense form. </a>
+{% endif %}
+

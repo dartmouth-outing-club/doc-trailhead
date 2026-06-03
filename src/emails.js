@@ -2,7 +2,7 @@ import nunjucks from 'nunjucks'
 
 import * as constants from './constants.js'
 
-const _48_HOURS_IN_MS = 172800000
+const _24_HOURS_IN_MS = 86400000
 const _1_HOUR_IN_MS = 3600000
 const _2_HOURS_IN_MS = 7200000
 
@@ -206,7 +206,7 @@ export function getTripGearChangedNotice(db, tripId) {
 
 export function getEmailsForTripsPendingCheckOut(db) {
   const now = new Date()
-  const emailWindow = new Date(now.getTime() + _48_HOURS_IN_MS)
+  const emailWindow = new Date(now.getTime() + _24_HOURS_IN_MS)
   const trips = db.all(`
     SELECT *
     FROM trips

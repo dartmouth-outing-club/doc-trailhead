@@ -2,7 +2,7 @@ import * as utils from '../../utils.js'
 import * as gear from './gear/gear.js'
 import { getVehicleRequestData } from '../vehicle-request.js'
 
-const _48_HOURS_IN_MS = 172800000
+const _24_HOURS_IN_MS = 86400000
 
 function getLeaderData(req, tripId, userId) {
   const user = req.db.get('SELECT is_opo FROM users WHERE id = ?', userId)
@@ -144,7 +144,7 @@ function getLeaderData(req, tripId, userId) {
 
   // Enable status buttons if we're close enough to trip-start
   const now = (new Date()).getTime()
-  if (trip.start_time < now + _48_HOURS_IN_MS) trip.check_out_enabled = true
+  if (trip.start_time < now + _24_HOURS_IN_MS) trip.check_out_enabled = true
   // Enable check-in if the trip has left; *disable* *check-out* if the trip has returned
   if (trip.left === 1) trip.check_in_enabled = true
   if (trip.returned === 1) trip.check_out_enabled = false

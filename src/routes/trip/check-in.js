@@ -8,8 +8,10 @@ export function get(req, res) {
       id as trip_id,
       title,
       left as checked_out,
-      returned as checked_in
+      returned as checked_in,
+      trip_pcard_requests.is_approved as pcard_approved
     FROM trips
+    LEFT JOIN trip_pcard_requests on trip_pcard_requests.trip = trip_id
     WHERE id = ?
   `, tripId)
   res.render('views/trip-check-in.njk', trip)

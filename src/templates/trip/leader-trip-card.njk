@@ -21,7 +21,7 @@ You are currently viewing this trip as a leader.
 <section>
 <h2>Check-In and Check-Out</h2>
 <p>It is very important to alert the Outdoor Programs Office that your trip is leaving and returning
-on time. 48 hours before trip-start you can begin checking out your trip.
+on time. 24 hours before trip-start you can begin checking out your trip.
 <div class=button-row>
   <a class="action approve"
      {% if check_out_enabled %}href="/trip/{{trip_id}}/check-out"{% endif %}
@@ -263,6 +263,7 @@ on time. 48 hours before trip-start you can begin checking out your trip.
       <input name=assigned_pcard
              type=text
              value="{{ pcard_request.assigned_pcard }}"
+             required
              {% if pcard_request.is_approved === 1 %}disabled{%endif%}
              >
     </label>
