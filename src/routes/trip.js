@@ -192,12 +192,24 @@ export function deleteTrip(req, res) {
     WHERE trip = ?
     `, tripId, tripId)
 
+  trip.requestedVehicles = req.db.all(`
+    SELECT 
+      type, 
+      datetime(pickup_time/1000, 'unixepoch') as pickup_time 
+    FROM vehiclerequests 
+    LEFT JOIN requested_vehicles ON requested_vehicles.vehiclerequest = vehiclerequests.id
+    WHERE trip = ? AND is_approved = true
+    `, tripId)
+
   const tripDeleteEmail = emails.getTripDeletedEmail(req.db, tripId)
 
   req.db.run('DELETE FROM trips WHERE id = ?', tripId)
   mailer.sendBuiltEmail(tripDeleteEmail)
   if (trip.requestedGear.length > 0) {
     mailer.sendBuiltEmail(emails.getTripDeletedGearUpdateEmail(trip))
+  }
+  if (trip.requestedVehicles.length > 0) {
+    mailer.sendBuiltEmail(emails.getTripDeletedVehicleUpdateEmail(trip))
   }
 
   res.set('HX-Redirect', '/my-trips')

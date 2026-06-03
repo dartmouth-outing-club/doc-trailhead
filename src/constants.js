@@ -18,6 +18,7 @@ export const OPOEmails = [
   'Clare.C.Arentzen@dartmouth.edu'
 ]
 export const gearAdminEmails = ['Dartmouth.Outdoor.Rentals@Dartmouth.edu', 'Andrew.M.Deaett@dartmouth.edu']
+export const vehicleAdminEmails = ['OPO.Vehicle.Reservations@dartmouth.edu']
 
 export function createDateObject(date, time, timezone) {
   // adapted from https://stackoverflow.com/questions/2488313/javascripts-getdate-returns-wrong-date

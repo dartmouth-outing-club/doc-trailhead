@@ -34,6 +34,15 @@ export function getTripDeletedGearUpdateEmail(trip) {
   }
 }
 
+export function getTripDeletedVehicleUpdateEmail(trip) {
+  return {
+    name: 'Trip Deleted (Vehicle Notice)',
+    address: constants.gearVehicleEmails,
+    subject: `Trip ${trip.id} with vehicle requests was deleted`,
+    message: nunjucks.render('emails/trip-deleted-vehicle-notification.njk', { trip })
+  }
+}
+
 export function getVehicleRequestProcessedEmail(db, tripId) {
   const leaderEmails = db.getTripLeaderEmails(tripId)
   return {

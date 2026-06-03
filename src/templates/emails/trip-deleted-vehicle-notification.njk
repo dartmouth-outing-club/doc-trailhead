@@ -1,0 +1,12 @@
+Hello,
+
+Trip #{{ trip.id }}: {{ trip.title }} was deleted, and they had requested the following vehicle requests approved:
+
+{% for vehicle in trip.requestedVehicles %}
+  - {{ vehicle.type }} - Approved for pickup at: {{ vehicle.pickup_time }})
+{% endfor %}
+
+Best,
+DOC Trailhead Platform
+
+This email was generated with 💚 by the Trailhead-bot 🤖, but it cannot respond to your replies.
