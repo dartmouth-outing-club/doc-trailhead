@@ -32,6 +32,7 @@ export function get(req, res) {
 
   let medcert_status
   let medcert_expiration_date
+  const isLeader = req.db.isLeader(req.user)
   if (userMedcert) {
     medcert_expiration_date = dateFormat(userMedcert.expiration, 'mm-dd-yyyy')
     const medcertExpiringSoon = (today + _60_DAYS_IN_MS) > userMedcert.expiration
@@ -40,7 +41,7 @@ export function get(req, res) {
     } else if (medcertExpiringSoon) {
       medcert_status = 'expiring_soon'
     }
-  } else {
+  } else if (isLeader) {
     medcert_status = 'not_found'
   }
 
