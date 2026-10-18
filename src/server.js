@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import express from 'express'
 import morgan from 'morgan'
 import nunjucks from 'nunjucks'
+import pkg from 'express-openid-connect'
+const { auth, requiresAuth } = pkg
 
 import apiRouter from './router.js'
 import * as constants from './constants.js'
@@ -17,6 +19,27 @@ export function startServer(trailheadDb, port) {
   const app = express()
   app.use(morgan('dev'))
   app.yearCache = (route, path) => app.use(route, express.static(path, { maxAge: ONE_YEAR_IN_MS }))
+
+  // This config was provided by Dartmouth IT
+  const oidcConfig = {
+    authRequired: false, // not sure why this is false but that's what they said
+    auth0Logout: false, // not Auth0 — use standard RP-initiated logout
+    secret: process.env.SESSION_SECRET,
+    baseURL: process.env.BASE_URL,
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    issuerBaseURL: process.env.ISSUER_BASE_URL,
+    authorizationParams: {
+      response_type: "code",
+      scope: process.env.OIDC_SCOPE || "openid profile email",
+    },
+    routes: {
+      login: "/login",
+      logout: "/logout",
+      callback: "/callback",
+    },
+  }
+  app.use(auth(oidcConfig));
 
   app.use('/static', express.static('static'))
   app.yearCache(`/htmx-${HTMX_VERSION}`, 'node_modules/htmx.org/dist')

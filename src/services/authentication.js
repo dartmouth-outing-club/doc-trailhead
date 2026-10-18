@@ -19,13 +19,12 @@ const NETID_RE = /<cas:netid>([^<]*)<\/cas:netid>/
 export function requireAuth(req, res, next) {
   const cookies = req.get('cookie')?.split('; ')
 
-  if (!cookies) {
-    console.warn('No cookies in request, sending user back to login page.')
+  if (!req.oidc.isAuthenticated()) {
     return denyLogin(req, res, next)
   }
 
-  const cookieToken = cookies.find(item => item.substring(0, 5) === 'token')?.substring(6)
-  const userId = req.db.getUserIdFromToken(cookieToken)
+  const userId = req.db.get(`SELECT id FROM users WHERE net_id = ?`, req.oidc.user.netid)?.id
+
   // If there is a valid user session for that token, then add the user to request and move on
   if (userId) {
     req.user = userId
@@ -96,54 +95,6 @@ export function requireOpo(req, res, next) {
     if (res.locals.is_opo === true) return next()
     return res.sendStatus(403)
   })
-}
-
-export async function signinCAS(req, res) {
-  const ticket = req.query.ticket
-  if (!ticket) return res.sendStatus(400)
-
-  // Validate the ticket that is provided with the CAS server to verify that it's valid
-  const params = new URLSearchParams({ service: service_url, ticket })
-  console.log(`val url: ${cas_url}`)
-
-  const validationUri = cas_url + '/serviceValidate?' + params
-
-  const validationRes = await fetch(validationUri)
-  const validationText = await validationRes.text()
-  console.log(`validation : ${validationText}`)
-
-  const partialCasId = validationText.match(CASID_RE)?.at(1)
-  const netId = validationText.match(NETID_RE)?.at(1)
-
-  // If the server did not send back a casId for that ticket, it's an invalid login
-  if (!partialCasId) {
-    console.error('CAS validation failed', validationText)
-    return res.sendStatus(400)
-  }
-  // Add the domain to the CasID to match what's in the database
-  const casId = partialCasId + '@DARTMOUTH.EDU'
-
-  // Originally, we used an older version of CAS that only gave us the CasID.
-  // Now, finally, we have the NetID, which doesn't change when people's names change
-  // This smoothely upgrades people as they login
-  let userId = req.db.getUserByNetId(netId)?.id
-  // If there's no user with that NetID, look for one with that CasID
-  if (!userId) {
-    userId = req.db.getUserByCasId(casId)?.id
-    // If there's no one with that CasID OR that NetID, they're a new user, so insert them
-    if (!userId) {
-      userId = req.db.insertUser(netId, casId)
-      console.log(`Created new user ${userId} for netId ${netId}`)
-    // Otherwise, if they have a CasID but no NetID, insert their NetID
-    } else {
-      req.db.run('UPDATE users SET net_id = ? WHERE id = ?', netId, userId)
-    }
-  }
-
-  const token = await generateAndInsertNewToken(req.db, userId)
-  console.log(`Signed in user ${userId} for casId ${casId}`)
-  res.cookie('token', token, { secure: true, sameSite: 'Lax', httpOnly: true })
-  return res.redirect('/')
 }
 
 export function logout(req, res) {

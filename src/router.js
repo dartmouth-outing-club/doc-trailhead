@@ -40,8 +40,6 @@ router.get('/', requireAuth, (req, res) => {
   const url = is_opo === 1 ? '/opo/trip-approvals' : '/all-trips'
   res.redirect(url)
 })
-router.get('/signin-cas', authentication.signinCAS)
-router.post('/logout', requireAuth, authentication.logout)
 
 /**********************
  * Basic webpage URLs

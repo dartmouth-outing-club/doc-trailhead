@@ -87,9 +87,8 @@
 
 <section>
   {% if is_self == true %}
-  <form method=post action="/logout">
-    <button class="action deny">Logout</button>
-  </form>
+  <!-- Yes I know this should be a POST but that's how the middleware Dartmouth gave me works -->
+  <a class="action deny button" href=/logout>Logout</a>
   {% endif %}
 </section>
 
