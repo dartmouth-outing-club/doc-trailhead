@@ -22,7 +22,7 @@ export function requireAuth(req, res, next) {
 
   if (cookies) {
     const cookieToken = cookies.find(item => item.substring(0, 5) === 'token')?.substring(6)
-    const cookieUserId = req.db.getUserIdFromToken(cookieToken)
+    cookieUserId = req.db.getUserIdFromToken(cookieToken)
   }
 
   if (!cookieUserId && !req.oidc.isAuthenticated()) {
