@@ -17,16 +17,19 @@ const NETID_RE = /<cas:netid>([^<]*)<\/cas:netid>/
  * don't want to duplicate.
  */
 export function requireAuth(req, res, next) {
+  let cookieUserId
   const cookies = req.get('cookie')?.split('; ')
 
-  const cookieToken = cookies.find(item => item.substring(0, 5) === 'token')?.substring(6)
-  const cookieUserId = req.db.getUserIdFromToken(cookieToken)
+  if (cookies) {
+    const cookieToken = cookies.find(item => item.substring(0, 5) === 'token')?.substring(6)
+    const cookieUserId = req.db.getUserIdFromToken(cookieToken)
+  }
+
+  if (!cookieUserId && !req.oidc.isAuthenticated()) {
+    return denyLogin(req, res, next)
+  }
 
   const userId = cookieUserId || req.db.get(`SELECT id FROM users WHERE net_id = ?`, req.oidc.user.netid)?.id
-
-  // if (!req.oidc.isAuthenticated()) {
-  //   return denyLogin(req, res, next)
-  // }
 
   // If there is a valid user session for that token, then add the user to request and move on
   if (userId) {
