@@ -19,14 +19,14 @@ const NETID_RE = /<cas:netid>([^<]*)<\/cas:netid>/
 export function requireAuth(req, res, next) {
   const cookies = req.get('cookie')?.split('; ')
 
-  if (!req.oidc.isAuthenticated()) {
-    return denyLogin(req, res, next)
-  }
-
   const cookieToken = cookies.find(item => item.substring(0, 5) === 'token')?.substring(6)
   const cookieUserId = req.db.getUserIdFromToken(cookieToken)
 
   const userId = cookieUserId || req.db.get(`SELECT id FROM users WHERE net_id = ?`, req.oidc.user.netid)?.id
+
+  // if (!req.oidc.isAuthenticated()) {
+  //   return denyLogin(req, res, next)
+  // }
 
   // If there is a valid user session for that token, then add the user to request and move on
   if (userId) {
