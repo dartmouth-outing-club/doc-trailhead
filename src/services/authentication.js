@@ -23,7 +23,10 @@ export function requireAuth(req, res, next) {
     return denyLogin(req, res, next)
   }
 
-  const userId = req.db.get(`SELECT id FROM users WHERE net_id = ?`, req.oidc.user.netid)?.id
+  const cookieToken = cookies.find(item => item.substring(0, 5) === 'token')?.substring(6)
+  const cookieUserId = req.db.getUserIdFromToken(cookieToken)
+
+  const userId = cookieUserId || req.db.get(`SELECT id FROM users WHERE net_id = ?`, req.oidc.user.netid)?.id
 
   // If there is a valid user session for that token, then add the user to request and move on
   if (userId) {
