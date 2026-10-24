@@ -1,27 +1,9 @@
-import crypto from 'node:crypto'
-
-import * as constants from '../constants.js'
-
-const service_url = `${constants.ORIGIN}/signin-cas`
-const cas_url = 'https://login.dartmouth.edu/cas'
-
-const CASID_RE = /<cas:name>([^<]*)<\/cas:name>/
-const NETID_RE = /<cas:netid>([^<]*)<\/cas:netid>/
-
-/**
- * Require authentication for a route.
- *
- * This function is pretty overloaded right now, as it's doing the hard work of both being its own
- * middleware and imperfectly being the "get user" step of the other middlewares. I need to split
- * them up, but it requires some thought to do because there are key parts of the logic that you
- * don't want to duplicate.
- */
 export function requireAuth(req, res, next) {
   if (!req.oidc.isAuthenticated()) {
     return denyLogin(req, res, next)
   }
 
-  const userId = req.db.get(`SELECT id FROM users WHERE net_id = ?`, req.oidc.user.netid)?.id
+  const userId = req.db.get('SELECT id FROM users WHERE net_id = ?', req.oidc.user.netid)?.id
 
   // If there is a valid user session for that token, then add the user to request and move on
   if (userId) {
@@ -32,7 +14,6 @@ export function requireAuth(req, res, next) {
     `, userId)
 
     if (!userInfo) {
-      req.db.invalidateToken(cookieToken)
       return denyLogin(req, res, next)
     }
     if (!userInfo.is_profile_complete && !req.url.includes('/new-user')) {
@@ -45,7 +26,6 @@ export function requireAuth(req, res, next) {
   }
 
   // Otherwise, invalidate the token we received (redundant, but clean) and deny login
-  req.db.invalidateToken(cookieToken)
   return denyLogin(req, res, next)
 }
 
@@ -99,21 +79,6 @@ export function logout(req, res) {
   req.db.invalidateUserToken(req.user)
   console.log(`Invalidate token for ${req.user}`)
   return sendToLogin(req, res)
-}
-
-async function generateAndInsertNewToken(db, userId) {
-  const token = await getRandomKey()
-  db.insertOrReplaceToken(userId, token)
-  return token
-}
-
-async function getRandomKey() {
-  return new Promise((resolve, reject) => {
-    crypto.randomBytes(256, (err, buf) => {
-      if (err) reject(err)
-      resolve(buf.toString('hex'))
-    })
-  })
 }
 
 function sendToLogin(_req, res, _next) {

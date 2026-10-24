@@ -3,10 +3,10 @@ import express from 'express'
 import morgan from 'morgan'
 import nunjucks from 'nunjucks'
 import pkg from 'express-openid-connect'
-const { auth, requiresAuth } = pkg
 
 import apiRouter from './router.js'
 import * as constants from './constants.js'
+const { auth } = pkg
 
 process.env.TZ = 'America/New_York'
 
@@ -30,16 +30,16 @@ export function startServer(trailheadDb, port) {
     clientSecret: process.env.CLIENT_SECRET,
     issuerBaseURL: process.env.ISSUER_BASE_URL,
     authorizationParams: {
-      response_type: "code",
-      scope: process.env.OIDC_SCOPE || "openid profile email",
+      response_type: 'code',
+      scope: process.env.OIDC_SCOPE || 'openid profile email'
     },
     routes: {
-      login: "/login",
-      logout: "/logout",
-      callback: "/callback",
-    },
+      login: '/login',
+      logout: '/logout',
+      callback: '/callback'
+    }
   }
-  app.use(auth(oidcConfig));
+  app.use(auth(oidcConfig))
 
   app.use('/static', express.static('static'))
   app.yearCache(`/htmx-${HTMX_VERSION}`, 'node_modules/htmx.org/dist')
